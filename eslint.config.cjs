@@ -82,12 +82,21 @@ const baseConfig = [
     },
   },
 
-  // JavaScript files configuration
+  // ES Module JavaScript files configuration
   {
-    files: ['**/*.js', '**/*.cjs', '**/*.mjs'],
+    files: ['**/*.js', '**/*.mjs'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
+    },
+  },
+
+  // CommonJS files configuration
+  {
+    files: ['**/*.cjs'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'commonjs',
     },
   },
 

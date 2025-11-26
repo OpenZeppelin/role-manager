@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+echo "🔍 Running pre-commit checks..."
+
+# Try to use NVM's Node.js if available
+if [ -s "$HOME/.nvm/nvm.sh" ]; then
+  # Load NVM
+  export NVM_DIR="$HOME/.nvm"
+  \. "$NVM_DIR/nvm.sh" # This loads nvm
+  
+  # Use Node.js 20+
+  nvm use 20 >/dev/null 2>&1
+  
+  echo "✅ Using Node.js $(node -v) from NVM"
+fi
+
+# Require Node.js 20+ as specified in package.json
+node_version=$(node -v | cut -d. -f1 | sed 's/v//')
+if [ "$node_version" -lt 20 ]; then
+  echo "❌ Error: Node.js version $(node -v) is incompatible. This project requires Node.js 20.19.0+."
+  echo "❌ Commit aborted. Please use Node.js 20+ for development."
+  exit 1
+fi
+
+# Check if there are any staged files
+staged_files=$(git diff --cached --name-only --diff-filter=ACMR)
+if [ -z "$staged_files" ]; then
+  echo "ℹ️ No files staged for commit, skipping checks."
+  exit 0
+fi
+
+# Run formatting and linting on staged files
+echo "🎨 Running formatting and linting..."
+pnpm fix-all

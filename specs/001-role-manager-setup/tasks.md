@@ -14,12 +14,12 @@
 
 ## Phase 2 — Foundational (Infrastructure)
 
-- [ ] T010 [P] Configure Husky and lint-staged (.husky/, package.json) for pre-commit hooks in /
-- [ ] T011 [P] Configure Commitlint (commitlint.config.js) matching UI Builder conventions in /
-- [ ] T012 [P] Create GitHub Actions CI workflow (.github/workflows/ci.yml) for build/lint/test in .github/
-- [ ] T013 [P] Create local development helper script (scripts/pack-ui-builder.sh) for packing upstream tarballs in scripts/
-- [ ] T014 [P] Create dependency mode switcher script (scripts/setup-local-dev.sh) for registry vs local in scripts/
-- [ ] T015 Verify Setup: Run pnpm install, build, and lint to ensure clean workspace state
+- [x] T010 [P] Configure Husky and lint-staged (.husky/, package.json) for pre-commit hooks in /
+- [x] T011 [P] Configure Commitlint (commitlint.config.js) matching UI Builder conventions in /
+- [x] T012 [P] Create GitHub Actions CI workflow (.github/workflows/ci.yml) for build/lint/test in .github/
+- [x] T013 [P] Create local development helper script (scripts/pack-ui-builder.sh) for packing upstream tarballs in scripts/
+- [x] T014 [P] Create dependency mode switcher script (scripts/setup-local-dev.sh) for registry vs local in scripts/
+- [x] T015 Verify Setup: Run pnpm install, build, and lint to ensure clean workspace state
 
 ## Phase 3 — US1: Developer Setup
 

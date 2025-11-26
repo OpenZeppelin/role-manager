@@ -20,7 +20,7 @@
     "format": "pnpm -r format",
     "format:check": "pnpm -r format:check",
     "fix-all": "pnpm format && pnpm lint:fix",
-    "prepare": "husky install",
+    "prepare": "husky",
     "commit": "git-cz",
     "changeset": "changeset"
   },
