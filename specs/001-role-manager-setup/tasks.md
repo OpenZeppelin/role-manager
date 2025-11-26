@@ -5,15 +5,17 @@
 - [ ] T001 Initialize Git repository and standard files (.gitignore, .editorconfig, LICENSE) in /
 - [ ] T002 Initialize PNPM workspace (pnpm-workspace.yaml, package.json, .npmrc) in /
 - [ ] T003 Create directory structure (apps/role-manager, packages/components, packages/hooks, scripts/) in /
-- [ ] T004 Install root build dependencies (typescript, vite, tsup, vitest, pnpm) in package.json
+- [ ] T004 Install root build dependencies (typescript, vite, tsup, vitest, pnpm, tailwindcss, postcss, autoprefixer) in package.json
 - [ ] T005 [P] Create base tsconfig files (tsconfig.json, tsconfig.base.json, tsconfig.node.json) mirroring UI Builder in /
 - [ ] T006 [P] Initialize ESLint flat config and Prettier setup (eslint.config.js, .prettierrc) in /
 - [ ] T007 Initialize Changesets configuration (.changeset/config.json) in .changeset/
+- [ ] T007a [P] Initialize Vitest workspace config (vitest.workspace.ts) in /
+- [ ] T007b [P] Initialize Tailwind and PostCSS config stubs (tailwind.config.cjs, postcss.config.cjs) in /
 
 ## Phase 2 — Foundational (Infrastructure)
 
 - [ ] T008 [P] Configure Husky and lint-staged (.husky/, package.json) for pre-commit hooks in /
-- [ ] T009 [P] Configure Commitlint (commitlint.config.js) matching UI Builder conventions in /
+- [ ] T009 [P] Configure Commitlint (commitlint.config.js) matching UI Builder conventions (referencing @commitlint/config-conventional) in /
 - [ ] T010 [P] Create GitHub Actions CI workflow (.github/workflows/ci.yml) for build/lint/test in .github/
 - [ ] T011 [P] Create local development helper script (scripts/pack-ui-builder.sh) for packing upstream tarballs in scripts/
 - [ ] T012 [P] Create dependency mode switcher script (scripts/setup-local-dev.sh) for registry vs local in scripts/
@@ -21,7 +23,7 @@
 
 ## Phase 3 — US1: Developer Setup
 
-*Goal: Enable developers to clone, install, and contribute immediately.*
+_Goal: Enable developers to clone, install, and contribute immediately._
 
 - [ ] T014 [US1] Create placeholder package.json for apps/role-manager with build/test/lint scripts in apps/role-manager/
 - [ ] T015 [US1] Create placeholder package.json for packages/components with tsup config in packages/components/
@@ -31,17 +33,16 @@
 
 ## Dependencies & Order
 
-- Phase 1 (T001-T007) must be completed before Phase 2.
+- Phase 1 (T001-T007b) must be completed before Phase 2.
 - Phase 2 (Infrastructure) validates the workspace health.
 - Phase 3 (US1) relies on the workspace configuration being active.
 
 ## Parallel Opportunities
 
-- T005, T006, T007 (Config files) can be done in parallel.
+- T005, T006, T007, T007a, T007b (Config files) can be done in parallel.
 - T008, T009, T010, T011, T012 (Infrastructure tools) are largely independent.
 - T014, T015, T016 (Package stubs) can be done in parallel.
 
 ## MVP Scope
 
 - All phases are required for the initial "Setup" MVP as this is a foundational feature.
-
