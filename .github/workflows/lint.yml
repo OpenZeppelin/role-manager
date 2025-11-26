@@ -1,11 +1,9 @@
-# CI workflow for Role Manager monorepo
-# =====================================
+# Lint workflow for Role Manager monorepo
+# =======================================
 
-name: CI
+name: Lint
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
 
@@ -13,14 +11,11 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  lint:
+    name: Lint Check
     runs-on: ubuntu-latest
     permissions:
       contents: read
-
-    strategy:
-      matrix:
-        node-version: [22.x]
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
@@ -36,20 +31,17 @@ jobs:
         with:
           run_install: false
 
-      - name: Setup Node.js ${{ matrix.node-version }}
+      - name: Setup Node.js
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 22.x
           cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install
 
-      - name: Build all packages
-        run: pnpm build
-        env:
-          NODE_OPTIONS: '--max-old-space-size=4096'
+      - name: Lint check
+        run: pnpm lint
 
-      - name: Test
-        run: pnpm test
-        continue-on-error: true
+      - name: Format check
+        run: pnpm format:check
