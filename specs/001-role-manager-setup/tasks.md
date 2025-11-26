@@ -25,11 +25,11 @@
 
 _Goal: Enable developers to clone, install, and contribute immediately._
 
-- [ ] T016 [US1] Create placeholder package.json for apps/role-manager with build/test/lint scripts in apps/role-manager/
-- [ ] T017 [US1] Create placeholder package.json for packages/components with tsup config in packages/components/
-- [ ] T018 [US1] Create placeholder package.json for packages/hooks with tsup config in packages/hooks/
-- [ ] T019 [US1] Update root package.json with workspace shortcuts (dev, build, test:all) in /
-- [ ] T020 [US1] Documentation: Add README.md with setup instructions and local development guide in /
+- [x] T016 [US1] Create placeholder package.json for apps/role-manager with build/test/lint scripts in apps/role-manager/
+- [x] T017 [US1] Create placeholder package.json for packages/components with tsup config in packages/components/
+- [x] T018 [US1] Create placeholder package.json for packages/hooks with tsup config in packages/hooks/
+- [x] T019 [US1] Update root package.json with workspace shortcuts (dev, build, test:all) in /
+- [x] T020 [US1] Documentation: Add README.md with setup instructions and local development guide in /
 
 ## Dependencies & Order
 
