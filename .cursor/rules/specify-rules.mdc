@@ -1,0 +1,29 @@
+# role-manager Development Guidelines
+
+Auto-generated from all feature plans. Last updated: 2025-11-26
+
+## Active Technologies
+
+- TypeScript 5.x (latest stable matching UI Builder) (001-role-manager-setup)
+
+## Project Structure
+
+```text
+src/
+tests/
+```
+
+## Commands
+
+npm test && npm run lint
+
+## Code Style
+
+TypeScript 5.x (latest stable matching UI Builder): Follow standard conventions
+
+## Recent Changes
+
+- 001-role-manager-setup: Added TypeScript 5.x (latest stable matching UI Builder)
+
+<!-- MANUAL ADDITIONS START -->
+<!-- MANUAL ADDITIONS END -->
