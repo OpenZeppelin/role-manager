@@ -1,0 +1,7 @@
+packages:
+  # Include all packages in the packages directory
+  - 'packages/*'
+  # Include apps
+  - 'apps/*'
+  # Exclude any node_modules directories
+  - '!**/node_modules/**'

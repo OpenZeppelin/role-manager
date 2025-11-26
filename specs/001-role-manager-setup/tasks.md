@@ -2,15 +2,15 @@
 
 ## Phase 1 — Setup (Blocking)
 
-- [ ] T001 Initialize Git repository and standard files (.gitignore, .editorconfig, LICENSE) in /
-- [ ] T002 Initialize PNPM workspace (pnpm-workspace.yaml, package.json, .npmrc) in /
-- [ ] T003 Create directory structure (apps/role-manager, packages/components, packages/hooks, scripts/) in /
-- [ ] T004 Install root build dependencies (typescript, vite, tsup, vitest, pnpm, postcss, tailwindcss) in package.json
-- [ ] T005 [P] Create base tsconfig files (tsconfig.json, tsconfig.base.json, tsconfig.node.json) mirroring UI Builder in /
-- [ ] T006 [P] Initialize ESLint flat config and Prettier setup (eslint.config.js, .prettierrc) mirroring UI Builder rules in /
-- [ ] T007 [P] Initialize Tailwind and PostCSS configuration stubs (tailwind.config.cjs, postcss.config.cjs) mirroring UI Builder in /
-- [ ] T008 [P] Initialize Vitest workspace configuration (vitest.shared.config.ts) mirroring UI Builder in /
-- [ ] T009 Initialize Changesets configuration (.changeset/config.json) in .changeset/
+- [x] T001 Initialize Git repository and standard files (.gitignore, .editorconfig, LICENSE) in /
+- [x] T002 Initialize PNPM workspace (pnpm-workspace.yaml, package.json, .npmrc) in /
+- [x] T003 Create directory structure (apps/role-manager, packages/components, packages/hooks, scripts/) in /
+- [x] T004 Install root build dependencies (typescript, vite, tsup, vitest, pnpm, postcss, tailwindcss) in package.json
+- [x] T005 [P] Create base tsconfig files (tsconfig.json, tsconfig.base.json, tsconfig.node.json) mirroring UI Builder in /
+- [x] T006 [P] Initialize ESLint flat config and Prettier setup (eslint.config.js, .prettierrc) mirroring UI Builder rules in /
+- [x] T007 [P] Initialize Tailwind and PostCSS configuration stubs (tailwind.config.cjs, postcss.config.cjs) mirroring UI Builder in /
+- [x] T008 [P] Initialize Vitest workspace configuration (vitest.shared.config.ts) mirroring UI Builder in /
+- [x] T009 Initialize Changesets configuration (.changeset/config.json) in .changeset/
 
 ## Phase 2 — Foundational (Infrastructure)
 
