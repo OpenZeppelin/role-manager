@@ -18,12 +18,19 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "@openzeppelin/ui-builder-styles": "file:../../../contracts-ui-builder/.packed-packages/openzeppelin-ui-builder-styles-0.10.0.tgz",
+    "@openzeppelin/ui-builder-ui": "file:../../../contracts-ui-builder/.packed-packages/openzeppelin-ui-builder-ui-0.16.0.tgz",
+    "lucide-react": "^0.555.0",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "react-router-dom": "^7.1.1"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.1.17",
     "@types/react": "^19.2.6",
     "@types/react-dom": "^19.1.7",
-    "@vitejs/plugin-react": "^4.7.0"
+    "@vitejs/plugin-react": "^4.7.0",
+    "tailwindcss": "^4.1.17",
+    "tailwindcss-animate": "^1.0.7"
   }
 }

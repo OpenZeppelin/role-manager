@@ -1,0 +1,27 @@
+/* Define layer order first - this is critical for predictability */
+@layer base, components, utilities;
+
+/* 
+  Import Tailwind directives.
+  The `source()` function is a Tailwind v4 feature that sets the base path for
+  automatic content detection. By setting it to the app source directory, Tailwind
+  can discover all necessary files in the app.
+*/
+@import 'tailwindcss';
+@source "./";
+@source "../../../node_modules/@openzeppelin/ui-builder-ui";
+
+/*
+  Import global theme variables and base styles from the UI Builder styles package.
+  This provides the design system theme, CSS variables, and base styles.
+*/
+@import '@openzeppelin/ui-builder-styles/global.css';
+
+/* App-specific styles or overrides can be added here, preferably in layers */
+@layer components {
+  /* Example: Add app-specific component styles */
+}
+
+@layer utilities {
+  /* Example: Add app-specific utility classes */
+}
