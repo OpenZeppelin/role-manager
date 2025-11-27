@@ -22,24 +22,6 @@ if [ "$node_version" -lt 20 ]; then
   exit 1
 fi
 
-# Early commit message validation (when using git commit -m "message")
-# This allows failing fast before running expensive lint/format operations
-if [ -f ".git/COMMIT_EDITMSG" ]; then
-  echo "📝 Validating commit message format (early check)..."
-  if ! npx --no -- commitlint --edit .git/COMMIT_EDITMSG 2>/dev/null; then
-    echo ""
-    echo "❌ Commit message format is invalid!"
-    echo ""
-    echo "📋 Allowed scopes: role-manager, components, hooks, deps, config, ci, docs, tests, release, ui, utils, types"
-    echo "📋 Allowed types: build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test, wip"
-    echo ""
-    echo "Example: feat(role-manager): add new feature"
-    echo ""
-    exit 1
-  fi
-  echo "✅ Commit message format is valid"
-fi
-
 # Check if there are any staged files
 staged_files=$(git diff --cached --name-only --diff-filter=ACMR)
 if [ -z "$staged_files" ]; then
