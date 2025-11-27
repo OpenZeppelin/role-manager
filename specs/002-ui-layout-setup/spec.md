@@ -11,9 +11,9 @@
 
 - Q: What specific placeholder content should be in the Sidebar and Header for this initial setup? → A: **Minimal Layout Content**: Sidebar contains a logo in its header and a single "Home" link; Header displays the app name "Role Manager" (no wallet connect button yet).
 - Q: How should the local UI Builder packages be linked/consumed by the Role Manager? → A: **Tarball Install**: The process will use the `pack-ui-builder.sh` script to create a local `.tgz` tarball and install it via a `file:` reference in `package.json`.
-- Q: What should act as the logo in the Sidebar? → A: **UI Builder Default**: Import and use the default logo/icon component provided by the UI Builder package to avoid external asset dependencies.
+- Q: What should act as the logo in the Sidebar? → A: **UI Builder Default**: Prefer using any logo/icon component or asset provided by the UI Builder package. If none is available, use a simple text-based or SVG placeholder consistent with the design system.
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - View Application Base Layout (Priority: P1)
 
@@ -25,7 +25,7 @@ As a user, I want to see a consistent application layout with navigation and hea
 
 **Acceptance Scenarios**:
 
-1. **Given** the application is running, **When** the user loads the landing page, **Then** the Sidebar is visible on the left side with the default UI Builder logo and "Home" link.
+1. **Given** the application is running, **When** the user loads the landing page, **Then** the Sidebar is visible on the left side with a logo/branding element and "Home" link.
 2. **Given** the application is running, **When** the user loads the landing page, **Then** the Header is visible at the top displaying "Role Manager".
 3. **Given** the layout is rendered, **When** the user observes the styling, **Then** it matches the design system provided by the UI Builder package (colors, spacing, typography).
 
@@ -44,34 +44,36 @@ As a developer, I want to use the local UI Builder packages so that I can develo
 1. **Given** a local development environment, **When** the `pack-ui-builder.sh` script is executed, **Then** the UI Builder packages are available for the Role Manager to consume.
 2. **Given** the packages are packed, **When** the Role Manager is started, **Then** it successfully imports and uses components from the UI Builder package (installed via local `.tgz`).
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
 - **FR-001**: System MUST import and utilize the UI component package from the UI Builder monorepo.
 - **FR-002**: System MUST import and apply the Tailwind CSS configuration/theme from the UI Builder to ensure visual consistency.
 - **FR-003**: System MUST implement a persistent Sidebar component for navigation containing:
-    - The default logo component imported from the UI Builder package.
-    - A single navigation item labeled "Home".
-- **FR-004**: System MUST implement a persistent Header component displaying the application name "Role Manager".
+  - A logo or branding element consistent with the UI Builder design system (using available UI Builder components or assets).
+  - A single navigation item labeled "Home".
+- **FR-004**: System MUST implement a persistent Header component displaying the application name "Role Manager" (using available UI Builder components or custom implementation following the design system).
 - **FR-005**: System MUST include a Main Content container that renders the active route's content (initially empty or placeholder).
 - **FR-006**: System MUST utilize the `@role-manager/scripts/pack-ui-builder.sh` script to create and install local package tarballs (`.tgz`) for UI Builder dependencies.
 
-### Key Entities *(include if feature involves data)*
+> **Note**: The exact components used (e.g., `Sidebar`, `Header`, `Logo`) depend on what the UI Builder package exports. Phase 0 of the implementation plan validates available exports before implementation begins. Requirements focus on functional outcomes; specific component names are determined during planning.
+
+### Key Entities _(include if feature involves data)_
 
 - **N/A**: This feature is purely presentational and structural.
 
 ### Edge Cases
 
 - **EC-001**: **Mobile Viewport**: How does the layout handle small screens?
-  - *Requirement*: The Sidebar should collapse or become a drawer on mobile breakpoints to avoid obscuring content.
+  - _Requirement_: The Sidebar should collapse or become a drawer on mobile breakpoints to avoid obscuring content.
 - **EC-002**: **Missing Packages**: What happens if the local package script hasn't run?
-  - *Requirement*: The build should fail with a clear error message indicating the dependency is missing, or the setup instructions should cover this.
+  - _Requirement_: The build should fail with a clear error message indicating the dependency is missing, or the setup instructions should cover this.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 
 - **SC-001**: Application compiles and runs successfully with 0 import errors related to UI Builder packages.
-- **SC-002**: The application layout renders the Sidebar (with default logo/Home link), Header (with App Name), and Main Content area correctly across standard viewport sizes.
+- **SC-002**: The application layout renders the Sidebar (with logo/branding and Home link), Header (with App Name), and Main Content area correctly across standard viewport sizes.
 - **SC-003**: UI styling (colors, fonts) visually matches the UI Builder's design system as defined in the imported package.

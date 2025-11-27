@@ -8,7 +8,7 @@
 
 **Goal**: Establish the local package workflow and integrate dependencies from the UI Builder monorepo.
 
-- [ ] T001 Run `pack-ui-builder.sh` to generate local tarballs for UI and Styles packages (apps/role-manager/scripts/pack-ui-builder.sh)
+- [ ] T001 Run `pack-ui-builder.sh` to generate local tarballs for UI and Styles packages (scripts/pack-ui-builder.sh)
 - [ ] T002 Install generated `.tgz` packages into Role Manager via `package.json` (apps/role-manager/package.json)
 - [ ] T003 Configure `tailwind.config.js` to extend UI Builder preset (apps/role-manager/tailwind.config.cjs)
 - [ ] T004 Configure `postcss.config.js` if needed for proper processing (apps/role-manager/postcss.config.cjs)
@@ -33,7 +33,7 @@
 - [ ] T012 [US1] Implement Header component using UI Builder imports with "Role Manager" title (apps/role-manager/src/components/Layout/Header.tsx)
 - [ ] T013 [US1] Integrate Sidebar and Header into `MainLayout` (apps/role-manager/src/components/Layout/MainLayout.tsx)
 - [ ] T014 [US1] Configure Sidebar responsive behavior to match UI Builder component defaults (apps/role-manager/src/components/Layout/MainLayout.tsx)
-- [ ] T015 [US1] Write unit test for `MainLayout` rendering children (apps/role-manager/src/components/Layout/__tests__/MainLayout.test.tsx)
+- [ ] T015 [US1] Write unit test for `MainLayout` rendering children (apps/role-manager/src/components/Layout/**tests**/MainLayout.test.tsx)
 
 ## Phase 4: Polish & Cross-Cutting Concerns
 
