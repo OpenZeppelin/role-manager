@@ -101,41 +101,33 @@ This project is organized as a monorepo with the following packages:
 
 This project can consume packages from the [UI Builder](https://github.com/OpenZeppelin/ui-builder) repository. To develop against local changes:
 
-### Using Local Tarballs
-
-1. **In `contracts-ui-builder`** (sibling directory):
-
+1. **Pack the dependencies** (in the root directory):
+   
    ```bash
-   # Pack the packages you need
-   pnpm pack --filter @openzeppelin/ui-builder-adapter-stellar
+   ./scripts/pack-ui-builder.sh
    ```
 
-2. **In `role-manager`**:
-
+2. **Switch to local tarballs**:
+   
    ```bash
-   # Switch to local tarball mode
-   ./scripts/setup-local-dev.sh --local
-   pnpm install
+   ./scripts/setup-local-dev.sh local
    ```
 
-3. **To revert to registry mode**:
+   This rewrites `package.json` to use `file:` paths pointing to the generated tarballs.
+
+3. **Revert to registry mode** (before committing):
 
    ```bash
-   ./scripts/setup-local-dev.sh --registry
-   pnpm install
+   ./scripts/setup-local-dev.sh registry
+   ```
+   
+   Or specify a version:
+   
+   ```bash
+   ./scripts/setup-local-dev.sh registry ^0.16.0
    ```
 
-### Packing UI Builder Packages
-
-Use the helper script to pack specific packages:
-
-```bash
-# Pack a single package
-./scripts/pack-ui-builder.sh --package adapter-stellar
-
-# Pack multiple packages
-./scripts/pack-ui-builder.sh --package adapter-stellar --package types
-```
+   **Note**: A `pre-commit` hook will prevent you from committing `file:` paths to ensure CI compatibility.
 
 ## Project Structure
 

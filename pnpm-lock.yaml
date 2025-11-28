@@ -126,11 +126,11 @@ importers:
   apps/role-manager:
     dependencies:
       '@openzeppelin/ui-builder-styles':
-        specifier: file:../../../contracts-ui-builder/.packed-packages/openzeppelin-ui-builder-styles-0.10.0.tgz
-        version: file:../contracts-ui-builder/.packed-packages/openzeppelin-ui-builder-styles-0.10.0.tgz
+        specifier: ^0.10.0
+        version: 0.10.0
       '@openzeppelin/ui-builder-ui':
-        specifier: file:../../../contracts-ui-builder/.packed-packages/openzeppelin-ui-builder-ui-0.16.0.tgz
-        version: file:../contracts-ui-builder/.packed-packages/openzeppelin-ui-builder-ui-0.16.0.tgz(@babel/runtime@7.28.4)(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(tailwindcss@4.1.17)(typescript@5.9.3)
+        specifier: ^0.16.0
+        version: 0.16.0(@babel/runtime@7.28.4)(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(tailwindcss@4.1.17)(typescript@5.9.3)
       lucide-react:
         specifier: ^0.555.0
         version: 0.555.0(react@19.2.0)
@@ -914,16 +914,14 @@ packages:
     resolution: {integrity: sha512-nn5ozdjYQpUCZlWGuxcJY/KpxkWQs4DcbMCmKojjyrYDEAGy4Ce19NN4v5MduafTwJlbKc99UA8YhSVqq9yPZA==}
     engines: {node: '>=12.4.0'}
 
-  '@openzeppelin/ui-builder-styles@file:../contracts-ui-builder/.packed-packages/openzeppelin-ui-builder-styles-0.10.0.tgz':
-    resolution: {integrity: sha512-cNu4xiRUVH3kT1hdioo579VnhjlcxJnpyBN0OxIelFRFcxDgD4egue/zAt+0gdctodc6YTxgKSdjT4E75JxxGw==, tarball: file:../contracts-ui-builder/.packed-packages/openzeppelin-ui-builder-styles-0.10.0.tgz}
-    version: 0.10.0
+  '@openzeppelin/ui-builder-styles@0.10.0':
+    resolution: {integrity: sha512-iKg/C6rpJSqAjR5WL/RPLah28JJ9koTBpCy/DFdcc1jSnEf8KLJdWJWuv3D0zP08X2AQ3wwIZsJBO02Brp90pg==}
 
   '@openzeppelin/ui-builder-types@0.16.0':
     resolution: {integrity: sha512-bEmsYxkN5HzunxNTQuVp2oMAhBynKVZUpgknEY+eYLqW0dTlD7hPLx708xtZ22Xgaf4pyC7shHo1vnZrfbNYQA==}
 
-  '@openzeppelin/ui-builder-ui@file:../contracts-ui-builder/.packed-packages/openzeppelin-ui-builder-ui-0.16.0.tgz':
-    resolution: {integrity: sha512-5k2R3N28Nwqu250Xx+2mJflhU/4KkfvKGC/FouBkTD245bGCGlYD4tK2Un8H7c4pfiuAAVFe2TFJqlrn4r7rqQ==, tarball: file:../contracts-ui-builder/.packed-packages/openzeppelin-ui-builder-ui-0.16.0.tgz}
-    version: 0.16.0
+  '@openzeppelin/ui-builder-ui@0.16.0':
+    resolution: {integrity: sha512-VL4Vivza7QwogseKBzOUegLcpsqduJoJ0hz2+O+VpWTo7/j8n2qgjkKs8voJHuOjTXUBSyE9+kPrXQjLXL7+4g==}
     peerDependencies:
       react: ^19.0.0
       react-dom: ^19.0.0
@@ -5653,11 +5651,11 @@ snapshots:
 
   '@nolyfill/is-core-module@1.0.39': {}
 
-  '@openzeppelin/ui-builder-styles@file:../contracts-ui-builder/.packed-packages/openzeppelin-ui-builder-styles-0.10.0.tgz': {}
+  '@openzeppelin/ui-builder-styles@0.10.0': {}
 
   '@openzeppelin/ui-builder-types@0.16.0': {}
 
-  '@openzeppelin/ui-builder-ui@file:../contracts-ui-builder/.packed-packages/openzeppelin-ui-builder-ui-0.16.0.tgz(@babel/runtime@7.28.4)(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(tailwindcss@4.1.17)(typescript@5.9.3)':
+  '@openzeppelin/ui-builder-ui@0.16.0(@babel/runtime@7.28.4)(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(tailwindcss@4.1.17)(typescript@5.9.3)':
     dependencies:
       '@openzeppelin/ui-builder-types': 0.16.0
       '@openzeppelin/ui-builder-utils': 0.16.0
