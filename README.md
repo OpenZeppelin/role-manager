@@ -102,13 +102,13 @@ This project is organized as a monorepo with the following packages:
 This project can consume packages from the [UI Builder](https://github.com/OpenZeppelin/ui-builder) repository. To develop against local changes:
 
 1. **Pack the dependencies** (in the root directory):
-   
+
    ```bash
    ./scripts/pack-ui-builder.sh
    ```
 
 2. **Switch to local tarballs**:
-   
+
    ```bash
    pnpm dev:local
    ```
@@ -120,9 +120,9 @@ This project can consume packages from the [UI Builder](https://github.com/OpenZ
    ```bash
    pnpm dev:registry
    ```
-   
+
    Or specify a version:
-   
+
    ```bash
    ./scripts/setup-local-dev.sh registry ^0.16.0
    ```
