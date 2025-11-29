@@ -110,7 +110,7 @@ This project can consume packages from the [UI Builder](https://github.com/OpenZ
 2. **Switch to local tarballs**:
    
    ```bash
-   ./scripts/setup-local-dev.sh local
+   pnpm dev:local
    ```
 
    This rewrites `package.json` to use `file:` paths pointing to the generated tarballs.
@@ -118,7 +118,7 @@ This project can consume packages from the [UI Builder](https://github.com/OpenZ
 3. **Revert to registry mode** (before committing):
 
    ```bash
-   ./scripts/setup-local-dev.sh registry
+   pnpm dev:registry
    ```
    
    Or specify a version:

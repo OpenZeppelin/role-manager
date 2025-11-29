@@ -28,7 +28,9 @@
     "fix-all": "pnpm format && pnpm lint:fix",
     "prepare": "husky",
     "commit": "git-cz",
-    "changeset": "changeset"
+    "changeset": "changeset",
+    "dev:local": "./scripts/setup-local-dev.sh local",
+    "dev:registry": "./scripts/setup-local-dev.sh registry"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,cjs,mjs}": "pnpm fix-all"
