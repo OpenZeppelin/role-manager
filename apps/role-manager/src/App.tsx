@@ -1,7 +1,10 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
 import { MainLayout } from './components/Layout/MainLayout';
-import { Home } from './pages/Home';
+import { AuthorizedAccounts } from './pages/AuthorizedAccounts';
+import { Dashboard } from './pages/Dashboard';
+import { RoleChanges } from './pages/RoleChanges';
+import { Roles } from './pages/Roles';
 
 /**
  * Root application component
@@ -12,8 +15,10 @@ function App() {
     <BrowserRouter>
       <MainLayout>
         <Routes>
-          <Route path="/" element={<Home />} />
-          {/* Additional routes will be added here as features are implemented */}
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/authorized-accounts" element={<AuthorizedAccounts />} />
+          <Route path="/roles" element={<Roles />} />
+          <Route path="/role-changes" element={<RoleChanges />} />
         </Routes>
       </MainLayout>
     </BrowserRouter>

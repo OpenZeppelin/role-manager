@@ -1,4 +1,4 @@
-import { Home } from 'lucide-react';
+import { ArrowRightLeft, Key, LayoutDashboard, Users } from 'lucide-react';
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -26,8 +26,8 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps): React
     </div>
   );
 
-  const handleHomeClick = () => {
-    navigate('/');
+  const handleNavigation = (path: string) => {
+    navigate(path);
     onMobileOpenChange?.(false);
   };
 
@@ -40,15 +40,34 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps): React
     >
       <SidebarSection>
         <SidebarButton
-          icon={<Home className="size-4" />}
+          icon={<LayoutDashboard className="size-4" />}
           isSelected={location.pathname === '/'}
-          onClick={handleHomeClick}
+          onClick={() => handleNavigation('/')}
         >
-          Home
+          Dashboard
+        </SidebarButton>
+        <SidebarButton
+          icon={<Users className="size-4" />}
+          isSelected={location.pathname === '/authorized-accounts'}
+          onClick={() => handleNavigation('/authorized-accounts')}
+        >
+          Authorized Accounts
+        </SidebarButton>
+        <SidebarButton
+          icon={<Key className="size-4" />}
+          isSelected={location.pathname === '/roles'}
+          onClick={() => handleNavigation('/roles')}
+        >
+          Roles
+        </SidebarButton>
+        <SidebarButton
+          icon={<ArrowRightLeft className="size-4" />}
+          isSelected={location.pathname === '/role-changes'}
+          onClick={() => handleNavigation('/role-changes')}
+        >
+          Role Changes
         </SidebarButton>
       </SidebarSection>
-
-      {/* Additional navigation sections can be added here */}
     </SidebarLayout>
   );
 }
