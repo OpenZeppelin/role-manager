@@ -46,10 +46,9 @@ export function AccountSelector({
       <div className="flex flex-1 flex-col overflow-hidden">
         <span className="truncate text-sm font-medium text-foreground">{selectedAccount.name}</span>
         <span className="text-xs text-muted-foreground">
+          {/* IMPORTANT: Do NOT render a button inside the trigger button */}
           <AddressDisplay
             address={selectedAccount.address}
-            showCopyButton
-            showCopyButtonOnHover
             className="font-normal text-muted-foreground"
             truncate
           />
@@ -94,8 +93,11 @@ export function AccountSelector({
                     {account.name}
                   </span>
                   <span className="text-xs text-muted-foreground">
+                    {/* OK to show copy inside the dropdown item (not inside a button) */}
                     <AddressDisplay
                       address={account.address}
+                      showCopyButton
+                      showCopyButtonOnHover
                       className="font-normal text-muted-foreground"
                       truncate
                     />
