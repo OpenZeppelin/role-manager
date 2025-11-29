@@ -15,7 +15,11 @@ const jsdocPlugin = require('eslint-plugin-jsdoc');
 
 // Extract rules from recommended configs
 const typescriptRecommendedRules = getPluginConfigs(typescriptPlugin, 'recommended');
-const reactRecommendedRules = getPluginConfigs(reactPlugin, 'recommended');
+const reactRecommendedRulesRaw = getPluginConfigs(reactPlugin, 'recommended');
+// Remove jsx-uses-react and jsx-uses-vars from recommended rules - they mark React/vars as used
+const reactRecommendedRules = { ...reactRecommendedRulesRaw };
+delete reactRecommendedRules['react/jsx-uses-react'];
+delete reactRecommendedRules['react/jsx-uses-vars'];
 const reactHooksRecommendedRules = getPluginConfigs(reactHooksPlugin, 'recommended');
 
 // Base configuration that can be extended by all packages
@@ -123,29 +127,13 @@ const baseConfig = [
     },
   },
 
-  // React configuration
-  {
-    files: ['**/*.jsx', '**/*.tsx'],
-    plugins: {
-      react: reactPlugin,
-      'react-hooks': reactHooksPlugin,
-      'react-refresh': reactRefreshPlugin,
-    },
-    rules: {
-      ...reactRecommendedRules,
-      ...reactHooksRecommendedRules,
-      'react/react-in-jsx-scope': 'off',
-      'react/prop-types': 'off',
-      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
-    },
-  },
-
-  // Import and sorting rules
+  // Import and sorting rules - MUST come before React config to detect unused imports
   {
     files: ['**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx'],
     plugins: {
       import: importPlugin,
       'unused-imports': unusedImportsPlugin,
+      // Don't include react plugin here - it interferes with unused-imports detection
     },
     rules: {
       // Disallow direct console usage; use logger utility instead
@@ -155,7 +143,7 @@ const baseConfig = [
       'import/no-duplicates': 'error',
       'unused-imports/no-unused-imports': 'error',
       'unused-imports/no-unused-vars': [
-        'warn',
+        'error',
         {
           vars: 'all',
           varsIgnorePattern: '^_',
@@ -163,6 +151,27 @@ const baseConfig = [
           argsIgnorePattern: '^_',
         },
       ],
+    },
+  },
+
+  // React configuration - comes after import rules
+  {
+    files: ['**/*.jsx', '**/*.tsx'],
+    plugins: {
+      react: reactPlugin,
+      'react-hooks': reactHooksPlugin,
+      'react-refresh': reactRefreshPlugin,
+    },
+    rules: {
+      // Use filtered recommended rules (jsx-uses-react removed)
+      ...reactRecommendedRules,
+      ...reactHooksRecommendedRules,
+      // Explicitly disable rules that mark React as used
+      'react/react-in-jsx-scope': 'off',
+      'react/jsx-uses-react': 'off',
+      'react/jsx-uses-vars': 'off', // Also disable this to be safe
+      'react/prop-types': 'off',
+      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
     },
   },
 
