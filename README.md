@@ -77,25 +77,26 @@ This project is organized as a monorepo with the following packages:
 
 ## Available Scripts
 
-| Script                | Description                                     |
-| --------------------- | ----------------------------------------------- |
-| `pnpm dev`            | Start the development server (role-manager app) |
-| `pnpm dev:all`        | Start all packages in watch mode                |
-| `pnpm build`          | Build all packages and apps                     |
-| `pnpm build:packages` | Build only packages (components, hooks)         |
-| `pnpm build:app`      | Build only the role-manager app                 |
-| `pnpm test`           | Run tests across all packages                   |
-| `pnpm test:all`       | Run all tests in parallel                       |
-| `pnpm test:coverage`  | Run tests with coverage reports                 |
-| `pnpm typecheck`      | Run TypeScript type checking                    |
-| `pnpm lint`           | Run ESLint across all packages                  |
-| `pnpm lint:fix`       | Fix ESLint issues                               |
-| `pnpm format`         | Format code with Prettier                       |
-| `pnpm format:check`   | Check formatting without changes                |
-| `pnpm fix-all`        | Run Prettier then ESLint fix                    |
-| `pnpm commit`         | Create a commit using Commitizen                |
-| `pnpm changeset`      | Create a changeset for versioning               |
-| `pnpm clean`          | Clean build artifacts                           |
+| Script                  | Description                                     |
+| ----------------------- | ----------------------------------------------- |
+| `pnpm dev`              | Start the development server (role-manager app) |
+| `pnpm dev:all`          | Start all packages in watch mode                |
+| `pnpm build`            | Build all packages and apps                     |
+| `pnpm build:ui-builder` | Build and pack local UI Builder packages        |
+| `pnpm build:packages`   | Build only packages (components, hooks)         |
+| `pnpm build:app`        | Build only the role-manager app                 |
+| `pnpm test`             | Run tests across all packages                   |
+| `pnpm test:all`         | Run all tests in parallel                       |
+| `pnpm test:coverage`    | Run tests with coverage reports                 |
+| `pnpm typecheck`        | Run TypeScript type checking                    |
+| `pnpm lint`             | Run ESLint across all packages                  |
+| `pnpm lint:fix`         | Fix ESLint issues                               |
+| `pnpm format`           | Format code with Prettier                       |
+| `pnpm format:check`     | Check formatting without changes                |
+| `pnpm fix-all`          | Run Prettier then ESLint fix                    |
+| `pnpm commit`           | Create a commit using Commitizen                |
+| `pnpm changeset`        | Create a changeset for versioning               |
+| `pnpm clean`            | Clean build artifacts                           |
 
 ## Local Development with UI Builder
 

@@ -18,8 +18,9 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@openzeppelin/ui-builder-styles": "^0.10.0",
-    "@openzeppelin/ui-builder-ui": "^0.16.0",
+    "@openzeppelin/ui-builder-styles": "latest",
+    "@openzeppelin/ui-builder-ui": "latest",
+    "@openzeppelin/ui-builder-utils": "latest",
     "lucide-react": "^0.555.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",

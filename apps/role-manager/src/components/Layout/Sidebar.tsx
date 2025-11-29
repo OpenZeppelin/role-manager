@@ -1,8 +1,11 @@
 import { ArrowRightLeft, Key, LayoutDashboard, Users } from 'lucide-react';
-import React from 'react';
+import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { SidebarButton, SidebarLayout, SidebarSection } from '@openzeppelin/ui-builder-ui';
+import { logger } from '@openzeppelin/ui-builder-utils';
+
+import { Account, AccountSelector } from './AccountSelector';
 
 export interface SidebarProps {
   /** Controls visibility in mobile slide-over */
@@ -20,9 +23,44 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps): React
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Mock accounts state
+  const [accounts, setAccounts] = useState<Account[]>([
+    {
+      address: '0xA1B2C3D4E5F6A1B2C3D4E5F6A1B2C3D4E5F6EF12',
+      name: 'Demo Contract',
+      color: '#06b6d4', // cyan-500
+    },
+    {
+      address: '0x0000000000000000000000000000000000000000',
+      name: 'asdasdasda',
+      color: '#ef4444', // red-500
+    },
+  ]);
+
+  const [selectedAccount, setSelectedAccount] = useState<Account | null>(accounts[0]);
+
   const headerContent = (
-    <div className="mb-8">
+    <div className="mb-6 px-2">
       <img src="/OZ-Logo-BlackBG.svg" alt="OpenZeppelin Logo" className="h-6 w-auto" />
+    </div>
+  );
+
+  const accountSelector = (
+    <div className="mb-8">
+      <AccountSelector
+        accounts={accounts}
+        selectedAccount={selectedAccount}
+        onSelectAccount={setSelectedAccount}
+        onAddAccount={() => {
+          logger.info('Sidebar', 'Add new account clicked');
+        }}
+        onRemoveAccount={(account) => {
+          setAccounts((prev) => prev.filter((a) => a.address !== account.address));
+          if (selectedAccount?.address === account.address) {
+            setSelectedAccount(null);
+          }
+        }}
+      />
     </div>
   );
 
@@ -34,6 +72,7 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps): React
   return (
     <SidebarLayout
       header={headerContent}
+      subHeader={accountSelector}
       mobileOpen={mobileOpen}
       onMobileOpenChange={onMobileOpenChange}
       mobileAriaLabel="Navigation menu"
