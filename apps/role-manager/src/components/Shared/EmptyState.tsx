@@ -1,7 +1,7 @@
 import { LucideIcon } from 'lucide-react';
-import React from 'react';
 
 import { Button } from '@openzeppelin/ui-builder-ui';
+import { cn } from '@openzeppelin/ui-builder-utils';
 
 export interface EmptyStateProps {
   title: string;
@@ -9,6 +9,7 @@ export interface EmptyStateProps {
   icon?: LucideIcon;
   actionLabel?: string;
   onAction?: () => void;
+  className?: string;
 }
 
 export function EmptyState({
@@ -17,19 +18,24 @@ export function EmptyState({
   icon: Icon,
   actionLabel,
   onAction,
+  className,
 }: EmptyStateProps) {
   return (
-    <div className="flex h-[450px] w-full flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/20 p-8 text-center">
+    <div
+      className={cn('flex w-full flex-col items-center justify-center text-center p-6', className)}
+    >
       {Icon && (
-        <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-background shadow-sm">
-          <Icon className="size-6 text-muted-foreground" />
+        <div className="rounded-full bg-slate-100 p-3 mb-4">
+          <Icon className="h-6 w-6 text-slate-400" />
         </div>
       )}
-      <h3 className="text-lg font-semibold text-foreground">{title}</h3>
-      {description && <p className="mt-2 max-w-sm text-sm text-muted-foreground">{description}</p>}
+      <h3 className="text-sm font-semibold text-slate-900 mb-1">{title}</h3>
+      {description && <p className="text-sm text-slate-500 max-w-xs">{description}</p>}
       {actionLabel && onAction && (
-        <div className="mt-6">
-          <Button onClick={onAction}>{actionLabel}</Button>
+        <div className="mt-4">
+          <Button onClick={onAction} variant="outline" size="sm">
+            {actionLabel}
+          </Button>
         </div>
       )}
     </div>

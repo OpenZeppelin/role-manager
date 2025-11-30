@@ -3,12 +3,12 @@ import { Plus, Users } from 'lucide-react';
 import { Button } from '@openzeppelin/ui-builder-ui';
 import { logger } from '@openzeppelin/ui-builder-utils';
 
-import { EmptyState } from '../components/Shared/EmptyState';
+import { PageEmptyState } from '../components/Shared/PageEmptyState';
 import { PageHeader } from '../components/Shared/PageHeader';
 
 export function AuthorizedAccounts() {
   return (
-    <div className="p-6">
+    <div className="p-6 space-y-6">
       <PageHeader
         title="Authorized Accounts"
         subtitle={
@@ -24,7 +24,7 @@ export function AuthorizedAccounts() {
           </Button>
         }
       />
-      <EmptyState
+      <PageEmptyState
         title="No Authorized Accounts"
         description="You haven't added any authorized accounts yet. Add an account to get started."
         icon={Users}

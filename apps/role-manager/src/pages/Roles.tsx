@@ -1,11 +1,11 @@
 import { Key } from 'lucide-react';
 
-import { EmptyState } from '../components/Shared/EmptyState';
+import { PageEmptyState } from '../components/Shared/PageEmptyState';
 import { PageHeader } from '../components/Shared/PageHeader';
 
 export function Roles() {
   return (
-    <div className="p-6">
+    <div className="p-6 space-y-6">
       <PageHeader
         title="Roles"
         subtitle={
@@ -15,7 +15,7 @@ export function Roles() {
           </span>
         }
       />
-      <EmptyState title="Roles" description="No roles available." icon={Key} />
+      <PageEmptyState title="Roles" description="No roles available." icon={Key} />
     </div>
   );
 }
