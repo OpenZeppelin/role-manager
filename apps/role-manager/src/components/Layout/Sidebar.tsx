@@ -1,10 +1,19 @@
+import { NetworkEthereum, NetworkStellar } from '@web3icons/react';
 import { ArrowRightLeft, Key, LayoutDashboard, Users } from 'lucide-react';
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import { SidebarButton, SidebarLayout, SidebarSection } from '@openzeppelin/ui-builder-ui';
+import type { NetworkConfig } from '@openzeppelin/ui-builder-types';
+import {
+  NetworkIcon,
+  NetworkSelector,
+  SidebarButton,
+  SidebarLayout,
+  SidebarSection,
+} from '@openzeppelin/ui-builder-ui';
 import { logger } from '@openzeppelin/ui-builder-utils';
 
+import { getEcosystemName } from '../../core/ecosystems/registry';
 import { Account, AccountSelector } from './AccountSelector';
 
 export interface SidebarProps {
@@ -13,6 +22,8 @@ export interface SidebarProps {
   /** Close handler for mobile slide-over */
   onMobileOpenChange?: (open: boolean) => void;
 }
+
+type Network = Pick<NetworkConfig, 'id' | 'name' | 'ecosystem' | 'type' | 'iconComponent'>;
 
 /**
  * Sidebar component
@@ -39,14 +50,54 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps): React
 
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(accounts[0]);
 
+  // Mock networks state
+  const networks: Network[] = [
+    {
+      id: 'eth-mainnet',
+      name: 'Ethereum',
+      ecosystem: 'evm',
+      type: 'mainnet',
+      iconComponent: NetworkEthereum,
+    },
+    {
+      id: 'eth-sepolia',
+      name: 'Sepolia',
+      ecosystem: 'evm',
+      type: 'testnet',
+      iconComponent: NetworkEthereum,
+    },
+    {
+      id: 'stellar-mainnet',
+      name: 'Stellar',
+      ecosystem: 'stellar',
+      type: 'mainnet',
+      iconComponent: NetworkStellar,
+    },
+    {
+      id: 'stellar-testnet',
+      name: 'Stellar',
+      ecosystem: 'stellar',
+      type: 'testnet',
+      iconComponent: NetworkStellar,
+    },
+    {
+      id: 'midnight-testnet',
+      name: 'Midnight',
+      ecosystem: 'midnight',
+      type: 'testnet',
+    },
+  ];
+
+  const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(networks[0]);
+
   const headerContent = (
     <div className="mb-6 px-2">
       <img src="/OZ-Logo-BlackBG.svg" alt="OpenZeppelin Logo" className="h-6 w-auto" />
     </div>
   );
 
-  const accountSelector = (
-    <div className="mb-8">
+  const sidebarSelectors = (
+    <div className="mb-8 flex flex-col gap-2">
       <AccountSelector
         accounts={accounts}
         selectedAccount={selectedAccount}
@@ -61,6 +112,18 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps): React
           }
         }}
       />
+      <NetworkSelector
+        networks={networks}
+        selectedNetwork={selectedNetwork}
+        onSelectNetwork={setSelectedNetwork}
+        getNetworkLabel={(n) => n.name}
+        getNetworkId={(n) => n.id}
+        getNetworkIcon={(n) => <NetworkIcon network={n} />}
+        getNetworkType={(n) => n.type}
+        groupByEcosystem
+        getEcosystem={(n) => getEcosystemName(n.ecosystem)}
+        placeholder="Select Network"
+      />
     </div>
   );
 
@@ -72,7 +135,7 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps): React
   return (
     <SidebarLayout
       header={headerContent}
-      subHeader={accountSelector}
+      subHeader={sidebarSelectors}
       mobileOpen={mobileOpen}
       onMobileOpenChange={onMobileOpenChange}
       mobileAriaLabel="Navigation menu"
