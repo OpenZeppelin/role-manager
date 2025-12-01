@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@openzeppelin/ui-builder-styles": "latest",
+    "@openzeppelin/ui-builder-types": "latest",
     "@openzeppelin/ui-builder-ui": "latest",
     "@openzeppelin/ui-builder-utils": "latest",
     "lucide-react": "^0.555.0",
