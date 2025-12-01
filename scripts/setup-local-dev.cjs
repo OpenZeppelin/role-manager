@@ -23,6 +23,10 @@ const packages = {
     version: '^0.10.0',
     filePattern: 'openzeppelin-ui-builder-styles-0.10.0.tgz',
   },
+  '@openzeppelin/ui-builder-types': {
+    version: '^0.16.0',
+    filePattern: 'openzeppelin-ui-builder-types-0.16.0.tgz',
+  },
   '@openzeppelin/ui-builder-ui': {
     version: '^0.16.0',
     filePattern: 'openzeppelin-ui-builder-ui-0.16.0.tgz',
