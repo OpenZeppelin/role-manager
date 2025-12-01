@@ -31,6 +31,10 @@ const packages = {
     version: '^0.16.0',
     filePattern: 'openzeppelin-ui-builder-ui-0.16.0.tgz',
   },
+  '@openzeppelin/ui-builder-utils': {
+    version: '^0.16.0',
+    filePattern: 'openzeppelin-ui-builder-utils-0.16.0.tgz',
+  },
 };
 
 const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
