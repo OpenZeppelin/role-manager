@@ -29,6 +29,21 @@ if [ -z "$staged_files" ]; then
   exit 0
 fi
 
+# Check for local tarball dependencies in package.json
+# We want to prevent committing local file paths that won't work in CI
+# Only check if package.json is among the staged files
+if echo "$staged_files" | grep -q "apps/role-manager/package.json"; then
+  if grep -q "file:.*contracts-ui-builder" apps/role-manager/package.json; then
+    echo ""
+    echo "❌ Error: Local tarball dependencies detected in package.json!"
+    echo "   These paths (file:...) will fail in CI/production."
+    echo ""
+    echo "   👉 Run 'pnpm dev:registry' to switch to registry versions."
+    echo ""
+    exit 1
+  fi
+fi
+
 # Run formatting and linting on staged files
 echo "🎨 Running formatting and linting..."
 pnpm fix-all

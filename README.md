@@ -77,65 +77,58 @@ This project is organized as a monorepo with the following packages:
 
 ## Available Scripts
 
-| Script                | Description                                     |
-| --------------------- | ----------------------------------------------- |
-| `pnpm dev`            | Start the development server (role-manager app) |
-| `pnpm dev:all`        | Start all packages in watch mode                |
-| `pnpm build`          | Build all packages and apps                     |
-| `pnpm build:packages` | Build only packages (components, hooks)         |
-| `pnpm build:app`      | Build only the role-manager app                 |
-| `pnpm test`           | Run tests across all packages                   |
-| `pnpm test:all`       | Run all tests in parallel                       |
-| `pnpm test:coverage`  | Run tests with coverage reports                 |
-| `pnpm typecheck`      | Run TypeScript type checking                    |
-| `pnpm lint`           | Run ESLint across all packages                  |
-| `pnpm lint:fix`       | Fix ESLint issues                               |
-| `pnpm format`         | Format code with Prettier                       |
-| `pnpm format:check`   | Check formatting without changes                |
-| `pnpm fix-all`        | Run Prettier then ESLint fix                    |
-| `pnpm commit`         | Create a commit using Commitizen                |
-| `pnpm changeset`      | Create a changeset for versioning               |
-| `pnpm clean`          | Clean build artifacts                           |
+| Script                  | Description                                     |
+| ----------------------- | ----------------------------------------------- |
+| `pnpm dev`              | Start the development server (role-manager app) |
+| `pnpm dev:all`          | Start all packages in watch mode                |
+| `pnpm build`            | Build all packages and apps                     |
+| `pnpm build:ui-builder` | Build and pack local UI Builder packages        |
+| `pnpm build:packages`   | Build only packages (components, hooks)         |
+| `pnpm build:app`        | Build only the role-manager app                 |
+| `pnpm test`             | Run tests across all packages                   |
+| `pnpm test:all`         | Run all tests in parallel                       |
+| `pnpm test:coverage`    | Run tests with coverage reports                 |
+| `pnpm typecheck`        | Run TypeScript type checking                    |
+| `pnpm lint`             | Run ESLint across all packages                  |
+| `pnpm lint:fix`         | Fix ESLint issues                               |
+| `pnpm format`           | Format code with Prettier                       |
+| `pnpm format:check`     | Check formatting without changes                |
+| `pnpm fix-all`          | Run Prettier then ESLint fix                    |
+| `pnpm commit`           | Create a commit using Commitizen                |
+| `pnpm changeset`        | Create a changeset for versioning               |
+| `pnpm clean`            | Clean build artifacts                           |
 
 ## Local Development with UI Builder
 
 This project can consume packages from the [UI Builder](https://github.com/OpenZeppelin/ui-builder) repository. To develop against local changes:
 
-### Using Local Tarballs
-
-1. **In `contracts-ui-builder`** (sibling directory):
+1. **Pack the dependencies** (in the root directory):
 
    ```bash
-   # Pack the packages you need
-   pnpm pack --filter @openzeppelin/ui-builder-adapter-stellar
+   ./scripts/pack-ui-builder.sh
    ```
 
-2. **In `role-manager`**:
+2. **Switch to local tarballs**:
 
    ```bash
-   # Switch to local tarball mode
-   ./scripts/setup-local-dev.sh --local
-   pnpm install
+   pnpm dev:local
    ```
 
-3. **To revert to registry mode**:
+   This rewrites `package.json` to use `file:` paths pointing to the generated tarballs.
+
+3. **Revert to registry mode** (before committing):
 
    ```bash
-   ./scripts/setup-local-dev.sh --registry
-   pnpm install
+   pnpm dev:registry
    ```
 
-### Packing UI Builder Packages
+   Or specify a version:
 
-Use the helper script to pack specific packages:
+   ```bash
+   ./scripts/setup-local-dev.sh registry ^0.16.0
+   ```
 
-```bash
-# Pack a single package
-./scripts/pack-ui-builder.sh --package adapter-stellar
-
-# Pack multiple packages
-./scripts/pack-ui-builder.sh --package adapter-stellar --package types
-```
+   **Note**: A `pre-commit` hook will prevent you from committing `file:` paths to ensure CI compatibility.
 
 ## Project Structure
 

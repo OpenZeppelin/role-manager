@@ -27,4 +27,18 @@ if [ "$node_version" -lt 20 ]; then
   exit 1
 fi
 
-npx --no -- commitlint --edit ${1}
+# Run commitlint on the commit message
+# The $1 argument is the path to the file containing the commit message
+if ! npx --no -- commitlint --edit "$1"; then
+  echo ""
+  echo "❌ Commit message format is invalid!"
+  echo ""
+  echo "📋 Allowed scopes: role-manager, components, hooks, deps, config, ci, docs, tests, release, ui, utils, types"
+  echo "📋 Allowed types: build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test, wip"
+  echo ""
+  echo "Example: feat(role-manager): add new feature"
+  echo ""
+  exit 1
+fi
+
+echo "✅ Commit message format is valid"
