@@ -3,6 +3,8 @@
 Auto-generated from all feature plans. Last updated: 2025-11-26
 
 ## Active Technologies
+- TypeScript 5.x (via existing monorepo config) (003-data-store-service)
+- IndexedDB (via Dexie) (003-data-store-service)
 
 - TypeScript 5.x (latest stable matching UI Builder) (001-role-manager-setup)
 
@@ -22,6 +24,7 @@ npm test && npm run lint
 TypeScript 5.x (latest stable matching UI Builder): Follow standard conventions
 
 ## Recent Changes
+- 003-data-store-service: Added TypeScript 5.x (via existing monorepo config)
 
 - 001-role-manager-setup: Added TypeScript 5.x (latest stable matching UI Builder)
 
