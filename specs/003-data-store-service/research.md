@@ -6,27 +6,42 @@
 
 ## Summary
 
-This feature implements a client-side storage service using IndexedDB to persist recent contracts and user preferences. The research reflects the refactored `@openzeppelin/ui-builder-storage` package, which now provides an app-agnostic database factory and React helpers.
+This feature implements a client-side storage service using IndexedDB to persist recent contracts and user preferences. The research reflects the refactored `@openzeppelin/ui-builder-storage` package, which now provides:
+
+- **`EntityStorage<T>`**: Base class for entity collections with auto-generated IDs
+- **`KeyValueStorage<V>`**: Base class for key-value stores with `key` as primary key
+- **Shared utilities**: `withQuotaHandling`, `isQuotaError` for consistent error handling
 
 ## Decisions
 
 ### 1. Storage Infrastructure
 
-- **Decision**: Use `createDexieDatabase` from `@openzeppelin/ui-builder-storage` to create an app-specific Dexie instance (e.g., `RoleManager`), and implement repositories by extending `DexieStorage<T>`.
+- **Decision**: Use `createDexieDatabase` from `@openzeppelin/ui-builder-storage` to create an app-specific Dexie instance (e.g., `RoleManager`), and implement repositories by extending the appropriate base class.
 - **Rationale**:
   - **App-agnostic & aligned**: Matches the updated UI Builder pattern; each app declares its own DB name and versions.
   - **Isolation**: Separate DB name avoids schema/version collisions with other apps that also use the storage package.
-  - **Reuse**: `DexieStorage` handles CRUD, timestamps, bulk ops, and index queries.
+  - **Reuse**: Base classes handle CRUD, timestamps, bulk ops, validation, and quota error handling.
 - **Alternatives Considered**:
   - **Subclassing Dexie** (custom `RoleManagerDB` class): Possible but unnecessary now that a first-class DB factory exists; factory is simpler and consistent across apps.
 
-### 2. Data Structure & Schema
+### 2. Base Class Selection
+
+- **`EntityStorage<T>`** for `RecentContractsStorage`:
+  - Auto-generated `id` field
+  - Schema: `++id, ...`
+  - Methods: `save()`, `update()`, `delete()`, `get()`, `getAll()`, `findByIndex()`
+- **`KeyValueStorage<V>`** for `UserPreferencesStorage`:
+  - `key` field as primary key
+  - Schema: `&key`
+  - Methods: `set()`, `get()`, `getOrDefault()`, `delete()`, `has()`, `keys()`, `setMany()`, `getMany()`
+
+### 3. Data Structure & Schema
 
 #### Recent Contracts
 
 - **Decision**: Single `recentContracts` table with compound indices.
 - **Schema**:
-  - `++id` (auto-increment primary key; managed by Dexie)
+  - `++id` (auto-increment primary key; managed by EntityStorage)
   - `&[networkId+address]` (compound unique index per network + address)
   - `[networkId+lastAccessed]` (compound index for recent-by-network queries)
 - **Behavior**:
@@ -37,9 +52,9 @@ This feature implements a client-side storage service using IndexedDB to persist
 
 - **Decision**: Simple `userPreferences` key-value table.
 - **Schema**: `&key`
-- **Rationale**: Flexible storage for settings without schema churn.
+- **Rationale**: Flexible storage for settings without schema churn. KeyValueStorage handles validation and quota errors.
 
-### 3. State Management Integration
+### 4. State Management Integration
 
 - **Decision**: Compose hooks using storage React factories (e.g., `createRepositoryHook`, or `createLiveQueryHook` + `createCrudHook`).
 - **Rationale**:
@@ -51,7 +66,11 @@ This feature implements a client-side storage service using IndexedDB to persist
 ### Database & Repository Setup
 
 ```typescript
-import { createDexieDatabase, DexieStorage } from '@openzeppelin/ui-builder-storage';
+import {
+  createDexieDatabase,
+  EntityStorage,
+  KeyValueStorage,
+} from '@openzeppelin/ui-builder-storage';
 
 export const db = createDexieDatabase('RoleManager', [
   {
@@ -63,17 +82,23 @@ export const db = createDexieDatabase('RoleManager', [
   },
 ]);
 
-export class RecentContractsStorage extends DexieStorage<RecentContractRecord> {
+// Entity collection with auto-generated IDs
+export class RecentContractsStorage extends EntityStorage<RecentContractRecord> {
   constructor() {
     super(db, 'recentContracts');
   }
   // addOrUpdate, getByNetwork, etc.
 }
 
-export class UserPreferencesStorage extends DexieStorage<UserPreferenceRecord> {
+// Key-value store with key as primary key
+export class UserPreferencesStorage extends KeyValueStorage<unknown> {
   constructor() {
-    super(db, 'userPreferences');
+    super(db, 'userPreferences', {
+      maxKeyLength: 128,
+      maxValueSizeBytes: 1024 * 1024,
+    });
   }
+  // Convenience methods: getString, getNumber, getBoolean
 }
 ```
 
@@ -89,7 +114,11 @@ export const useRecentContracts = createRepositoryHook<
   db,
   tableName: 'recentContracts',
   query: (table) =>
-    table.where('networkId').equals(activeNetworkId).orderBy('lastAccessed').reverse().toArray(),
+    table
+      .where('networkId')
+      .equals(activeNetworkId)
+      .sortBy('lastAccessed')
+      .then((rows) => rows.reverse()),
   repo: recentContractsStorage, // instance of RecentContractsStorage
   // onError, fileIO, expose (optional)
 });
@@ -97,8 +126,11 @@ export const useRecentContracts = createRepositoryHook<
 
 ## Open Questions Resolved
 
-- **Q**: Can we reuse `DexieStorage` with a custom DB instance?
-- **A**: Yes. Pass the Dexie instance created by `createDexieDatabase` to the `DexieStorage` constructor.
+- **Q**: Can we reuse `EntityStorage` with a custom DB instance?
+- **A**: Yes. Pass the Dexie instance created by `createDexieDatabase` to the `EntityStorage` constructor.
 
 - **Q**: How to handle unique constraints and upserts?
 - **A**: Use `&[networkId+address]` for uniqueness. For upserts, implement `addOrUpdate` in the repository using `table.put` or pre-check + `update`.
+
+- **Q**: What base class to use for key-value storage?
+- **A**: Use `KeyValueStorage<V>` which is designed for `&key` primary key schemas with built-in validation and quota handling.

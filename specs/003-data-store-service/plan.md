@@ -12,7 +12,7 @@ This feature implements a client-side storage service using IndexedDB (via the r
 **Language/Version**: TypeScript 5.x (via existing monorepo config)
 **Primary Dependencies**:
 
-- `@openzeppelin/ui-builder-storage` (DB factory + DexieStorage + React helpers)
+- `@openzeppelin/ui-builder-storage` (DB factory + EntityStorage + KeyValueStorage + React helpers)
 - `@openzeppelin/ui-builder-types` (Shared types)
 - `dexie` (Underlying DB, transient dependency)
   **Storage**: IndexedDB (via Dexie)
@@ -28,7 +28,7 @@ This feature implements a client-side storage service using IndexedDB (via the r
 _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 - [x] **I. Adapter-Led, Chain-Agnostic**: Feature is purely client-side storage; stores chain-agnostic data (addresses, network IDs). Does not implement chain logic.
-- [x] **II. Reuse-First**: Uses `@openzeppelin/ui-builder-storage` package for DB factory, base repository, and React composition.
+- [x] **II. Reuse-First**: Uses `@openzeppelin/ui-builder-storage` package for DB factory, base repositories (EntityStorage, KeyValueStorage), and React composition.
 - [x] **III. Type Safety**: Will use strict TypeScript interfaces for storage entities.
 - [x] **IV. UI/Design System**: N/A for this plan (UI components will consume this service, but this plan focuses on the data layer).
 - [x] **V. Testing and TDD**: Plan includes creating a storage service class that can be unit tested with Vitest (mocking Dexie or using fake-indexeddb).
@@ -56,15 +56,22 @@ apps/role-manager/src/
 │   └── storage/
 │       ├── index.ts                  # Service exports
 │       ├── database.ts               # createDexieDatabase('RoleManager', versions)
-│       ├── RecentContractsStorage.ts # RecentContracts repository (extends DexieStorage)
-│       └── UserPreferencesStorage.ts # Preferences repository (extends DexieStorage)
+│       ├── RecentContractsStorage.ts # RecentContracts repository (extends EntityStorage)
+│       └── UserPreferencesStorage.ts # Preferences repository (extends KeyValueStorage)
 ├── hooks/
 │   └── useRecentContracts.ts         # React hook (createRepositoryHook or liveQuery + CRUD)
 └── types/
     └── storage.ts                    # Storage entity interfaces
 ```
 
-**Structure Decision**: Integrated into `apps/role-manager/src/core/storage` following the existing app structure. Use the storage DB factory to declare versions and `DexieStorage` to implement repositories; compose React hooks via the provided helpers.
+**Structure Decision**: Integrated into `apps/role-manager/src/core/storage` following the existing app structure. Use the storage DB factory to declare versions, `EntityStorage` for entity collections, and `KeyValueStorage` for preferences; compose React hooks via the provided helpers.
+
+## Base Class Selection
+
+| Storage                  | Base Class           | Schema      | Use Case                                  |
+| ------------------------ | -------------------- | ----------- | ----------------------------------------- |
+| `RecentContractsStorage` | `EntityStorage<T>`   | `++id, ...` | Entity collection with auto-generated IDs |
+| `UserPreferencesStorage` | `KeyValueStorage<V>` | `&key`      | Key-value store for settings              |
 
 ## Complexity Tracking
 

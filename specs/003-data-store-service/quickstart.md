@@ -27,24 +27,57 @@ export const db = createDexieDatabase('RoleManager', [
 
 ## 2. Storage Services
 
-Implement repositories by extending `DexieStorage<T>`.
+The storage package provides two base classes:
+
+- **`EntityStorage<T>`**: For entity collections with auto-generated IDs (e.g., recent contracts)
+- **`KeyValueStorage<V>`**: For key-value stores with `key` as primary key (e.g., preferences)
+
+### Recent Contracts (EntityStorage)
 
 ```typescript
 // src/core/storage/RecentContractsStorage.ts
-import { DexieStorage } from '@openzeppelin/ui-builder-storage';
+import { EntityStorage, withQuotaHandling } from '@openzeppelin/ui-builder-storage';
 
 import { db } from './database';
 
-export class RecentContractsStorage extends DexieStorage<RecentContractRecord> {
+export class RecentContractsStorage extends EntityStorage<RecentContractRecord> {
   constructor() {
     super(db, 'recentContracts');
   }
-  // addOrUpdate, getByNetwork, etc.
-}
 
-export class UserPreferencesStorage extends DexieStorage<UserPreferenceRecord> {
+  async addOrUpdate(input: RecentContractInput): Promise<string> {
+    // Validation...
+    return await withQuotaHandling(this.tableName, async () => {
+      // Find existing or create new...
+    });
+  }
+
+  async getByNetwork(networkId: string): Promise<RecentContractRecord[]> {
+    // Query by network, sort by lastAccessed desc
+  }
+}
+```
+
+### User Preferences (KeyValueStorage)
+
+```typescript
+// src/core/storage/UserPreferencesStorage.ts
+import { KeyValueStorage } from '@openzeppelin/ui-builder-storage';
+
+import { db } from './database';
+
+export class UserPreferencesStorage extends KeyValueStorage<unknown> {
   constructor() {
-    super(db, 'userPreferences');
+    super(db, 'userPreferences', {
+      maxKeyLength: 128,
+      maxValueSizeBytes: 1024 * 1024, // 1MB
+    });
+  }
+
+  // Convenience methods for typed access
+  async getString(key: string): Promise<string | undefined> {
+    const value = await this.get(key);
+    return typeof value === 'string' ? value : undefined;
   }
 }
 ```
@@ -64,7 +97,11 @@ export const useRecentContracts = createRepositoryHook<
   tableName: 'recentContracts',
   // Example query: most recent for the active network
   query: (table) =>
-    table.where('networkId').equals(activeNetworkId).orderBy('lastAccessed').reverse().toArray(),
+    table
+      .where('networkId')
+      .equals(activeNetworkId)
+      .sortBy('lastAccessed')
+      .then((rows) => rows.reverse()),
   repo: recentContractsStorage,
 });
 ```
@@ -79,6 +116,22 @@ import { userPreferencesStorage } from '@/core/storage';
 // Save preference
 await userPreferencesStorage.set('active_network', 'stellar-testnet');
 
-// Read preference
+// Read preference (typed)
 const network = await userPreferencesStorage.get<string>('active_network');
+
+// Read with convenience method
+const theme = await userPreferencesStorage.getString('theme');
+
+// Use getOrDefault for fallbacks
+const pageSize = await userPreferencesStorage.getOrDefault('page_size', 10);
 ```
+
+## 5. Key Differences: EntityStorage vs KeyValueStorage
+
+| Aspect           | EntityStorage                             | KeyValueStorage                           |
+| ---------------- | ----------------------------------------- | ----------------------------------------- |
+| **Primary Key**  | Auto-generated `id`                       | User-provided `key`                       |
+| **Schema**       | `++id, ...`                               | `&key`                                    |
+| **Use Case**     | Collections (contracts, items)            | Settings, preferences                     |
+| **Base Record**  | `BaseRecord` (id, createdAt, updatedAt)   | `KeyValueRecord` (key, value, timestamps) |
+| **Main Methods** | `save()`, `update()`, `get()`, `getAll()` | `set()`, `get()`, `getOrDefault()`        |

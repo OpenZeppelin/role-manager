@@ -1,7 +1,8 @@
-import { BaseRecord } from '@openzeppelin/ui-builder-storage';
+import { BaseRecord, KeyValueRecord } from '@openzeppelin/ui-builder-storage';
 
 /**
  * Represents a contract recently accessed by the user.
+ * Used with EntityStorage for auto-generated IDs and managed timestamps.
  */
 export interface RecentContractRecord extends BaseRecord {
   /**
@@ -26,20 +27,16 @@ export interface RecentContractRecord extends BaseRecord {
 }
 
 /**
- * Represents a user preference setting.
+ * Note: UserPreferencesStorage uses KeyValueStorage<unknown> which manages
+ * KeyValueRecord internally. No separate type definition needed in app code.
+ *
+ * For reference, KeyValueRecord<V> from the storage package has:
+ * - key: string (primary key)
+ * - value: V
+ * - createdAt: Date
+ * - updatedAt: Date
  */
-export interface UserPreferenceRecord extends BaseRecord {
-  /**
-   * The unique key for the setting (e.g. 'active_network').
-   * Used as the Primary Key in the storage.
-   */
-  key: string;
-
-  /**
-   * The value of the setting.
-   */
-  value: any;
-}
+export type UserPreferenceRecord = KeyValueRecord<unknown>;
 
 /**
  * Input payload for adding or updating a recent contract.
@@ -52,6 +49,7 @@ export interface RecentContractInput {
 
 /**
  * Service interface for Recent Contracts storage.
+ * Implemented by extending EntityStorage<RecentContractRecord>.
  */
 export interface RecentContractsService {
   /**
@@ -78,16 +76,26 @@ export interface RecentContractsService {
 
 /**
  * Service interface for User Preferences storage.
+ * Implemented by extending KeyValueStorage<unknown>.
  */
 export interface UserPreferencesService {
   /**
    * Sets a preference value.
    */
-  set(key: string, value: any): Promise<void>;
+  set(key: string, value: unknown): Promise<void>;
 
   /**
    * Gets a preference value.
    */
   get<T>(key: string): Promise<T | undefined>;
-}
 
+  /**
+   * Deletes a preference by key.
+   */
+  delete(key: string): Promise<void>;
+
+  /**
+   * Clears all preferences.
+   */
+  clear(): Promise<void>;
+}

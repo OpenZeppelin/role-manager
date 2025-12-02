@@ -15,8 +15,8 @@ Represents a smart contract the user has successfully loaded and interacted with
 | `address`      | `string` | Yes      | The contract address. Part of unique constraint.                                 |
 | `label`        | `string` | No       | User-defined nickname for the contract.                                          |
 | `lastAccessed` | `number` | Yes      | Timestamp (Unix ms) of the last interaction. Used for sorting.                   |
-| `createdAt`    | `Date`   | Yes      | Managed by `DexieStorage`.                                                       |
-| `updatedAt`    | `Date`   | Yes      | Managed by `DexieStorage`.                                                       |
+| `createdAt`    | `Date`   | Yes      | Managed by `EntityStorage`.                                                      |
+| `updatedAt`    | `Date`   | Yes      | Managed by `EntityStorage`.                                                      |
 
 **Constraints**:
 
@@ -25,14 +25,14 @@ Represents a smart contract the user has successfully loaded and interacted with
 
 ### UserPreference
 
-Represents a key-value setting for the application.
+Represents a key-value setting for the application. Uses `KeyValueStorage` which manages records with the following structure:
 
-| Field       | Type     | Required | Description                                             |
-| ----------- | -------- | -------- | ------------------------------------------------------- |
-| `key`       | `string` | Yes      | Primary Key. The setting name (e.g., "active_network"). |
-| `value`     | `any`    | Yes      | The setting value. Can be a primitive or a JSON object. |
-| `createdAt` | `Date`   | Yes      | Managed by `DexieStorage`.                              |
-| `updatedAt` | `Date`   | Yes      | Managed by `DexieStorage`.                              |
+| Field       | Type      | Required | Description                                             |
+| ----------- | --------- | -------- | ------------------------------------------------------- |
+| `key`       | `string`  | Yes      | Primary Key. The setting name (e.g., "active_network"). |
+| `value`     | `unknown` | Yes      | The setting value. Can be a primitive or a JSON object. |
+| `createdAt` | `Date`    | Yes      | Managed by `KeyValueStorage`.                           |
+| `updatedAt` | `Date`    | Yes      | Managed by `KeyValueStorage`.                           |
 
 ## Storage Schema (Dexie)
 
@@ -42,6 +42,7 @@ Represents a key-value setting for the application.
 
 1.  **`recentContracts`**
     - Schema: `++id, &[networkId+address], [networkId+lastAccessed]`
+    - Base Class: `EntityStorage<RecentContractRecord>`
     - Explanation:
       - `++id`: Auto-incrementing primary key.
       - `&[networkId+address]`: Compound unique index to ensure a contract is only stored once per network.
@@ -49,8 +50,9 @@ Represents a key-value setting for the application.
 
 2.  **`userPreferences`**
     - Schema: `&key`
+    - Base Class: `KeyValueStorage<unknown>`
     - Explanation:
-      - `&key`: Unique primary key.
+      - `&key`: Unique primary key (the preference key itself).
 
 ## Data Lifecycle
 
@@ -69,7 +71,7 @@ Represents a key-value setting for the application.
 ### User Preferences
 
 1.  **Set Preference**:
-    - `put` (Insert or Update) record with `key`.
+    - `set(key, value)` performs upsert based on key.
 2.  **Get Preference**:
-    - `get` by `key`.
-
+    - `get<T>(key)` retrieves value with type casting.
+    - `getOrDefault(key, defaultValue)` for fallback values.

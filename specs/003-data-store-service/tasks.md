@@ -36,9 +36,9 @@ Goal: Persist user-selected network and display settings across sessions.
 
 Independent Test: Change network; reload app; verify preference restored.
 
-- [ ] T016 [US2] Implement UserPreferencesStorage repository (set/get/clear) in apps/role-manager/src/core/storage/UserPreferencesStorage.ts
-- [ ] T017 [P] [US2] Add convenience helpers for typed get/set (e.g., get<string>) in apps/role-manager/src/core/storage/UserPreferencesStorage.ts
-- [ ] T018 [US2] Add assumptions/constraints enforcement (max label length, trimming) in apps/role-manager/src/core/storage/UserPreferencesStorage.ts
+- [x] T016 [US2] Implement UserPreferencesStorage repository (set/get/clear) in apps/role-manager/src/core/storage/UserPreferencesStorage.ts
+- [x] T017 [P] [US2] Add convenience helpers for typed get/set (e.g., get<string>) in apps/role-manager/src/core/storage/UserPreferencesStorage.ts
+- [x] T018 [US2] Add assumptions/constraints enforcement (max label length, trimming) in apps/role-manager/src/core/storage/UserPreferencesStorage.ts
 
 ## Phase 5 — Polish & Cross-Cutting
 
