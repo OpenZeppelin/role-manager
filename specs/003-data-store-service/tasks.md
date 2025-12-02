@@ -4,15 +4,15 @@ This document lists actionable, dependency-ordered tasks for implementing the Da
 
 ## Phase 1 — Setup
 
-- [ ] T001 Create feature folder scaffolding per plan (no code changes required)
-- [ ] T002 Add storage package to app dependencies if missing (apps/role-manager/package.json)
-- [ ] T003 Ensure TypeScript path aliases for core/hooks/types exist (apps/role-manager/tsconfig.json)
+- [x] T001 Create feature folder scaffolding per plan (no code changes required)
+- [x] T002 Add storage package to app dependencies if missing (apps/role-manager/package.json)
+- [x] T003 Ensure TypeScript path aliases for core/hooks/types exist (apps/role-manager/tsconfig.json)
 
 ## Phase 2 — Foundational (Blocking prerequisites)
 
-- [ ] T004 Create database factory file using createDexieDatabase in apps/role-manager/src/core/storage/database.ts
-- [ ] T005 Create storage entity interfaces in apps/role-manager/src/types/storage.ts
-- [ ] T006 Create storage service export barrel in apps/role-manager/src/core/storage/index.ts
+- [x] T004 Create database factory file using createDexieDatabase in apps/role-manager/src/core/storage/database.ts
+- [x] T005 Create storage entity interfaces in apps/role-manager/src/types/storage.ts
+- [x] T006 Create storage service export barrel in apps/role-manager/src/core/storage/index.ts
 
 ## Phase 3 — User Story 1 (P1): Recall Recently Accessed Contracts
 
