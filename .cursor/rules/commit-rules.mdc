@@ -1,0 +1,173 @@
+---
+alwaysApply: true
+description: Git commit rules and conventions for Role Manager repository
+---
+
+# Commit Rules & Conventions
+
+## GPG Signing (CRITICAL)
+
+- **NEVER use `--no-gpg-sign` flag** - All commits MUST be GPG signed
+- If GPG signing fails:
+  - **DO NOT** bypass with `--no-gpg-sign`
+- GPG signing is required for security and code integrity
+
+## Commit Message Format
+
+### Required Format
+
+```
+<type>(<scope>): <subject>
+
+[optional body]
+
+[optional footer]
+```
+
+### Allowed Types
+
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation changes
+- `style`: Code style changes (formatting, semicolons, etc.)
+- `refactor`: Code refactoring
+- `perf`: Performance improvements
+- `test`: Adding or updating tests
+- `build`: Build system or dependency changes
+- `ci`: CI/CD configuration changes
+- `chore`: Other changes (maintenance tasks)
+- `revert`: Revert a previous commit
+- `wip`: Work in progress (use sparingly)
+
+### Allowed Scopes
+
+- `role-manager`: Main application changes
+- `components`: Shared component changes
+- `hooks`: Shared hook changes
+- `deps`: Dependency updates
+- `config`: Configuration changes
+- `ci`: CI/CD changes
+- `docs`: Documentation
+- `spec`: Specification/planning documents
+- `tests`: Test-related changes
+- `release`: Release-related changes
+- `ui`: UI-specific changes
+- `utils`: Utility functions
+- `types`: TypeScript type definitions
+
+### Subject Rules
+
+- **Required**: Must be present and non-empty
+- **Case**: Lowercase (no sentence-case, start-case, pascal-case, or upper-case)
+- **No period**: Do not end with a period
+- **Length**: Maximum 100 characters
+- **Format**: Use imperative mood ("add feature" not "added feature" or "adds feature")
+
+### Examples
+
+✅ **CORRECT**:
+
+```
+feat(role-manager): add storage database factory
+fix(components): resolve button click handler issue
+docs(spec): update data store service requirements
+refactor(hooks): simplify useRecentContracts logic
+```
+
+❌ **WRONG**:
+
+```
+feat: add storage (missing scope)
+feat(role-manager): Add Storage Database Factory (wrong case)
+feat(role-manager): add storage database factory. (has period)
+feat(app-storage): add database (invalid scope)
+```
+
+## Pre-Commit Hooks
+
+The repository has pre-commit hooks that enforce:
+
+1. **Formatting**: Prettier auto-formatting
+2. **Linting**: ESLint with auto-fix
+3. **Commit Message Validation**: Commitlint checks format
+4. **Local Tarball Detection**: Prevents committing `file:` dependencies
+
+### Handling Pre-Commit Failures
+
+- **Formatting/Linting**: Usually auto-fixed; re-commit if needed
+- **Commit Message**: Fix message format and retry
+- **Local Tarball Dependencies**:
+  - **DO NOT** commit `file:` dependencies pointing to local paths
+  - Use registry versions (`latest` or specific version) for commits
+  - Local development uses tarball workflow separately
+
+## Commit Best Practices
+
+### When to Commit
+
+- After completing a logical unit of work (task, feature, fix)
+- Before starting a significantly different task
+- After resolving a specific issue or requirement
+
+### Commit Granularity
+
+- **One logical change per commit**: Don't mix unrelated changes
+- **Atomic commits**: Each commit should be independently reviewable
+- **Meaningful commits**: Avoid "WIP" or "fix stuff" commits
+
+### Commit Message Guidelines
+
+- **Be specific**: "add storage database factory" not "add storage"
+- **Reference tasks/issues**: Include task ID or issue number if applicable
+- **Explain why**: Use body for complex changes that need context
+- **Keep it concise**: Subject should be clear without reading the body
+
+### Multi-File Changes
+
+- Group related file changes in a single commit
+- If changes span multiple concerns, consider multiple commits
+- Use `git add -p` for selective staging when needed
+
+## Branch Naming
+
+- Feature branches: `###-feature-name` (e.g., `003-data-store-service`)
+- Use kebab-case for branch names
+- Include feature number prefix when following spec workflow
+
+## Commit Workflow
+
+1. **Stage changes**: `git add <files>` or `git add .` (be selective)
+2. **Verify changes**: `git status` and `git diff --staged`
+3. **Write commit message**: Follow conventional commit format
+4. **Commit**: `git commit -m "type(scope): subject"`
+5. **Verify**: Check that pre-commit hooks passed
+6. **Push**: `git push` when ready
+
+## Troubleshooting
+
+### GPG Signing Issues
+
+If GPG signing fails:
+
+1. Check GPG agent: `gpgconf --launch gpg-agent`
+2. Set GPG_TTY: `export GPG_TTY=$(tty)`
+3. Verify key: `gpg --list-secret-keys --keyid-format LONG`
+4. Test signing: `echo "test" | gpg --clearsign`
+
+### Commit Message Validation Failures
+
+- Check allowed scopes in `commitlint.config.js`
+- Ensure type is lowercase and in allowed list
+- Verify subject follows all rules (no period, lowercase, etc.)
+
+### Pre-Commit Hook Failures
+
+- Formatting: Usually auto-fixed; check `git status` for unstaged changes
+- Linting: Review ESLint errors and fix manually if needed
+- Tarball detection: Remove `file:` dependencies from `package.json`
+
+## Notes
+
+- All commits are automatically validated by pre-commit hooks
+- GPG signing is mandatory and cannot be bypassed
+- Follow conventional commits for consistency and automated changelog generation

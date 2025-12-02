@@ -125,6 +125,9 @@ importers:
 
   apps/role-manager:
     dependencies:
+      '@openzeppelin/ui-builder-storage':
+        specifier: latest
+        version: 0.16.0(@types/react@19.2.7)(react@19.2.0)(sonner@2.0.7(react-dom@19.2.0(react@19.2.0))(react@19.2.0))
       '@openzeppelin/ui-builder-styles':
         specifier: latest
         version: 0.10.0
@@ -162,6 +165,9 @@ importers:
       '@vitejs/plugin-react':
         specifier: ^4.7.0
         version: 4.7.0(vite@7.2.4(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(yaml@2.8.1))
+      fake-indexeddb:
+        specifier: ^6.0.0
+        version: 6.2.5
       tailwindcss:
         specifier: ^4.1.17
         version: 4.1.17
@@ -919,6 +925,12 @@ packages:
   '@nolyfill/is-core-module@1.0.39':
     resolution: {integrity: sha512-nn5ozdjYQpUCZlWGuxcJY/KpxkWQs4DcbMCmKojjyrYDEAGy4Ce19NN4v5MduafTwJlbKc99UA8YhSVqq9yPZA==}
     engines: {node: '>=12.4.0'}
+
+  '@openzeppelin/ui-builder-storage@0.16.0':
+    resolution: {integrity: sha512-9XvNAHWwGUgX0eXO9/8YwscjHWuSil4/QxmE9AJVcmzFrw61wi/A3xVPtnJ6gPf6D783Oh2RkYfFlFUYp2/FKQ==}
+    peerDependencies:
+      react: ^19.0.0
+      sonner: ^2.0.5
 
   '@openzeppelin/ui-builder-styles@0.10.0':
     resolution: {integrity: sha512-iKg/C6rpJSqAjR5WL/RPLah28JJ9koTBpCy/DFdcc1jSnEf8KLJdWJWuv3D0zP08X2AQ3wwIZsJBO02Brp90pg==}
@@ -2434,6 +2446,16 @@ packages:
   devlop@1.1.0:
     resolution: {integrity: sha512-RWmIqhcFf1lRYBvNmr7qTNuyCt/7/ns2jbpp1+PalgE/rDQcBT0fioSMUpJ93irlUhC5hrg4cYqe6U+0ImW0rA==}
 
+  dexie-react-hooks@1.1.7:
+    resolution: {integrity: sha512-Lwv5W0Hk+uOW3kGnsU9GZoR1er1B7WQ5DSdonoNG+focTNeJbHW6vi6nBoX534VKI3/uwHebYzSw1fwY6a7mTw==}
+    peerDependencies:
+      '@types/react': '>=16'
+      dexie: ^3.2 || ^4.0.1-alpha
+      react: '>=16'
+
+  dexie@4.2.1:
+    resolution: {integrity: sha512-Ckej0NS6jxQ4Po3OrSQBFddayRhTCic2DoCAG5zacOfOVB9P2Q5Xc5uL/nVa7ZVs+HdMnvUPzLFCB/JwpB6Csg==}
+
   didyoumean@1.2.2:
     resolution: {integrity: sha512-gxtyfqMg7GKyhQmb056K7M3xszy/myH8w+B4RT+QXBQsvAOdc3XymqDDPHx1BgPgsdAA5SIifona89YtRATDzw==}
 
@@ -2734,6 +2756,10 @@ packages:
   external-editor@3.1.0:
     resolution: {integrity: sha512-hMQ4CX1p1izmuLYyZqLMO/qGNw10wSv9QDCPfzXfyFrOaCSSoRfqE1Kf1s5an66J5JZC62NewG+mK49jOCtQew==}
     engines: {node: '>=4'}
+
+  fake-indexeddb@6.2.5:
+    resolution: {integrity: sha512-CGnyrvbhPlWYMngksqrSSUT1BAVP49dZocrHuK0SvtR0D5TMs5wP0o3j7jexDJW01KSadjBp1M/71o/KR3nD1w==}
+    engines: {node: '>=18'}
 
   fast-deep-equal@3.1.3:
     resolution: {integrity: sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==}
@@ -5657,6 +5683,17 @@ snapshots:
 
   '@nolyfill/is-core-module@1.0.39': {}
 
+  '@openzeppelin/ui-builder-storage@0.16.0(@types/react@19.2.7)(react@19.2.0)(sonner@2.0.7(react-dom@19.2.0(react@19.2.0))(react@19.2.0))':
+    dependencies:
+      '@openzeppelin/ui-builder-types': 0.16.0
+      '@openzeppelin/ui-builder-utils': 0.16.0
+      dexie: 4.2.1
+      dexie-react-hooks: 1.1.7(@types/react@19.2.7)(dexie@4.2.1)(react@19.2.0)
+      react: 19.2.0
+      sonner: 2.0.7(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+    transitivePeerDependencies:
+      - '@types/react'
+
   '@openzeppelin/ui-builder-styles@0.10.0': {}
 
   '@openzeppelin/ui-builder-types@0.16.0': {}
@@ -7213,6 +7250,14 @@ snapshots:
     dependencies:
       dequal: 2.0.3
 
+  dexie-react-hooks@1.1.7(@types/react@19.2.7)(dexie@4.2.1)(react@19.2.0):
+    dependencies:
+      '@types/react': 19.2.7
+      dexie: 4.2.1
+      react: 19.2.0
+
+  dexie@4.2.1: {}
+
   didyoumean@1.2.2: {}
 
   dir-glob@3.0.1:
@@ -7669,6 +7714,8 @@ snapshots:
       chardet: 0.7.0
       iconv-lite: 0.4.24
       tmp: 0.0.33
+
+  fake-indexeddb@6.2.5: {}
 
   fast-deep-equal@3.1.3: {}
 

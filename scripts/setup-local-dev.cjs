@@ -19,6 +19,10 @@ const uiBuilderPath = path.resolve(__dirname, '../../contracts-ui-builder');
 const packedDir = '.packed-packages';
 
 const packages = {
+  '@openzeppelin/ui-builder-storage': {
+    version: '^0.16.0',
+    filePattern: 'openzeppelin-ui-builder-storage-0.16.0.tgz',
+  },
   '@openzeppelin/ui-builder-styles': {
     version: '^0.10.0',
     filePattern: 'openzeppelin-ui-builder-styles-0.10.0.tgz',
@@ -30,6 +34,10 @@ const packages = {
   '@openzeppelin/ui-builder-ui': {
     version: '^0.16.0',
     filePattern: 'openzeppelin-ui-builder-ui-0.16.0.tgz',
+  },
+  '@openzeppelin/ui-builder-utils': {
+    version: '^0.16.0',
+    filePattern: 'openzeppelin-ui-builder-utils-0.16.0.tgz',
   },
 };
 

@@ -43,6 +43,7 @@ export default {
         'config',
         'ci',
         'docs',
+        'spec',
         'tests',
         'release',
         // General scopes

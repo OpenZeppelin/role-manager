@@ -91,7 +91,7 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps): React
   const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(networks[0]);
 
   const headerContent = (
-    <div className="mb-6 px-2">
+    <div className="mb-6">
       <img src="/OZ-Logo-BlackBG.svg" alt="OpenZeppelin Logo" className="h-6 w-auto" />
     </div>
   );
