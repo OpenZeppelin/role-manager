@@ -124,18 +124,18 @@ interface RecentContractRecord {
 
 Storage operations may throw the following errors:
 
-| Error Code                               | Description                     |
-| ---------------------------------------- | ------------------------------- |
-| `recentContracts/invalid-network-id`     | Empty or invalid network ID     |
-| `recentContracts/invalid-address`        | Empty or invalid address        |
-| `recentContracts/invalid-address-length` | Address exceeds 256 characters  |
-| `recentContracts/invalid-label-length`   | Label exceeds 64 characters     |
+| Error Code                                    | Description                       |
+| --------------------------------------------- | --------------------------------- |
+| `recentContracts/invalid-network-id`          | Empty or invalid network ID       |
+| `recentContracts/invalid-address`             | Empty or invalid address          |
+| `recentContracts/invalid-address-length`      | Address exceeds 256 characters    |
+| `recentContracts/invalid-label-length`        | Label exceeds 64 characters       |
 | `recentContracts/invalid-label-control-chars` | Label contains control characters |
-| `recentContracts/quota-exceeded`         | Browser storage quota exceeded  |
-| `userPreferences/invalid-key`            | Empty or invalid preference key |
-| `userPreferences/key-too-long`           | Key exceeds 128 characters      |
-| `userPreferences/invalid-value`          | Undefined value provided        |
-| `userPreferences/quota-exceeded`         | Browser storage quota exceeded  |
+| `recentContracts/quota-exceeded`              | Browser storage quota exceeded    |
+| `userPreferences/invalid-key`                 | Empty or invalid preference key   |
+| `userPreferences/key-too-long`                | Key exceeds 128 characters        |
+| `userPreferences/invalid-value`               | Undefined value provided          |
+| `userPreferences/quota-exceeded`              | Browser storage quota exceeded    |
 
 ## Performance
 
