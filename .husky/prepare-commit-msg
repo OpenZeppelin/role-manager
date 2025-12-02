@@ -17,7 +17,7 @@ if [ -n "$2" ]; then
   exit 0
 fi
 
-echo "🔍 Validating commit message format (early check)..."
+echo "🔍 Validating commit message format (early check - before commit completes)..."
 
 # Try to use NVM's Node.js if available
 if [ -s "$HOME/.nvm/nvm.sh" ]; then

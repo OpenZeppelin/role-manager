@@ -29,9 +29,42 @@ if [ -z "$staged_files" ]; then
   exit 0
 fi
 
-# Note: Commit message validation happens in prepare-commit-msg hook
-# Due to git's hook order, the commit message isn't available in pre-commit when using `-m` flag
-# prepare-commit-msg runs after pre-commit but will fail fast to prevent commit completion
+# Validate commit message FIRST (before expensive operations) if available
+# Note: When using `git commit -m`, git creates .git/COMMIT_EDITMSG AFTER pre-commit runs
+# However, if the file exists from a previous failed commit, we validate it first
+# This optimizes the common case where user fixes message and retries
+commit_msg_file=".git/COMMIT_EDITMSG"
+msg_validated=false
+
+if [ -f "$commit_msg_file" ]; then
+  # Check if file has actual content (not just whitespace)
+  msg_content=$(head -1 "$commit_msg_file" 2>/dev/null | xargs)
+  if [ -n "$msg_content" ]; then
+    echo "🔍 Validating commit message format (early check before expensive operations)..."
+    # Skip validation only in actual CI environments
+    if [ -z "$GITHUB_ACTIONS" ] && [ -z "$CIRCLECI" ] && [ -z "$GITLAB_CI" ] && [ -z "$JENKINS_URL" ] && [ -z "$TRAVIS" ] && [ -z "$BUILDKITE" ]; then
+      if ! npx --no -- commitlint --edit "$commit_msg_file" >/dev/null 2>&1; then
+        echo ""
+        echo "❌ Commit message format is invalid!"
+        echo ""
+        echo "📋 Allowed scopes: role-manager, components, hooks, deps, config, ci, docs, spec, tests, release, ui, utils, types"
+        echo "📋 Allowed types: build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test, wip"
+        echo ""
+        echo "Example: feat(role-manager): add new feature"
+        echo ""
+        echo "💡 Tip: Commit message validation failed. Fix the message and try again."
+        echo ""
+        exit 1
+      fi
+      echo "✅ Commit message format is valid"
+      msg_validated=true
+    fi
+  fi
+fi
+
+# If message wasn't validated here (file doesn't exist yet with -m flag),
+# prepare-commit-msg hook will validate it and fail fast if invalid
+# This means formatting/linting might run once, but subsequent attempts will be validated early
 
 # Check for local tarball dependencies in package.json
 # We want to prevent committing local file paths that won't work in CI
@@ -48,6 +81,6 @@ if echo "$staged_files" | grep -q "apps/role-manager/package.json"; then
   fi
 fi
 
-# Run formatting and linting on staged files (expensive operations last)
+# Run formatting and linting on staged files (expensive operations - only if message is valid)
 echo "🎨 Running formatting and linting..."
 pnpm fix-all
