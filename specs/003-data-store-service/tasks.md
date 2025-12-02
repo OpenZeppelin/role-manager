@@ -20,15 +20,15 @@ Goal: Persist and display recently accessed contracts per network, ordered by la
 
 Independent Test: Load a contract; verify it appears in recents. Reload same contract; verify timestamp updated without duplicate. Delete entry; verify removal persists.
 
-- [ ] T007 [US1] Implement RecentContractsStorage repository (save/addOrUpdate/getByNetwork/delete/clear) in apps/role-manager/src/core/storage/RecentContractsStorage.ts
-- [ ] T008 [P] [US1] Enforce Dexie schema indices (&[networkId+address], [networkId+lastAccessed]) in apps/role-manager/src/core/storage/database.ts
-- [ ] T009 [P] [US1] Implement useRecentContracts hook with live query and CRUD in apps/role-manager/src/hooks/useRecentContracts.ts
-- [ ] T010 [P] [US1] Wire label nickname support in repository (optional field persisted) in apps/role-manager/src/core/storage/RecentContractsStorage.ts
-- [ ] T011 [US1] Add adapter/address validation gate before persistence in apps/role-manager/src/core/storage/RecentContractsStorage.ts
-- [ ] T012 [US1] Add empty-state handling and integration point (return [] and flags) in apps/role-manager/src/hooks/useRecentContracts.ts
-- [ ] T013 [US1] Implement last-writer-wins conflict resolution on lastAccessed in apps/role-manager/src/core/storage/RecentContractsStorage.ts
-- [ ] T014 [US1] Add quota-exceeded error mapping and user-facing error propagation in apps/role-manager/src/hooks/useRecentContracts.ts
-- [ ] T015 [US1] Export repository and hook from storage index in apps/role-manager/src/core/storage/index.ts
+- [x] T007 [US1] Implement RecentContractsStorage repository (save/addOrUpdate/getByNetwork/delete/clear) in apps/role-manager/src/core/storage/RecentContractsStorage.ts
+- [x] T008 [P] [US1] Enforce Dexie schema indices (&[networkId+address], [networkId+lastAccessed]) in apps/role-manager/src/core/storage/database.ts
+- [x] T009 [P] [US1] Implement useRecentContracts hook with live query and CRUD in apps/role-manager/src/hooks/useRecentContracts.ts
+- [x] T010 [P] [US1] Wire label nickname support in repository (optional field persisted) in apps/role-manager/src/core/storage/RecentContractsStorage.ts
+- [x] T011 [US1] Add adapter/address validation gate before persistence in apps/role-manager/src/core/storage/RecentContractsStorage.ts
+- [x] T012 [US1] Add empty-state handling and integration point (return [] and flags) in apps/role-manager/src/hooks/useRecentContracts.ts
+- [x] T013 [US1] Implement last-writer-wins conflict resolution on lastAccessed in apps/role-manager/src/core/storage/RecentContractsStorage.ts
+- [x] T014 [US1] Add quota-exceeded error mapping and user-facing error propagation in apps/role-manager/src/hooks/useRecentContracts.ts
+- [x] T015 [US1] Export repository and hook from storage index in apps/role-manager/src/core/storage/index.ts
 
 ## Phase 4 — User Story 2 (P2): Persist User Preferences
 

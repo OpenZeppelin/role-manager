@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+.packed-packages/
+
+# Builds
+/dist/
+/build/
+/out/
+.coverage/
+**/coverage/
+*.tsbuildinfo
+
+# Logs
+*.log
+*.lock
+
+# Env
+.env
+.env.*
+
+# Generated
+exports/
+.badges/
+.husky/_/
+public/
+
