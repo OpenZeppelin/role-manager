@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
-# Skip validation if running in CI
-if [ -n "$CI" ]; then
+# Skip validation only in actual CI environments (not just when CI=1 is set locally)
+# Check for known CI runner environment variables
+if [ -n "$GITHUB_ACTIONS" ] || [ -n "$CIRCLECI" ] || [ -n "$GITLAB_CI" ] || [ -n "$JENKINS_URL" ] || [ -n "$TRAVIS" ] || [ -n "$BUILDKITE" ]; then
   exit 0
 fi
 
@@ -33,7 +34,7 @@ if ! npx --no -- commitlint --edit "$1"; then
   echo ""
   echo "❌ Commit message format is invalid!"
   echo ""
-  echo "📋 Allowed scopes: role-manager, components, hooks, deps, config, ci, docs, tests, release, ui, utils, types"
+  echo "📋 Allowed scopes: role-manager, components, hooks, deps, config, ci, docs, spec, tests, release, ui, utils, types"
   echo "📋 Allowed types: build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test, wip"
   echo ""
   echo "Example: feat(role-manager): add new feature"
