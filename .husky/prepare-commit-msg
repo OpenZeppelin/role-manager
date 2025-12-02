@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+# This hook runs after pre-commit but before commit-msg
+# It validates the commit message early to fail fast (before commit completes)
+# This prevents wasted time on formatting/linting if the message is invalid
+
+# Skip validation only in actual CI environments (not just when CI=1 is set locally)
+if [ -n "$GITHUB_ACTIONS" ] || [ -n "$CIRCLECI" ] || [ -n "$GITLAB_CI" ] || [ -n "$JENKINS_URL" ] || [ -n "$TRAVIS" ] || [ -n "$BUILDKITE" ]; then
+  exit 0
+fi
+
+# $1 is the commit message file path
+commit_msg_file="$1"
+
+# Skip validation for merge commits, squash commits, etc. (when $2 is provided)
+if [ -n "$2" ]; then
+  exit 0
+fi
+
+echo "🔍 Validating commit message format (early check)..."
+
+# Try to use NVM's Node.js if available
+if [ -s "$HOME/.nvm/nvm.sh" ]; then
+  export NVM_DIR="$HOME/.nvm"
+  \. "$NVM_DIR/nvm.sh"
+  nvm use 20 >/dev/null 2>&1
+fi
+
+# Validate commit message format (suppress commitlint's output, we'll show our own)
+if ! npx --no -- commitlint --edit "$commit_msg_file" >/dev/null 2>&1; then
+  echo ""
+  echo "❌ Commit message format is invalid!"
+  echo ""
+  echo "📋 Allowed scopes: role-manager, components, hooks, deps, config, ci, docs, spec, tests, release, ui, utils, types"
+  echo "📋 Allowed types: build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test, wip"
+  echo ""
+  echo "Example: feat(role-manager): add new feature"
+  echo ""
+  echo "💡 Tip: Fix the commit message and try again."
+  echo ""
+  exit 1
+fi
+
+echo "✅ Commit message format is valid"

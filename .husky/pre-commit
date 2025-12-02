@@ -29,6 +29,10 @@ if [ -z "$staged_files" ]; then
   exit 0
 fi
 
+# Note: Commit message validation happens in prepare-commit-msg hook
+# Due to git's hook order, the commit message isn't available in pre-commit when using `-m` flag
+# prepare-commit-msg runs after pre-commit but will fail fast to prevent commit completion
+
 # Check for local tarball dependencies in package.json
 # We want to prevent committing local file paths that won't work in CI
 # Only check if package.json is among the staged files
@@ -44,6 +48,6 @@ if echo "$staged_files" | grep -q "apps/role-manager/package.json"; then
   fi
 fi
 
-# Run formatting and linting on staged files
+# Run formatting and linting on staged files (expensive operations last)
 echo "🎨 Running formatting and linting..."
 pnpm fix-all
