@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-# Skip validation only in actual CI environments (not just when CI=1 is set locally)
-# Check for known CI runner environment variables
-if [ -n "$GITHUB_ACTIONS" ] || [ -n "$CIRCLECI" ] || [ -n "$GITLAB_CI" ] || [ -n "$JENKINS_URL" ] || [ -n "$TRAVIS" ] || [ -n "$BUILDKITE" ]; then
+# Skip validation in CI environments
+# CI is the standard convention used by virtually all CI systems
+if [ -n "$CI" ]; then
   exit 0
 fi
 

@@ -42,10 +42,10 @@ Independent Test: Change network; reload app; verify preference restored.
 
 ## Phase 5 — Polish & Cross-Cutting
 
-- [ ] T019 Add unit tests with fake-indexeddb for repositories (apps/role-manager/src/core/storage/**tests**/RecentContractsStorage.test.ts)
-- [ ] T020 [P] Add unit tests for hooks (apps/role-manager/src/hooks/**tests**/useRecentContracts.test.tsx)
-- [ ] T021 [P] Add performance micro-benchmarks for listing 50 items (apps/role-manager/src/core/storage/**tests**/perf.recentContracts.test.ts)
-- [ ] T022 Document storage usage in developer docs (apps/role-manager/README.md)
+- [x] T019 Add unit tests with fake-indexeddb for repositories (apps/role-manager/src/core/storage/**tests**/RecentContractsStorage.test.ts)
+- [x] T020 [P] Add unit tests for hooks (apps/role-manager/src/hooks/**tests**/useRecentContracts.test.tsx)
+- [x] T021 [P] Add performance micro-benchmarks for listing 50 items (apps/role-manager/src/core/storage/**tests**/perf.recentContracts.test.ts)
+- [x] T022 Document storage usage in developer docs (apps/role-manager/README.md)
 
 ## Dependencies (Story Order)
 
