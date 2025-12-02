@@ -19,7 +19,7 @@ function normalizeAddress(address: string): string {
 }
 
 function validateInput(input: RecentContractInput): void {
-  const { networkId, address } = input;
+  const { networkId, address, label } = input;
   if (!networkId || typeof networkId !== 'string' || networkId.trim().length === 0) {
     throw new Error('recentContracts/invalid-network-id');
   }
@@ -34,6 +34,10 @@ function validateInput(input: RecentContractInput): void {
   // Basic sanity: extremely long addresses are suspicious; cap to reasonable length
   if (normalized.length > 256) {
     throw new Error('recentContracts/invalid-address-length');
+  }
+  // Validate label length if provided (ASSUMP-005: max 64 characters)
+  if (label !== undefined && typeof label === 'string' && label.trim().length > 64) {
+    throw new Error('recentContracts/invalid-label-length');
   }
 }
 
@@ -73,7 +77,8 @@ export class RecentContractsStorage extends EntityStorage<RecentContractRecord> 
           updates.label = label;
         }
         await this.update(existing.id, updates);
-        return existing.id;
+        // Ensure consistent string ID return type
+        return String(existing.id);
       }
 
       const id = await this.save({

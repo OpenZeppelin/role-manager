@@ -57,7 +57,7 @@ apps/role-manager/src/
 │   └── Shared/          # Shared/reusable components
 ├── core/                # Core business logic
 │   ├── ecosystems/      # Blockchain ecosystem registry
-│   └── storage/         # Storage services (see STORAGE.md)
+│   └── storage/         # Storage services
 ├── hooks/               # React hooks
 ├── pages/               # Page components
 └── types/               # TypeScript type definitions

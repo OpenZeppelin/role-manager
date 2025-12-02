@@ -117,6 +117,7 @@ interface RecentContractRecord {
 - **Uniqueness**: Each `[networkId, address]` combination is unique
 - **Ordering**: Records are ordered by `lastAccessed` descending (most recent first)
 - **Address Length**: Maximum 256 characters
+- **Label Length**: Maximum 64 characters (optional field)
 - **Key Length**: Maximum 128 characters for preference keys
 
 ## Error Handling
@@ -128,6 +129,7 @@ Storage operations may throw the following errors:
 | `recentContracts/invalid-network-id`     | Empty or invalid network ID     |
 | `recentContracts/invalid-address`        | Empty or invalid address        |
 | `recentContracts/invalid-address-length` | Address exceeds 256 characters  |
+| `recentContracts/invalid-label-length`   | Label exceeds 64 characters     |
 | `recentContracts/quota-exceeded`         | Browser storage quota exceeded  |
 | `userPreferences/invalid-key`            | Empty or invalid preference key |
 | `userPreferences/key-too-long`           | Key exceeds 128 characters      |

@@ -69,7 +69,8 @@ describe('RecentContractsStorage', () => {
       const records = await storage.getByNetwork('stellar-testnet');
 
       expect(records).toHaveLength(1);
-      expect(records[0].id).toBe(id);
+      // ID may be stored as number in DB but returned as string from addOrUpdate
+      expect(String(records[0].id)).toBe(id);
       expect(records[0].networkId).toBe('stellar-testnet');
       expect(records[0].address).toBe(input.address);
       expect(records[0].lastAccessed).toBeDefined();
@@ -266,6 +267,63 @@ describe('RecentContractsStorage', () => {
 
       await expect(storage.addOrUpdate(input)).rejects.toThrow('recentContracts/invalid-address');
     });
+
+    it('should reject label exceeding 64 characters', async () => {
+      const input: RecentContractInput = {
+        networkId: 'stellar-testnet',
+        address: 'GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI',
+        label: 'A'.repeat(65),
+      };
+
+      await expect(storage.addOrUpdate(input)).rejects.toThrow(
+        'recentContracts/invalid-label-length'
+      );
+    });
+
+    it('should accept label at exactly 64 characters', async () => {
+      const input: RecentContractInput = {
+        networkId: 'stellar-testnet',
+        address: 'GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI',
+        label: 'A'.repeat(64),
+      };
+
+      const id = await storage.addOrUpdate(input);
+      expect(id).toBeDefined();
+
+      const records = await storage.getByNetwork('stellar-testnet');
+      expect(records[0].label).toBe('A'.repeat(64));
+    });
+
+    it('should accept empty or undefined label', async () => {
+      const input1: RecentContractInput = {
+        networkId: 'stellar-testnet',
+        address: 'ADDR1',
+        label: '',
+      };
+      const input2: RecentContractInput = {
+        networkId: 'stellar-testnet',
+        address: 'ADDR2',
+      };
+
+      const id1 = await storage.addOrUpdate(input1);
+      const id2 = await storage.addOrUpdate(input2);
+
+      expect(id1).toBeDefined();
+      expect(id2).toBeDefined();
+    });
+
+    it('should trim label and validate trimmed length', async () => {
+      // Label with whitespace that after trimming is exactly 64 chars
+      const input: RecentContractInput = {
+        networkId: 'stellar-testnet',
+        address: 'GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI',
+        label: '  ' + 'A'.repeat(65) + '  ',
+      };
+
+      await expect(storage.addOrUpdate(input)).rejects.toThrow(
+        'recentContracts/invalid-label-length'
+      );
+    });
   });
 
   describe('getByNetwork', () => {
@@ -374,7 +432,8 @@ describe('RecentContractsStorage', () => {
       const record = await storage.get(id);
 
       expect(record).toBeDefined();
-      expect(record!.id).toBe(id);
+      // ID may be stored as number in DB but returned as string from addOrUpdate
+      expect(String(record!.id)).toBe(id);
       expect(record!.address).toBe('ADDR1');
       expect(record!.label).toBe('Test Contract');
     });
