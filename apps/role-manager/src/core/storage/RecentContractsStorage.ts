@@ -63,10 +63,12 @@ export class RecentContractsStorage extends EntityStorage<RecentContractRecord> 
         .first();
 
       if (existing) {
-        await this.update(existing.id, {
-          lastAccessed: now,
-          label,
-        });
+        // Only include label in update if explicitly provided, to preserve existing value
+        const updates: Partial<RecentContractRecord> = { lastAccessed: now };
+        if (label !== undefined) {
+          updates.label = label;
+        }
+        await this.update(existing.id, updates);
         return existing.id;
       }
 
