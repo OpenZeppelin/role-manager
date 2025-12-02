@@ -23,8 +23,12 @@ function validateInput(input: RecentContractInput): void {
   if (!networkId || typeof networkId !== 'string' || networkId.trim().length === 0) {
     throw new Error('recentContracts/invalid-network-id');
   }
+  // Check address is a valid string before calling normalizeAddress to avoid TypeError
+  if (!address || typeof address !== 'string') {
+    throw new Error('recentContracts/invalid-address');
+  }
   const normalized = normalizeAddress(address);
-  if (!normalized || typeof normalized !== 'string' || normalized.length === 0) {
+  if (normalized.length === 0) {
     throw new Error('recentContracts/invalid-address');
   }
   // Basic sanity: extremely long addresses are suspicious; cap to reasonable length
