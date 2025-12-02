@@ -3,7 +3,7 @@
 **Feature Branch**: `003-data-store-service`
 **Created**: 2025-12-01
 **Status**: Draft  
-**Input**: User description: "A store service that will be responsible for data CRUD functionality accross the whole app."
+**Input**: User description: "A store service that will be responsible for data CRUD functionality across the whole app."
 
 ## Clarifications
 

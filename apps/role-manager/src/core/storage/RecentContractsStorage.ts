@@ -39,6 +39,11 @@ function validateInput(input: RecentContractInput): void {
   if (label !== undefined && typeof label === 'string' && label.trim().length > 64) {
     throw new Error('recentContracts/invalid-label-length');
   }
+  // Validate label has no control characters (ASSUMP-005)
+  // eslint-disable-next-line no-control-regex
+  if (label !== undefined && typeof label === 'string' && /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/.test(label)) {
+    throw new Error('recentContracts/invalid-label-control-chars');
+  }
 }
 
 /**

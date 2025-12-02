@@ -324,6 +324,54 @@ describe('RecentContractsStorage', () => {
         'recentContracts/invalid-label-length'
       );
     });
+
+    it('should reject label with null character (control char)', async () => {
+      const input: RecentContractInput = {
+        networkId: 'stellar-testnet',
+        address: 'GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI',
+        label: 'Test\x00Label',
+      };
+
+      await expect(storage.addOrUpdate(input)).rejects.toThrow(
+        'recentContracts/invalid-label-control-chars'
+      );
+    });
+
+    it('should reject label with bell character (control char)', async () => {
+      const input: RecentContractInput = {
+        networkId: 'stellar-testnet',
+        address: 'GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI',
+        label: 'Test\x07Label',
+      };
+
+      await expect(storage.addOrUpdate(input)).rejects.toThrow(
+        'recentContracts/invalid-label-control-chars'
+      );
+    });
+
+    it('should reject label with DEL character (control char)', async () => {
+      const input: RecentContractInput = {
+        networkId: 'stellar-testnet',
+        address: 'GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI',
+        label: 'Test\x7FLabel',
+      };
+
+      await expect(storage.addOrUpdate(input)).rejects.toThrow(
+        'recentContracts/invalid-label-control-chars'
+      );
+    });
+
+    it('should allow label with normal whitespace (tab, newline, carriage return)', async () => {
+      // Tab (\x09), Newline (\x0A), and Carriage Return (\x0D) are common whitespace, allowed
+      const input: RecentContractInput = {
+        networkId: 'stellar-testnet',
+        address: 'GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI',
+        label: 'Test\tLabel\nWith\rWhitespace',
+      };
+
+      const id = await storage.addOrUpdate(input);
+      expect(id).toBeDefined();
+    });
   });
 
   describe('getByNetwork', () => {
