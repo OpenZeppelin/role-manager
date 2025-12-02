@@ -325,40 +325,37 @@ describe('RecentContractsStorage', () => {
       );
     });
 
-    it('should reject label with null character (control char)', async () => {
-      const input: RecentContractInput = {
+    // Control character validation was removed - labels with control characters are now accepted
+    // This simplifies the validation logic as control chars in labels are edge cases
+    // that don't pose security risks in a client-side storage context
+
+    it('should allow label with control characters (null, bell, DEL)', async () => {
+      // Test null character (\x00)
+      const input1: RecentContractInput = {
         networkId: 'stellar-testnet',
-        address: 'GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI',
+        address: 'ADDR_NULL',
         label: 'Test\x00Label',
       };
+      const id1 = await storage.addOrUpdate(input1);
+      expect(id1).toBeDefined();
 
-      await expect(storage.addOrUpdate(input)).rejects.toThrow(
-        'recentContracts/invalid-label-control-chars'
-      );
-    });
-
-    it('should reject label with bell character (control char)', async () => {
-      const input: RecentContractInput = {
+      // Test bell character (\x07)
+      const input2: RecentContractInput = {
         networkId: 'stellar-testnet',
-        address: 'GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI',
+        address: 'ADDR_BELL',
         label: 'Test\x07Label',
       };
+      const id2 = await storage.addOrUpdate(input2);
+      expect(id2).toBeDefined();
 
-      await expect(storage.addOrUpdate(input)).rejects.toThrow(
-        'recentContracts/invalid-label-control-chars'
-      );
-    });
-
-    it('should reject label with DEL character (control char)', async () => {
-      const input: RecentContractInput = {
+      // Test DEL character (\x7F)
+      const input3: RecentContractInput = {
         networkId: 'stellar-testnet',
-        address: 'GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI',
+        address: 'ADDR_DEL',
         label: 'Test\x7FLabel',
       };
-
-      await expect(storage.addOrUpdate(input)).rejects.toThrow(
-        'recentContracts/invalid-label-control-chars'
-      );
+      const id3 = await storage.addOrUpdate(input3);
+      expect(id3).toBeDefined();
     });
 
     it('should allow label with normal whitespace (tab, newline, carriage return)', async () => {
