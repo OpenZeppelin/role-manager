@@ -6,9 +6,22 @@ import './setup';
 import Dexie from 'dexie';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ContractSchemaInput } from '@/types/storage';
+import type { ContractSchemaInput, RecentContractRecord } from '@/types/storage';
 
 import { RecentContractsStorage, type RecentContractInput } from '../RecentContractsStorage';
+
+/**
+ * Interface for inherited EntityStorage methods provided by the mock.
+ * TypeScript doesn't see these from the published package types, so we define them explicitly.
+ */
+interface EntityStorageMethods<T> {
+  get(id: string): Promise<T | undefined>;
+  delete(id: string): Promise<void>;
+  clear(): Promise<void>;
+  // Protected property exposed for testing via bracket notation
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  table: Dexie.Table<T, any>;
+}
 
 // Create a test database factory that mimics the app's database structure
 function createTestDatabase(): Dexie {
@@ -69,11 +82,13 @@ class TestRecentContractsStorage extends RecentContractsStorage {
 
 describe('RecentContractsStorage', () => {
   let testDb: Dexie;
-  let storage: TestRecentContractsStorage;
+  // Type includes inherited EntityStorage methods from the mock
+  let storage: TestRecentContractsStorage & EntityStorageMethods<RecentContractRecord>;
 
   beforeEach(async () => {
     testDb = createTestDatabase();
-    storage = new TestRecentContractsStorage(testDb);
+    storage = new TestRecentContractsStorage(testDb) as TestRecentContractsStorage &
+      EntityStorageMethods<RecentContractRecord>;
     await testDb.open();
   });
 
