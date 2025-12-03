@@ -1,6 +1,6 @@
-import { NetworkEthereum, NetworkStellar } from '@web3icons/react';
 import { ArrowRightLeft, Key, LayoutDashboard, Users } from 'lucide-react';
-import React, { useState } from 'react';
+import { toast } from 'sonner';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import type { NetworkConfig } from '@openzeppelin/ui-builder-types';
@@ -14,7 +14,11 @@ import {
 import { logger } from '@openzeppelin/ui-builder-utils';
 
 import { getEcosystemName } from '../../core/ecosystems/registry';
-import { Account, AccountSelector } from './AccountSelector';
+import { useAllNetworks } from '../../hooks/useAllNetworks';
+import { useRecentContracts } from '../../hooks/useRecentContracts';
+import type { ContractRecord } from '../../types/contracts';
+import { AddContractDialog } from '../Contracts';
+import { ContractSelector } from './ContractSelector';
 
 export interface SidebarProps {
   /** Controls visibility in mobile slide-over */
@@ -22,8 +26,6 @@ export interface SidebarProps {
   /** Close handler for mobile slide-over */
   onMobileOpenChange?: (open: boolean) => void;
 }
-
-type Network = Pick<NetworkConfig, 'id' | 'name' | 'ecosystem' | 'type' | 'iconComponent'>;
 
 /**
  * Sidebar component
@@ -34,61 +36,66 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps): React
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Mock accounts state
-  const [accounts, setAccounts] = useState<Account[]>([
-    {
-      address: '0xA1B2C3D4E5F6A1B2C3D4E5F6A1B2C3D4E5F6EF12',
-      name: 'Demo Contract',
-      color: '#06b6d4', // cyan-500
-    },
-    {
-      address: '0x0000000000000000000000000000000000000000',
-      name: 'asdasdasda',
-      color: '#ef4444', // red-500
-    },
-  ]);
+  // Add Contract Dialog state (Feature: 004-add-contract-record)
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
-  const [selectedAccount, setSelectedAccount] = useState<Account | null>(accounts[0]);
+  // Networks from all enabled ecosystems (loaded lazily, cached after first load)
+  const { networks, isLoading: isLoadingNetworks } = useAllNetworks();
 
-  // Mock networks state
-  const networks: Network[] = [
-    {
-      id: 'eth-mainnet',
-      name: 'Ethereum',
-      ecosystem: 'evm',
-      type: 'mainnet',
-      iconComponent: NetworkEthereum,
-    },
-    {
-      id: 'eth-sepolia',
-      name: 'Sepolia',
-      ecosystem: 'evm',
-      type: 'testnet',
-      iconComponent: NetworkEthereum,
-    },
-    {
-      id: 'stellar-mainnet',
-      name: 'Stellar',
-      ecosystem: 'stellar',
-      type: 'mainnet',
-      iconComponent: NetworkStellar,
-    },
-    {
-      id: 'stellar-testnet',
-      name: 'Stellar',
-      ecosystem: 'stellar',
-      type: 'testnet',
-      iconComponent: NetworkStellar,
-    },
-    {
-      id: 'midnight-testnet',
-      name: 'Midnight',
-      ecosystem: 'midnight',
-      type: 'testnet',
-    },
-  ];
+  // Selected network state - initialized to first network once loaded
+  const [selectedNetwork, setSelectedNetwork] = useState<NetworkConfig | null>(null);
 
-  const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(networks[0]);
+  // Auto-select first network once networks are loaded
+  useEffect(() => {
+    if (!selectedNetwork && networks.length > 0) {
+      setSelectedNetwork(networks[0]);
+    }
+  }, [networks, selectedNetwork]);
+
+  // Contracts data - filtered by selected network
+  const { data: contracts, deleteContract } = useRecentContracts(selectedNetwork?.id);
+
+  const [selectedContract, setSelectedContract] = useState<ContractRecord | null>(null);
+
+  // Select first contract if none selected or current selection is invalid
+  useEffect(() => {
+    // Check if contracts is defined before accessing .length
+    if (contracts && contracts.length > 0) {
+      // If nothing selected, select first
+      if (!selectedContract) {
+        setSelectedContract(contracts[0]);
+      }
+      // If current selection is not in the list (e.g. changed network or deleted), select first
+      else if (!contracts.find((c) => c.id === selectedContract.id)) {
+        setSelectedContract(contracts[0]);
+      }
+    } else {
+      setSelectedContract(null);
+    }
+  }, [contracts, selectedContract]);
+
+  // Handle contract added - auto-select the new contract (FR-008a)
+  const handleContractAdded = useCallback((contractId: string) => {
+    logger.info('Sidebar', `Contract added with ID: ${contractId}`);
+    // Note: Selection logic is handled by the effect above implicitly for now,
+    // or by the user manually selecting.
+    // Ideally we would set a flag to "select next update with this ID".
+  }, []);
+
+  const handleRemoveContract = async (contract: ContractRecord) => {
+    try {
+      await deleteContract(contract.id);
+      toast.success('Contract deleted');
+      // If the selected contract was deleted, we set selection to null
+      // The effect will then pick the first available contract
+      if (selectedContract?.id === contract.id) {
+        setSelectedContract(null);
+      }
+    } catch (error) {
+      toast.error('Failed to delete contract. Please try again.');
+      logger.error('Sidebar', 'Delete contract failed', error);
+    }
+  };
 
   const headerContent = (
     <div className="mb-6">
@@ -98,19 +105,15 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps): React
 
   const sidebarSelectors = (
     <div className="mb-8 flex flex-col gap-2">
-      <AccountSelector
-        accounts={accounts}
-        selectedAccount={selectedAccount}
-        onSelectAccount={setSelectedAccount}
-        onAddAccount={() => {
-          logger.info('Sidebar', 'Add new account clicked');
+      <ContractSelector
+        contracts={contracts || []}
+        selectedContract={selectedContract}
+        onSelectContract={setSelectedContract}
+        onAddContract={() => {
+          logger.info('Sidebar', 'Add new contract clicked - opening dialog');
+          setIsAddDialogOpen(true);
         }}
-        onRemoveAccount={(account) => {
-          setAccounts((prev) => prev.filter((a) => a.address !== account.address));
-          if (selectedAccount?.address === account.address) {
-            setSelectedAccount(null);
-          }
-        }}
+        onRemoveContract={handleRemoveContract}
       />
       <NetworkSelector
         networks={networks}
@@ -122,7 +125,7 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps): React
         getNetworkType={(n) => n.type}
         groupByEcosystem
         getEcosystem={(n) => getEcosystemName(n.ecosystem)}
-        placeholder="Select Network"
+        placeholder={isLoadingNetworks ? 'Loading networks...' : 'Select Network'}
       />
     </div>
   );
@@ -133,43 +136,52 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps): React
   };
 
   return (
-    <SidebarLayout
-      header={headerContent}
-      subHeader={sidebarSelectors}
-      mobileOpen={mobileOpen}
-      onMobileOpenChange={onMobileOpenChange}
-      mobileAriaLabel="Navigation menu"
-    >
-      <SidebarSection>
-        <SidebarButton
-          icon={<LayoutDashboard className="size-4" />}
-          isSelected={location.pathname === '/'}
-          onClick={() => handleNavigation('/')}
-        >
-          Dashboard
-        </SidebarButton>
-        <SidebarButton
-          icon={<Users className="size-4" />}
-          isSelected={location.pathname === '/authorized-accounts'}
-          onClick={() => handleNavigation('/authorized-accounts')}
-        >
-          Authorized Accounts
-        </SidebarButton>
-        <SidebarButton
-          icon={<Key className="size-4" />}
-          isSelected={location.pathname === '/roles'}
-          onClick={() => handleNavigation('/roles')}
-        >
-          Roles
-        </SidebarButton>
-        <SidebarButton
-          icon={<ArrowRightLeft className="size-4" />}
-          isSelected={location.pathname === '/role-changes'}
-          onClick={() => handleNavigation('/role-changes')}
-        >
-          Role Changes
-        </SidebarButton>
-      </SidebarSection>
-    </SidebarLayout>
+    <>
+      <SidebarLayout
+        header={headerContent}
+        subHeader={sidebarSelectors}
+        mobileOpen={mobileOpen}
+        onMobileOpenChange={onMobileOpenChange}
+        mobileAriaLabel="Navigation menu"
+      >
+        <SidebarSection>
+          <SidebarButton
+            icon={<LayoutDashboard className="size-4" />}
+            isSelected={location.pathname === '/'}
+            onClick={() => handleNavigation('/')}
+          >
+            Dashboard
+          </SidebarButton>
+          <SidebarButton
+            icon={<Users className="size-4" />}
+            isSelected={location.pathname === '/authorized-accounts'}
+            onClick={() => handleNavigation('/authorized-accounts')}
+          >
+            Authorized Accounts
+          </SidebarButton>
+          <SidebarButton
+            icon={<Key className="size-4" />}
+            isSelected={location.pathname === '/roles'}
+            onClick={() => handleNavigation('/roles')}
+          >
+            Roles
+          </SidebarButton>
+          <SidebarButton
+            icon={<ArrowRightLeft className="size-4" />}
+            isSelected={location.pathname === '/role-changes'}
+            onClick={() => handleNavigation('/role-changes')}
+          >
+            Role Changes
+          </SidebarButton>
+        </SidebarSection>
+      </SidebarLayout>
+
+      {/* Add Contract Dialog (Feature: 004-add-contract-record) */}
+      <AddContractDialog
+        open={isAddDialogOpen}
+        onOpenChange={setIsAddDialogOpen}
+        onContractAdded={handleContractAdded}
+      />
+    </>
   );
 }

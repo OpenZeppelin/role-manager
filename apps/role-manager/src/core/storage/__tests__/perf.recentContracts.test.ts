@@ -26,7 +26,6 @@ function createTestDatabase(): Dexie {
 class TestRecentContractsStorage extends RecentContractsStorage {
   constructor(testDb: Dexie) {
     super();
-    // @ts-expect-error - accessing protected member for testing
     this.table = testDb.table('recentContracts');
   }
 }

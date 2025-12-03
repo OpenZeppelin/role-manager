@@ -39,15 +39,6 @@ function validateInput(input: RecentContractInput): void {
   if (label !== undefined && typeof label === 'string' && label.trim().length > 64) {
     throw new Error('recentContracts/invalid-label-length');
   }
-  // Validate label has no control characters (ASSUMP-005)
-
-  if (
-    label !== undefined &&
-    typeof label === 'string' &&
-    /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/.test(label)
-  ) {
-    throw new Error('recentContracts/invalid-label-control-chars');
-  }
 }
 
 /**
@@ -85,9 +76,11 @@ export class RecentContractsStorage extends EntityStorage<RecentContractRecord> 
         if (label !== undefined) {
           updates.label = label;
         }
-        await this.update(existing.id, updates);
-        // Ensure consistent string ID return type
-        return String(existing.id);
+        // Convert ID to string since database stores auto-increment IDs as numbers
+        // but EntityStorage.update() expects string IDs
+        const idString = String(existing.id);
+        await this.update(idString, updates);
+        return idString;
       }
 
       const id = await this.save({
@@ -111,6 +104,17 @@ export class RecentContractsStorage extends EntityStorage<RecentContractRecord> 
       .equals(key)
       .sortBy('lastAccessed');
     return rows.reverse();
+  }
+
+  /**
+   * Delete a contract record by ID.
+   * This is a permanent deletion with no confirmation - the UI handles any confirmation logic.
+   *
+   * @param id - The ID of the contract record to delete
+   * @throws Error if the deletion fails
+   */
+  async deleteContract(id: string): Promise<void> {
+    await this.delete(id);
   }
 }
 

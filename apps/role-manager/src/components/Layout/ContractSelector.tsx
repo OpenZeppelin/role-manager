@@ -1,4 +1,4 @@
-import { Check, ChevronDown, Plus, Trash } from 'lucide-react';
+import { ChevronDown, Plus, Trash } from 'lucide-react';
 
 import {
   AddressDisplay,
@@ -10,45 +10,53 @@ import {
   DropdownMenuTrigger,
 } from '@openzeppelin/ui-builder-ui';
 
-export interface Account {
-  address: string;
-  name: string;
-  type?: string;
-  color?: string; // For the avatar placeholder
-}
+import type { ContractSelectorProps } from '../../types/contracts';
 
-interface AccountSelectorProps {
-  accounts: Account[];
-  selectedAccount: Account | null;
-  onSelectAccount: (account: Account) => void;
-  onAddAccount: () => void;
-  onRemoveAccount?: (account: Account) => void;
-}
+export function ContractSelector({
+  contracts,
+  selectedContract,
+  onSelectContract,
+  onAddContract,
+  onRemoveContract,
+}: ContractSelectorProps) {
+  // Generate a color based on the address
+  const getAvatarColor = (address: string) => {
+    // Simple deterministic color generation
+    const colors = [
+      '#ef4444',
+      '#f97316',
+      '#f59e0b',
+      '#84cc16',
+      '#10b981',
+      '#06b6d4',
+      '#3b82f6',
+      '#8b5cf6',
+      '#d946ef',
+      '#f43f5e',
+    ];
+    let hash = 0;
+    for (let i = 0; i < address.length; i++) {
+      hash = address.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return colors[Math.abs(hash) % colors.length];
+  };
 
-export function AccountSelector({
-  accounts,
-  selectedAccount,
-  onSelectAccount,
-  onAddAccount,
-  onRemoveAccount,
-}: AccountSelectorProps) {
-  // Fallback avatar color if not provided
-  const getAvatarColor = (account: Account) => account.color || '#3b82f6'; // blue-500 default
-
-  const TriggerContent = selectedAccount ? (
+  const TriggerContent = selectedContract ? (
     <div className="flex items-center gap-3 text-left">
       <div
         className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-medium text-white"
-        style={{ backgroundColor: getAvatarColor(selectedAccount) }}
+        style={{ backgroundColor: getAvatarColor(selectedContract.address) }}
       >
-        {selectedAccount.name.substring(0, 2).toUpperCase()}
+        {(selectedContract.label || 'Unknown').substring(0, 2).toUpperCase()}
       </div>
       <div className="flex flex-1 flex-col overflow-hidden">
-        <span className="truncate text-sm font-medium text-foreground">{selectedAccount.name}</span>
+        <span className="truncate text-sm font-medium text-foreground">
+          {selectedContract.label || 'Unknown Contract'}
+        </span>
         <span className="text-xs text-muted-foreground">
           {/* IMPORTANT: Do NOT render a button inside the trigger button */}
           <AddressDisplay
-            address={selectedAccount.address}
+            address={selectedContract.address}
             className="font-normal text-muted-foreground"
             truncate
           />
@@ -56,7 +64,7 @@ export function AccountSelector({
       </div>
     </div>
   ) : (
-    <span className="text-sm font-medium">Select Account</span>
+    <span className="text-sm font-medium">Select Contract</span>
   );
 
   return (
@@ -70,32 +78,29 @@ export function AccountSelector({
           <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent
-        className="w-(--radix-dropdown-menu-trigger-width) min-w-[240px]"
-        align="start"
-      >
+      <DropdownMenuContent className="min-w-[320px]" align="start">
         <div className="p-1">
-          {accounts.map((account) => (
+          {(contracts || []).map((contract) => (
             <DropdownMenuItem
-              key={account.address}
-              onClick={() => onSelectAccount(account)}
+              key={contract.id}
+              onClick={() => onSelectContract(contract)}
               className="group flex cursor-pointer items-center justify-between gap-2 rounded-sm p-2 focus:bg-accent"
             >
               <div className="flex items-center gap-3 overflow-hidden">
                 <div
                   className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-medium text-white"
-                  style={{ backgroundColor: getAvatarColor(account) }}
+                  style={{ backgroundColor: getAvatarColor(contract.address) }}
                 >
-                  {account.name.substring(0, 2).toUpperCase()}
+                  {(contract.label || 'Unknown').substring(0, 2).toUpperCase()}
                 </div>
                 <div className="flex flex-col overflow-hidden">
                   <span className="truncate text-sm font-medium text-foreground">
-                    {account.name}
+                    {contract.label || 'Unknown Contract'}
                   </span>
                   <span className="text-xs text-muted-foreground">
                     {/* OK to show copy inside the dropdown item (not inside a button) */}
                     <AddressDisplay
-                      address={account.address}
+                      address={contract.address}
                       showCopyButton
                       showCopyButtonOnHover
                       className="font-normal text-muted-foreground"
@@ -104,18 +109,23 @@ export function AccountSelector({
                   </span>
                 </div>
               </div>
-              {selectedAccount?.address === account.address && (
-                <Check className="h-4 w-4 text-primary" />
-              )}
-              {onRemoveAccount && selectedAccount?.address !== account.address && (
+              {onRemoveContract && (
                 <div
                   role="button"
                   tabIndex={0}
-                  className="hidden rounded-sm p-1 hover:bg-destructive/10 hover:text-destructive group-hover:block"
+                  className="rounded-sm p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onRemoveAccount(account);
+                    onRemoveContract(contract);
                   }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onRemoveContract(contract);
+                    }
+                  }}
+                  aria-label={`Delete ${contract.label}`}
                 >
                   <Trash className="h-4 w-4" />
                 </div>
@@ -126,11 +136,11 @@ export function AccountSelector({
         <DropdownMenuSeparator />
         <div className="p-1">
           <DropdownMenuItem
-            onClick={onAddAccount}
+            onClick={onAddContract}
             className="flex cursor-pointer items-center gap-2 rounded-sm p-2 font-medium text-primary focus:bg-accent"
           >
             <Plus className="h-4 w-4" />
-            Add new account
+            Add new contract
           </DropdownMenuItem>
         </div>
       </DropdownMenuContent>

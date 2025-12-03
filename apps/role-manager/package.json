@@ -18,6 +18,8 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "@openzeppelin/ui-builder-adapter-evm": "latest",
+    "@openzeppelin/ui-builder-adapter-stellar": "latest",
     "@openzeppelin/ui-builder-storage": "latest",
     "@openzeppelin/ui-builder-styles": "latest",
     "@openzeppelin/ui-builder-types": "latest",
