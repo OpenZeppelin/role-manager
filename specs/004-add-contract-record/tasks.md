@@ -27,9 +27,9 @@
 
 **Purpose**: Project initialization and type definitions
 
-- [ ] T001 Create types file at `src/types/contracts.ts` with `AddContractFormData`, `ContractRecord` types from contracts/components.ts
-- [ ] T002 [P] Create barrel export at `src/components/Contracts/index.ts` (empty, will populate later)
-- [ ] T003 [P] Verify UI Builder dependencies are installed (`@openzeppelin/ui-builder-ui`, `react-hook-form`, `sonner` for toasts)
+- [x] T001 Create types file at `src/types/contracts.ts` with `AddContractFormData`, `ContractRecord` types from contracts/components.ts
+- [x] T002 [P] Create barrel export at `src/components/Contracts/index.ts` (empty, will populate later)
+- [x] T003 [P] Verify UI Builder dependencies are installed (`@openzeppelin/ui-builder-ui`, `react-hook-form`, `sonner` for toasts)
 
 ---
 
@@ -39,12 +39,12 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T004 Create local `ecosystemManager.ts` at `src/core/ecosystems/ecosystemManager.ts` (adapted from UI Builder's private builder package pattern per research.md) with `loadAdapterPackageModule`, `getNetworksByEcosystem`, `getAdapter`, `capitalize` functions
-- [ ] T005 [P] Extend `ECOSYSTEM_REGISTRY` in `src/core/ecosystems/registry.ts` to add `addressExample` for Stellar, Midnight ecosystems
-- [ ] T006 Add `deleteContract(id: string)` method to `RecentContractsStorage` class at `src/core/storage/RecentContractsStorage.ts`
-- [ ] T007 Expose `deleteContract` method in `useRecentContracts` hook at `src/hooks/useRecentContracts.ts`
+- [x] T004 Create local `ecosystemManager.ts` at `src/core/ecosystems/ecosystemManager.ts` (adapted from UI Builder's private builder package pattern per research.md) with `loadAdapterPackageModule`, `getNetworksByEcosystem`, `getAdapter`, `capitalize` functions
+- [x] T005 [P] Extend `ECOSYSTEM_REGISTRY` in `src/core/ecosystems/registry.ts` to add `addressExample` for Stellar, Midnight ecosystems
+- [x] T006 Add `deleteContract(id: string)` method to `RecentContractsStorage` class at `src/core/storage/RecentContractsStorage.ts`
+- [x] T007 Expose `deleteContract` method in `useRecentContracts` hook at `src/hooks/useRecentContracts.ts`
 
-**Checkpoint**: Foundation ready - ecosystemManager, storage delete, and registry extensions complete
+**Checkpoint**: Foundation ready - ecosystemManager, storage delete, and registry extensions complete ✅
 
 ---
 
