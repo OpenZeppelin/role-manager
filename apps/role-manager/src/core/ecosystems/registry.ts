@@ -33,6 +33,7 @@ export const ECOSYSTEM_REGISTRY: Record<Ecosystem, EcosystemInfo> = {
     description:
       'Stellar is a fast, energy-efficient blockchain network designed for real-world financial applications. It enables near-instant global payments at low cost, connects digital assets to traditional finance, and supports smart contracts through Soroban. Its anchor network spans over 180 countries and supports 20+ digital assets.',
     explorerGuidance: 'contract IDs on Stellar Expert',
+    addressExample: 'GCKFBEIYV2U22IO2BJ4KVJOIP7XPWQGQFKKWXR6DOSJBV7STMAQSMTGG',
     networkIconName: 'stellar',
     bgColorClass: 'bg-sky-100',
     textColorClass: 'text-sky-900',
@@ -46,6 +47,7 @@ export const ECOSYSTEM_REGISTRY: Record<Ecosystem, EcosystemInfo> = {
     description:
       'Midnight is a data protection blockchain that enables programmable privacy. It allows developers to build applications that shield sensitive data, including wallet addresses and transaction information, while leveraging zero-knowledge proofs for selective disclosure of data.',
     explorerGuidance: 'contract IDs on Midnight Explorer',
+    addressExample: '0000...0000',
     bgColorClass: 'bg-indigo-100',
     textColorClass: 'text-indigo-900',
     // Note: midnight uses a custom SVG, so no networkIconName
