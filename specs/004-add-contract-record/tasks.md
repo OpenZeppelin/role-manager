@@ -135,16 +135,18 @@
 
 **Purpose**: Error handling, accessibility, and final polish
 
-- [ ] T025 [P] Add aria-label to delete buttons: `aria-label="Delete {contractName}"` per NFR-A005
-- [ ] T026 [P] Ensure all form fields have associated labels with `htmlFor` per NFR-A003
-- [ ] T027 [P] Add `aria-describedby` to fields for error message association and wrap error messages in `aria-live="polite"` region per NFR-A004
-- [ ] T028 Implement empty state in dialog when no networks available per ERR-005
-- [ ] T028a [P] Add retry button for adapter load failures in AddContractForm per UX-011 (inline "Retry" link with error message)
-- [ ] T029 Add error toast for save failures per ERR-003 (using sonner toast)
-- [ ] T030 [P] Verify focus trap works in dialog (should be handled by Dialog component)
-- [ ] T031 Run linting and fix any issues: `pnpm lint`
-- [ ] T032 Run type check and fix any issues: `pnpm typecheck`
-- [ ] T033 Manual testing against quickstart.md Definition of Done checklist
+- [x] T025 [P] Add aria-label to delete buttons: `aria-label="Delete {contractName}"` per NFR-A005
+- [x] T026 [P] Ensure all form fields have associated labels with `htmlFor` per NFR-A003
+- [x] T027 [P] Add `aria-describedby` to fields for error message association and wrap error messages in `aria-live="polite"` region per NFR-A004
+- [x] T028 Implement empty state in dialog when no networks available per ERR-005
+- [x] T028a [P] Add retry button for adapter load failures in AddContractForm per UX-011 (inline "Retry" link with error message)
+- [x] T029 Add error toast for save failures per ERR-003 (using sonner toast)
+- [x] T030 [P] Verify focus trap works in dialog (should be handled by Dialog component)
+- [x] T031 Run linting and fix any issues: `pnpm lint`
+- [x] T032 Run type check and fix any issues: `pnpm typecheck`
+- [x] T033 Manual testing against quickstart.md Definition of Done checklist
+
+**Checkpoint**: Phase 6 COMPLETE - Accessibility, error handling, and polish verified. ✅
 
 ---
 

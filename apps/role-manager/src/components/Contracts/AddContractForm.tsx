@@ -131,11 +131,12 @@ export function AddContractForm({
     <form onSubmit={onFormSubmit} className="flex flex-col gap-4">
       {/* Step 1: Ecosystem Selector */}
       <div className="flex flex-col gap-2">
-        <Label>Blockchain</Label>
+        <Label id="blockchain-label">Blockchain</Label>
         <CompactEcosystemSelector
           selectedEcosystem={selectedEcosystem}
           onSelectEcosystem={handleEcosystemSelect}
           disabled={isSubmitting}
+          aria-labelledby="blockchain-label"
         />
       </div>
 
@@ -149,7 +150,11 @@ export function AddContractForm({
               <span>Loading {getEcosystemName(selectedEcosystem)} networks...</span>
             </div>
           ) : networksError ? (
-            <div className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            <div
+              className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+              role="alert"
+              aria-live="polite"
+            >
               Failed to load networks.{' '}
               <button
                 type="button"
@@ -165,7 +170,11 @@ export function AddContractForm({
               </button>
             </div>
           ) : networks.length === 0 ? (
-            <div className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
+            <div
+              className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground"
+              role="status"
+              aria-live="polite"
+            >
               No networks available for {getEcosystemName(selectedEcosystem)}.
             </div>
           ) : (

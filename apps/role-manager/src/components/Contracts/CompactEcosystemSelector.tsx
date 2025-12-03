@@ -24,6 +24,8 @@ export interface CompactEcosystemSelectorProps {
   onSelectEcosystem: (ecosystem: Ecosystem) => void;
   /** Whether the selector is disabled */
   disabled?: boolean;
+  /** ID of the label element for accessibility */
+  'aria-labelledby'?: string;
 }
 
 // Map ecosystems to their icon components for cleaner lookup
@@ -90,6 +92,7 @@ export function CompactEcosystemSelector({
   selectedEcosystem,
   onSelectEcosystem,
   disabled = false,
+  'aria-labelledby': ariaLabelledby,
 }: CompactEcosystemSelectorProps): React.ReactElement {
   // Get visible ecosystems (only those with showInUI !== false)
   const ecosystemOptions = ECOSYSTEM_ORDER.map((ecosystem) => {
@@ -104,7 +107,7 @@ export function CompactEcosystemSelector({
   }).filter((opt) => opt.showInUI);
 
   return (
-    <div className="grid grid-cols-2 gap-2">
+    <div className="grid grid-cols-2 gap-2" role="group" aria-labelledby={ariaLabelledby}>
       {ecosystemOptions.map((option) => {
         const isSelected = selectedEcosystem === option.value;
         const isDisabled = disabled || !option.enabled;
@@ -133,7 +136,7 @@ export function CompactEcosystemSelector({
             aria-selected={isSelected}
             aria-disabled={isDisabled}
           >
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               <EcosystemIcon ecosystem={option.value} disabled={isDisabled} size={28} />
             </div>
             <div className="flex flex-col min-w-0">

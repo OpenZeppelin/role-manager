@@ -113,10 +113,17 @@ export function ContractSelector({
                 <div
                   role="button"
                   tabIndex={0}
-                  className="rounded-sm p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                  className="rounded-sm p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
                   onClick={(e) => {
                     e.stopPropagation();
                     onRemoveContract(contract);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onRemoveContract(contract);
+                    }
                   }}
                   aria-label={`Delete ${contract.label}`}
                 >
