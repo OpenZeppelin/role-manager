@@ -105,6 +105,17 @@ export class RecentContractsStorage extends EntityStorage<RecentContractRecord> 
       .sortBy('lastAccessed');
     return rows.reverse();
   }
+
+  /**
+   * Delete a contract record by ID.
+   * This is a permanent deletion with no confirmation - the UI handles any confirmation logic.
+   *
+   * @param id - The ID of the contract record to delete
+   * @throws Error if the deletion fails
+   */
+  async deleteContract(id: string): Promise<void> {
+    await this.delete(id);
+  }
 }
 
 export const recentContractsStorage = new RecentContractsStorage();

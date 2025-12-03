@@ -13,6 +13,7 @@ import { useRecentContracts } from '../useRecentContracts';
 const mocks = {
   addOrUpdate: vi.fn(),
   getByNetwork: vi.fn(),
+  deleteContract: vi.fn(),
 };
 
 // Mock modules using factory functions (not top-level variables)
@@ -24,10 +25,12 @@ vi.mock('@/core/storage/RecentContractsStorage', () => ({
   recentContractsStorage: {
     addOrUpdate: (...args: unknown[]) => mocks.addOrUpdate(...args),
     getByNetwork: (...args: unknown[]) => mocks.getByNetwork(...args),
+    deleteContract: (...args: unknown[]) => mocks.deleteContract(...args),
   },
   RecentContractsStorage: class {
     addOrUpdate = (...args: unknown[]) => mocks.addOrUpdate(...args);
     getByNetwork = (...args: unknown[]) => mocks.getByNetwork(...args);
+    deleteContract = (...args: unknown[]) => mocks.deleteContract(...args);
   },
 }));
 
@@ -64,6 +67,7 @@ describe('useRecentContracts', () => {
     vi.clearAllMocks();
     mocks.addOrUpdate.mockResolvedValue('mock-id-1');
     mocks.getByNetwork.mockResolvedValue([]);
+    mocks.deleteContract.mockResolvedValue(undefined);
   });
 
   afterEach(() => {

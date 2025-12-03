@@ -22,6 +22,7 @@ export function useRecentContracts(networkId: string | undefined) {
     expose: (repo) => ({
       addOrUpdate: repo.addOrUpdate.bind(repo),
       getByNetwork: repo.getByNetwork.bind(repo),
+      deleteContract: repo.deleteContract.bind(repo),
     }),
   });
   return useRepo();
