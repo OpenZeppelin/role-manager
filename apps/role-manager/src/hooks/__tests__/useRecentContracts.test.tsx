@@ -5,7 +5,6 @@ import 'fake-indexeddb/auto';
 
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import React from 'react';
 
 import { useRecentContracts } from '../useRecentContracts';
 
@@ -14,11 +13,20 @@ const mocks = {
   addOrUpdate: vi.fn(),
   getByNetwork: vi.fn(),
   deleteContract: vi.fn(),
+  useLiveQueryResult: [] as unknown[],
 };
 
 // Mock modules using factory functions (not top-level variables)
 vi.mock('@/core/storage', () => ({
-  db: { table: vi.fn() },
+  db: {
+    table: vi.fn(() => ({
+      where: vi.fn(() => ({
+        equals: vi.fn(() => ({
+          sortBy: vi.fn(() => Promise.resolve([])),
+        })),
+      })),
+    })),
+  },
 }));
 
 vi.mock('@/core/storage/RecentContractsStorage', () => ({
@@ -34,32 +42,9 @@ vi.mock('@/core/storage/RecentContractsStorage', () => ({
   },
 }));
 
-// Mock createRepositoryHook to return a simple hook implementation
+// Mock useLiveQuery from ui-builder-storage
 vi.mock('@openzeppelin/ui-builder-storage', () => ({
-  createRepositoryHook: vi.fn(({ repo, expose }) => {
-    // Return a hook factory that creates state-based hooks
-    return function useRepoHook() {
-      const [data, setData] = React.useState<unknown[]>([]);
-      const [loading, setLoading] = React.useState(true);
-      const [error, setError] = React.useState<Error | null>(null);
-
-      React.useEffect(() => {
-        setLoading(false);
-      }, []);
-
-      const exposed = expose ? expose(repo) : {};
-
-      return {
-        data,
-        loading,
-        error,
-        ...exposed,
-        // For testing: expose setters
-        _setData: setData,
-        _setError: setError,
-      };
-    };
-  }),
+  useLiveQuery: vi.fn(() => mocks.useLiveQueryResult),
 }));
 
 describe('useRecentContracts', () => {
@@ -68,6 +53,7 @@ describe('useRecentContracts', () => {
     mocks.addOrUpdate.mockResolvedValue('mock-id-1');
     mocks.getByNetwork.mockResolvedValue([]);
     mocks.deleteContract.mockResolvedValue(undefined);
+    mocks.useLiveQueryResult = [];
   });
 
   afterEach(() => {
@@ -75,19 +61,27 @@ describe('useRecentContracts', () => {
   });
 
   describe('initialization', () => {
-    it('should return loading state initially', () => {
+    it('should return loading state when data is undefined', () => {
+      // useLiveQuery returns undefined while loading
+      mocks.useLiveQueryResult = undefined as unknown as unknown[];
+
       const { result } = renderHook(() => useRecentContracts('stellar-testnet'));
 
-      // Initially loading, then should resolve
-      expect(result.current.loading).toBe(false); // Our mock resolves immediately
+      expect(result.current.isLoading).toBe(true);
     });
 
-    it('should return empty data array when no contracts exist', async () => {
+    it('should return not loading when data is available', () => {
+      mocks.useLiveQueryResult = [];
+
       const { result } = renderHook(() => useRecentContracts('stellar-testnet'));
 
-      await waitFor(() => {
-        expect(result.current.loading).toBe(false);
-      });
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    it('should return empty data array when no contracts exist', () => {
+      mocks.useLiveQueryResult = [];
+
+      const { result } = renderHook(() => useRecentContracts('stellar-testnet'));
 
       expect(result.current.data).toEqual([]);
     });
@@ -104,6 +98,13 @@ describe('useRecentContracts', () => {
 
       expect(result.current.getByNetwork).toBeDefined();
       expect(typeof result.current.getByNetwork).toBe('function');
+    });
+
+    it('should expose deleteContract method', () => {
+      const { result } = renderHook(() => useRecentContracts('stellar-testnet'));
+
+      expect(result.current.deleteContract).toBeDefined();
+      expect(typeof result.current.deleteContract).toBe('function');
     });
   });
 
@@ -161,12 +162,26 @@ describe('useRecentContracts', () => {
     });
   });
 
+  describe('deleteContract', () => {
+    it('should call repository deleteContract with correct id', async () => {
+      const { result } = renderHook(() => useRecentContracts('stellar-testnet'));
+
+      await act(async () => {
+        await result.current.deleteContract('contract-123');
+      });
+
+      expect(mocks.deleteContract).toHaveBeenCalledWith('contract-123');
+    });
+  });
+
   describe('with undefined networkId', () => {
     it('should handle undefined networkId gracefully', () => {
+      mocks.useLiveQueryResult = [];
+
       const { result } = renderHook(() => useRecentContracts(undefined));
 
       expect(result.current.data).toEqual([]);
-      expect(result.current.loading).toBe(false);
+      expect(result.current.isLoading).toBe(false);
     });
   });
 
@@ -190,12 +205,14 @@ describe('useRecentContracts', () => {
 
   describe('networkId changes', () => {
     it('should update when networkId changes', async () => {
+      mocks.useLiveQueryResult = [];
+
       const { result, rerender } = renderHook(({ networkId }) => useRecentContracts(networkId), {
         initialProps: { networkId: 'stellar-testnet' },
       });
 
       await waitFor(() => {
-        expect(result.current.loading).toBe(false);
+        expect(result.current.isLoading).toBe(false);
       });
 
       // Change networkId

@@ -24,7 +24,6 @@ class TestRecentContractsStorage extends RecentContractsStorage {
     // Call parent constructor which sets up with singleton db
     super();
     // Override the table with our test db's table
-    // @ts-expect-error - accessing protected member for testing
     this.table = testDb.table('recentContracts');
   }
 }

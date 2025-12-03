@@ -1,4 +1,3 @@
-import { NetworkEthereum, NetworkStellar } from '@web3icons/react';
 import { ArrowRightLeft, Key, LayoutDashboard, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -15,6 +14,7 @@ import {
 import { logger } from '@openzeppelin/ui-builder-utils';
 
 import { getEcosystemName } from '../../core/ecosystems/registry';
+import { useAllNetworks } from '../../hooks/useAllNetworks';
 import { useRecentContracts } from '../../hooks/useRecentContracts';
 import type { ContractRecord } from '../../types/contracts';
 import { AddContractDialog } from '../Contracts';
@@ -26,8 +26,6 @@ export interface SidebarProps {
   /** Close handler for mobile slide-over */
   onMobileOpenChange?: (open: boolean) => void;
 }
-
-type Network = Pick<NetworkConfig, 'id' | 'name' | 'ecosystem' | 'type' | 'iconComponent'>;
 
 /**
  * Sidebar component
@@ -41,46 +39,18 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps): React
   // Add Contract Dialog state (Feature: 004-add-contract-record)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
-  // Mock networks state - typically this would come from useAllNetworks or similar
-  // TODO: Replace with useAllNetworks hook in future integration
-  const networks: Network[] = [
-    {
-      id: 'eth-mainnet',
-      name: 'Ethereum',
-      ecosystem: 'evm',
-      type: 'mainnet',
-      iconComponent: NetworkEthereum,
-    },
-    {
-      id: 'eth-sepolia',
-      name: 'Sepolia',
-      ecosystem: 'evm',
-      type: 'testnet',
-      iconComponent: NetworkEthereum,
-    },
-    {
-      id: 'stellar-mainnet',
-      name: 'Stellar',
-      ecosystem: 'stellar',
-      type: 'mainnet',
-      iconComponent: NetworkStellar,
-    },
-    {
-      id: 'stellar-testnet',
-      name: 'Stellar',
-      ecosystem: 'stellar',
-      type: 'testnet',
-      iconComponent: NetworkStellar,
-    },
-    {
-      id: 'midnight-testnet',
-      name: 'Midnight',
-      ecosystem: 'midnight',
-      type: 'testnet',
-    },
-  ];
+  // Networks from all enabled ecosystems (loaded lazily, cached after first load)
+  const { networks, isLoading: isLoadingNetworks } = useAllNetworks();
 
-  const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(networks[0]);
+  // Selected network state - initialized to first network once loaded
+  const [selectedNetwork, setSelectedNetwork] = useState<NetworkConfig | null>(null);
+
+  // Auto-select first network once networks are loaded
+  useEffect(() => {
+    if (!selectedNetwork && networks.length > 0) {
+      setSelectedNetwork(networks[0]);
+    }
+  }, [networks, selectedNetwork]);
 
   // Contracts data - filtered by selected network
   const { data: contracts, deleteContract } = useRecentContracts(selectedNetwork?.id);
@@ -155,7 +125,7 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps): React
         getNetworkType={(n) => n.type}
         groupByEcosystem
         getEcosystem={(n) => getEcosystemName(n.ecosystem)}
-        placeholder="Select Network"
+        placeholder={isLoadingNetworks ? 'Loading networks...' : 'Select Network'}
       />
     </div>
   );
