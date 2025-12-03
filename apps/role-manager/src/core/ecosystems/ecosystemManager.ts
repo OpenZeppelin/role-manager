@@ -73,20 +73,16 @@ const networksByEcosystemCache: Partial<Record<Ecosystem, NetworkConfig[]>> = {}
  * @returns The loaded module containing networks and adapter class
  */
 async function loadAdapterPackageModule(ecosystem: Ecosystem): Promise<Record<string, unknown>> {
-  // This robust switch is good for Vite compatibility
+  // Static switch for Vite compatibility (dynamic imports require static paths)
   switch (ecosystem) {
     case 'evm':
-      // @ts-expect-error - Adapter packages are installed via tarball workflow
       return import('@openzeppelin/ui-builder-adapter-evm');
     case 'stellar':
-      // @ts-expect-error - Adapter packages are installed via tarball workflow
       return import('@openzeppelin/ui-builder-adapter-stellar');
-    case 'midnight':
-      // @ts-expect-error - Adapter packages are installed via tarball workflow
-      return import('@openzeppelin/ui-builder-adapter-midnight');
     case 'solana':
-      // @ts-expect-error - Adapter packages are installed via tarball workflow
-      return import('@openzeppelin/ui-builder-adapter-solana');
+    case 'midnight':
+      // These adapters are not yet available in role-manager
+      throw new Error(`${ecosystem} adapter is not available in role-manager`);
     default: {
       const _exhaustiveCheck: never = ecosystem;
       throw new Error(

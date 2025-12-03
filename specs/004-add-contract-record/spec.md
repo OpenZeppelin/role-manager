@@ -254,6 +254,26 @@ A user wants to remove a contract they no longer need to track. From the contrac
 - Q: What is "immediately" for delete (FR-016)? → A: Within 100ms of user action.
 - Q: Is success feedback needed beyond auto-select? → A: No toast/feedback; auto-selection is sufficient confirmation.
 
+### Implementation Session 2025-12-03 (Scope Changes)
+
+**Two-Step Ecosystem Selection Flow**:
+
+- Q: Should all adapters load when dialog opens? → A: No - lazy loading. Dialog shows ecosystem selector first, then loads adapter/networks only when ecosystem is selected.
+- Q: What ecosystems are enabled? → A: Only Stellar is enabled. EVM shows as "Coming Soon". Midnight and Solana are hidden entirely.
+- Q: Should first enabled ecosystem be auto-selected? → A: Yes - the first enabled ecosystem in ECOSYSTEM_ORDER is auto-selected when dialog opens.
+
+**New UI Flow**:
+
+1. Dialog opens → First enabled ecosystem (Stellar) is auto-selected
+2. Networks load only for the selected ecosystem (lazy)
+3. User selects network → Name and Address fields appear
+4. User fills form and submits
+
+**New Components Created**:
+
+- `CompactEcosystemSelector.tsx` - Compact 2-column grid ecosystem picker
+- `useNetworksByEcosystem.ts` - Hook for lazy-loading networks per ecosystem
+
 ## Address Format Examples
 
 | Ecosystem | Valid Example                                              | Invalid Example           | Placeholder            |

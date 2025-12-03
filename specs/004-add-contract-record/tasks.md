@@ -60,28 +60,37 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T008a [P] [US1] Write failing tests for `useNetworkAdapter` at `src/hooks/__tests__/useNetworkAdapter.test.ts` covering: adapter loading, isLoading state, error handling, retry functionality
-- [ ] T009a [P] [US1] Write failing tests for `useAllNetworks` at `src/hooks/__tests__/useAllNetworks.test.ts` covering: network fetching, ecosystem filtering, loading state
-- [ ] T010a [P] [US1] Write failing tests for `useContractForm` at `src/hooks/__tests__/useContractForm.test.ts` covering: validation logic, network change re-validation, placeholder generation, form state
+- [x] T008a [P] [US1] Write failing tests for `useNetworkAdapter` at `src/hooks/__tests__/useNetworkAdapter.test.ts` covering: adapter loading, isLoading state, error handling, retry functionality
+- [x] T009a [P] [US1] Write failing tests for `useAllNetworks` at `src/hooks/__tests__/useAllNetworks.test.ts` covering: network fetching, ecosystem filtering, loading state
+- [x] T010a [P] [US1] Write failing tests for `useContractForm` at `src/hooks/__tests__/useContractForm.test.ts` covering: validation logic, network change re-validation, placeholder generation, form state
 
 ### Hooks for User Story 1 & 2
 
-- [ ] T008 [P] [US1] Create `useNetworkAdapter` hook at `src/hooks/useNetworkAdapter.ts` implementing `UseNetworkAdapterReturn` interface with adapter loading, isLoading, error, retry states
-- [ ] T009 [P] [US1] Create `useAllNetworks` hook at `src/hooks/useAllNetworks.ts` to fetch networks from all enabled ecosystems via `getNetworksByEcosystem`
-- [ ] T010 [US1] Create `useContractForm` hook at `src/hooks/useContractForm.ts` implementing `UseContractFormReturn` interface with react-hook-form integration, adapter-based validation, dynamic placeholder
+- [x] T008 [P] [US1] Create `useNetworkAdapter` hook at `src/hooks/useNetworkAdapter.ts` implementing `UseNetworkAdapterReturn` interface with adapter loading, isLoading, error, retry states
+- [x] T009 [P] [US1] Create `useAllNetworks` hook at `src/hooks/useAllNetworks.ts` to fetch networks from all enabled ecosystems via `getNetworksByEcosystem`
+- [x] T010 [US1] Create `useContractForm` hook at `src/hooks/useContractForm.ts` implementing `UseContractFormReturn` interface with react-hook-form integration, adapter-based validation, dynamic placeholder
 
 ### Components for User Story 1 & 2
 
-- [ ] T011 [US1] Create `AddContractForm` component at `src/components/Contracts/AddContractForm.tsx` with Network selector (first), Name field (with `autoFocus` per UX-004), Address field with loading spinner when `isAdapterLoading` (per UX-010), validation errors styled with `text-destructive` below fields (per ERR-006)
-- [ ] T012 [US1] Create `AddContractDialog` component at `src/components/Contracts/AddContractDialog.tsx` implementing `AddContractDialogProps` with Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter from ui-builder-ui
-- [ ] T013 [US1] Update barrel export at `src/components/Contracts/index.ts` to export AddContractDialog, AddContractForm
+- [x] T011 [US1] Create `AddContractForm` component at `src/components/Contracts/AddContractForm.tsx` with Network selector (first), Name field (with `autoFocus` per UX-004), Address field with loading spinner when `isAdapterLoading` (per UX-010), validation errors styled with `text-destructive` below fields (per ERR-006)
+- [x] T012 [US1] Create `AddContractDialog` component at `src/components/Contracts/AddContractDialog.tsx` implementing `AddContractDialogProps` with Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter from ui-builder-ui
+- [x] T013 [US1] Update barrel export at `src/components/Contracts/index.ts` to export AddContractDialog, AddContractForm
 
 ### Integration for User Story 1 & 2
 
-- [ ] T014 [US1] Add dialog state (`isAddDialogOpen`) and handlers to `Sidebar.tsx` at `src/components/Layout/Sidebar.tsx`
-- [ ] T015 [US1] Wire up `onContractAdded` callback in Sidebar to auto-select new contract (FR-008a)
+- [x] T014 [US1] Add dialog state (`isAddDialogOpen`) and handlers to `Sidebar.tsx` at `src/components/Layout/Sidebar.tsx`
+- [x] T015 [US1] Wire up `onContractAdded` callback in Sidebar to auto-select new contract (FR-008a)
 
-**Checkpoint**: Users can add contracts with full validation. This is the MVP - stop here to validate core functionality works.
+### Scope Changes (2025-12-03)
+
+- [x] T015a [US1] Create `useNetworksByEcosystem` hook at `src/hooks/useNetworksByEcosystem.ts` for lazy loading networks per ecosystem
+- [x] T015b [US1] Create `CompactEcosystemSelector` component at `src/components/Contracts/CompactEcosystemSelector.tsx` - compact 2-column grid ecosystem picker
+- [x] T015c [US1] Update `AddContractForm` to use two-step flow: ecosystem → network → form fields
+- [x] T015d [US1] Auto-select first enabled ecosystem on dialog open
+- [x] T015e [US1] Update registry: Stellar enabled, EVM "Coming Soon", Midnight/Solana hidden
+- [x] T015f [US1] Add `global` polyfill to `vite.config.ts` for wallet SDK compatibility
+
+**Checkpoint**: Users can add contracts with full validation. This is the MVP - stop here to validate core functionality works. ✅ COMPLETE
 
 ---
 

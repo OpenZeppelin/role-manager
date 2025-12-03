@@ -26,49 +26,99 @@ pnpm install
 pnpm dev
 ```
 
-## Key Files to Implement
+## Key Files Implemented
 
 ### 1. Components
 
-| File                                             | Purpose              |
-| ------------------------------------------------ | -------------------- |
-| `src/components/Contracts/AddContractDialog.tsx` | Main dialog wrapper  |
-| `src/components/Contracts/AddContractForm.tsx`   | Form with validation |
-| `src/components/Contracts/index.ts`              | Barrel export        |
+| File                                                    | Purpose                           | Status |
+| ------------------------------------------------------- | --------------------------------- | ------ |
+| `src/components/Contracts/AddContractDialog.tsx`        | Main dialog wrapper               | ✅     |
+| `src/components/Contracts/AddContractForm.tsx`          | Form with two-step ecosystem flow | ✅     |
+| `src/components/Contracts/CompactEcosystemSelector.tsx` | Compact 2-column ecosystem picker | ✅     |
+| `src/components/Contracts/index.ts`                     | Barrel export                     | ✅     |
 
 ### 2. Core Services
 
-| File                                      | Purpose                                                 |
-| ----------------------------------------- | ------------------------------------------------------- |
-| `src/core/ecosystems/ecosystemManager.ts` | Local adapter/network manager (adapted from UI Builder) |
+| File                                      | Purpose                                                 | Status |
+| ----------------------------------------- | ------------------------------------------------------- | ------ |
+| `src/core/ecosystems/ecosystemManager.ts` | Local adapter/network manager (adapted from UI Builder) | ✅     |
+| `src/core/ecosystems/registry.ts`         | Ecosystem configs (Stellar enabled, EVM coming soon)    | ✅     |
 
 ### 3. Hooks
 
-| File                             | Purpose                        |
-| -------------------------------- | ------------------------------ |
-| `src/hooks/useContractForm.ts`   | Form state and validation      |
-| `src/hooks/useNetworkAdapter.ts` | Adapter loading for validation |
+| File                                  | Purpose                                    | Status |
+| ------------------------------------- | ------------------------------------------ | ------ |
+| `src/hooks/useNetworkAdapter.ts`      | Adapter loading for address validation     | ✅     |
+| `src/hooks/useAllNetworks.ts`         | Fetch networks from all enabled ecosystems | ✅     |
+| `src/hooks/useNetworksByEcosystem.ts` | Lazy-load networks for single ecosystem    | ✅     |
 
 ### 4. Modifications
 
-| File                                         | Change                                           |
-| -------------------------------------------- | ------------------------------------------------ |
-| `src/components/Layout/AccountSelector.tsx`  | Rename to `ContractSelector`, add delete handler |
-| `src/components/Layout/Sidebar.tsx`          | Add dialog state, wire up trigger                |
-| `src/hooks/useRecentContracts.ts`            | Expose `deleteContract` method                   |
-| `src/core/storage/RecentContractsStorage.ts` | Add `deleteContract` method                      |
+| File                                         | Change                            | Status |
+| -------------------------------------------- | --------------------------------- | ------ |
+| `src/components/Layout/Sidebar.tsx`          | Add dialog state, wire up trigger | ✅     |
+| `src/hooks/useRecentContracts.ts`            | Expose `deleteContract` method    | ✅     |
+| `src/core/storage/RecentContractsStorage.ts` | Add `deleteContract` method       | ✅     |
 
-## Implementation Order
+### 5. Pending
 
-1. **Ecosystem Manager** - Create local `ecosystemManager.ts` (adapted from UI Builder)
-2. **Storage Layer** - Add delete method to `RecentContractsStorage`
-3. **Hook Extension** - Expose delete in `useRecentContracts`
-4. **Adapter Hook** - Create `useNetworkAdapter` for validation
-5. **Form Hook** - Create `useContractForm` with validation logic
-6. **Form Component** - Create `AddContractForm`
-7. **Dialog Component** - Create `AddContractDialog`
-8. **Selector Update** - Rename and extend `AccountSelector` → `ContractSelector`
-9. **Integration** - Wire everything up in `Sidebar`
+| File                                        | Change                                           | Status |
+| ------------------------------------------- | ------------------------------------------------ | ------ |
+| `src/components/Layout/AccountSelector.tsx` | Rename to `ContractSelector`, add delete handler | ⏳     |
+
+## Implementation Order (Completed)
+
+1. ✅ **Ecosystem Manager** - Create local `ecosystemManager.ts` (adapted from UI Builder)
+2. ✅ **Storage Layer** - Add delete method to `RecentContractsStorage`
+3. ✅ **Hook Extension** - Expose delete in `useRecentContracts`
+4. ✅ **Adapter Hook** - Create `useNetworkAdapter` for validation
+5. ✅ **Networks Hook** - Create `useNetworksByEcosystem` for lazy loading
+6. ✅ **Ecosystem Selector** - Create `CompactEcosystemSelector` component
+7. ✅ **Form Component** - Create `AddContractForm` with two-step flow
+8. ✅ **Dialog Component** - Create `AddContractDialog`
+9. ✅ **Integration** - Wire everything up in `Sidebar`
+10. ⏳ **Selector Update** - Rename and extend `AccountSelector` → `ContractSelector`
+
+## Two-Step Ecosystem Flow
+
+The form uses a two-step flow for lazy adapter loading:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ Add Contract Dialog                                              │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│ Blockchain                                                       │
+│ ┌────────────────────┐  ┌────────────────────┐                  │
+│ │ ✓ Stellar          │  │   Ethereum (EVM)   │                  │
+│ │                    │  │   Coming Soon      │                  │
+│ └────────────────────┘  └────────────────────┘                  │
+│                                                                  │
+│ Network (only shown after ecosystem selected)                    │
+│ ┌────────────────────────────────────────────┐                  │
+│ │ Select a network...                      ▼ │                  │
+│ └────────────────────────────────────────────┘                  │
+│                                                                  │
+│ Contract Name (only shown after network selected)                │
+│ ┌────────────────────────────────────────────┐                  │
+│ │ My Contract                                │                  │
+│ └────────────────────────────────────────────┘                  │
+│                                                                  │
+│ Contract Address                                                 │
+│ ┌────────────────────────────────────────────┐                  │
+│ │ GCKF...MTGG                                │                  │
+│ └────────────────────────────────────────────┘                  │
+│                                                                  │
+│                                    [Cancel]  [Add]               │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Key behaviors:**
+
+- First enabled ecosystem auto-selected on dialog open
+- Adapters load lazily (only when ecosystem selected)
+- Network dropdown appears after ecosystem selection
+- Name/Address fields appear after network selection
 
 ## Testing
 
@@ -176,12 +226,22 @@ onRemoveContract={(contract) => {
 
 ## Definition of Done
 
-- [ ] User can open "Add Contract" dialog from sidebar
-- [ ] Dialog has Name, Address, and Network fields
-- [ ] Address validation works per network type
-- [ ] Form shows appropriate error messages
-- [ ] Successful add closes dialog and selects new contract
+### Phase 3 Complete (MVP)
+
+- [x] User can open "Add Contract" dialog from sidebar
+- [x] Dialog shows ecosystem selector with Stellar enabled, EVM "Coming Soon"
+- [x] First enabled ecosystem is auto-selected on dialog open
+- [x] Networks load lazily after ecosystem selection
+- [x] Dialog has Network, Name, and Address fields (progressive disclosure)
+- [x] Address validation works per network type (via adapter)
+- [x] Form shows appropriate error messages
+- [x] Successful add closes dialog
+- [x] All new hook logic has unit tests
+- [x] No TypeScript errors
+- [x] No linting errors
+
+### Phase 4-5 Pending
+
 - [ ] User can delete non-selected contracts from dropdown
-- [ ] All new logic has unit tests
-- [ ] No TypeScript errors
-- [ ] No linting errors
+- [ ] Successful add auto-selects new contract (wiring needed)
+- [ ] AccountSelector renamed to ContractSelector

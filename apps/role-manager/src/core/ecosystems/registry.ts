@@ -8,7 +8,7 @@ import type {
  * Ordered list of ecosystems for consistent display across the application
  * This defines the order in which ecosystems appear in the UI
  */
-export const ECOSYSTEM_ORDER: Ecosystem[] = ['evm', 'stellar', 'midnight', 'solana'] as const;
+export const ECOSYSTEM_ORDER: Ecosystem[] = ['stellar', 'evm', 'midnight', 'solana'] as const;
 
 /**
  * Central registry of blockchain ecosystem information
@@ -24,8 +24,9 @@ export const ECOSYSTEM_REGISTRY: Record<Ecosystem, EcosystemInfo> = {
     bgColorClass: 'bg-blue-100',
     textColorClass: 'text-blue-900',
     defaultFeatureConfig: {
-      enabled: true,
+      enabled: false,
       showInUI: true,
+      disabledLabel: 'Coming Soon',
     },
   },
   stellar: {
@@ -51,9 +52,12 @@ export const ECOSYSTEM_REGISTRY: Record<Ecosystem, EcosystemInfo> = {
     bgColorClass: 'bg-indigo-100',
     textColorClass: 'text-indigo-900',
     // Note: midnight uses a custom SVG, so no networkIconName
+    // Midnight adapter requires WASM/crypto dependencies not included in role-manager
     defaultFeatureConfig: {
-      enabled: true,
-      showInUI: true,
+      enabled: false,
+      showInUI: false,
+      disabledLabel: 'Not Available',
+      disabledDescription: 'Midnight adapter requires additional dependencies',
     },
   },
   solana: {

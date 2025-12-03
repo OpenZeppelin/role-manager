@@ -60,28 +60,28 @@ apps/role-manager/src/
 ├── components/
 │   ├── Layout/
 │   │   ├── AccountSelector.tsx      # MODIFY: Rename to ContractSelector, add delete handler
-│   │   └── Sidebar.tsx              # MODIFY: Wire up dialog trigger
+│   │   └── Sidebar.tsx              # MODIFY: Wire up dialog trigger ✅
 │   └── Contracts/                   # NEW: Feature components
-│       ├── AddContractDialog.tsx    # NEW: Main dialog component
-│       ├── AddContractForm.tsx      # NEW: Form with validation logic
-│       └── index.ts                 # NEW: Barrel export
+│       ├── AddContractDialog.tsx    # NEW: Main dialog component ✅
+│       ├── AddContractForm.tsx      # NEW: Form with two-step ecosystem flow ✅
+│       ├── CompactEcosystemSelector.tsx # NEW: Compact ecosystem picker ✅
+│       └── index.ts                 # NEW: Barrel export ✅
 ├── hooks/
 │   ├── __tests__/                   # NEW: Hook tests (TDD per Constitution §V)
-│   │   ├── useContractForm.test.ts  # NEW: Form hook tests
-│   │   ├── useNetworkAdapter.test.ts# NEW: Adapter hook tests
-│   │   └── useAllNetworks.test.ts   # NEW: Networks hook tests
-│   ├── useRecentContracts.ts        # MODIFY: Add delete method exposure
-│   ├── useContractForm.ts           # NEW: Form state and validation hook
-│   ├── useNetworkAdapter.ts         # NEW: Adapter loading hook
-│   └── useAllNetworks.ts            # NEW: Fetch networks from enabled ecosystems
+│   │   ├── useNetworkAdapter.test.ts# NEW: Adapter hook tests ✅
+│   │   └── useAllNetworks.test.ts   # NEW: Networks hook tests ✅
+│   ├── useRecentContracts.ts        # MODIFY: Add delete method exposure ✅
+│   ├── useNetworkAdapter.ts         # NEW: Adapter loading hook ✅
+│   ├── useAllNetworks.ts            # NEW: Fetch networks from all ecosystems ✅
+│   └── useNetworksByEcosystem.ts    # NEW: Lazy-load networks per ecosystem ✅
 ├── core/
 │   ├── ecosystems/
-│   │   ├── registry.ts              # EXISTING: Ecosystem info registry
-│   │   └── ecosystemManager.ts      # NEW: Local adapter/network manager (adapted from UI Builder)
+│   │   ├── registry.ts              # MODIFY: Updated ecosystem configs ✅
+│   │   └── ecosystemManager.ts      # NEW: Local adapter/network manager ✅
 │   └── storage/
-│       └── RecentContractsStorage.ts # MODIFY: Add delete method if not present
+│       └── RecentContractsStorage.ts # MODIFY: Add delete method ✅
 └── types/
-    └── contracts.ts                 # NEW: Contract-specific types
+    └── contracts.ts                 # NEW: Contract-specific types ✅
 ```
 
 **Structure Decision**: Single app within monorepo. New components go in `components/Contracts/` following existing pattern. Hooks follow existing pattern in `hooks/`.

@@ -1,6 +1,6 @@
 import { NetworkEthereum, NetworkStellar } from '@web3icons/react';
 import { ArrowRightLeft, Key, LayoutDashboard, Users } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import type { NetworkConfig } from '@openzeppelin/ui-builder-types';
@@ -14,6 +14,7 @@ import {
 import { logger } from '@openzeppelin/ui-builder-utils';
 
 import { getEcosystemName } from '../../core/ecosystems/registry';
+import { AddContractDialog } from '../Contracts';
 import { Account, AccountSelector } from './AccountSelector';
 
 export interface SidebarProps {
@@ -34,6 +35,9 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps): React
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Add Contract Dialog state (Feature: 004-add-contract-record)
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+
   // Mock accounts state
   const [accounts, setAccounts] = useState<Account[]>([
     {
@@ -49,6 +53,14 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps): React
   ]);
 
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(accounts[0]);
+
+  // Handle contract added - auto-select the new contract (FR-008a)
+  const handleContractAdded = useCallback((contractId: string) => {
+    logger.info('Sidebar', `Contract added with ID: ${contractId}`);
+    // TODO: Once we integrate with real storage in Phase 5,
+    // we'll fetch the contract by ID and select it.
+    // For now, this callback is wired up for future use.
+  }, []);
 
   // Mock networks state
   const networks: Network[] = [
@@ -103,7 +115,8 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps): React
         selectedAccount={selectedAccount}
         onSelectAccount={setSelectedAccount}
         onAddAccount={() => {
-          logger.info('Sidebar', 'Add new account clicked');
+          logger.info('Sidebar', 'Add new account clicked - opening dialog');
+          setIsAddDialogOpen(true);
         }}
         onRemoveAccount={(account) => {
           setAccounts((prev) => prev.filter((a) => a.address !== account.address));
@@ -133,43 +146,52 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps): React
   };
 
   return (
-    <SidebarLayout
-      header={headerContent}
-      subHeader={sidebarSelectors}
-      mobileOpen={mobileOpen}
-      onMobileOpenChange={onMobileOpenChange}
-      mobileAriaLabel="Navigation menu"
-    >
-      <SidebarSection>
-        <SidebarButton
-          icon={<LayoutDashboard className="size-4" />}
-          isSelected={location.pathname === '/'}
-          onClick={() => handleNavigation('/')}
-        >
-          Dashboard
-        </SidebarButton>
-        <SidebarButton
-          icon={<Users className="size-4" />}
-          isSelected={location.pathname === '/authorized-accounts'}
-          onClick={() => handleNavigation('/authorized-accounts')}
-        >
-          Authorized Accounts
-        </SidebarButton>
-        <SidebarButton
-          icon={<Key className="size-4" />}
-          isSelected={location.pathname === '/roles'}
-          onClick={() => handleNavigation('/roles')}
-        >
-          Roles
-        </SidebarButton>
-        <SidebarButton
-          icon={<ArrowRightLeft className="size-4" />}
-          isSelected={location.pathname === '/role-changes'}
-          onClick={() => handleNavigation('/role-changes')}
-        >
-          Role Changes
-        </SidebarButton>
-      </SidebarSection>
-    </SidebarLayout>
+    <>
+      <SidebarLayout
+        header={headerContent}
+        subHeader={sidebarSelectors}
+        mobileOpen={mobileOpen}
+        onMobileOpenChange={onMobileOpenChange}
+        mobileAriaLabel="Navigation menu"
+      >
+        <SidebarSection>
+          <SidebarButton
+            icon={<LayoutDashboard className="size-4" />}
+            isSelected={location.pathname === '/'}
+            onClick={() => handleNavigation('/')}
+          >
+            Dashboard
+          </SidebarButton>
+          <SidebarButton
+            icon={<Users className="size-4" />}
+            isSelected={location.pathname === '/authorized-accounts'}
+            onClick={() => handleNavigation('/authorized-accounts')}
+          >
+            Authorized Accounts
+          </SidebarButton>
+          <SidebarButton
+            icon={<Key className="size-4" />}
+            isSelected={location.pathname === '/roles'}
+            onClick={() => handleNavigation('/roles')}
+          >
+            Roles
+          </SidebarButton>
+          <SidebarButton
+            icon={<ArrowRightLeft className="size-4" />}
+            isSelected={location.pathname === '/role-changes'}
+            onClick={() => handleNavigation('/role-changes')}
+          >
+            Role Changes
+          </SidebarButton>
+        </SidebarSection>
+      </SidebarLayout>
+
+      {/* Add Contract Dialog (Feature: 004-add-contract-record) */}
+      <AddContractDialog
+        open={isAddDialogOpen}
+        onOpenChange={setIsAddDialogOpen}
+        onContractAdded={handleContractAdded}
+      />
+    </>
   );
 }
