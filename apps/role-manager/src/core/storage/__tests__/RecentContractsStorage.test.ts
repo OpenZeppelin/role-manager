@@ -6,6 +6,8 @@ import './setup';
 import Dexie from 'dexie';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { ContractSchemaInput } from '@/types/storage';
+
 import { RecentContractsStorage, type RecentContractInput } from '../RecentContractsStorage';
 
 // Create a test database factory that mimics the app's database structure
@@ -15,7 +17,43 @@ function createTestDatabase(): Dexie {
   db.version(1).stores({
     recentContracts: '++id, &[networkId+address], [networkId+lastAccessed]',
   });
+  // Version 2 adds source index for schema filtering
+  db.version(2).stores({
+    recentContracts: '++id, &[networkId+address], [networkId+lastAccessed], source',
+  });
   return db;
+}
+
+// Helper to create a mock ContractSchema for testing
+function createMockSchema(name: string = 'TestContract') {
+  return {
+    name,
+    ecosystem: 'stellar' as const,
+    functions: [
+      {
+        id: 'fn_1',
+        name: 'transfer',
+        displayName: 'Transfer',
+        inputs: [],
+        outputs: [],
+        type: 'function',
+        modifiesState: true,
+      },
+    ],
+    events: [],
+  };
+}
+
+// Helper to create a ContractSchemaInput for testing
+function createSchemaInput(overrides: Partial<ContractSchemaInput> = {}): ContractSchemaInput {
+  return {
+    address: 'CABC123456789',
+    networkId: 'stellar-testnet',
+    ecosystem: 'stellar',
+    schema: createMockSchema(),
+    source: 'fetched',
+    ...overrides,
+  };
 }
 
 // Create a test-compatible RecentContractsStorage with injected db
@@ -543,6 +581,248 @@ describe('RecentContractsStorage', () => {
       ).rejects.toThrow('quota-exceeded');
 
       tableSpy.mockRestore();
+    });
+  });
+
+  describe('addOrUpdateWithSchema', () => {
+    it('should create a new record with schema data', async () => {
+      const input = createSchemaInput({
+        address: 'CABC123456789',
+        networkId: 'stellar-testnet',
+        label: 'My Token',
+      });
+
+      const id = await storage.addOrUpdateWithSchema(input);
+
+      expect(id).toBeDefined();
+      expect(typeof id).toBe('string');
+
+      // Verify the record was created with schema data
+      const record = await storage.getByAddressAndNetwork('CABC123456789', 'stellar-testnet');
+      expect(record).toBeDefined();
+      expect(record!.address).toBe('CABC123456789');
+      expect(record!.networkId).toBe('stellar-testnet');
+      expect(record!.label).toBe('My Token');
+      expect(record!.ecosystem).toBe('stellar');
+      expect(record!.source).toBe('fetched');
+      expect(record!.schema).toBeDefined();
+      expect(record!.schemaHash).toBeDefined();
+
+      // Verify schema can be parsed back
+      const parsedSchema = JSON.parse(record!.schema!);
+      expect(parsedSchema.name).toBe('TestContract');
+      expect(parsedSchema.functions).toHaveLength(1);
+    });
+
+    it('should update an existing record with new schema data', async () => {
+      // First, create a basic record without schema
+      await storage.addOrUpdate({
+        networkId: 'stellar-testnet',
+        address: 'CABC123456789',
+        label: 'Old Label',
+      });
+
+      // Now update with schema
+      const input = createSchemaInput({
+        address: 'CABC123456789',
+        networkId: 'stellar-testnet',
+        label: 'New Label',
+        schema: createMockSchema('UpdatedContract'),
+      });
+
+      const id = await storage.addOrUpdateWithSchema(input);
+
+      // Should return the same record (not create a duplicate)
+      const records = await storage.getByNetwork('stellar-testnet');
+      expect(records).toHaveLength(1);
+
+      // Verify schema was added
+      const record = await storage.getByAddressAndNetwork('CABC123456789', 'stellar-testnet');
+      expect(record!.label).toBe('New Label');
+      expect(record!.schema).toBeDefined();
+      const parsedSchema = JSON.parse(record!.schema!);
+      expect(parsedSchema.name).toBe('UpdatedContract');
+    });
+
+    it('should store schemaMetadata when provided', async () => {
+      const input = createSchemaInput({
+        schemaMetadata: {
+          fetchedFrom: 'https://soroban-testnet.stellar.org',
+          fetchTimestamp: 1701619200000,
+          contractName: 'MyToken',
+        },
+      });
+
+      await storage.addOrUpdateWithSchema(input);
+
+      const record = await storage.getByAddressAndNetwork(input.address, input.networkId);
+      expect(record!.schemaMetadata).toBeDefined();
+      expect(record!.schemaMetadata!.fetchedFrom).toBe('https://soroban-testnet.stellar.org');
+      expect(record!.schemaMetadata!.fetchTimestamp).toBe(1701619200000);
+      expect(record!.schemaMetadata!.contractName).toBe('MyToken');
+    });
+
+    it('should store definitionOriginal when provided', async () => {
+      const originalDef = JSON.stringify({ spec: ['some', 'spec', 'data'] });
+      const input = createSchemaInput({
+        definitionOriginal: originalDef,
+      });
+
+      await storage.addOrUpdateWithSchema(input);
+
+      const record = await storage.getByAddressAndNetwork(input.address, input.networkId);
+      expect(record!.definitionOriginal).toBe(originalDef);
+    });
+  });
+
+  describe('getByAddressAndNetwork', () => {
+    it('should return the full record for a given address and network', async () => {
+      const input = createSchemaInput({
+        address: 'CXYZ987654321',
+        networkId: 'stellar-mainnet',
+        label: 'Production Contract',
+        schemaMetadata: {
+          fetchedFrom: 'https://soroban.stellar.org',
+          fetchTimestamp: Date.now(),
+        },
+      });
+
+      await storage.addOrUpdateWithSchema(input);
+
+      const record = await storage.getByAddressAndNetwork('CXYZ987654321', 'stellar-mainnet');
+
+      expect(record).toBeDefined();
+      expect(record!.address).toBe('CXYZ987654321');
+      expect(record!.networkId).toBe('stellar-mainnet');
+      expect(record!.label).toBe('Production Contract');
+      expect(record!.ecosystem).toBe('stellar');
+      expect(record!.schema).toBeDefined();
+      expect(record!.schemaHash).toBeDefined();
+      expect(record!.source).toBe('fetched');
+      expect(record!.schemaMetadata).toBeDefined();
+    });
+
+    it('should return null for non-existent address', async () => {
+      const record = await storage.getByAddressAndNetwork('NON_EXISTENT', 'stellar-testnet');
+      expect(record).toBeNull();
+    });
+
+    it('should return null when address exists on different network', async () => {
+      await storage.addOrUpdateWithSchema(
+        createSchemaInput({
+          address: 'CABC123',
+          networkId: 'stellar-testnet',
+        })
+      );
+
+      const record = await storage.getByAddressAndNetwork('CABC123', 'stellar-mainnet');
+      expect(record).toBeNull();
+    });
+
+    it('should return record without schema fields if schema not loaded', async () => {
+      // Create basic record without schema
+      await storage.addOrUpdate({
+        networkId: 'stellar-testnet',
+        address: 'BASIC_ADDR',
+        label: 'Basic Contract',
+      });
+
+      const record = await storage.getByAddressAndNetwork('BASIC_ADDR', 'stellar-testnet');
+
+      expect(record).toBeDefined();
+      expect(record!.address).toBe('BASIC_ADDR');
+      expect(record!.label).toBe('Basic Contract');
+      // Schema fields should be undefined
+      expect(record!.schema).toBeUndefined();
+      expect(record!.schemaHash).toBeUndefined();
+      expect(record!.source).toBeUndefined();
+    });
+  });
+
+  describe('hasSchema', () => {
+    it('should return true when contract has a loaded schema', async () => {
+      await storage.addOrUpdateWithSchema(
+        createSchemaInput({
+          address: 'CHAS_SCHEMA',
+          networkId: 'stellar-testnet',
+        })
+      );
+
+      const result = await storage.hasSchema('CHAS_SCHEMA', 'stellar-testnet');
+      expect(result).toBe(true);
+    });
+
+    it('should return false when contract exists but has no schema', async () => {
+      await storage.addOrUpdate({
+        networkId: 'stellar-testnet',
+        address: 'CNO_SCHEMA',
+      });
+
+      const result = await storage.hasSchema('CNO_SCHEMA', 'stellar-testnet');
+      expect(result).toBe(false);
+    });
+
+    it('should return false when contract does not exist', async () => {
+      const result = await storage.hasSchema('CNON_EXISTENT', 'stellar-testnet');
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('clearSchema', () => {
+    it('should clear schema data but preserve basic contract info', async () => {
+      // First create a record with schema
+      const id = await storage.addOrUpdateWithSchema(
+        createSchemaInput({
+          address: 'CCLEAR_SCHEMA',
+          networkId: 'stellar-testnet',
+          label: 'Contract To Clear',
+          schemaMetadata: {
+            fetchedFrom: 'https://test.rpc',
+            fetchTimestamp: Date.now(),
+          },
+          definitionOriginal: '{"spec":[]}',
+        })
+      );
+
+      // Verify schema exists
+      let record = await storage.getByAddressAndNetwork('CCLEAR_SCHEMA', 'stellar-testnet');
+      expect(record!.schema).toBeDefined();
+      expect(record!.schemaHash).toBeDefined();
+      expect(record!.source).toBe('fetched');
+
+      // Clear the schema
+      await storage.clearSchema(id);
+
+      // Verify basic info is preserved but schema is cleared
+      record = await storage.getByAddressAndNetwork('CCLEAR_SCHEMA', 'stellar-testnet');
+      expect(record).toBeDefined();
+      expect(record!.address).toBe('CCLEAR_SCHEMA');
+      expect(record!.networkId).toBe('stellar-testnet');
+      expect(record!.label).toBe('Contract To Clear');
+      expect(record!.lastAccessed).toBeDefined();
+
+      // Schema fields should be cleared
+      expect(record!.schema).toBeUndefined();
+      expect(record!.schemaHash).toBeUndefined();
+      expect(record!.source).toBeUndefined();
+      expect(record!.ecosystem).toBeUndefined();
+      expect(record!.schemaMetadata).toBeUndefined();
+      expect(record!.definitionOriginal).toBeUndefined();
+      expect(record!.definitionArtifacts).toBeUndefined();
+    });
+
+    it('should not throw when clearing schema on record without schema', async () => {
+      const id = await storage.addOrUpdate({
+        networkId: 'stellar-testnet',
+        address: 'CNO_SCHEMA_TO_CLEAR',
+      });
+
+      // Should not throw
+      await expect(storage.clearSchema(id)).resolves.not.toThrow();
+
+      // Record should still exist
+      const record = await storage.getByAddressAndNetwork('CNO_SCHEMA_TO_CLEAR', 'stellar-testnet');
+      expect(record).toBeDefined();
     });
   });
 });

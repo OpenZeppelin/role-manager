@@ -8,6 +8,7 @@ import Dexie from 'dexie';
 import { vi } from 'vitest';
 
 // Mock the logger utility to avoid console noise in tests
+// Also provide simpleHash for schema storage tests
 vi.mock('@openzeppelin/ui-builder-utils', async () => {
   const actual = await vi.importActual('@openzeppelin/ui-builder-utils');
   return {
@@ -17,6 +18,16 @@ vi.mock('@openzeppelin/ui-builder-utils', async () => {
       error: vi.fn(),
       warn: vi.fn(),
       debug: vi.fn(),
+    },
+    // Simple hash implementation for testing
+    simpleHash: (str: string): string => {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = (hash << 5) - hash + char;
+        hash = hash & hash; // Convert to 32bit integer
+      }
+      return Math.abs(hash).toString(16);
     },
   };
 });

@@ -10,4 +10,12 @@ export const db = createDexieDatabase('RoleManager', [
       userPreferences: '&key',
     },
   },
+  {
+    version: 2,
+    stores: {
+      // Version 2: Add source index for filtering refreshable schemas
+      recentContracts: '++id, &[networkId+address], [networkId+lastAccessed], source',
+      userPreferences: '&key',
+    },
+  },
 ]);

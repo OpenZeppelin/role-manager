@@ -3,6 +3,7 @@
 Auto-generated from all feature plans. Last updated: 2025-11-26
 
 ## Active Technologies
+
 - TypeScript 5.x (via existing monorepo config) (003-data-store-service)
 - IndexedDB (via Dexie) (003-data-store-service)
 - TypeScript 5.9, React 19 + `@openzeppelin/ui-builder-ui`, `@openzeppelin/ui-builder-storage`, `@openzeppelin/ui-builder-types`, `react-hook-form` (004-add-contract-record)
@@ -27,10 +28,10 @@ npm test && npm run lint
 TypeScript 5.x (latest stable matching UI Builder): Follow standard conventions
 
 ## Recent Changes
+
 - 005-contract-schema-storage: Added schema loading via adapters, extends existing `RecentContractsStorage`
 - 004-add-contract-record: Added TypeScript 5.9, React 19 + `@openzeppelin/ui-builder-ui`, `@openzeppelin/ui-builder-storage`, `@openzeppelin/ui-builder-types`, `react-hook-form`
 - 003-data-store-service: Added TypeScript 5.x (via existing monorepo config)
-
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->

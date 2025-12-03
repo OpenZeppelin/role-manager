@@ -25,9 +25,9 @@
 
 **Purpose**: Add new dependency and update local development scripts
 
-- [ ] T001 Add `@openzeppelin/ui-builder-renderer` dependency to `apps/role-manager/package.json`
-- [ ] T002 [P] Update `scripts/setup-local-dev.cjs` to include `'@openzeppelin/ui-builder-renderer'` in UI_BUILDER_PACKAGES array
-- [ ] T003 Run `pnpm install` to verify dependency resolution
+- [x] T001 Add `@openzeppelin/ui-builder-renderer` dependency to `apps/role-manager/package.json`
+- [x] T002 [P] Update `scripts/setup-local-dev.cjs` to include `'@openzeppelin/ui-builder-renderer'` in UI_BUILDER_PACKAGES array
+- [x] T003 Run `pnpm install` to verify dependency resolution
 
 ---
 
@@ -39,21 +39,21 @@
 
 ### Tests for Foundational (TDD - Write FIRST, verify FAIL)
 
-- [ ] T004 [P] Write test: `addOrUpdateWithSchema()` creates record with schema in `apps/role-manager/src/core/storage/__tests__/RecentContractsStorage.test.ts`
-- [ ] T005 [P] Write test: `addOrUpdateWithSchema()` updates existing record in `apps/role-manager/src/core/storage/__tests__/RecentContractsStorage.test.ts`
-- [ ] T006 [P] Write test: `getByAddressAndNetwork()` returns full record in `apps/role-manager/src/core/storage/__tests__/RecentContractsStorage.test.ts`
-- [ ] T007 [P] Write test: `hasSchema()` returns correct boolean in `apps/role-manager/src/core/storage/__tests__/RecentContractsStorage.test.ts`
-- [ ] T008 [P] Write test: `clearSchema()` removes schema but keeps basic info in `apps/role-manager/src/core/storage/__tests__/RecentContractsStorage.test.ts`
+- [x] T004 [P] Write test: `addOrUpdateWithSchema()` creates record with schema in `apps/role-manager/src/core/storage/__tests__/RecentContractsStorage.test.ts`
+- [x] T005 [P] Write test: `addOrUpdateWithSchema()` updates existing record in `apps/role-manager/src/core/storage/__tests__/RecentContractsStorage.test.ts`
+- [x] T006 [P] Write test: `getByAddressAndNetwork()` returns full record in `apps/role-manager/src/core/storage/__tests__/RecentContractsStorage.test.ts`
+- [x] T007 [P] Write test: `hasSchema()` returns correct boolean in `apps/role-manager/src/core/storage/__tests__/RecentContractsStorage.test.ts`
+- [x] T008 [P] Write test: `clearSchema()` removes schema but keeps basic info in `apps/role-manager/src/core/storage/__tests__/RecentContractsStorage.test.ts`
 
 ### Implementation for Foundational
 
-- [ ] T009 Extend `RecentContractRecord` interface with schema fields in `apps/role-manager/src/types/storage.ts`
-- [ ] T010 Add `ContractSchemaMetadata`, `ContractSchemaSource` types in `apps/role-manager/src/types/storage.ts`
-- [ ] T011 Update database to version 2 with `source` index in `apps/role-manager/src/core/storage/database.ts`
-- [ ] T012 Implement `addOrUpdateWithSchema()` method in `apps/role-manager/src/core/storage/RecentContractsStorage.ts`
-- [ ] T013 Implement `getByAddressAndNetwork()` method in `apps/role-manager/src/core/storage/RecentContractsStorage.ts`
-- [ ] T014 Implement `hasSchema()` method in `apps/role-manager/src/core/storage/RecentContractsStorage.ts`
-- [ ] T015 Implement `clearSchema()` method in `apps/role-manager/src/core/storage/RecentContractsStorage.ts`
+- [x] T009 Extend `RecentContractRecord` interface with schema fields in `apps/role-manager/src/types/storage.ts`
+- [x] T010 Add `ContractSchemaMetadata`, `ContractSchemaSource` types in `apps/role-manager/src/types/storage.ts`
+- [x] T011 Update database to version 2 with `source` index in `apps/role-manager/src/core/storage/database.ts`
+- [x] T012 Implement `addOrUpdateWithSchema()` method in `apps/role-manager/src/core/storage/RecentContractsStorage.ts`
+- [x] T013 Implement `getByAddressAndNetwork()` method in `apps/role-manager/src/core/storage/RecentContractsStorage.ts`
+- [x] T014 Implement `hasSchema()` method in `apps/role-manager/src/core/storage/RecentContractsStorage.ts`
+- [x] T015 Implement `clearSchema()` method in `apps/role-manager/src/core/storage/RecentContractsStorage.ts`
 - [ ] T016 Run tests to verify all foundational tests pass
 
 **Checkpoint**: Storage layer complete - user story implementation can now begin

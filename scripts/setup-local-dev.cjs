@@ -47,6 +47,7 @@ const packedPath = path.join(uiBuilderPath, packedDir);
  */
 const UI_BUILDER_PACKAGES = [
   // Core packages (always needed)
+  '@openzeppelin/ui-builder-renderer',
   '@openzeppelin/ui-builder-storage',
   '@openzeppelin/ui-builder-styles',
   '@openzeppelin/ui-builder-types',

@@ -131,6 +131,9 @@ importers:
       '@openzeppelin/ui-builder-adapter-stellar':
         specifier: latest
         version: 0.16.0(0a36287e8a4434cf226c81880a9808b8)
+      '@openzeppelin/ui-builder-renderer':
+        specifier: latest
+        version: 0.16.0(@babel/runtime@7.28.4)(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.0(react@19.2.0))(react-hook-form@7.67.0(react@19.2.0))(react@19.2.0)(tailwindcss@4.1.17)(typescript@5.9.3)
       '@openzeppelin/ui-builder-storage':
         specifier: latest
         version: 0.16.0(@types/react@19.2.7)(react@19.2.0)(sonner@2.0.7(react-dom@19.2.0(react@19.2.0))(react@19.2.0))
