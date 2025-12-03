@@ -104,9 +104,9 @@
 
 ### Implementation for User Story 3
 
-- [ ] T016 [US3] Verify NetworkSelector props in `AddContractForm.tsx` include `groupByEcosystem: true` and all accessor functions per INT-001
-- [ ] T017 [US3] Add `filterNetwork` prop to NetworkSelector to support custom filtering if default is insufficient
-- [ ] T018 [US3] Ensure ecosystem grouping order matches ECOSYSTEM_ORDER (EVM, Stellar, Midnight, Solana) per FR-010
+- [x] T016 [US3] Verify NetworkSelector props in `AddContractForm.tsx` include `groupByEcosystem: true` and all accessor functions per INT-001
+- [x] T017 [US3] Add `filterNetwork` prop to NetworkSelector to support custom filtering if default is insufficient
+- [x] T018 [US3] Ensure ecosystem grouping order matches ECOSYSTEM_ORDER (EVM, Stellar, Midnight, Solana) per FR-010
 
 **Checkpoint**: Network selection with search and grouping works as specified
 

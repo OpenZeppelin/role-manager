@@ -177,6 +177,12 @@ export function AddContractForm({
               getNetworkId={(n: NetworkConfig) => n.id}
               getNetworkIcon={(n: NetworkConfig) => <NetworkIcon network={n} />}
               getNetworkType={(n: NetworkConfig) => n.type}
+              groupByEcosystem={true}
+              getEcosystem={(n: NetworkConfig) => getEcosystemName(n.ecosystem)}
+              filterNetwork={(n: NetworkConfig, query: string) => {
+                const q = query.toLowerCase();
+                return n.name.toLowerCase().includes(q) || n.type.toLowerCase().includes(q);
+              }}
               placeholder="Select a network..."
             />
           )}
