@@ -62,7 +62,8 @@ class TestRecentContractsStorage extends RecentContractsStorage {
     // Call parent constructor which sets up with singleton db
     super();
     // Override the table with our test db's table
-    this.table = testDb.table('recentContracts');
+    // Use type assertion to access protected property for testing
+    (this as unknown as { table: Dexie.Table }).table = testDb.table('recentContracts');
   }
 }
 
@@ -630,7 +631,7 @@ describe('RecentContractsStorage', () => {
         schema: createMockSchema('UpdatedContract'),
       });
 
-      const id = await storage.addOrUpdateWithSchema(input);
+      await storage.addOrUpdateWithSchema(input);
 
       // Should return the same record (not create a duplicate)
       const records = await storage.getByNetwork('stellar-testnet');

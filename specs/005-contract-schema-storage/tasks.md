@@ -54,7 +54,7 @@
 - [x] T013 Implement `getByAddressAndNetwork()` method in `apps/role-manager/src/core/storage/RecentContractsStorage.ts`
 - [x] T014 Implement `hasSchema()` method in `apps/role-manager/src/core/storage/RecentContractsStorage.ts`
 - [x] T015 Implement `clearSchema()` method in `apps/role-manager/src/core/storage/RecentContractsStorage.ts`
-- [ ] T016 Run tests to verify all foundational tests pass
+- [x] T016 Run tests to verify all foundational tests pass
 
 **Checkpoint**: Storage layer complete - user story implementation can now begin
 
@@ -68,24 +68,26 @@
 
 ### Tests for User Story 1 (TDD - Write FIRST, verify FAIL)
 
-- [ ] T017 [P] [US1] Write test: circuit breaker blocks after 3 failures in `apps/role-manager/src/hooks/__tests__/useContractSchemaLoader.test.tsx`
-- [ ] T018 [P] [US1] Write test: circuit breaker resets on success in `apps/role-manager/src/hooks/__tests__/useContractSchemaLoader.test.tsx`
-- [ ] T019 [P] [US1] Write test: `load()` returns schema on success in `apps/role-manager/src/hooks/__tests__/useContractSchemaLoader.test.tsx`
-- [ ] T020 [P] [US1] Write test: `load()` sets error state on failure in `apps/role-manager/src/hooks/__tests__/useContractSchemaLoader.test.tsx`
+- [x] T017 [P] [US1] Write test: circuit breaker blocks after 3 failures in `apps/role-manager/src/hooks/__tests__/useContractSchemaLoader.test.tsx`
+- [x] T018 [P] [US1] Write test: circuit breaker resets on success in `apps/role-manager/src/hooks/__tests__/useContractSchemaLoader.test.tsx`
+- [x] T019 [P] [US1] Write test: `load()` returns schema on success in `apps/role-manager/src/hooks/__tests__/useContractSchemaLoader.test.tsx`
+- [x] T020 [P] [US1] Write test: `load()` sets error state on failure in `apps/role-manager/src/hooks/__tests__/useContractSchemaLoader.test.tsx`
 
 ### Implementation for User Story 1
 
-- [ ] T021 [US1] Create `CircuitBreakerState` and `CircuitBreakerConfig` types in `apps/role-manager/src/types/contracts.ts`
-- [ ] T022 [US1] Implement `useContractSchemaLoader` hook with circuit breaker in `apps/role-manager/src/hooks/useContractSchemaLoader.ts`
-- [ ] T023 [US1] Create `ContractDefinitionForm` component using `DynamicFormField` in `apps/role-manager/src/components/Contracts/ContractDefinitionForm.tsx`
-- [ ] T024 [US1] Create `ContractSchemaDisplay` component to render loaded functions in `apps/role-manager/src/components/Contracts/ContractSchemaDisplay.tsx`
-- [ ] T025 [US1] Export new components from `apps/role-manager/src/components/Contracts/index.ts`
-- [ ] T026 [US1] Integrate schema loading into `AddContractForm` or create new flow in `apps/role-manager/src/components/Contracts/AddContractForm.tsx`
-- [ ] T027 [US1] Add error handling for invalid contract ID, not found, and network errors
-- [ ] T028 [US1] Add loading indicators during schema fetch
-- [ ] T029 [US1] Run US1 tests to verify all pass
+- [x] T021 [US1] Create `CircuitBreakerState` and `CircuitBreakerConfig` types in `apps/role-manager/src/types/schema.ts`
+- [x] T022 [US1] Implement `useContractSchemaLoader` hook with circuit breaker in `apps/role-manager/src/hooks/useContractSchemaLoader.ts`
+- [x] T023 [US1] Update `AddContractForm` to use `DynamicFormField` for adapter-driven inputs in `apps/role-manager/src/components/Contracts/AddContractForm.tsx`
+- [x] T024 [US1] ~~Create standalone ContractSchemaDisplay~~ REMOVED - schema loading integrated into AddContractDialog flow
+- [x] T025 [US1] Update exports in `apps/role-manager/src/components/Contracts/index.ts`
+- [x] T026 [US1] Integrate schema loading into `AddContractDialog` (load-first, save-on-success flow) in `apps/role-manager/src/components/Contracts/AddContractDialog.tsx`
+- [x] T027 [US1] Add error handling for invalid contract ID, not found, and network errors
+- [x] T028 [US1] Add loading indicators during schema fetch
+- [x] T029 [US1] Run US1 tests to verify all pass (18/18 tests pass)
 
 **Checkpoint**: User Story 1 (MVP) is complete - users can load Stellar contract schemas via RPC
+
+**Implementation Note**: Instead of a standalone `LoadContractSchemaDialog`, schema loading was integrated directly into the existing `AddContractDialog`. The flow is: form → load schema → save with schema on success → error state with retry on failure. The `AddContractForm` uses `DynamicFormField` from `@openzeppelin/ui-builder-renderer` to render adapter-specific inputs (e.g., contractAddress for Stellar, contractAddress + ABI for EVM).
 
 ---
 
