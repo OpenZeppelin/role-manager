@@ -1,29 +1,52 @@
-import { createRepositoryHook } from '@openzeppelin/ui-builder-storage';
+import { useMemo } from 'react';
+
+import { useLiveQuery } from '@openzeppelin/ui-builder-storage';
 
 import { db } from '@/core/storage';
 import { recentContractsStorage } from '@/core/storage/RecentContractsStorage';
-import type { RecentContractsStorage as RecentContractsRepo } from '@/core/storage/RecentContractsStorage';
 import type { RecentContractRecord } from '@/types/storage';
 
+/**
+ * Hook for managing recent contracts for a specific network.
+ * Uses Dexie's live query for real-time updates when data changes.
+ *
+ * @param networkId - The network ID to filter contracts by (undefined returns empty array)
+ */
 export function useRecentContracts(networkId: string | undefined) {
-  const useRepo = createRepositoryHook<RecentContractRecord, RecentContractsRepo>({
-    db,
-    tableName: 'recentContracts',
-    // Live list for the active network ordered by lastAccessed desc
-    query: (table) =>
-      networkId
-        ? table
-            .where('networkId')
-            .equals(networkId)
-            .sortBy('lastAccessed')
-            .then((rows) => rows.reverse())
-        : Promise.resolve([]),
-    repo: recentContractsStorage,
-    expose: (repo) => ({
-      addOrUpdate: repo.addOrUpdate.bind(repo),
-      getByNetwork: repo.getByNetwork.bind(repo),
-      deleteContract: repo.deleteContract.bind(repo),
+  // Use useLiveQuery with networkId in the dependencies array
+  // This ensures the query re-runs when networkId changes
+  const data = useLiveQuery(
+    async () => {
+      if (!networkId) {
+        return [];
+      }
+
+      const rows = await db
+        .table<RecentContractRecord>('recentContracts')
+        .where('networkId')
+        .equals(networkId)
+        .sortBy('lastAccessed');
+
+      // Reverse to get most recent first
+      return rows.reverse();
+    },
+    [networkId], // Dependencies - re-run query when networkId changes
+    [] // Default value while loading
+  );
+
+  // Memoize the exposed methods to prevent unnecessary re-renders
+  const methods = useMemo(
+    () => ({
+      addOrUpdate: recentContractsStorage.addOrUpdate.bind(recentContractsStorage),
+      getByNetwork: recentContractsStorage.getByNetwork.bind(recentContractsStorage),
+      deleteContract: recentContractsStorage.deleteContract.bind(recentContractsStorage),
     }),
-  });
-  return useRepo();
+    []
+  );
+
+  return {
+    data,
+    isLoading: data === undefined,
+    ...methods,
+  };
 }

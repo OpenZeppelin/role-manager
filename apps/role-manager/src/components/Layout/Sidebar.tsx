@@ -1,6 +1,7 @@
 import { NetworkEthereum, NetworkStellar } from '@web3icons/react';
 import { ArrowRightLeft, Key, LayoutDashboard, Users } from 'lucide-react';
-import React, { useCallback, useState } from 'react';
+import { toast } from 'sonner';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import type { NetworkConfig } from '@openzeppelin/ui-builder-types';
@@ -14,8 +15,10 @@ import {
 import { logger } from '@openzeppelin/ui-builder-utils';
 
 import { getEcosystemName } from '../../core/ecosystems/registry';
+import { useRecentContracts } from '../../hooks/useRecentContracts';
+import type { ContractRecord } from '../../types/contracts';
 import { AddContractDialog } from '../Contracts';
-import { Account, AccountSelector } from './AccountSelector';
+import { ContractSelector } from './ContractSelector';
 
 export interface SidebarProps {
   /** Controls visibility in mobile slide-over */
@@ -38,31 +41,8 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps): React
   // Add Contract Dialog state (Feature: 004-add-contract-record)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
-  // Mock accounts state
-  const [accounts, setAccounts] = useState<Account[]>([
-    {
-      address: '0xA1B2C3D4E5F6A1B2C3D4E5F6A1B2C3D4E5F6EF12',
-      name: 'Demo Contract',
-      color: '#06b6d4', // cyan-500
-    },
-    {
-      address: '0x0000000000000000000000000000000000000000',
-      name: 'asdasdasda',
-      color: '#ef4444', // red-500
-    },
-  ]);
-
-  const [selectedAccount, setSelectedAccount] = useState<Account | null>(accounts[0]);
-
-  // Handle contract added - auto-select the new contract (FR-008a)
-  const handleContractAdded = useCallback((contractId: string) => {
-    logger.info('Sidebar', `Contract added with ID: ${contractId}`);
-    // TODO: Once we integrate with real storage in Phase 5,
-    // we'll fetch the contract by ID and select it.
-    // For now, this callback is wired up for future use.
-  }, []);
-
-  // Mock networks state
+  // Mock networks state - typically this would come from useAllNetworks or similar
+  // TODO: Replace with useAllNetworks hook in future integration
   const networks: Network[] = [
     {
       id: 'eth-mainnet',
@@ -102,6 +82,51 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps): React
 
   const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(networks[0]);
 
+  // Contracts data - filtered by selected network
+  const { data: contracts, deleteContract } = useRecentContracts(selectedNetwork?.id);
+
+  const [selectedContract, setSelectedContract] = useState<ContractRecord | null>(null);
+
+  // Select first contract if none selected or current selection is invalid
+  useEffect(() => {
+    // Check if contracts is defined before accessing .length
+    if (contracts && contracts.length > 0) {
+      // If nothing selected, select first
+      if (!selectedContract) {
+        setSelectedContract(contracts[0]);
+      }
+      // If current selection is not in the list (e.g. changed network or deleted), select first
+      else if (!contracts.find((c) => c.id === selectedContract.id)) {
+        setSelectedContract(contracts[0]);
+      }
+    } else {
+      setSelectedContract(null);
+    }
+  }, [contracts, selectedContract]);
+
+  // Handle contract added - auto-select the new contract (FR-008a)
+  const handleContractAdded = useCallback((contractId: string) => {
+    logger.info('Sidebar', `Contract added with ID: ${contractId}`);
+    // Note: Selection logic is handled by the effect above implicitly for now,
+    // or by the user manually selecting.
+    // Ideally we would set a flag to "select next update with this ID".
+  }, []);
+
+  const handleRemoveContract = async (contract: ContractRecord) => {
+    try {
+      await deleteContract(contract.id);
+      toast.success('Contract deleted');
+      // If the selected contract was deleted, we set selection to null
+      // The effect will then pick the first available contract
+      if (selectedContract?.id === contract.id) {
+        setSelectedContract(null);
+      }
+    } catch (error) {
+      toast.error('Failed to delete contract. Please try again.');
+      logger.error('Sidebar', 'Delete contract failed', error);
+    }
+  };
+
   const headerContent = (
     <div className="mb-6">
       <img src="/OZ-Logo-BlackBG.svg" alt="OpenZeppelin Logo" className="h-6 w-auto" />
@@ -110,20 +135,15 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps): React
 
   const sidebarSelectors = (
     <div className="mb-8 flex flex-col gap-2">
-      <AccountSelector
-        accounts={accounts}
-        selectedAccount={selectedAccount}
-        onSelectAccount={setSelectedAccount}
-        onAddAccount={() => {
-          logger.info('Sidebar', 'Add new account clicked - opening dialog');
+      <ContractSelector
+        contracts={contracts || []}
+        selectedContract={selectedContract}
+        onSelectContract={setSelectedContract}
+        onAddContract={() => {
+          logger.info('Sidebar', 'Add new contract clicked - opening dialog');
           setIsAddDialogOpen(true);
         }}
-        onRemoveAccount={(account) => {
-          setAccounts((prev) => prev.filter((a) => a.address !== account.address));
-          if (selectedAccount?.address === account.address) {
-            setSelectedAccount(null);
-          }
-        }}
+        onRemoveContract={handleRemoveContract}
       />
       <NetworkSelector
         networks={networks}

@@ -120,12 +120,12 @@
 
 ### Implementation for User Story 4
 
-- [ ] T019 [US4] Rename `AccountSelector.tsx` to `ContractSelector.tsx` at `src/components/Layout/` with updated interface per `ContractSelectorProps`
-- [ ] T020 [US4] Add delete icon (Trash from lucide-react) to each contract item in `ContractSelector.tsx`, visible on hover only, hidden for selected contract per UX-002
-- [ ] T021 [US4] Implement `onRemoveContract` handler in `ContractSelector.tsx` that calls `deleteContract` from useRecentContracts
-- [ ] T022 [US4] Add error handling for delete failures with toast notification per ERR-004
-- [ ] T023 [US4] Update "Add new account" text to "Add new contract" and use Plus icon per UX-001
-- [ ] T024 [US4] Update imports in `Sidebar.tsx` from AccountSelector to ContractSelector
+- [x] T019 [US4] Rename `AccountSelector.tsx` to `ContractSelector.tsx` at `src/components/Layout/` with updated interface per `ContractSelectorProps`
+- [x] T020 [US4] Add delete icon (Trash from lucide-react) to each contract item in `ContractSelector.tsx`, visible on hover only, hidden for selected contract per UX-002
+- [x] T021 [US4] Implement `onRemoveContract` handler in `ContractSelector.tsx` that calls `deleteContract` from useRecentContracts
+- [x] T022 [US4] Add error handling for delete failures with toast notification per ERR-004
+- [x] T023 [US4] Update "Add new account" text to "Add new contract" and use Plus icon per UX-001
+- [x] T024 [US4] Update imports in `Sidebar.tsx` from AccountSelector to ContractSelector
 
 **Checkpoint**: Contract deletion works, delete icon shows on hover, selected contract cannot be deleted
 
