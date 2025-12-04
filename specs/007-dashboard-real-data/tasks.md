@@ -47,15 +47,15 @@
 
 **Goal**: Display real contract details (name, address, network, type) on Dashboard
 
-**Independent Test**: Select contract from sidebar → Dashboard shows correct label, address, network name, and contract type badge
+**Independent Test**: Select contract from sidebar → Dashboard shows correct label, address, network name, and capability badges
 
 ### Implementation for User Story 1
 
-- [ ] T011 [P] [US1] Write unit test for getContractType utility function in `utils/__tests__/contractType.test.ts`
-- [ ] T012 [P] [US1] Implement getContractType utility in `utils/contractType.ts` per research.md §5 (returns "Access Control", "Ownable", "Access Control + Ownable", "Unknown", "Not Supported")
-- [ ] T013 [US1] Update ContractInfoCard.tsx to accept props from context: remove hardcoded values, add contractType badge display, handle explorerUrl from network config
-- [ ] T014 [US1] Create DashboardEmptyState.tsx component with title "No Contract Selected", description per FR-011, and "Add Contract" CTA button that opens AddContractDialog
-- [ ] T015 [US1] Update Dashboard.tsx: import useSelectedContract, render DashboardEmptyState when no contract selected, pass real contract data to ContractInfoCard
+- [x] T011 [P] [US1] Extract FeatureBadge component to `components/Shared/FeatureBadge.tsx` for reuse across the app
+- [x] T012 [P] [US1] Update AccessControlCapabilitiesSummary.tsx to import FeatureBadge from shared location
+- [x] T013 [US1] Update ContractInfoCard.tsx to accept capabilities prop and render FeatureBadge components (AccessControl, Ownable badges)
+- [x] T014 [US1] Create DashboardEmptyState.tsx component with title "No Contract Selected", description per FR-011, and "Add Contract" CTA button that opens AddContractDialog
+- [x] T015 [US1] Update Dashboard.tsx: import useSelectedContract, render DashboardEmptyState when no contract selected, pass real contract data to ContractInfoCard
 
 **Checkpoint**: Dashboard displays real contract info when contract selected, empty state when not
 

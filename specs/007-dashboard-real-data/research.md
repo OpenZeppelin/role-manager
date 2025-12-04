@@ -150,27 +150,27 @@ function truncateAddress(address: string, prefixLen = 4, suffixLen = 4): string 
 
 ### 5. Contract Type Display Logic
 
-**Problem**: Need to display capability-based contract type (e.g., "Access Control", "Ownable", "Access Control + Ownable")
+**Problem**: Need to display capability-based contract type (e.g., "AccessControl", "Ownable")
 
-**Decision**: Derive from `AccessControlCapabilities` in `useDashboardData`
+**Decision**: Use `FeatureBadge` component with capabilities directly
 
 **Rationale**:
 
 - Capabilities already stored in `RecentContractRecord` (from spec 006)
-- Simple conditional logic based on `hasAccessControl` and `hasOwnable` flags
-- Consistent with spec requirement FR-002
+- Reuses existing `FeatureBadge` component from `AccessControlCapabilitiesSummary`
+- Displays individual badges for each capability (AccessControl purple, Ownable blue)
+- Consistent styling across the application
+- More flexible than string-based classification
 
 **Implementation**:
 
-```typescript
-function getContractType(capabilities: AccessControlCapabilities | undefined): string {
-  if (!capabilities) return 'Unknown';
-  const { hasAccessControl, hasOwnable } = capabilities;
-  if (hasAccessControl && hasOwnable) return 'Access Control + Ownable';
-  if (hasAccessControl) return 'Access Control';
-  if (hasOwnable) return 'Ownable';
-  return 'Unknown';
-}
+```tsx
+// In ContractInfoCard.tsx
+<div className="flex items-center gap-1.5">
+  {capabilities?.hasAccessControl && <FeatureBadge variant="purple">AccessControl</FeatureBadge>}
+  {capabilities?.hasOwnable && <FeatureBadge variant="blue">Ownable</FeatureBadge>}
+  {!hasAnyCapability && <FeatureBadge variant="slate">Unknown</FeatureBadge>}
+</div>
 ```
 
 ---

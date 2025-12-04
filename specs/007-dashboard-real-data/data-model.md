@@ -51,7 +51,7 @@ interface DashboardData {
     networkId: string;
     networkName: string;
     explorerUrl: string | null;
-    contractType: ContractType;
+    // Capabilities used for FeatureBadge display (AccessControl, Ownable badges)
     capabilities: AccessControlCapabilities | null;
   } | null;
 
@@ -72,14 +72,9 @@ interface DashboardData {
     canRetry: boolean;
   };
 }
-
-type ContractType =
-  | 'Access Control'
-  | 'Ownable'
-  | 'Access Control + Ownable'
-  | 'Unknown'
-  | 'Not Supported';
 ```
+
+**Note**: Contract type display uses `FeatureBadge` components directly from capabilities (e.g., "AccessControl", "Ownable" badges) rather than a string classification.
 
 **Derived From**:
 

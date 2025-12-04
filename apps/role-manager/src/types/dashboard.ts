@@ -15,21 +15,6 @@ import type {
 import type { ContractRecord } from './contracts';
 
 // =============================================================================
-// Contract Type
-// =============================================================================
-
-/**
- * Contract type classification based on detected capabilities.
- * Used for display badges on the Dashboard.
- */
-export type ContractType =
-  | 'Access Control'
-  | 'Ownable'
-  | 'Access Control + Ownable'
-  | 'Unknown'
-  | 'Not Supported';
-
-// =============================================================================
 // Contract Context
 // =============================================================================
 
@@ -75,7 +60,7 @@ export interface DashboardData {
     networkId: string;
     networkName: string;
     explorerUrl: string | null;
-    contractType: ContractType;
+    /** Access control capabilities - used for FeatureBadge display */
     capabilities: AccessControlCapabilities | null;
   } | null;
 
