@@ -62,8 +62,8 @@ Goal: Implement utility hook for exporting state.
 
 Goal: Final cleanup and edge case handling.
 
-- [ ] T020 Implement error boundary wrapper for "partial data" scenarios (indexer down) in `apps/role-manager/src/components/ErrorBoundary.tsx`
-- [ ] T021 Implement handling for contracts that pass validation but fail later calls in `apps/role-manager/src/hooks/useContractData.ts` [Gap: CHK020]
+- [x] T020 Implement error boundary wrapper for "partial data" scenarios (indexer down) in `apps/role-manager/src/components/ErrorBoundary.tsx`
+- [x] T021 Implement handling for contracts that pass validation but fail later calls in `apps/role-manager/src/hooks/useContractData.ts` [Gap: CHK020]
 
 ## Dependencies
 

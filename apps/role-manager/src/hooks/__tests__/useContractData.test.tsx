@@ -17,6 +17,7 @@ import type {
   RoleAssignment,
 } from '@openzeppelin/ui-builder-types';
 
+import { DataError, ErrorCategory } from '../../utils/errors';
 import { useContractOwnership, useContractRoles, usePaginatedRoles } from '../useContractData';
 
 // Test fixtures
@@ -227,8 +228,10 @@ describe('useContractRoles', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      expect(result.current.error).toBeInstanceOf(Error);
-      expect(result.current.error?.message).toBe('Network error');
+      expect(result.current.error).toBeInstanceOf(DataError);
+      expect(result.current.hasError).toBe(true);
+      expect(result.current.canRetry).toBe(true);
+      expect(result.current.errorMessage).toBeTruthy();
       expect(result.current.roles).toEqual([]);
     });
 
@@ -247,7 +250,44 @@ describe('useContractRoles', () => {
       });
 
       expect(result.current.error).toBeTruthy();
-      expect(result.current.error?.message).toContain('Indexer');
+      expect(result.current.error?.category).toBe(ErrorCategory.INDEXER_UNAVAILABLE);
+      expect(result.current.hasError).toBe(true);
+      expect(result.current.canRetry).toBe(true);
+    });
+
+    it('should categorize network errors correctly', async () => {
+      const mockService = createMockAccessControlService({
+        getCurrentRoles: vi.fn().mockRejectedValue(new Error('Network timeout')),
+      });
+      const mockAdapter = createMockAdapter(mockService);
+
+      const { result } = renderHook(() => useContractRoles(mockAdapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.error?.category).toBe(ErrorCategory.NETWORK_ERROR);
+      expect(result.current.canRetry).toBe(true);
+    });
+
+    it('should provide user-friendly error message', async () => {
+      const mockService = createMockAccessControlService({
+        getCurrentRoles: vi.fn().mockRejectedValue(new Error('Indexer unavailable')),
+      });
+      const mockAdapter = createMockAdapter(mockService);
+
+      const { result } = renderHook(() => useContractRoles(mockAdapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.errorMessage).toContain('indexer');
     });
   });
 
@@ -325,10 +365,16 @@ describe('useContractRoles', () => {
       expect(result.current).toHaveProperty('refetch');
       expect(result.current).toHaveProperty('isEmpty');
       expect(result.current).toHaveProperty('totalMemberCount');
+      // FR-012 compliance: new error handling properties
+      expect(result.current).toHaveProperty('hasError');
+      expect(result.current).toHaveProperty('canRetry');
+      expect(result.current).toHaveProperty('errorMessage');
 
       expect(typeof result.current.refetch).toBe('function');
       expect(typeof result.current.isEmpty).toBe('boolean');
       expect(typeof result.current.totalMemberCount).toBe('number');
+      expect(typeof result.current.hasError).toBe('boolean');
+      expect(typeof result.current.canRetry).toBe('boolean');
     });
   });
 });
@@ -678,8 +724,10 @@ describe('useContractOwnership', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      expect(result.current.error).toBeInstanceOf(Error);
-      expect(result.current.error?.message).toBe('Network error');
+      expect(result.current.error).toBeInstanceOf(DataError);
+      expect(result.current.hasError).toBe(true);
+      expect(result.current.canRetry).toBe(true);
+      expect(result.current.errorMessage).toBeTruthy();
       expect(result.current.ownership).toBeNull();
     });
 
@@ -698,7 +746,44 @@ describe('useContractOwnership', () => {
       });
 
       expect(result.current.error).toBeTruthy();
-      expect(result.current.error?.message).toContain('Ownable');
+      expect(result.current.hasError).toBe(true);
+      expect(result.current.canRetry).toBe(true);
+    });
+
+    it('should categorize network errors correctly', async () => {
+      const mockService = createMockAccessControlService({
+        getOwnership: vi.fn().mockRejectedValue(new Error('Connection timeout')),
+      });
+      const mockAdapter = createMockAdapter(mockService);
+
+      const { result } = renderHook(() => useContractOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.error?.category).toBe(ErrorCategory.NETWORK_ERROR);
+      expect(result.current.canRetry).toBe(true);
+    });
+
+    it('should handle indexer unavailable for ownership', async () => {
+      const mockService = createMockAccessControlService({
+        getOwnership: vi.fn().mockRejectedValue(new Error('Indexer service unavailable')),
+      });
+      const mockAdapter = createMockAdapter(mockService);
+
+      const { result } = renderHook(() => useContractOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.error?.category).toBe(ErrorCategory.INDEXER_UNAVAILABLE);
+      expect(result.current.errorMessage).toContain('indexer');
     });
   });
 
@@ -775,9 +860,15 @@ describe('useContractOwnership', () => {
       expect(result.current).toHaveProperty('error');
       expect(result.current).toHaveProperty('refetch');
       expect(result.current).toHaveProperty('hasOwner');
+      // FR-012 compliance: new error handling properties
+      expect(result.current).toHaveProperty('hasError');
+      expect(result.current).toHaveProperty('canRetry');
+      expect(result.current).toHaveProperty('errorMessage');
 
       expect(typeof result.current.refetch).toBe('function');
       expect(typeof result.current.hasOwner).toBe('boolean');
+      expect(typeof result.current.hasError).toBe('boolean');
+      expect(typeof result.current.canRetry).toBe('boolean');
     });
   });
 });

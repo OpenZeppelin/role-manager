@@ -4,6 +4,9 @@
  *
  * Provides data fetching hooks for roles and ownership information.
  * Uses react-query for caching, automatic refetching, and optimistic updates.
+ *
+ * Implements FR-012: Handles contracts that pass initial validation but
+ * fail subsequent service calls with contextual error messages.
  */
 
 import { useQuery } from '@tanstack/react-query';
@@ -15,6 +18,7 @@ import type {
   RoleAssignment,
 } from '@openzeppelin/ui-builder-types';
 
+import { DataError, ErrorCategory, wrapError } from '../utils/errors';
 import { useAccessControlService } from './useAccessControlService';
 
 /**
@@ -26,13 +30,19 @@ export interface UseContractRolesReturn {
   /** Whether the query is currently loading */
   isLoading: boolean;
   /** Error if role fetching failed */
-  error: Error | null;
+  error: DataError | null;
   /** Function to manually refetch roles */
   refetch: () => Promise<void>;
   /** Whether the roles list is empty */
   isEmpty: boolean;
   /** Total count of members across all roles */
   totalMemberCount: number;
+  /** Whether the error can be recovered by retrying */
+  canRetry: boolean;
+  /** User-friendly error message */
+  errorMessage: string | null;
+  /** Whether in error state (failed after validation) */
+  hasError: boolean;
 }
 
 /**
@@ -44,11 +54,17 @@ export interface UseContractOwnershipReturn {
   /** Whether the query is currently loading */
   isLoading: boolean;
   /** Error if ownership fetching failed */
-  error: Error | null;
+  error: DataError | null;
   /** Function to manually refetch ownership */
   refetch: () => Promise<void>;
   /** Whether the contract has an owner */
   hasOwner: boolean;
+  /** Whether the error can be recovered by retrying */
+  canRetry: boolean;
+  /** User-friendly error message */
+  errorMessage: string | null;
+  /** Whether in error state (failed after validation) */
+  hasError: boolean;
 }
 
 /**
@@ -105,85 +121,82 @@ const ownershipQueryKey = (address: string) => ['contractOwnership', address] as
  *
  * @example
  * ```tsx
- * const { adapter } = useNetworkAdapter(selectedNetwork);
  * const { roles, isLoading, isEmpty } = useContractRoles(adapter, address);
  *
  * if (isLoading) return <Spinner />;
  * if (isEmpty) return <NoRolesMessage />;
  *
- * return (
- *   <ul>
- *     {roles.map((r) => (
- *       <li key={r.role.id}>
- *         {r.role.label}: {r.members.length} members
- *       </li>
- *     ))}
- *   </ul>
- * );
+ * return <RolesList roles={roles} />;
  * ```
  */
 export function useContractRoles(
   adapter: ContractAdapter | null,
   contractAddress: string
 ): UseContractRolesReturn {
-  // Get the access control service from the adapter
   const { service, isReady } = useAccessControlService(adapter);
 
-  // Query for roles using react-query
   const {
     data: roles,
     isLoading,
-    error,
+    error: rawError,
     refetch: queryRefetch,
   } = useQuery({
     queryKey: rolesQueryKey(contractAddress),
     queryFn: async (): Promise<RoleAssignment[]> => {
       if (!service) {
-        throw new Error('Access control service not available');
+        throw new DataError(
+          'Access control service not available',
+          ErrorCategory.SERVICE_UNAVAILABLE,
+          { canRetry: false }
+        );
       }
-      return service.getCurrentRoles(contractAddress);
+      try {
+        return await service.getCurrentRoles(contractAddress);
+      } catch (err) {
+        throw wrapError(err, 'roles');
+      }
     },
-    // Only run query when we have a service and valid address
     enabled: isReady && !!contractAddress,
-    // Stale time of 1 minute - roles can change, so we want fresher data
     staleTime: 1 * 60 * 1000,
-    // Keep in cache for 10 minutes
     gcTime: 10 * 60 * 1000,
-    // Don't retry on failure - let user manually retry
     retry: false,
   });
 
-  // Compute derived values
-  const isEmpty = useMemo(() => {
-    if (!roles) return true;
-    return roles.length === 0;
-  }, [roles]);
+  const error = useMemo(() => {
+    if (!rawError) return null;
+    return rawError instanceof DataError ? rawError : wrapError(rawError, 'roles');
+  }, [rawError]);
+
+  const isEmpty = useMemo(() => !roles || roles.length === 0, [roles]);
 
   const totalMemberCount = useMemo(() => {
     if (!roles) return 0;
     return roles.reduce((count, role) => count + role.members.length, 0);
   }, [roles]);
 
-  // Wrap refetch to return void
   const refetch = async (): Promise<void> => {
     await queryRefetch();
   };
 
+  const hasError = error !== null;
+  const canRetry = error?.canRetry ?? false;
+  const errorMessage = error?.getUserMessage() ?? null;
+
   return {
     roles: roles ?? [],
     isLoading,
-    error: error as Error | null,
+    error,
     refetch,
     isEmpty,
     totalMemberCount,
+    hasError,
+    canRetry,
+    errorMessage,
   };
 }
 
 /**
  * Hook that fetches ownership information for a given contract.
- *
- * Uses the AccessControlService from the adapter to retrieve the current
- * owner of the contract.
  *
  * @param adapter - The contract adapter instance, or null if not loaded
  * @param contractAddress - The contract address to fetch ownership for
@@ -191,7 +204,6 @@ export function useContractRoles(
  *
  * @example
  * ```tsx
- * const { adapter } = useNetworkAdapter(selectedNetwork);
  * const { ownership, isLoading, hasOwner } = useContractOwnership(adapter, address);
  *
  * if (isLoading) return <Spinner />;
@@ -204,94 +216,71 @@ export function useContractOwnership(
   adapter: ContractAdapter | null,
   contractAddress: string
 ): UseContractOwnershipReturn {
-  // Get the access control service from the adapter
   const { service, isReady } = useAccessControlService(adapter);
 
-  // Query for ownership using react-query
   const {
     data: ownership,
     isLoading,
-    error,
+    error: rawError,
     refetch: queryRefetch,
   } = useQuery({
     queryKey: ownershipQueryKey(contractAddress),
     queryFn: async (): Promise<OwnershipInfo> => {
       if (!service) {
-        throw new Error('Access control service not available');
+        throw new DataError(
+          'Access control service not available',
+          ErrorCategory.SERVICE_UNAVAILABLE,
+          { canRetry: false }
+        );
       }
-      return service.getOwnership(contractAddress);
+      try {
+        return await service.getOwnership(contractAddress);
+      } catch (err) {
+        throw wrapError(err, 'ownership');
+      }
     },
-    // Only run query when we have a service and valid address
     enabled: isReady && !!contractAddress,
-    // Stale time of 1 minute - ownership can change
     staleTime: 1 * 60 * 1000,
-    // Keep in cache for 10 minutes
     gcTime: 10 * 60 * 1000,
-    // Don't retry on failure - let user manually retry
     retry: false,
   });
 
-  // Compute derived values
-  const hasOwner = useMemo(() => {
-    if (!ownership) return false;
-    return ownership.owner !== null;
-  }, [ownership]);
+  const error = useMemo(() => {
+    if (!rawError) return null;
+    return rawError instanceof DataError ? rawError : wrapError(rawError, 'ownership');
+  }, [rawError]);
 
-  // Wrap refetch to return void
+  const hasOwner = useMemo(() => ownership?.owner != null, [ownership]);
+
   const refetch = async (): Promise<void> => {
     await queryRefetch();
   };
 
+  const hasError = error !== null;
+  const canRetry = error?.canRetry ?? false;
+  const errorMessage = error?.getUserMessage() ?? null;
+
   return {
     ownership: ownership ?? null,
     isLoading,
-    error: error as Error | null,
+    error,
     refetch,
     hasOwner,
+    hasError,
+    canRetry,
+    errorMessage,
   };
 }
 
-/**
- * Default page size for pagination
- */
 const DEFAULT_PAGE_SIZE = 10;
 
 /**
  * Hook that provides paginated access to role assignments.
  *
- * Extends useContractRoles with client-side pagination for handling
- * large role lists efficiently in the UI.
- *
  * @param adapter - The contract adapter instance, or null if not loaded
  * @param contractAddress - The contract address to fetch roles for
  * @param options - Pagination options
  * @returns Object containing paginated roles and pagination controls
- *
- * @example
- * ```tsx
- * const { adapter } = useNetworkAdapter(selectedNetwork);
- * const {
- *   paginatedRoles,
- *   currentPage,
- *   totalPages,
- *   hasNextPage,
- *   nextPage,
- *   previousPage,
- * } = usePaginatedRoles(adapter, address, { pageSize: 20 });
- *
- * return (
- *   <>
- *     <RolesList roles={paginatedRoles} />
- *     <Pagination
- *       currentPage={currentPage}
- *       totalPages={totalPages}
- *       onNext={nextPage}
- *       onPrevious={previousPage}
- *       hasNext={hasNextPage}
- *     />
- *   </>
- * );
- * ```
  */
 export function usePaginatedRoles(
   adapter: ContractAdapter | null,
@@ -299,53 +288,39 @@ export function usePaginatedRoles(
   options?: PaginationOptions
 ): UsePaginatedRolesReturn {
   const pageSize = options?.pageSize ?? DEFAULT_PAGE_SIZE;
-
-  // Get base roles data
   const rolesData = useContractRoles(adapter, contractAddress);
   const { roles } = rolesData;
 
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Calculate total pages
   const totalPages = useMemo(() => {
     if (roles.length === 0) return 0;
     return Math.ceil(roles.length / pageSize);
   }, [roles.length, pageSize]);
 
-  // Reset to page 1 when contract address changes
   useEffect(() => {
     setCurrentPage(1);
   }, [contractAddress]);
 
-  // Get paginated subset
   const paginatedRoles = useMemo(() => {
     const startIndex = (currentPage - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    return roles.slice(startIndex, endIndex);
+    return roles.slice(startIndex, startIndex + pageSize);
   }, [roles, currentPage, pageSize]);
 
-  // Pagination helpers
   const hasNextPage = currentPage < totalPages;
   const hasPreviousPage = currentPage > 1;
 
   const nextPage = useCallback(() => {
-    if (hasNextPage) {
-      setCurrentPage((prev) => prev + 1);
-    }
+    if (hasNextPage) setCurrentPage((prev) => prev + 1);
   }, [hasNextPage]);
 
   const previousPage = useCallback(() => {
-    if (hasPreviousPage) {
-      setCurrentPage((prev) => prev - 1);
-    }
+    if (hasPreviousPage) setCurrentPage((prev) => prev - 1);
   }, [hasPreviousPage]);
 
   const goToPage = useCallback(
     (page: number) => {
-      // Clamp to valid range
-      const validPage = Math.max(1, Math.min(page, totalPages || 1));
-      setCurrentPage(validPage);
+      setCurrentPage(Math.max(1, Math.min(page, totalPages || 1)));
     },
     [totalPages]
   );

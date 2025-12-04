@@ -19,6 +19,7 @@ export type { UseAccessControlServiceReturn } from './useAccessControlService';
 export { useContractCapabilities, isContractSupported } from './useContractCapabilities';
 export type { UseContractCapabilitiesReturn } from './useContractCapabilities';
 export { useContractRoles, useContractOwnership, usePaginatedRoles } from './useContractData';
+export { DataError, ErrorCategory } from '../utils/errors';
 export type {
   UseContractRolesReturn,
   UseContractOwnershipReturn,
