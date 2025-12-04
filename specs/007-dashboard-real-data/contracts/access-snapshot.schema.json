@@ -1,0 +1,141 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://openzeppelin.com/role-manager/access-snapshot.schema.json",
+  "title": "AccessSnapshot",
+  "description": "JSON export format for contract access control state",
+  "type": "object",
+  "required": ["version", "exportedAt", "contract", "capabilities", "roles", "ownership"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "const": "1.0",
+      "description": "Schema version for forward compatibility"
+    },
+    "exportedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of when the snapshot was exported"
+    },
+    "contract": {
+      "type": "object",
+      "description": "Contract identification information",
+      "required": ["address", "networkId", "networkName"],
+      "properties": {
+        "address": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Full contract address"
+        },
+        "label": {
+          "type": ["string", "null"],
+          "description": "User-defined contract label/name"
+        },
+        "networkId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Network identifier (e.g., 'stellar-mainnet', 'ethereum-mainnet')"
+        },
+        "networkName": {
+          "type": "string",
+          "description": "Human-readable network name"
+        }
+      }
+    },
+    "capabilities": {
+      "type": "object",
+      "description": "Detected access control capabilities",
+      "required": ["hasAccessControl", "hasOwnable"],
+      "properties": {
+        "hasAccessControl": {
+          "type": "boolean",
+          "description": "Whether contract implements AccessControl interface"
+        },
+        "hasOwnable": {
+          "type": "boolean",
+          "description": "Whether contract implements Ownable interface"
+        },
+        "hasEnumerableRoles": {
+          "type": "boolean",
+          "description": "Whether contract supports enumerable roles"
+        }
+      }
+    },
+    "roles": {
+      "type": "array",
+      "description": "List of roles and their members",
+      "items": {
+        "type": "object",
+        "required": ["roleId", "roleName", "members"],
+        "properties": {
+          "roleId": {
+            "type": "string",
+            "description": "Role identifier (bytes32 hash or similar)"
+          },
+          "roleName": {
+            "type": "string",
+            "description": "Human-readable role name"
+          },
+          "members": {
+            "type": "array",
+            "description": "List of addresses with this role",
+            "items": {
+              "type": "string",
+              "description": "Member address"
+            }
+          }
+        }
+      }
+    },
+    "ownership": {
+      "type": "object",
+      "description": "Contract ownership information",
+      "required": ["owner"],
+      "properties": {
+        "owner": {
+          "type": ["string", "null"],
+          "description": "Current owner address, or null if no owner"
+        },
+        "pendingOwner": {
+          "type": ["string", "null"],
+          "description": "Pending owner address for two-step transfers"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "version": "1.0",
+      "exportedAt": "2025-12-04T10:30:00.000Z",
+      "contract": {
+        "address": "GCKFBEIYV2U22IO2BJ4KVJOIP7XPWQGQFKKWXR6DOSJBV7STMAQSMTGG",
+        "label": "My Token Contract",
+        "networkId": "stellar-testnet",
+        "networkName": "Stellar Testnet"
+      },
+      "capabilities": {
+        "hasAccessControl": true,
+        "hasOwnable": true,
+        "hasEnumerableRoles": true
+      },
+      "roles": [
+        {
+          "roleId": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "roleName": "DEFAULT_ADMIN_ROLE",
+          "members": ["GCKFBEIYV2U22IO2BJ4KVJOIP7XPWQGQFKKWXR6DOSJBV7STMAQSMTGG"]
+        },
+        {
+          "roleId": "0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6",
+          "roleName": "MINTER_ROLE",
+          "members": [
+            "GCKFBEIYV2U22IO2BJ4KVJOIP7XPWQGQFKKWXR6DOSJBV7STMAQSMTGG",
+            "GDQP2KPQGKIHYJGXNUIYOMHARUARCA7DJT5FO2FFOOUJ3ZPMZQZXZXHC"
+          ]
+        }
+      ],
+      "ownership": {
+        "owner": "GCKFBEIYV2U22IO2BJ4KVJOIP7XPWQGQFKKWXR6DOSJBV7STMAQSMTGG",
+        "pendingOwner": null
+      }
+    }
+  ]
+}
