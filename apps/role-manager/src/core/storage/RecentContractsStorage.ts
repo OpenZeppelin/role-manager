@@ -1,8 +1,9 @@
 import type { Table } from 'dexie';
 
 import { EntityStorage, withQuotaHandling } from '@openzeppelin/ui-builder-storage';
+import { simpleHash } from '@openzeppelin/ui-builder-utils';
 
-import type { RecentContractRecord } from '@/types/storage';
+import type { ContractSchemaInput, RecentContractRecord } from '@/types/storage';
 
 import { db } from './database';
 
@@ -115,6 +116,129 @@ export class RecentContractsStorage extends EntityStorage<RecentContractRecord> 
    */
   async deleteContract(id: string): Promise<void> {
     await this.delete(id);
+  }
+
+  /**
+   * Add or update a contract with schema data.
+   * Creates the record if it doesn't exist, updates schema fields if it does.
+   */
+  async addOrUpdateWithSchema(input: ContractSchemaInput): Promise<string> {
+    validateInput({
+      networkId: input.networkId,
+      address: input.address,
+      label: input.label,
+    });
+
+    const now = Date.now();
+    const networkId = input.networkId.trim();
+    const address = normalizeAddress(input.address);
+    const label = input.label?.trim() || undefined;
+
+    // Serialize schema and compute hash
+    const schemaJson = JSON.stringify(input.schema);
+    const schemaHash = simpleHash(schemaJson);
+
+    return await withQuotaHandling(this.tableName, async () => {
+      // Try to find existing by compound unique index [networkId+address]
+      const existing = await (this.table as RecentContractsTable)
+        .where('networkId')
+        .equals(networkId)
+        .and((row) => row.address === address)
+        .first();
+
+      if (existing) {
+        // Update existing record with schema data
+        const updates: Partial<RecentContractRecord> = {
+          lastAccessed: now,
+          ecosystem: input.ecosystem,
+          schema: schemaJson,
+          schemaHash,
+          source: input.source,
+        };
+
+        // Only update label if explicitly provided
+        if (label !== undefined) {
+          updates.label = label;
+        }
+
+        // Optional fields
+        if (input.definitionOriginal !== undefined) {
+          updates.definitionOriginal = input.definitionOriginal;
+        }
+        if (input.definitionArtifacts !== undefined) {
+          updates.definitionArtifacts = input.definitionArtifacts;
+        }
+        if (input.schemaMetadata !== undefined) {
+          updates.schemaMetadata = input.schemaMetadata;
+        }
+
+        const idString = String(existing.id);
+        await this.update(idString, updates);
+        return idString;
+      }
+
+      // Create new record with schema data
+      const id = await this.save({
+        networkId,
+        address,
+        label,
+        lastAccessed: now,
+        ecosystem: input.ecosystem,
+        schema: schemaJson,
+        schemaHash,
+        source: input.source,
+        definitionOriginal: input.definitionOriginal,
+        definitionArtifacts: input.definitionArtifacts,
+        schemaMetadata: input.schemaMetadata,
+      });
+      return id;
+    });
+  }
+
+  /**
+   * Get a contract with its schema by address and network.
+   */
+  async getByAddressAndNetwork(
+    address: string,
+    networkId: string
+  ): Promise<RecentContractRecord | null> {
+    const normalizedAddress = normalizeAddress(address);
+    const normalizedNetworkId = networkId?.trim();
+
+    if (!normalizedAddress || !normalizedNetworkId) {
+      return null;
+    }
+
+    const record = await (this.table as RecentContractsTable)
+      .where('networkId')
+      .equals(normalizedNetworkId)
+      .and((row) => row.address === normalizedAddress)
+      .first();
+
+    return record ?? null;
+  }
+
+  /**
+   * Check if a contract has a loaded schema.
+   */
+  async hasSchema(address: string, networkId: string): Promise<boolean> {
+    const record = await this.getByAddressAndNetwork(address, networkId);
+    return record?.schema !== undefined && record.schema !== null;
+  }
+
+  /**
+   * Clear schema data from a record (keeps basic contract info).
+   */
+  async clearSchema(id: string): Promise<void> {
+    await this.update(id, {
+      ecosystem: undefined,
+      schema: undefined,
+      schemaHash: undefined,
+      source: undefined,
+      definitionOriginal: undefined,
+      definitionArtifacts: undefined,
+      schemaMetadata: undefined,
+    });
   }
 }
 

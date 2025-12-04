@@ -33,6 +33,8 @@ export interface AddContractFormData {
   address: string;
   /** Selected network ID */
   networkId: string;
+  /** Adapter-specific artifacts (contractAddress, contractDefinition, etc.) */
+  adapterArtifacts?: Record<string, unknown>;
 }
 
 // =============================================================================
@@ -55,8 +57,8 @@ export interface AddContractDialogProps {
  * Props for the AddContractForm component
  */
 export interface AddContractFormProps {
-  /** Callback when form is submitted with valid data */
-  onSubmit: (data: AddContractFormData) => Promise<void> | void;
+  /** Callback when form is submitted with valid data and optional network */
+  onSubmit: (data: AddContractFormData, network?: NetworkConfig) => Promise<void> | void;
   /** Callback when form is cancelled */
   onCancel: () => void;
   /** Whether form submission is in progress */
