@@ -190,16 +190,10 @@ export function AddContractDialog({
 
   // Trigger schema loading when adapter becomes available
   useEffect(() => {
-    if (
-      step === 'loading-schema' &&
-      adapter &&
-      !isAdapterLoading &&
-      !schemaLoader.isLoading &&
-      !loadStartedRef.current
-    ) {
+    if (step === 'loading-schema' && adapter && !isAdapterLoading && !loadStartedRef.current) {
       executeLoadAndSave();
     }
-  }, [step, adapter, isAdapterLoading, schemaLoader.isLoading, executeLoadAndSave]);
+  }, [step, adapter, isAdapterLoading, executeLoadAndSave]);
 
   /**
    * Handle retry after error

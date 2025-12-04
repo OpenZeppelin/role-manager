@@ -6,7 +6,7 @@
  * Tracks failures per contract address and blocks requests after repeated failures.
  */
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { ContractAdapter } from '@openzeppelin/ui-builder-types';
 import { simpleHash } from '@openzeppelin/ui-builder-utils';
@@ -42,6 +42,9 @@ export function useContractSchemaLoader(
 
   // Ref to track if a load is in progress (to prevent concurrent loads)
   const loadingRef = useRef(false);
+
+  // Ref to track circuit breaker display timeout (for cleanup)
+  const circuitBreakerTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /**
    * Generate a unique key for circuit breaker tracking
@@ -104,9 +107,15 @@ export function useContractSchemaLoader(
     if (updatedState && updatedState.attempts >= DEFAULT_CIRCUIT_BREAKER_CONFIG.maxAttempts) {
       setIsCircuitBreakerActive(true);
 
+      // Clear any existing timeout before setting a new one
+      if (circuitBreakerTimeoutRef.current) {
+        clearTimeout(circuitBreakerTimeoutRef.current);
+      }
+
       // Auto-deactivate after display duration
-      setTimeout(() => {
+      circuitBreakerTimeoutRef.current = setTimeout(() => {
         setIsCircuitBreakerActive(false);
+        circuitBreakerTimeoutRef.current = null;
       }, DEFAULT_CIRCUIT_BREAKER_CONFIG.displayDurationMs);
     }
   };
@@ -142,9 +151,15 @@ export function useContractSchemaLoader(
       if (isCircuitBreakerBlocked(key)) {
         setIsCircuitBreakerActive(true);
 
+        // Clear any existing timeout before setting a new one
+        if (circuitBreakerTimeoutRef.current) {
+          clearTimeout(circuitBreakerTimeoutRef.current);
+        }
+
         // Reset display timer
-        setTimeout(() => {
+        circuitBreakerTimeoutRef.current = setTimeout(() => {
           setIsCircuitBreakerActive(false);
+          circuitBreakerTimeoutRef.current = null;
         }, DEFAULT_CIRCUIT_BREAKER_CONFIG.displayDurationMs);
 
         return null;
@@ -194,6 +209,21 @@ export function useContractSchemaLoader(
     setIsCircuitBreakerActive(false);
     loadingRef.current = false;
     circuitBreakerRef.current.clear();
+
+    // Clear any pending circuit breaker timeout
+    if (circuitBreakerTimeoutRef.current) {
+      clearTimeout(circuitBreakerTimeoutRef.current);
+      circuitBreakerTimeoutRef.current = null;
+    }
+  }, []);
+
+  // Cleanup timeout on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (circuitBreakerTimeoutRef.current) {
+        clearTimeout(circuitBreakerTimeoutRef.current);
+      }
+    };
   }, []);
 
   return {
