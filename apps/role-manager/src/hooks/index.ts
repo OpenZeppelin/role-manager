@@ -16,6 +16,8 @@ export { useContractSchemaLoader } from './useContractSchemaLoader';
 // Access Control hooks
 export { useAccessControlService } from './useAccessControlService';
 export type { UseAccessControlServiceReturn } from './useAccessControlService';
+export { useContractCapabilities, isContractSupported } from './useContractCapabilities';
+export type { UseContractCapabilitiesReturn } from './useContractCapabilities';
 
 // Utility hooks
 export { useDebounce } from './useDebounce';

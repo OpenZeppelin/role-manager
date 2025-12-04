@@ -21,10 +21,10 @@ Goal: Implement the core service wrapper hook that enables adapter access.
 
 Goal: Implement feature detection logic and validation-gated persistence.
 
-- [ ] T004 [US1] Create test file `apps/role-manager/src/hooks/__tests__/useContractCapabilities.test.tsx` with mock adapter
-- [ ] T005 [US1] Implement `useContractCapabilities` hook in `apps/role-manager/src/hooks/useContractCapabilities.ts` using react-query
-- [ ] T006 [US1] Update `apps/role-manager/src/components/Contracts/AddContractForm.tsx` to integrate feature detection validation (trigger in `onSchemaLoaded` callback before save)
-- [ ] T007 [US1] Implement rollback/cleanup logic in `AddContractForm.tsx` if validation fails [Gap: CHK005]
+- [x] T004 [US1] Create test file `apps/role-manager/src/hooks/__tests__/useContractCapabilities.test.tsx` with mock adapter
+- [x] T005 [US1] Implement `useContractCapabilities` hook in `apps/role-manager/src/hooks/useContractCapabilities.ts` using react-query
+- [x] T006 [US1] Update `apps/role-manager/src/components/Contracts/AddContractDialog.tsx` to integrate feature detection validation (trigger after schema loaded, before save)
+- [x] T007 [US1] Implement rollback/cleanup logic in `AddContractDialog.tsx` if validation fails [Gap: CHK005]
 
 ## Phase 4: View Roles and Members (US2)
 
