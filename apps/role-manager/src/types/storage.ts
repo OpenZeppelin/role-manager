@@ -1,5 +1,9 @@
 import type { BaseRecord } from '@openzeppelin/ui-builder-storage';
-import type { ContractSchema, Ecosystem } from '@openzeppelin/ui-builder-types';
+import type {
+  AccessControlCapabilities,
+  ContractSchema,
+  Ecosystem,
+} from '@openzeppelin/ui-builder-types';
 
 /**
  * Source of the contract schema definition
@@ -50,6 +54,11 @@ export interface RecentContractRecord extends BaseRecord {
   definitionArtifacts?: Record<string, unknown>;
   /** Metadata about schema fetch */
   schemaMetadata?: ContractSchemaMetadata;
+
+  // Access Control fields (populated after feature detection)
+
+  /** Detected access control capabilities (hasOwnable, hasAccessControl, etc.) */
+  capabilities?: AccessControlCapabilities;
 }
 
 /**
@@ -74,4 +83,6 @@ export interface ContractSchemaInput {
   definitionArtifacts?: Record<string, unknown>;
   /** Fetch metadata */
   schemaMetadata?: ContractSchemaMetadata;
+  /** Detected access control capabilities */
+  capabilities?: AccessControlCapabilities;
 }

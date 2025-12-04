@@ -171,6 +171,9 @@ export class RecentContractsStorage extends EntityStorage<RecentContractRecord> 
         if (input.schemaMetadata !== undefined) {
           updates.schemaMetadata = input.schemaMetadata;
         }
+        if (input.capabilities !== undefined) {
+          updates.capabilities = input.capabilities;
+        }
 
         const idString = String(existing.id);
         await this.update(idString, updates);
@@ -190,6 +193,7 @@ export class RecentContractsStorage extends EntityStorage<RecentContractRecord> 
         definitionOriginal: input.definitionOriginal,
         definitionArtifacts: input.definitionArtifacts,
         schemaMetadata: input.schemaMetadata,
+        capabilities: input.capabilities,
       });
       return id;
     });

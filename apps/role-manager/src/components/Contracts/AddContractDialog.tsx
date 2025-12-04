@@ -1,35 +1,44 @@
 /**
  * AddContractDialog Component
- * Features: 004-add-contract-record, 005-contract-schema-storage
+ * Features: 004-add-contract-record, 005-contract-schema-storage, 006-access-control-service
  *
  * Modal dialog for adding a new contract record.
- * Loads and validates schema BEFORE saving - only saves valid contracts.
+ * Loads schema and validates Access Control capabilities BEFORE saving.
+ * Only saves contracts that support AccessControl or Ownable interfaces.
  */
 
-import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import type { NetworkConfig } from '@openzeppelin/ui-builder-types';
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@openzeppelin/ui-builder-ui';
+import type {
+  AccessControlCapabilities,
+  AccessControlService,
+  ContractSchema,
+  NetworkConfig,
+} from '@openzeppelin/ui-builder-types';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@openzeppelin/ui-builder-ui';
+import { logger } from '@openzeppelin/ui-builder-utils';
 
 import { recentContractsStorage } from '@/core/storage/RecentContractsStorage';
-import { useContractSchemaLoader, useNetworkAdapter } from '@/hooks';
+import {
+  isContractSupported,
+  useAccessControlService,
+  useContractSchemaLoader,
+  useNetworkAdapter,
+} from '@/hooks';
 import type { AddContractDialogProps, AddContractFormData } from '@/types/contracts';
 import type { SchemaLoadResult } from '@/types/schema';
 
 import { AddContractForm } from './AddContractForm';
+import { ContractUnsupportedState } from './ContractUnsupportedState';
+import { DialogErrorState } from './DialogErrorState';
+import { DialogLoadingState } from './DialogLoadingState';
+import { DialogSuccessState } from './DialogSuccessState';
 
 /**
  * Dialog steps
  */
-type DialogStep = 'form' | 'loading-schema' | 'error' | 'success';
+type DialogStep = 'form' | 'loading-schema' | 'validating' | 'unsupported' | 'error' | 'success';
 
 /**
  * Extended props to receive network info from the form
@@ -39,13 +48,28 @@ interface ExtendedAddContractFormData extends AddContractFormData {
 }
 
 /**
+ * Map of step to dialog title
+ */
+const DIALOG_TITLES: Record<DialogStep, string> = {
+  form: 'Add Contract',
+  'loading-schema': 'Loading Contract...',
+  validating: 'Validating Contract...',
+  unsupported: 'Contract Not Supported',
+  error: 'Failed to Load Contract',
+  success: 'Contract Added',
+};
+
+/**
  * Dialog for adding a new contract record with schema validation.
  *
  * Flow:
  * 1. User fills out form (ecosystem, network, name, contract definition)
  * 2. User clicks "Add" -> attempts to load schema via RPC
- * 3. If schema loads successfully -> saves contract with schema -> shows success
- * 4. If schema fails -> shows error with retry option (contract NOT saved)
+ * 3. Detect access control capabilities
+ * 4. Validate contract is supported (has AccessControl OR Ownable)
+ * 5. If valid -> save contract with schema -> show success
+ * 6. If unsupported -> show unsupported error (contract NOT saved)
+ * 7. If schema fails -> show error with retry option (contract NOT saved)
  *
  * @param open - Whether the dialog is open
  * @param onOpenChange - Callback when dialog open state changes
@@ -61,6 +85,8 @@ export function AddContractDialog({
   const [savedContractId, setSavedContractId] = useState<string | null>(null);
   const [pendingFormData, setPendingFormData] = useState<ExtendedAddContractFormData | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [detectedCapabilities, setDetectedCapabilities] =
+    useState<AccessControlCapabilities | null>(null);
 
   // Track if we've started loading to prevent double-loading
   const loadStartedRef = useRef(false);
@@ -72,6 +98,10 @@ export function AddContractDialog({
   // Schema loader hook
   const schemaLoader = useContractSchemaLoader(adapter);
 
+  // Access control service for capability detection
+  const { service: accessControlService, isReady: isAccessControlReady } =
+    useAccessControlService(adapter);
+
   /**
    * Reset all dialog state to initial values
    */
@@ -81,6 +111,7 @@ export function AddContractDialog({
     setSavedContractId(null);
     setPendingFormData(null);
     setLoadError(null);
+    setDetectedCapabilities(null);
     setSelectedNetwork(null);
     loadStartedRef.current = false;
     schemaLoader.reset();
@@ -128,10 +159,10 @@ export function AddContractDialog({
   }, [adapter, pendingFormData, schemaLoader]);
 
   /**
-   * Save contract with schema to storage
+   * Save contract with schema and capabilities to storage
    */
   const saveContractWithSchema = useCallback(
-    async (result: SchemaLoadResult): Promise<string> => {
+    async (result: SchemaLoadResult, capabilities: AccessControlCapabilities): Promise<string> => {
       if (!pendingFormData?.network) {
         throw new Error('Missing form data');
       }
@@ -147,6 +178,7 @@ export function AddContractDialog({
           fetchTimestamp: Date.now(),
           contractName: result.schema.name,
         },
+        capabilities,
       });
 
       return contractId;
@@ -155,45 +187,93 @@ export function AddContractDialog({
   );
 
   /**
-   * Execute the full load and save flow
+   * Execute the full load, validate, and save flow
    */
   const executeLoadAndSave = useCallback(async () => {
     if (loadStartedRef.current) return;
     loadStartedRef.current = true;
 
     try {
+      // Step 1: Load schema
       const result = await loadSchema();
 
       if (!result) {
-        // Don't read schemaLoader.error here - it would be stale from closure.
-        // The error UI reads schemaLoader.error directly as a fallback.
         setLoadError('Failed to load contract schema');
         setStep('error');
         setIsSubmitting(false);
         return;
       }
 
-      // Schema loaded successfully - now save to storage
-      const contractId = await saveContractWithSchema(result);
+      // Step 2: Detect access control capabilities
+      setStep('validating');
+
+      if (!accessControlService || !pendingFormData) {
+        setLoadError(
+          'Access control validation is not available for this network. ' +
+            'Please ensure the adapter supports access control features.'
+        );
+        setStep('error');
+        setIsSubmitting(false);
+        return;
+      }
+
+      let capabilities: AccessControlCapabilities;
+      try {
+        // Some adapters (e.g., Stellar) require contract registration before capability detection
+        const serviceWithRegister = accessControlService as AccessControlService & {
+          registerContract?: (address: string, schema: ContractSchema) => void;
+        };
+        if (typeof serviceWithRegister.registerContract === 'function') {
+          serviceWithRegister.registerContract(pendingFormData.address, result.schema);
+        }
+
+        capabilities = await accessControlService.getCapabilities(pendingFormData.address);
+        setDetectedCapabilities(capabilities);
+      } catch (capabilityError) {
+        logger.error('AddContractDialog', 'Capability detection failed:', capabilityError);
+        setLoadError(
+          capabilityError instanceof Error
+            ? capabilityError.message
+            : 'Failed to detect contract capabilities'
+        );
+        setStep('error');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Step 3: Validate contract is supported (FR-003, FR-009)
+      if (!isContractSupported(capabilities)) {
+        setStep('unsupported');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Step 4: Contract is valid - save with capabilities
+      const contractId = await saveContractWithSchema(result, capabilities);
       setSavedContractId(contractId);
       setStep('success');
       toast.success('Contract added successfully');
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('[AddContractDialog] Failed to load/save contract:', error);
+      logger.error('AddContractDialog', 'Failed to load/save contract:', error);
       setLoadError(error instanceof Error ? error.message : 'An unexpected error occurred');
       setStep('error');
     } finally {
       setIsSubmitting(false);
     }
-  }, [loadSchema, saveContractWithSchema]);
+  }, [loadSchema, saveContractWithSchema, accessControlService, pendingFormData]);
 
-  // Trigger schema loading when adapter becomes available
+  // Trigger schema loading when adapter and access control service are ready
   useEffect(() => {
-    if (step === 'loading-schema' && adapter && !isAdapterLoading && !loadStartedRef.current) {
+    if (
+      step === 'loading-schema' &&
+      adapter &&
+      !isAdapterLoading &&
+      isAccessControlReady &&
+      !loadStartedRef.current
+    ) {
       executeLoadAndSave();
     }
-  }, [step, adapter, isAdapterLoading, executeLoadAndSave]);
+  }, [step, adapter, isAdapterLoading, isAccessControlReady, executeLoadAndSave]);
 
   /**
    * Handle retry after error
@@ -222,27 +302,15 @@ export function AddContractDialog({
     onOpenChange(false);
   }, [onOpenChange, onContractAdded, savedContractId]);
 
-  // Get dialog title based on step
-  const getDialogTitle = (): string => {
-    switch (step) {
-      case 'form':
-        return 'Add Contract';
-      case 'loading-schema':
-        return 'Loading Contract...';
-      case 'error':
-        return 'Failed to Load Contract';
-      case 'success':
-        return 'Contract Added';
-      default:
-        return 'Add Contract';
-    }
-  };
+  // Get explorer URL for the contract address
+  const explorerUrl =
+    adapter && pendingFormData ? adapter.getExplorerUrl(pendingFormData.address) : null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>{getDialogTitle()}</DialogTitle>
+          <DialogTitle>{DIALOG_TITLES[step]}</DialogTitle>
         </DialogHeader>
 
         {/* Form Step */}
@@ -256,66 +324,49 @@ export function AddContractDialog({
 
         {/* Loading Schema Step */}
         {step === 'loading-schema' && (
-          <div className="flex flex-col items-center gap-4 py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <div className="text-center">
-              <p className="text-sm font-medium">Loading contract schema...</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Fetching contract information from the network
-              </p>
-            </div>
-          </div>
+          <DialogLoadingState
+            title="Loading contract schema..."
+            description="Fetching contract information from the network"
+          />
+        )}
+
+        {/* Validating Capabilities Step */}
+        {step === 'validating' && (
+          <DialogLoadingState
+            title="Validating access control..."
+            description="Checking contract capabilities"
+          />
+        )}
+
+        {/* Unsupported Contract Step */}
+        {step === 'unsupported' && (
+          <ContractUnsupportedState
+            capabilities={detectedCapabilities}
+            onCancel={handleCancel}
+            onTryAgain={resetDialogState}
+          />
         )}
 
         {/* Error Step */}
         {step === 'error' && (
-          <div className="flex flex-col gap-4 py-4">
-            <div className="flex items-start gap-3 rounded-lg border border-destructive/50 bg-destructive/10 p-4">
-              <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
-              <div className="flex-1">
-                <p className="font-medium text-destructive">Could not load contract</p>
-                <p className="mt-1 text-sm text-destructive/80">
-                  {loadError || schemaLoader.error || 'The contract schema could not be loaded.'}
-                </p>
-              </div>
-            </div>
-
-            <p className="text-sm text-muted-foreground">
-              Please verify the contract address is correct and the contract is deployed on the
-              selected network.
-            </p>
-
-            <div className="flex justify-end gap-2">
-              <Button variant="ghost" onClick={handleCancel}>
-                Cancel
-              </Button>
-              <Button onClick={handleRetry}>Try Again</Button>
-            </div>
-          </div>
+          <DialogErrorState
+            title="Could not load contract"
+            message={loadError || schemaLoader.error || 'The contract schema could not be loaded.'}
+            helpText="Please verify the contract address is correct and the contract is deployed on the selected network."
+            onCancel={handleCancel}
+            onRetry={handleRetry}
+          />
         )}
 
         {/* Success Step */}
         {step === 'success' && pendingFormData && (
-          <div className="flex flex-col gap-4 py-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
-                <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
-              </div>
-              <div>
-                <p className="font-medium">Contract added successfully!</p>
-                <p className="text-sm text-muted-foreground">{pendingFormData.name}</p>
-              </div>
-            </div>
-
-            <div className="rounded-lg border bg-muted/50 p-3">
-              <div className="text-xs text-muted-foreground">Contract Address</div>
-              <div className="mt-1 truncate font-mono text-sm">{pendingFormData.address}</div>
-            </div>
-
-            <div className="flex justify-end">
-              <Button onClick={handleComplete}>Done</Button>
-            </div>
-          </div>
+          <DialogSuccessState
+            contractName={pendingFormData.name}
+            contractAddress={pendingFormData.address}
+            explorerUrl={explorerUrl}
+            capabilities={detectedCapabilities}
+            onComplete={handleComplete}
+          />
         )}
       </DialogContent>
     </Dialog>
