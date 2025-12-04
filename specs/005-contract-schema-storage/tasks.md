@@ -129,19 +129,27 @@
 
 ### Tests for User Story 3 (TDD - Write FIRST, verify FAIL)
 
-- [ ] T038 [P] [US3] Write test: `useContractSchema` loads from storage when available in `apps/role-manager/src/hooks/__tests__/useContractSchema.test.tsx`
-- [ ] T039 [P] [US3] Write test: `useContractSchema` skips network when schema exists in `apps/role-manager/src/hooks/__tests__/useContractSchema.test.tsx`
-- [ ] T040 [P] [US3] Write test: multiple contracts are restored correctly in `apps/role-manager/src/hooks/__tests__/useContractSchema.test.tsx`
+- [x] T038 [P] [US3] Write test: `useContractSchema` loads from storage when available in `apps/role-manager/src/hooks/__tests__/useContractSchema.test.tsx`
+- [x] T039 [P] [US3] Write test: `useContractSchema` skips network when schema exists in `apps/role-manager/src/hooks/__tests__/useContractSchema.test.tsx`
+- [x] T040 [P] [US3] Write test: multiple contracts are restored correctly in `apps/role-manager/src/hooks/__tests__/useContractSchema.test.tsx`
 
 ### Implementation for User Story 3
 
-- [ ] T041 [US3] Create `useContractSchema` hook that checks storage first in `apps/role-manager/src/hooks/useContractSchema.ts`
-- [ ] T042 [US3] Implement storage-first loading strategy (check IndexedDB before RPC)
-- [ ] T043 [US3] Auto-save schema to storage after successful load
-- [ ] T044 [US3] Handle storage quota errors gracefully with user message
-- [ ] T045 [US3] Run US3 tests to verify all pass
+- [x] T041 [US3] Create `useContractSchema` hook that checks storage first in `apps/role-manager/src/hooks/useContractSchema.ts`
+- [x] T042 [US3] Implement storage-first loading strategy (check IndexedDB before RPC)
+- [x] T043 [US3] Auto-save schema to storage after successful load
+- [x] T044 [US3] Handle storage quota errors gracefully with user message
+- [x] T045 [US3] Run US3 tests to verify all pass (20/20 tests pass)
 
 **Checkpoint**: User Story 3 complete - schemas persist offline
+
+**Implementation Note**: The `useContractSchema` hook provides storage-first loading with automatic persistence. Key features:
+
+- Checks IndexedDB before making network requests
+- Auto-saves schemas to storage after successful network loads via `recentContractsStorage.addOrUpdateWithSchema()`
+- Handles storage quota errors gracefully (shows schema even if save fails)
+- Delegates network loading to `useContractSchemaLoader` (with circuit breaker protection)
+- Supports multiple contracts and different networks with correct isolation
 
 ---
 
