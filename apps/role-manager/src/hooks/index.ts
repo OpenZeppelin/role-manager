@@ -27,13 +27,21 @@ export type {
 } from './useContractData';
 
 // Mutation hooks
-export { useGrantRole, useRevokeRole, useTransferOwnership } from './useAccessControlMutations';
+export {
+  useGrantRole,
+  useRevokeRole,
+  useTransferOwnership,
+  useExportSnapshot,
+} from './useAccessControlMutations';
 export type {
   GrantRoleArgs,
   RevokeRoleArgs,
   TransferOwnershipArgs,
   MutationHookOptions,
   UseAccessControlMutationReturn,
+  AccessSnapshot,
+  UseExportSnapshotReturn,
+  ExportSnapshotOptions,
 } from './useAccessControlMutations';
 
 // Utility hooks

@@ -56,7 +56,7 @@ Goal: Implement mutation hooks for modifying access control state.
 
 Goal: Implement utility hook for exporting state.
 
-- [ ] T019 [US5] Implement `useExportSnapshot` hook in `apps/role-manager/src/hooks/useAccessControlMutations.ts` (or dedicated file)
+- [x] T019 [US5] Implement `useExportSnapshot` hook in `apps/role-manager/src/hooks/useAccessControlMutations.ts` (or dedicated file)
 
 ## Phase 8: Polish & Cross-Cutting
 

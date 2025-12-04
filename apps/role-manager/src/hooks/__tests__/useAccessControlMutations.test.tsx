@@ -20,7 +20,13 @@ import type {
   TxStatus,
 } from '@openzeppelin/ui-builder-types';
 
-import { useGrantRole, useRevokeRole, useTransferOwnership } from '../useAccessControlMutations';
+import {
+  useExportSnapshot,
+  useGrantRole,
+  useRevokeRole,
+  useTransferOwnership,
+  type AccessSnapshot,
+} from '../useAccessControlMutations';
 
 // Test fixtures
 const mockNetworkConfig: NetworkConfig = {
@@ -883,5 +889,357 @@ describe('mutation hook integration', () => {
 
     expect(mockService.grantRole).toHaveBeenCalledTimes(1);
     expect(mockService.revokeRole).toHaveBeenCalledTimes(1);
+  });
+});
+
+// ============================================================================
+// useExportSnapshot Tests
+// ============================================================================
+
+describe('useExportSnapshot', () => {
+  let mockService: AccessControlService;
+  let mockAdapter: ContractAdapter;
+
+  const mockCapabilities = {
+    hasOwnable: true,
+    hasAccessControl: true,
+    hasEnumerableRoles: true,
+    supportsHistory: false,
+    verifiedAgainstOZInterfaces: true,
+    notes: [],
+  };
+
+  const mockOwnership = { owner: '0x1111111111111111111111111111111111111111' };
+
+  const mockRoles = [
+    {
+      role: { id: 'DEFAULT_ADMIN_ROLE', label: 'DEFAULT_ADMIN_ROLE' },
+      members: ['0x1111111111111111111111111111111111111111'],
+    },
+    {
+      role: { id: 'MINTER_ROLE', label: 'MINTER_ROLE' },
+      members: ['0x2222222222222222222222222222222222222222'],
+    },
+  ];
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockService = createMockAccessControlService({
+      getCapabilities: vi.fn().mockResolvedValue(mockCapabilities),
+      getOwnership: vi.fn().mockResolvedValue(mockOwnership),
+      getCurrentRoles: vi.fn().mockResolvedValue(mockRoles),
+    });
+    mockAdapter = createMockAdapter(mockService);
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('initialization', () => {
+    it('should return initial state correctly', () => {
+      const { result } = renderHook(
+        () =>
+          useExportSnapshot(mockAdapter, 'CONTRACT_ADDRESS', {
+            networkId: 'stellar-testnet',
+          }),
+        { wrapper: createWrapper() }
+      );
+
+      expect(result.current.isExporting).toBe(false);
+      expect(result.current.error).toBeNull();
+      expect(result.current.isReady).toBe(true);
+    });
+
+    it('should not be ready when adapter is null', () => {
+      const { result } = renderHook(
+        () =>
+          useExportSnapshot(null, 'CONTRACT_ADDRESS', {
+            networkId: 'stellar-testnet',
+          }),
+        { wrapper: createWrapper() }
+      );
+
+      expect(result.current.isReady).toBe(false);
+    });
+
+    it('should not be ready when adapter lacks access control service', () => {
+      const adapterWithoutService = createMockAdapter(null);
+
+      const { result } = renderHook(
+        () =>
+          useExportSnapshot(adapterWithoutService, 'CONTRACT_ADDRESS', {
+            networkId: 'stellar-testnet',
+          }),
+        { wrapper: createWrapper() }
+      );
+
+      expect(result.current.isReady).toBe(false);
+    });
+  });
+
+  describe('successful export', () => {
+    it('should export snapshot with all data', async () => {
+      const onSuccess = vi.fn();
+
+      const { result } = renderHook(
+        () =>
+          useExportSnapshot(mockAdapter, 'CONTRACT_ADDRESS', {
+            networkId: 'stellar-testnet',
+            onSuccess,
+          }),
+        { wrapper: createWrapper() }
+      );
+
+      await act(async () => {
+        await result.current.exportSnapshot();
+      });
+
+      // Verify service methods were called
+      expect(mockService.getCapabilities).toHaveBeenCalledWith('CONTRACT_ADDRESS');
+      expect(mockService.getOwnership).toHaveBeenCalledWith('CONTRACT_ADDRESS');
+      expect(mockService.getCurrentRoles).toHaveBeenCalledWith('CONTRACT_ADDRESS');
+
+      // Verify onSuccess was called with correct snapshot structure
+      expect(onSuccess).toHaveBeenCalledTimes(1);
+      const snapshot: AccessSnapshot = onSuccess.mock.calls[0][0];
+
+      expect(snapshot.contractAddress).toBe('CONTRACT_ADDRESS');
+      expect(snapshot.networkId).toBe('stellar-testnet');
+      expect(snapshot.capabilities).toEqual(mockCapabilities);
+      expect(snapshot.ownership).toEqual(mockOwnership);
+      expect(snapshot.roles).toEqual(mockRoles);
+      expect(snapshot.metadata.version).toBe('1.0.0');
+      expect(snapshot.metadata.generatedBy).toBe('OpenZeppelin Role Manager');
+      expect(snapshot.timestamp).toBeDefined();
+    });
+
+    it('should fetch all data in parallel', async () => {
+      const onSuccess = vi.fn();
+
+      const { result } = renderHook(
+        () =>
+          useExportSnapshot(mockAdapter, 'CONTRACT_ADDRESS', {
+            networkId: 'stellar-testnet',
+            onSuccess,
+          }),
+        { wrapper: createWrapper() }
+      );
+
+      await act(async () => {
+        await result.current.exportSnapshot();
+      });
+
+      // All three service methods should be called
+      expect(mockService.getCapabilities).toHaveBeenCalledTimes(1);
+      expect(mockService.getOwnership).toHaveBeenCalledTimes(1);
+      expect(mockService.getCurrentRoles).toHaveBeenCalledTimes(1);
+    });
+
+    it('should set isExporting to true during export', async () => {
+      let resolveCapabilities: (value: unknown) => void;
+      const capabilitiesPromise = new Promise((resolve) => {
+        resolveCapabilities = resolve;
+      });
+
+      const slowService = createMockAccessControlService({
+        getCapabilities: vi.fn().mockReturnValue(capabilitiesPromise),
+      });
+      const slowAdapter = createMockAdapter(slowService);
+
+      const { result } = renderHook(
+        () =>
+          useExportSnapshot(slowAdapter, 'CONTRACT_ADDRESS', {
+            networkId: 'stellar-testnet',
+          }),
+        { wrapper: createWrapper() }
+      );
+
+      // Start export but don't await
+      let exportPromise: Promise<void>;
+      act(() => {
+        exportPromise = result.current.exportSnapshot();
+      });
+
+      // Should be exporting
+      expect(result.current.isExporting).toBe(true);
+
+      // Resolve the promise
+      await act(async () => {
+        resolveCapabilities!(mockCapabilities);
+        await exportPromise;
+      });
+
+      // Should no longer be exporting
+      expect(result.current.isExporting).toBe(false);
+    });
+  });
+
+  describe('error handling', () => {
+    it('should set error when service is not available', async () => {
+      const adapterWithoutService = createMockAdapter(null);
+      const onError = vi.fn();
+
+      const { result } = renderHook(
+        () =>
+          useExportSnapshot(adapterWithoutService, 'CONTRACT_ADDRESS', {
+            networkId: 'stellar-testnet',
+            onError,
+          }),
+        { wrapper: createWrapper() }
+      );
+
+      await act(async () => {
+        await result.current.exportSnapshot();
+      });
+
+      expect(result.current.error).toBeInstanceOf(Error);
+      expect(result.current.error?.message).toBe('Access control service not available');
+      expect(onError).toHaveBeenCalledWith(expect.any(Error));
+    });
+
+    it('should set error when contract address is empty', async () => {
+      const onError = vi.fn();
+
+      const { result } = renderHook(
+        () =>
+          useExportSnapshot(mockAdapter, '', {
+            networkId: 'stellar-testnet',
+            onError,
+          }),
+        { wrapper: createWrapper() }
+      );
+
+      await act(async () => {
+        await result.current.exportSnapshot();
+      });
+
+      expect(result.current.error).toBeInstanceOf(Error);
+      expect(result.current.error?.message).toBe('Contract address is required');
+      expect(onError).toHaveBeenCalledWith(expect.any(Error));
+    });
+
+    it('should handle service method failures', async () => {
+      const errorService = createMockAccessControlService({
+        getCapabilities: vi.fn().mockRejectedValue(new Error('Failed to fetch capabilities')),
+      });
+      const errorAdapter = createMockAdapter(errorService);
+      const onError = vi.fn();
+
+      const { result } = renderHook(
+        () =>
+          useExportSnapshot(errorAdapter, 'CONTRACT_ADDRESS', {
+            networkId: 'stellar-testnet',
+            onError,
+          }),
+        { wrapper: createWrapper() }
+      );
+
+      await act(async () => {
+        await result.current.exportSnapshot();
+      });
+
+      expect(result.current.error).toBeInstanceOf(Error);
+      expect(result.current.error?.message).toBe('Failed to fetch capabilities');
+      expect(onError).toHaveBeenCalledWith(expect.any(Error));
+      expect(result.current.isExporting).toBe(false);
+    });
+
+    it('should handle non-Error exceptions', async () => {
+      const errorService = createMockAccessControlService({
+        getCapabilities: vi.fn().mockRejectedValue('String error'),
+      });
+      const errorAdapter = createMockAdapter(errorService);
+
+      const { result } = renderHook(
+        () =>
+          useExportSnapshot(errorAdapter, 'CONTRACT_ADDRESS', {
+            networkId: 'stellar-testnet',
+          }),
+        { wrapper: createWrapper() }
+      );
+
+      await act(async () => {
+        await result.current.exportSnapshot();
+      });
+
+      expect(result.current.error).toBeInstanceOf(Error);
+      expect(result.current.error?.message).toBe('String error');
+    });
+  });
+
+  describe('reset functionality', () => {
+    it('should reset error state', async () => {
+      const adapterWithoutService = createMockAdapter(null);
+
+      const { result } = renderHook(
+        () =>
+          useExportSnapshot(adapterWithoutService, 'CONTRACT_ADDRESS', {
+            networkId: 'stellar-testnet',
+          }),
+        { wrapper: createWrapper() }
+      );
+
+      // Trigger an error
+      await act(async () => {
+        await result.current.exportSnapshot();
+      });
+
+      expect(result.current.error).not.toBeNull();
+
+      // Reset
+      act(() => {
+        result.current.reset();
+      });
+
+      expect(result.current.error).toBeNull();
+      expect(result.current.isExporting).toBe(false);
+    });
+  });
+
+  describe('snapshot data structure', () => {
+    it('should include valid ISO timestamp', async () => {
+      const onSuccess = vi.fn();
+
+      const { result } = renderHook(
+        () =>
+          useExportSnapshot(mockAdapter, 'CONTRACT_ADDRESS', {
+            networkId: 'stellar-testnet',
+            onSuccess,
+          }),
+        { wrapper: createWrapper() }
+      );
+
+      await act(async () => {
+        await result.current.exportSnapshot();
+      });
+
+      const snapshot: AccessSnapshot = onSuccess.mock.calls[0][0];
+      const parsedDate = new Date(snapshot.timestamp);
+      expect(parsedDate.toString()).not.toBe('Invalid Date');
+    });
+
+    it('should include correct metadata', async () => {
+      const onSuccess = vi.fn();
+
+      const { result } = renderHook(
+        () =>
+          useExportSnapshot(mockAdapter, 'CONTRACT_ADDRESS', {
+            networkId: 'stellar-testnet',
+            onSuccess,
+          }),
+        { wrapper: createWrapper() }
+      );
+
+      await act(async () => {
+        await result.current.exportSnapshot();
+      });
+
+      const snapshot: AccessSnapshot = onSuccess.mock.calls[0][0];
+      expect(snapshot.metadata).toEqual({
+        version: '1.0.0',
+        generatedBy: 'OpenZeppelin Role Manager',
+      });
+    });
   });
 });
