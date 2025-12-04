@@ -18,6 +18,23 @@ export { useAccessControlService } from './useAccessControlService';
 export type { UseAccessControlServiceReturn } from './useAccessControlService';
 export { useContractCapabilities, isContractSupported } from './useContractCapabilities';
 export type { UseContractCapabilitiesReturn } from './useContractCapabilities';
+export { useContractRoles, useContractOwnership, usePaginatedRoles } from './useContractData';
+export type {
+  UseContractRolesReturn,
+  UseContractOwnershipReturn,
+  UsePaginatedRolesReturn,
+  PaginationOptions,
+} from './useContractData';
+
+// Mutation hooks
+export { useGrantRole, useRevokeRole, useTransferOwnership } from './useAccessControlMutations';
+export type {
+  GrantRoleArgs,
+  RevokeRoleArgs,
+  TransferOwnershipArgs,
+  MutationHookOptions,
+  UseAccessControlMutationReturn,
+} from './useAccessControlMutations';
 
 // Utility hooks
 export { useDebounce } from './useDebounce';

@@ -30,27 +30,27 @@ Goal: Implement feature detection logic and validation-gated persistence.
 
 Goal: Implement hooks for fetching and displaying role assignments.
 
-- [ ] T008 [US2] Create test file `apps/role-manager/src/hooks/__tests__/useContractData.test.tsx` for roles and ownership
-- [ ] T009 [US2] Implement `useContractRoles` hook in `apps/role-manager/src/hooks/useContractData.ts`
-- [ ] T010 [US2] Implement pagination handling logic for large role lists in `useContractData.ts` [Gap: CHK021]
+- [x] T008 [US2] Create test file `apps/role-manager/src/hooks/__tests__/useContractData.test.tsx` for roles and ownership
+- [x] T009 [US2] Implement `useContractRoles` hook in `apps/role-manager/src/hooks/useContractData.ts`
+- [x] T010 [US2] Implement pagination handling logic for large role lists in `useContractData.ts` [Gap: CHK021]
 
 ## Phase 5: View and Manage Ownership (US3)
 
 Goal: Implement hooks for ownership management.
 
-- [ ] T011 [US3] Implement `useContractOwnership` hook in `apps/role-manager/src/hooks/useContractData.ts`
+- [x] T011 [US3] Implement `useContractOwnership` hook in `apps/role-manager/src/hooks/useContractData.ts`
 
 ## Phase 6: Grant and Revoke Roles (US4)
 
 Goal: Implement mutation hooks for modifying access control state.
 
-- [ ] T012 [US4] Create test file `apps/role-manager/src/hooks/__tests__/useAccessControlMutations.test.tsx`
-- [ ] T013 [US4] Implement `useGrantRole` mutation hook in `apps/role-manager/src/hooks/useAccessControlMutations.ts` (ensure wallet connection check)
-- [ ] T014 [US4] Implement `useRevokeRole` mutation hook in `apps/role-manager/src/hooks/useAccessControlMutations.ts` (ensure wallet connection check)
-- [ ] T015 [US4] Implement `useTransferOwnership` mutation hook in `apps/role-manager/src/hooks/useAccessControlMutations.ts` (ensure wallet connection check)
-- [ ] T016 [US4] Implement network disconnection handling in mutation hooks [Gap: CHK018]
-- [ ] T017 [US4] Implement user rejection handling in mutation hooks [Gap: CHK019]
-- [ ] T018 [US4] Implement concurrent modification safeguards (optimistic UI updates/invalidation) [Gap: CHK022]
+- [x] T012 [US4] Create test file `apps/role-manager/src/hooks/__tests__/useAccessControlMutations.test.tsx`
+- [x] T013 [US4] Implement `useGrantRole` mutation hook in `apps/role-manager/src/hooks/useAccessControlMutations.ts` (ensure wallet connection check)
+- [x] T014 [US4] Implement `useRevokeRole` mutation hook in `apps/role-manager/src/hooks/useAccessControlMutations.ts` (ensure wallet connection check)
+- [x] T015 [US4] Implement `useTransferOwnership` mutation hook in `apps/role-manager/src/hooks/useAccessControlMutations.ts` (ensure wallet connection check)
+- [x] T016 [US4] Implement network disconnection handling in mutation hooks [Gap: CHK018]
+- [x] T017 [US4] Implement user rejection handling in mutation hooks [Gap: CHK019]
+- [x] T018 [US4] Implement concurrent modification safeguards (optimistic UI updates/invalidation) [Gap: CHK022]
 
 ## Phase 7: Export Access Snapshot (US5)
 
