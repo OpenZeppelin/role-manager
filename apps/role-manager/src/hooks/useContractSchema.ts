@@ -83,13 +83,12 @@ export function useContractSchema(adapter: ContractAdapter | null): UseContractS
             setRecord(storedRecord);
             setState('success');
             return;
-          } catch (parseError) {
+          } catch {
             // Schema JSON is corrupted, fall through to network load
-            logger.warn('Failed to parse stored schema, falling back to network load', {
-              address,
-              networkId,
-              error: parseError,
-            });
+            logger.warn(
+              'useContractSchema',
+              `Failed to parse stored schema for ${address} on ${networkId}, falling back to network load`
+            );
           }
         }
 
@@ -139,14 +138,16 @@ export function useContractSchema(adapter: ContractAdapter | null): UseContractS
           );
           setRecord(savedRecord);
 
-          logger.debug('Schema saved to storage', { recordId, address, networkId });
-        } catch (storageError) {
+          logger.debug(
+            'useContractSchema',
+            `Schema saved to storage: ${recordId} for ${address} on ${networkId}`
+          );
+        } catch {
           // Storage failed (e.g., quota exceeded) - still show the schema
-          logger.warn('Failed to save schema to storage', {
-            address,
-            networkId,
-            error: storageError,
-          });
+          logger.warn(
+            'useContractSchema',
+            `Failed to save schema to storage for ${address} on ${networkId}`
+          );
           // Create a partial record for state even though storage failed
           setRecord({
             id: '',
@@ -166,7 +167,10 @@ export function useContractSchema(adapter: ContractAdapter | null): UseContractS
         const errorMessage = err instanceof Error ? err.message : 'Unknown error';
         setError(errorMessage);
         setState('error');
-        logger.error('Failed to load contract schema', { address, networkId, error: err });
+        logger.error(
+          'useContractSchema',
+          `Failed to load contract schema for ${address} on ${networkId}`
+        );
       }
     },
     [adapter, schemaLoader]

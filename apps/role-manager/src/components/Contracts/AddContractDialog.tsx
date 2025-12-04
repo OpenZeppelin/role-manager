@@ -20,8 +20,7 @@ import {
 } from '@openzeppelin/ui-builder-ui';
 
 import { recentContractsStorage } from '@/core/storage/RecentContractsStorage';
-import { useContractSchemaLoader } from '@/hooks/useContractSchemaLoader';
-import { useNetworkAdapter } from '@/hooks/useNetworkAdapter';
+import { useContractSchemaLoader, useNetworkAdapter } from '@/hooks';
 import type { AddContractDialogProps, AddContractFormData } from '@/types/contracts';
 import type { SchemaLoadResult } from '@/types/schema';
 

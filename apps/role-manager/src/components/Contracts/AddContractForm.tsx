@@ -33,8 +33,7 @@ import {
   getEcosystemDefaultFeatureConfig,
   getEcosystemName,
 } from '@/core/ecosystems/registry';
-import { useNetworkAdapter } from '@/hooks/useNetworkAdapter';
-import { useNetworksByEcosystem } from '@/hooks/useNetworksByEcosystem';
+import { useNetworkAdapter, useNetworksByEcosystem } from '@/hooks';
 import type { AddContractFormProps } from '@/types/contracts';
 
 import { CompactEcosystemSelector } from './CompactEcosystemSelector';

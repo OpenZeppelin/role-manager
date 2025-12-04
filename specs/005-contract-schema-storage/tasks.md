@@ -153,11 +153,15 @@
 
 ---
 
-## Phase 6: User Story 4 - Refresh Contract Schema (Priority: P3)
+## Phase 6: User Story 4 - Refresh Contract Schema (Priority: P3) ⏸️ POSTPONED
 
 **Goal**: Users can refresh fetched schemas to detect changes, with function-level diff reporting
 
 **Independent Test**: Load a contract, trigger refresh, verify system reports "no changes" or shows diff
+
+> **⏸️ POSTPONED**: Schema refresh functionality is not a priority for the current Stellar integration focus. The core MVP (US1 - load schema via RPC) and offline persistence (US3) are complete. Schema refresh can be revisited after Stellar-specific features are fully implemented and validated.
+>
+> **Skip this phase for now** - resume when schema refresh becomes a user priority.
 
 ### Tests for User Story 4 (TDD - Write FIRST, verify FAIL)
 
@@ -183,16 +187,18 @@
 
 ---
 
-## Phase 7: Polish & Cross-Cutting Concerns
+## Phase 7: Polish & Cross-Cutting Concerns ✅ COMPLETE
 
 **Purpose**: Final validation and cleanup
 
-- [ ] T060 [P] Update exports in `apps/role-manager/src/hooks/index.ts` (if exists) or create barrel file
-- [ ] T061 [P] Run full test suite to verify no regressions
-- [ ] T062 Validate quickstart.md scenarios work end-to-end
-- [ ] T063 Run linting and fix any issues
-- [ ] T064 Review code for Constitution compliance (adapter-led, no chain-specific UI logic)
-- [ ] T065 Update any relevant documentation
+- [x] T060 [P] Update exports in `apps/role-manager/src/hooks/index.ts` (if exists) or create barrel file
+- [x] T061 [P] Run full test suite to verify no regressions (189/189 tests pass)
+- [x] T062 Validate quickstart.md scenarios work end-to-end
+- [x] T063 Run linting and fix any issues (all pass)
+- [x] T064 Review code for Constitution compliance (adapter-led, no chain-specific UI logic)
+- [x] T065 Update any relevant documentation
+
+**Checkpoint**: Feature implementation complete for MVP + Offline Persistence (US1 + US3)
 
 ---
 
@@ -208,14 +214,14 @@ Phase 1 (Setup) → Phase 2 (Foundational) → User Stories (3-6) → Phase 7 (P
 
 ### User Story Dependencies
 
-| Story    | Depends On         | Can Start After  | Independent?         |
-| -------- | ------------------ | ---------------- | -------------------- |
-| US1 (P1) | Foundational       | Phase 2 complete | ✅ Yes               |
-| US2 (P2) | **Adapter update** | Adapter enhanced | ⏸️ BLOCKED (adapter) |
-| US3 (P2) | Foundational       | Phase 2 complete | ✅ Yes               |
-| US4 (P3) | Foundational       | Phase 2 complete | ✅ Yes               |
+| Story    | Depends On         | Can Start After  | Independent?           |
+| -------- | ------------------ | ---------------- | ---------------------- |
+| US1 (P1) | Foundational       | Phase 2 complete | ✅ Yes                 |
+| US2 (P2) | **Adapter update** | Adapter enhanced | ⏸️ BLOCKED (adapter)   |
+| US3 (P2) | Foundational       | Phase 2 complete | ✅ Yes                 |
+| US4 (P3) | Foundational       | Phase 2 complete | ⏸️ POSTPONED (Stellar) |
 
-**Note**: US2 is blocked until `@openzeppelin/ui-builder-adapter-stellar` adds manual definition input to `getContractDefinitionInputs()`. Architecture is ready - will work automatically when adapter is updated.
+**Note**: US2 is blocked until `@openzeppelin/ui-builder-adapter-stellar` adds manual definition input to `getContractDefinitionInputs()`. US4 (schema refresh) is postponed to focus on Stellar-specific priorities. Architecture for both is ready - will work when revisited.
 
 ### Within Each User Story
 
@@ -282,12 +288,12 @@ T021 → T022 → T023 → T024 → T025 → T026 → T027 → T028 → T029
 
 ### Incremental Delivery
 
-| Increment | Stories          | Value Delivered                      |
-| --------- | ---------------- | ------------------------------------ |
-| MVP       | US1              | Load contract schemas via RPC        |
-| v1.1      | US1 + US3        | + Offline persistence                |
-| v1.2      | US1 + US3 + US4  | + Schema refresh with diff           |
-| v1.3      | All (when ready) | + Manual definition (awaits adapter) |
+| Increment | Stories          | Value Delivered                      | Status       |
+| --------- | ---------------- | ------------------------------------ | ------------ |
+| MVP       | US1              | Load contract schemas via RPC        | ✅ Complete  |
+| v1.1      | US1 + US3        | + Offline persistence                | ✅ Complete  |
+| v1.2      | US1 + US3 + US4  | + Schema refresh with diff           | ⏸️ Postponed |
+| v1.3      | All (when ready) | + Manual definition (awaits adapter) | ⏸️ Blocked   |
 
 ### Parallel Team Strategy
 
