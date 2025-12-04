@@ -11,7 +11,7 @@
 - [x] CHK002 - Is the feature detection timing explicitly specified relative to persistence? [Completeness, Spec §Clarifications]
 - [x] CHK003 - Are mutation requirements defined for all supported actions (Grant, Revoke, Transfer)? [Completeness, Spec §FR-005]
 - [x] CHK004 - Are storage requirements defined for persisting detected capabilities? [Completeness, Spec §FR-006]
-- [ ] CHK005 - Are rollback/cleanup requirements defined if validation fails after partial loading? [Gap, Edge Case]
+- [x] CHK005 - Are rollback/cleanup requirements defined if validation fails after partial loading? [Addressed, FR-009]
 
 ## Requirement Clarity
 
@@ -36,14 +36,14 @@
 
 - [x] CHK016 - Are requirements defined for contracts with Ownable but NO AccessControl? [Coverage, Spec §US-1]
 - [x] CHK017 - Are requirements defined for contracts with AccessControl but NO Ownable? [Coverage, Spec §US-1]
-- [ ] CHK018 - Are requirements defined for network disconnection during mutation? [Coverage, Core Error]
-- [ ] CHK019 - Are requirements defined for "user rejects signature" scenarios? [Coverage, Core Error]
+- [x] CHK018 - Are requirements defined for network disconnection during mutation? [Addressed, FR-010]
+- [x] CHK019 - Are requirements defined for "user rejects signature" scenarios? [Addressed, FR-011]
 
 ## Edge Case Coverage
 
-- [ ] CHK020 - Are requirements defined for contracts that pass validation but fail later calls? [Edge Case, Gap]
-- [ ] CHK021 - Is the behavior specified for handling very large role lists (pagination)? [Edge Case, Gap]
-- [ ] CHK022 - Are requirements defined for concurrent modifications by other admins? [Edge Case, Gap]
+- [x] CHK020 - Are requirements defined for contracts that pass validation but fail later calls? [Addressed, FR-012]
+- [x] CHK021 - Is the behavior specified for handling very large role lists (pagination)? [Addressed, FR-013]
+- [x] CHK022 - Are requirements defined for concurrent modifications by other admins? [Addressed, FR-014]
 
 ## Security & Integrity
 
