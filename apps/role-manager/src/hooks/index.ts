@@ -13,5 +13,9 @@ export { useRecentContracts } from './useRecentContracts';
 export { useContractSchema } from './useContractSchema';
 export { useContractSchemaLoader } from './useContractSchemaLoader';
 
+// Access Control hooks
+export { useAccessControlService } from './useAccessControlService';
+export type { UseAccessControlServiceReturn } from './useAccessControlService';
+
 // Utility hooks
 export { useDebounce } from './useDebounce';

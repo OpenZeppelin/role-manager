@@ -8,14 +8,14 @@
 
 Goal: Initialize project structure and update shared types for Access Control integration.
 
-- [ ] T001 [P] Create hooks directory structure for access control service `apps/role-manager/src/hooks/`
-- [ ] T002 [P] Update `apps/role-manager/src/types/storage.ts` to include `AccessControlCapabilities` in `RecentContractRecord`
+- [x] T001 [P] Create hooks directory structure for access control service `apps/role-manager/src/hooks/`
+- [x] T002 [P] Update `apps/role-manager/src/types/storage.ts` to include `AccessControlCapabilities` in `RecentContractRecord`
 
 ## Phase 2: Foundational
 
 Goal: Implement the core service wrapper hook that enables adapter access.
 
-- [ ] T003 [P] Implement `useAccessControlService` hook in `apps/role-manager/src/hooks/useAccessControlService.ts` to unwrap service from adapter
+- [x] T003 [P] Implement `useAccessControlService` hook in `apps/role-manager/src/hooks/useAccessControlService.ts` to unwrap service from adapter
 
 ## Phase 3: Load Contract & Detect Features (US1)
 
