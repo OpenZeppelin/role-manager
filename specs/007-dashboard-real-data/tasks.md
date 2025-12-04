@@ -19,9 +19,9 @@
 
 **Purpose**: Create new directories and type definitions needed by all user stories
 
-- [ ] T001 Create `context/` directory at `apps/role-manager/src/context/`
-- [ ] T002 [P] Create dashboard types in `types/dashboard.ts` with ContractType, DashboardData, UseDashboardDataReturn interfaces per data-model.md
-- [ ] T003 [P] Create context barrel export in `context/index.ts`
+- [x] T001 Create `context/` directory at `apps/role-manager/src/context/`
+- [x] T002 [P] Create dashboard types in `types/dashboard.ts` with ContractType, DashboardData, UseDashboardDataReturn interfaces per data-model.md
+- [x] T003 [P] Create context barrel export in `context/index.ts`
 
 ---
 
@@ -31,13 +31,13 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T004 [P] Write unit tests for ContractContext in `context/__tests__/ContractContext.test.tsx`
-- [ ] T005 Implement ContractContext provider in `context/ContractContext.tsx` with selectedContract, selectedNetwork, adapter, contracts state per data-model.md §ContractContextValue
-- [ ] T006 [P] Write unit tests for useSelectedContract in `hooks/__tests__/useSelectedContract.test.tsx`
-- [ ] T007 Implement useSelectedContract hook in `hooks/useSelectedContract.ts` as convenience wrapper for ContractContext
-- [ ] T008 Update Sidebar.tsx to consume ContractContext instead of local useState (migrate selectedContract, selectedNetwork state to context)
-- [ ] T009 Wrap App.tsx with ContractProvider inside BrowserRouter per research.md §1 implementation notes
-- [ ] T010 Export useSelectedContract from `hooks/index.ts`
+- [x] T004 [P] Write unit tests for ContractContext in `context/__tests__/ContractContext.test.tsx`
+- [x] T005 Implement ContractContext provider in `context/ContractContext.tsx` with selectedContract, selectedNetwork, adapter, contracts state per data-model.md §ContractContextValue
+- [x] T006 [P] Write unit tests for useSelectedContract in `hooks/__tests__/useSelectedContract.test.tsx`
+- [x] T007 Implement useSelectedContract hook in `hooks/useSelectedContract.ts` as convenience wrapper for ContractContext
+- [x] T008 Update Sidebar.tsx to consume ContractContext instead of local useState (migrate selectedContract, selectedNetwork state to context)
+- [x] T009 Wrap App.tsx with ContractProvider inside BrowserRouter per research.md §1 implementation notes
+- [x] T010 Export useSelectedContract from `hooks/index.ts`
 
 **Checkpoint**: Context infrastructure ready - contract selection now shared across all pages
 

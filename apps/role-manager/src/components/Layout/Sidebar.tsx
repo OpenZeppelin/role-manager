@@ -1,9 +1,8 @@
 import { ArrowRightLeft, Key, LayoutDashboard, Users } from 'lucide-react';
 import { toast } from 'sonner';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import type { NetworkConfig } from '@openzeppelin/ui-builder-types';
 import {
   NetworkIcon,
   NetworkSelector,
@@ -16,6 +15,7 @@ import { logger } from '@openzeppelin/ui-builder-utils';
 import { getEcosystemName } from '../../core/ecosystems/registry';
 import { useAllNetworks } from '../../hooks/useAllNetworks';
 import { useRecentContracts } from '../../hooks/useRecentContracts';
+import { useSelectedContract } from '../../hooks/useSelectedContract';
 import type { ContractRecord } from '../../types/contracts';
 import { AddContractDialog } from '../Contracts';
 import { ContractSelector } from './ContractSelector';
@@ -42,37 +42,12 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps): React
   // Networks from all enabled ecosystems (loaded lazily, cached after first load)
   const { networks, isLoading: isLoadingNetworks } = useAllNetworks();
 
-  // Selected network state - initialized to first network once loaded
-  const [selectedNetwork, setSelectedNetwork] = useState<NetworkConfig | null>(null);
+  // Contract selection from shared context (Feature: 007-dashboard-real-data)
+  const { selectedContract, setSelectedContract, selectedNetwork, setSelectedNetwork, contracts } =
+    useSelectedContract();
 
-  // Auto-select first network once networks are loaded
-  useEffect(() => {
-    if (!selectedNetwork && networks.length > 0) {
-      setSelectedNetwork(networks[0]);
-    }
-  }, [networks, selectedNetwork]);
-
-  // Contracts data - filtered by selected network
-  const { data: contracts, deleteContract } = useRecentContracts(selectedNetwork?.id);
-
-  const [selectedContract, setSelectedContract] = useState<ContractRecord | null>(null);
-
-  // Select first contract if none selected or current selection is invalid
-  useEffect(() => {
-    // Check if contracts is defined before accessing .length
-    if (contracts && contracts.length > 0) {
-      // If nothing selected, select first
-      if (!selectedContract) {
-        setSelectedContract(contracts[0]);
-      }
-      // If current selection is not in the list (e.g. changed network or deleted), select first
-      else if (!contracts.find((c) => c.id === selectedContract.id)) {
-        setSelectedContract(contracts[0]);
-      }
-    } else {
-      setSelectedContract(null);
-    }
-  }, [contracts, selectedContract]);
+  // Contracts data - for delete operation
+  const { deleteContract } = useRecentContracts(selectedNetwork?.id);
 
   // Handle contract added - auto-select the new contract (FR-008a)
   const handleContractAdded = useCallback((contractId: string) => {
@@ -106,7 +81,7 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps): React
   const sidebarSelectors = (
     <div className="mb-8 flex flex-col gap-2">
       <ContractSelector
-        contracts={contracts || []}
+        contracts={contracts}
         selectedContract={selectedContract}
         onSelectContract={setSelectedContract}
         onAddContract={() => {
