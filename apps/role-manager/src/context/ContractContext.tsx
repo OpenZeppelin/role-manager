@@ -231,14 +231,14 @@ export function ContractProvider({ children }: ContractProviderProps): React.Rea
       // Only clear registrations when ecosystem actually changes
       if (prevEcosystemRef.current !== null && prevEcosystemRef.current !== currentEcosystem) {
         // When ecosystem changes, the adapter and service are recreated
-      // Clear registrations for other ecosystems
-      setRegisteredContracts((prev) => {
-        const filtered = Array.from(prev).filter((key) => key.startsWith(`${currentEcosystem}:`));
-        if (filtered.length !== prev.size) {
-          return new Set(filtered);
-        }
-        return prev;
-      });
+        // Clear registrations for other ecosystems
+        setRegisteredContracts((prev) => {
+          const filtered = Array.from(prev).filter((key) => key.startsWith(`${currentEcosystem}:`));
+          if (filtered.length !== prev.size) {
+            return new Set(filtered);
+          }
+          return prev;
+        });
       }
 
       // Update ref to current ecosystem

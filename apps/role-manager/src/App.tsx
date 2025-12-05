@@ -21,14 +21,14 @@ import { Roles } from './pages/Roles';
  */
 function createQueryClient(): QueryClient {
   return new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1 * 60 * 1000,
-      gcTime: 10 * 60 * 1000,
-      retry: false,
+    defaultOptions: {
+      queries: {
+        staleTime: 1 * 60 * 1000,
+        gcTime: 10 * 60 * 1000,
+        retry: false,
+      },
     },
-  },
-});
+  });
 }
 
 /**
