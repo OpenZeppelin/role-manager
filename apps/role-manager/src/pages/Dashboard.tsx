@@ -18,6 +18,7 @@ import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { Button } from '@openzeppelin/ui-builder-ui';
+import { truncateMiddle } from '@openzeppelin/ui-builder-utils';
 
 import { ContractInfoCard } from '../components/Dashboard/ContractInfoCard';
 import { DashboardEmptyState } from '../components/Dashboard/DashboardEmptyState';
@@ -58,7 +59,12 @@ export function Dashboard() {
   // Compute derived values for the selected contract
   const explorerUrl =
     adapter && selectedContract ? adapter.getExplorerUrl(selectedContract.address) : null;
-  const contractName = selectedContract?.label || selectedContract?.address || 'Unknown Contract';
+  // Use label if available, otherwise truncate the address to avoid UI overflow
+  const contractName =
+    selectedContract?.label ||
+    (selectedContract?.address
+      ? truncateMiddle(selectedContract.address, 4, 4)
+      : 'Unknown Contract');
 
   // Determine if buttons should be disabled
   const actionsDisabled = !hasContract || isLoading || isRefreshing;
@@ -70,7 +76,7 @@ export function Dashboard() {
       await refetch();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to refresh data';
-      toast.error(`Refresh failed: ${message}`);
+      toast.error(message);
     }
   }, [refetch]);
 

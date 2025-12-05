@@ -84,6 +84,8 @@ export function useDashboardData(
 
   // Only pass the contract address to underlying hooks if the contract is registered
   // This prevents the hooks from fetching before registration is complete
+  // We use empty string (not null) because the hooks expect string type and check
+  // `!!contractAddress` in their `enabled` condition, so empty string disables queries
   const effectiveAddress = isContractRegistered ? contractAddress : '';
 
   // Fetch roles data
@@ -98,8 +100,7 @@ export function useDashboardData(
 
   // Fetch ownership data
   const {
-    // ownership data is available but not used directly in this hook
-    // It's accessed via hasOwner for capability detection
+    // Ownership data is used via hasOwner flag for capability detection
     isLoading: ownershipLoading,
     hasError: ownershipHasError,
     errorMessage: ownershipErrorMessage,
@@ -126,11 +127,9 @@ export function useDashboardData(
   // hasAccessControl: true if we have roles data (even if empty, if no error)
   // hasOwnable: true if ownership data shows an owner
   const hasAccessControl = useMemo(() => {
-    // If there's an error fetching roles, we can't determine
     // If roles loaded successfully (even empty), contract supports AccessControl
-    if (rolesLoading || rolesHasError) return false;
-    return roles.length > 0 || !rolesHasError;
-  }, [rolesLoading, rolesHasError, roles.length]);
+    return !rolesLoading && !rolesHasError;
+  }, [rolesLoading, rolesHasError]);
 
   const hasOwnable = useMemo(() => {
     return hasOwner;

@@ -11,7 +11,15 @@
  * 2. Use useContractContext() or useSelectedContract() to access state
  */
 
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import type {
   AccessControlService,
@@ -142,6 +150,9 @@ export function ContractProvider({ children }: ContractProviderProps): React.Rea
   // Using state (not ref) so changes trigger re-renders and hooks get updated value
   const [registeredContracts, setRegisteredContracts] = useState<Set<string>>(new Set());
 
+  // Track previous ecosystem to detect actual ecosystem changes (not just network changes)
+  const prevEcosystemRef = useRef<string | null>(null);
+
   // Compute isContractRegistered synchronously based on current selection
   // This ensures the value is correct during render, not just after effects
   const isContractRegistered = useMemo(() => {
@@ -210,19 +221,28 @@ export function ContractProvider({ children }: ContractProviderProps): React.Rea
     }
   }, [adapter, isAdapterLoading, selectedNetwork, selectedContract, registeredContracts]);
 
-  // Clear registration cache when network/adapter changes (new service instance)
+  // Clear registration cache when ecosystem changes (new service instance)
+  // Uses a ref to track the previous ecosystem and only clear when it actually changes,
+  // avoiding unnecessary re-registrations when switching between networks of the same ecosystem
   useEffect(() => {
     if (selectedNetwork) {
-      // When network changes, the adapter and service are recreated
+      const currentEcosystem = selectedNetwork.ecosystem;
+
+      // Only clear registrations when ecosystem actually changes
+      if (prevEcosystemRef.current !== null && prevEcosystemRef.current !== currentEcosystem) {
+        // When ecosystem changes, the adapter and service are recreated
       // Clear registrations for other ecosystems
       setRegisteredContracts((prev) => {
-        const currentEcosystem = selectedNetwork.ecosystem;
         const filtered = Array.from(prev).filter((key) => key.startsWith(`${currentEcosystem}:`));
         if (filtered.length !== prev.size) {
           return new Set(filtered);
         }
         return prev;
       });
+      }
+
+      // Update ref to current ecosystem
+      prevEcosystemRef.current = currentEcosystem;
     }
   }, [selectedNetwork]);
 
