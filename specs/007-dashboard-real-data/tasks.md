@@ -139,12 +139,12 @@
 
 **Purpose**: Final cleanup and validation
 
-- [ ] T034 [P] Add JSDoc comments to all new public functions and hooks
-- [ ] T035 [P] Run linter and fix any issues: `pnpm lint`
-- [ ] T036 [P] Update hooks/index.ts to export all new hooks (verify useDashboardData, useSelectedContract exported)
-- [ ] T037 Run all tests: `pnpm test`
-- [ ] T038 Manual validation: test all acceptance scenarios from spec.md
-- [ ] T039 Validate quickstart.md examples work correctly
+- [x] T034 [P] Add JSDoc comments to all new public functions and hooks
+- [x] T035 [P] Run linter and fix any issues: `pnpm lint`
+- [x] T036 [P] Update hooks/index.ts to export all new hooks (verify useDashboardData, useSelectedContract exported)
+- [x] T037 Run all tests: `pnpm test` (362 tests passed)
+- [x] T038 Manual validation: test all acceptance scenarios from spec.md
+- [x] T039 Validate quickstart.md examples work correctly
 
 ---
 
