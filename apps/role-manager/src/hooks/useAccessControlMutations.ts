@@ -18,11 +18,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
 
 import type {
-  AccessControlCapabilities,
   ContractAdapter,
   ExecutionConfig,
   OperationResult,
-  OwnershipInfo,
   RoleAssignment,
   TransactionStatusUpdate,
   TxStatus,
@@ -536,28 +534,56 @@ export function useTransferOwnership(
 // ============================================================================
 
 /**
+ * Role entry in the snapshot format.
+ * Matches access-snapshot.schema.json format.
+ */
+export interface SnapshotRole {
+  /** Role identifier (bytes32 hash or similar) */
+  roleId: string;
+  /** Human-readable role name */
+  roleName: string;
+  /** List of addresses with this role */
+  members: string[];
+}
+
+/**
  * Complete snapshot of a contract's access control state.
  * This structure is serialized to JSON for export.
+ * Matches access-snapshot.schema.json format.
  */
 export interface AccessSnapshot {
-  /** Contract address */
-  contractAddress: string;
-  /** Network identifier */
-  networkId: string;
-  /** Timestamp when snapshot was taken (ISO 8601 format) */
-  timestamp: string;
-  /** Detected capabilities of the contract */
-  capabilities: AccessControlCapabilities;
-  /** Ownership information (null if contract doesn't support Ownable) */
-  ownership: OwnershipInfo | null;
-  /** Role assignments (empty array if contract doesn't support AccessControl) */
-  roles: RoleAssignment[];
-  /** Export metadata */
-  metadata: {
-    /** Version of the snapshot format */
-    version: string;
-    /** Application that generated the snapshot */
-    generatedBy: string;
+  /** Schema version for forward compatibility */
+  version: '1.0';
+  /** ISO 8601 timestamp of when the snapshot was exported */
+  exportedAt: string;
+  /** Contract identification information */
+  contract: {
+    /** Full contract address */
+    address: string;
+    /** User-defined contract label/name */
+    label: string | null;
+    /** Network identifier (e.g., 'stellar-mainnet') */
+    networkId: string;
+    /** Human-readable network name */
+    networkName: string;
+  };
+  /** Detected access control capabilities */
+  capabilities: {
+    /** Whether contract implements AccessControl interface */
+    hasAccessControl: boolean;
+    /** Whether contract implements Ownable interface */
+    hasOwnable: boolean;
+    /** Whether contract supports enumerable roles */
+    hasEnumerableRoles?: boolean;
+  };
+  /** List of roles and their members */
+  roles: SnapshotRole[];
+  /** Contract ownership information */
+  ownership: {
+    /** Current owner address, or null if no owner */
+    owner: string | null;
+    /** Pending owner address for two-step transfers */
+    pendingOwner?: string | null;
   };
 }
 
@@ -583,6 +609,10 @@ export interface UseExportSnapshotReturn {
 export interface ExportSnapshotOptions {
   /** Network identifier for metadata */
   networkId: string;
+  /** Human-readable network name */
+  networkName: string;
+  /** User-defined contract label/name (optional) */
+  label?: string | null;
   /** Custom filename (without extension). Defaults to "access-snapshot-{address}-{timestamp}" */
   filename?: string;
   /** Callback when export succeeds */
@@ -596,14 +626,10 @@ export interface ExportSnapshotOptions {
 // ============================================================================
 
 /**
- * Snapshot format version for compatibility tracking
+ * Snapshot format version for compatibility tracking.
+ * Matches access-snapshot.schema.json version.
  */
-const SNAPSHOT_VERSION = '1.0.0';
-
-/**
- * Application identifier for snapshot metadata
- */
-const GENERATED_BY = 'OpenZeppelin Role Manager';
+const SNAPSHOT_VERSION = '1.0' as const;
 
 /**
  * Generate a filename for the snapshot export
@@ -700,17 +726,32 @@ export function useExportSnapshot(
         service.getCurrentRoles(contractAddress),
       ]);
 
-      // Construct the snapshot object
+      // Transform roles to schema format (roleId/roleName instead of role.id/role.label)
+      const snapshotRoles: SnapshotRole[] = roles.map((role: RoleAssignment) => ({
+        roleId: role.role.id,
+        roleName: role.role.label,
+        members: role.members,
+      }));
+
+      // Construct the snapshot object matching access-snapshot.schema.json
       const snapshot: AccessSnapshot = {
-        contractAddress,
-        networkId: options.networkId,
-        timestamp: new Date().toISOString(),
-        capabilities,
-        ownership,
-        roles,
-        metadata: {
-          version: SNAPSHOT_VERSION,
-          generatedBy: GENERATED_BY,
+        version: SNAPSHOT_VERSION,
+        exportedAt: new Date().toISOString(),
+        contract: {
+          address: contractAddress,
+          label: options.label ?? null,
+          networkId: options.networkId,
+          networkName: options.networkName,
+        },
+        capabilities: {
+          hasAccessControl: capabilities.hasAccessControl,
+          hasOwnable: capabilities.hasOwnable,
+          hasEnumerableRoles: capabilities.hasEnumerableRoles,
+        },
+        roles: snapshotRoles,
+        ownership: {
+          owner: ownership?.owner ?? null,
+          pendingOwner: ownership?.pendingOwner ?? null,
         },
       };
 

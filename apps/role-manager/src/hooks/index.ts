@@ -7,6 +7,12 @@ export { useAllNetworks } from './useAllNetworks';
 export { useNetworkAdapter } from './useNetworkAdapter';
 export { useNetworksByEcosystem } from './useNetworksByEcosystem';
 
+// Contract selection hooks (Feature: 007-dashboard-real-data)
+export { useSelectedContract } from './useSelectedContract';
+
+// Dashboard data aggregation hook (Feature: 007-dashboard-real-data)
+export { useDashboardData } from './useDashboardData';
+
 // Contract hooks
 export { useContractForm } from './useContractForm';
 export { useRecentContracts } from './useRecentContracts';
