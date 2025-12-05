@@ -295,6 +295,102 @@ describe('useDashboardData', () => {
       expect(mockRolesRefetch).toHaveBeenCalledTimes(1);
       expect(mockOwnershipRefetch).toHaveBeenCalledTimes(1);
     });
+
+    it('throws error when roles refetch fails', async () => {
+      const mockRolesRefetch = vi.fn().mockRejectedValue(new Error('Network error'));
+      const mockOwnershipRefetch = vi.fn().mockResolvedValue(undefined);
+
+      vi.mocked(useContractDataModule.useContractRoles).mockReturnValue({
+        roles: [],
+        isLoading: false,
+        error: null,
+        refetch: mockRolesRefetch,
+        isEmpty: true,
+        totalMemberCount: 0,
+        canRetry: false,
+        errorMessage: null,
+        hasError: false,
+      });
+
+      vi.mocked(useContractDataModule.useContractOwnership).mockReturnValue({
+        ownership: null,
+        isLoading: false,
+        error: null,
+        refetch: mockOwnershipRefetch,
+        hasOwner: false,
+        canRetry: false,
+        errorMessage: null,
+        hasError: false,
+      });
+
+      const { result } = renderHook(() => useDashboardData(mockAdapter, testAddress), { wrapper });
+
+      await expect(result.current.refetch()).rejects.toThrow('Network error');
+    });
+
+    it('throws error when ownership refetch fails', async () => {
+      const mockRolesRefetch = vi.fn().mockResolvedValue(undefined);
+      const mockOwnershipRefetch = vi.fn().mockRejectedValue(new Error('Failed to load ownership'));
+
+      vi.mocked(useContractDataModule.useContractRoles).mockReturnValue({
+        roles: [],
+        isLoading: false,
+        error: null,
+        refetch: mockRolesRefetch,
+        isEmpty: true,
+        totalMemberCount: 0,
+        canRetry: false,
+        errorMessage: null,
+        hasError: false,
+      });
+
+      vi.mocked(useContractDataModule.useContractOwnership).mockReturnValue({
+        ownership: null,
+        isLoading: false,
+        error: null,
+        refetch: mockOwnershipRefetch,
+        hasOwner: false,
+        canRetry: false,
+        errorMessage: null,
+        hasError: false,
+      });
+
+      const { result } = renderHook(() => useDashboardData(mockAdapter, testAddress), { wrapper });
+
+      await expect(result.current.refetch()).rejects.toThrow('Failed to load ownership');
+    });
+
+    it('throws with generic message when error is not an Error instance', async () => {
+      const mockRolesRefetch = vi.fn().mockRejectedValue('string error');
+      const mockOwnershipRefetch = vi.fn().mockResolvedValue(undefined);
+
+      vi.mocked(useContractDataModule.useContractRoles).mockReturnValue({
+        roles: [],
+        isLoading: false,
+        error: null,
+        refetch: mockRolesRefetch,
+        isEmpty: true,
+        totalMemberCount: 0,
+        canRetry: false,
+        errorMessage: null,
+        hasError: false,
+      });
+
+      vi.mocked(useContractDataModule.useContractOwnership).mockReturnValue({
+        ownership: null,
+        isLoading: false,
+        error: null,
+        refetch: mockOwnershipRefetch,
+        hasOwner: false,
+        canRetry: false,
+        errorMessage: null,
+        hasError: false,
+      });
+
+      const { result } = renderHook(() => useDashboardData(mockAdapter, testAddress), { wrapper });
+
+      await expect(result.current.refetch()).rejects.toThrow('Failed to refresh data');
+    });
   });
 
   describe('capability detection', () => {

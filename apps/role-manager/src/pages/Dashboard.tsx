@@ -13,6 +13,8 @@
  */
 
 import { Download, Loader2, RefreshCw, Shield, Users } from 'lucide-react';
+import { toast } from 'sonner';
+import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { Button } from '@openzeppelin/ui-builder-ui';
@@ -54,6 +56,16 @@ export function Dashboard() {
   // Determine if buttons should be disabled
   const actionsDisabled = !hasContract || isLoading || isRefreshing;
 
+  // Handle refresh with toast notification on error
+  const handleRefresh = useCallback(async () => {
+    try {
+      await refetch();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to refresh data';
+      toast.error(`Refresh failed: ${message}`);
+    }
+  }, [refetch]);
+
   // Combined loading state for stats cards (initial load OR manual refresh)
   const isDataLoading = isLoading || isRefreshing;
 
@@ -80,7 +92,7 @@ export function Dashboard() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => refetch()}
+              onClick={handleRefresh}
               disabled={actionsDisabled}
               className="bg-white"
             >

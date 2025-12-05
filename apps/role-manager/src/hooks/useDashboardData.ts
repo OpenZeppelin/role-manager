@@ -124,10 +124,23 @@ export function useDashboardData(
   const canRetry = rolesCanRetry || ownershipCanRetry;
 
   // Combined refetch function - refetches both in parallel
+  // Throws on error to allow caller to handle (e.g., show toast notification)
   const refetch = useCallback(async (): Promise<void> => {
     setIsRefreshing(true);
     try {
-      await Promise.all([rolesRefetch(), ownershipRefetch()]);
+      const results = await Promise.allSettled([rolesRefetch(), ownershipRefetch()]);
+      // Check if any refetch failed and throw an aggregated error
+      const failures = results.filter(
+        (result): result is PromiseRejectedResult => result.status === 'rejected'
+      );
+      if (failures.length > 0) {
+        // Throw the first error message to signal refresh failed
+        const errorMessage =
+          failures[0].reason instanceof Error
+            ? failures[0].reason.message
+            : 'Failed to refresh data';
+        throw new Error(errorMessage);
+      }
     } finally {
       setIsRefreshing(false);
     }

@@ -109,7 +109,7 @@
 - [x] T025 [US3] Add refetch function to useDashboardData hook: combine rolesRefetch and ownershipRefetch with Promise.all per research.md §7
 - [x] T026 [US3] Add isRefreshing state to useDashboardData to distinguish initial load from manual refresh
 - [x] T027 [US3] Update Dashboard.tsx Refresh Data button: connect onClick to refetch, show loading indicator when isRefreshing, disable during refresh per FR-012
-- [ ] T028 [US3] Add error toast notification when refresh fails per User Story 3 acceptance scenario 3
+- [x] T028 [US3] Add error toast notification when refresh fails per User Story 3 acceptance scenario 3
 
 **Checkpoint**: Refresh Data button works, shows loading state, handles errors gracefully
 
