@@ -72,5 +72,6 @@ export function useSelectedContract(): UseSelectedContractReturn {
     isAdapterLoading: context.isAdapterLoading,
     contracts: context.contracts,
     isContractsLoading: context.isContractsLoading,
+    isContractRegistered: context.isContractRegistered,
   };
 }

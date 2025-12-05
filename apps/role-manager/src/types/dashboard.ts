@@ -42,6 +42,13 @@ export interface ContractContextValue {
   contracts: ContractRecord[];
   /** Whether contracts are currently loading */
   isContractsLoading: boolean;
+
+  /**
+   * Whether the selected contract has been registered with the access control service.
+   * Data hooks should wait for this to be true before fetching data.
+   * This is required for adapters (like Stellar) that need contract context registered first.
+   */
+  isContractRegistered: boolean;
 }
 
 // =============================================================================
@@ -150,4 +157,6 @@ export interface UseSelectedContractReturn {
   contracts: ContractRecord[];
   /** Whether contracts are loading */
   isContractsLoading: boolean;
+  /** Whether the contract is registered with the access control service */
+  isContractRegistered: boolean;
 }

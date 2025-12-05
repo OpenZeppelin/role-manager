@@ -69,17 +69,32 @@
 
 ### Implementation for User Story 2
 
-- [ ] T016 [P] [US2] Write unit tests for deduplication utility in `utils/__tests__/deduplication.test.ts`
-- [ ] T017 [P] [US2] Implement getUniqueAccountsCount utility in `utils/deduplication.ts` using Set-based algorithm per research.md §3
-- [ ] T018 [P] [US2] Write unit tests for useDashboardData hook in `hooks/__tests__/useDashboardData.test.tsx`
-- [ ] T019 [US2] Implement useDashboardData hook in `hooks/useDashboardData.ts`: aggregate useContractRoles, useContractOwnership, compute rolesCount, uniqueAccountsCount, combined loading/error states per data-model.md §UseDashboardDataReturn
-- [ ] T020 [US2] Update Dashboard.tsx: import useDashboardData, pass real rolesCount to Roles stats card, pass uniqueAccountsCount to Authorized Accounts stats card
-- [ ] T021 [US2] Add loading state rendering in Dashboard.tsx: show spinner/skeleton in stats cards when isLoading is true
-- [ ] T022 [US2] Add error state rendering in Dashboard.tsx: show inline error message with "Retry" button below message per FR-007
-- [ ] T023 [US2] Handle Ownable-only contracts: show "Not Supported" badge on Roles card, disable click navigation per FR-014
-- [ ] T024 [US2] Export useDashboardData from `hooks/index.ts`
+- [x] T016 [P] [US2] Write unit tests for deduplication utility in `utils/__tests__/deduplication.test.ts`
+- [x] T017 [P] [US2] Implement getUniqueAccountsCount utility in `utils/deduplication.ts` using Set-based algorithm per research.md §3
+- [x] T018 [P] [US2] Write unit tests for useDashboardData hook in `hooks/__tests__/useDashboardData.test.tsx`
+- [x] T019 [US2] Implement useDashboardData hook in `hooks/useDashboardData.ts`: aggregate useContractRoles, useContractOwnership, compute rolesCount, uniqueAccountsCount, combined loading/error states per data-model.md §UseDashboardDataReturn
+- [x] T020 [US2] Update Dashboard.tsx: import useDashboardData, pass real rolesCount to Roles stats card, pass uniqueAccountsCount to Authorized Accounts stats card
+- [x] T021 [US2] Add loading state rendering in Dashboard.tsx: show spinner/skeleton in stats cards when isLoading is true
+- [x] T022 [US2] Add error state rendering in Dashboard.tsx: show inline error message with "Retry" button below message per FR-007
+- [x] T023 [US2] Handle Ownable-only contracts: show "Not Supported" badge on Roles card, disable click navigation per FR-014
+- [x] T024 [US2] Export useDashboardData from `hooks/index.ts`
+
+### Additional Implementation (Contract Registration & Configuration)
+
+- [x] T024a [US2] Add `isContractRegistered` state to ContractContext: track registered contracts using Set-based state (not ref) to ensure synchronous availability during render
+- [x] T024b [US2] Implement contract registration effect in ContractContext: register contracts with AccessControlService when adapter/contract changes (required for Stellar adapter)
+- [x] T024c [US2] Update `useDashboardData` to accept `isContractRegistered` param: prevent data fetching until contract is registered with service
+- [x] T024d [US2] Initialize `AppConfigService` in `main.tsx`: required for adapter configuration (indexer endpoints, RPC overrides)
+- [x] T024e [US2] Create `public/app.config.json` with indexer endpoint for `stellar-testnet`: enables dynamic role discovery via SubQuery indexer
+- [x] T024f [US2] Add `vite/client` types to `tsconfig.json`: required for `import.meta.env` TypeScript support
 
 **Checkpoint**: Dashboard shows live role count and unique accounts count with loading/error states
+
+### Technical Notes
+
+**Contract Registration Race Condition Fix**: The Stellar adapter requires contracts to be registered with the AccessControlService before `getCurrentRoles()` can enumerate roles. The `isContractRegistered` state is computed synchronously via `useMemo` to ensure accurate values during render (not after effects run).
+
+**Role Discovery via Indexer**: The Stellar adapter now supports dynamic role discovery via the SubQuery indexer (PR #260). When `knownRoleIds` are not provided during registration, `getCurrentRoles()` queries historical `ROLE_GRANTED`/`ROLE_REVOKED` events to discover available roles. This requires the indexer endpoint to be configured in `app.config.json`.
 
 ---
 
@@ -91,12 +106,14 @@
 
 ### Implementation for User Story 3
 
-- [ ] T025 [US3] Add refetch function to useDashboardData hook: combine rolesRefetch and ownershipRefetch with Promise.all per research.md §7
-- [ ] T026 [US3] Add isRefreshing state to useDashboardData to distinguish initial load from manual refresh
-- [ ] T027 [US3] Update Dashboard.tsx Refresh Data button: connect onClick to refetch, show loading indicator when isRefreshing, disable during refresh per FR-012
+- [x] T025 [US3] Add refetch function to useDashboardData hook: combine rolesRefetch and ownershipRefetch with Promise.all per research.md §7
+- [x] T026 [US3] Add isRefreshing state to useDashboardData to distinguish initial load from manual refresh
+- [x] T027 [US3] Update Dashboard.tsx Refresh Data button: connect onClick to refetch, show loading indicator when isRefreshing, disable during refresh per FR-012
 - [ ] T028 [US3] Add error toast notification when refresh fails per User Story 3 acceptance scenario 3
 
 **Checkpoint**: Refresh Data button works, shows loading state, handles errors gracefully
+
+**Note**: T025-T027 were implemented as part of Phase 4 work. Only T028 (toast notifications) remains.
 
 ---
 
@@ -251,3 +268,72 @@ T029 ─┬─ T030
 - Constitution V requires TDD for hooks/utilities (tests written first, must fail)
 - Commit after each task or logical group
 - Stop at any checkpoint to validate story independently
+
+---
+
+## Configuration Requirements
+
+### AppConfigService Initialization
+
+The application must initialize `AppConfigService` before rendering to ensure adapters can access configuration:
+
+```typescript
+// main.tsx
+import { appConfigService } from '@openzeppelin/ui-builder-utils';
+
+async function init(): Promise<void> {
+  await appConfigService.initialize([
+    { type: 'viteEnv', env: import.meta.env },
+    { type: 'json', path: '/app.config.json' },
+  ]);
+  // ... render app
+}
+```
+
+### Indexer Endpoint Configuration
+
+For Stellar role discovery to work, configure the indexer endpoint via environment variables.
+
+**Setup:**
+
+Create a `.env.local` file in `apps/role-manager/` (gitignored):
+
+```bash
+# Stellar Testnet Indexer Endpoint (required for role discovery)
+VITE_APP_CFG_INDEXER_ENDPOINT_STELLAR_TESTNET=https://gateway.subquery.network/query/Qmd8a4poui4srG6QhwgH6ugADZgHNHrEtpNhpdndsSqsUY?apikey=YOUR_API_KEY
+```
+
+**Environment Variable Pattern:**
+
+- `VITE_APP_CFG_INDEXER_ENDPOINT_{NETWORK_ID}` - Indexer endpoint for a network
+- `VITE_APP_CFG_RPC_ENDPOINT_{NETWORK_ID}` - Custom RPC endpoint for a network
+
+Network IDs use underscores (e.g., `STELLAR_TESTNET` for `stellar-testnet`).
+
+---
+
+## Architectural Decisions
+
+### Contract Registration Synchronization
+
+**Problem**: React Query's `useQuery` fires immediately on mount, but contract registration (required for Stellar adapter) happens in a `useEffect` which runs after render.
+
+**Solution**: Track registered contracts in a `Set<string>` state (not ref) and compute `isContractRegistered` synchronously via `useMemo`. This ensures the value is correct during render, preventing data hooks from fetching before registration completes.
+
+```typescript
+// ContractContext.tsx
+const [registeredContracts, setRegisteredContracts] = useState<Set<string>>(new Set());
+
+const isContractRegistered = useMemo(() => {
+  const key = `${selectedNetwork?.ecosystem}:${selectedContract?.address}`;
+  return registeredContracts.has(key);
+}, [selectedNetwork, selectedContract, registeredContracts]);
+```
+
+### Dynamic Role Discovery
+
+**Problem**: Stellar contracts don't expose a `get_all_roles()` function, so role IDs must be known upfront for enumeration.
+
+**Solution**: The Stellar adapter (PR #260) implements `discoverKnownRoleIds()` which queries historical `ROLE_GRANTED`/`ROLE_REVOKED` events from the SubQuery indexer. This is triggered lazily by `getCurrentRoles()` when `knownRoleIds` are not provided during registration.
+
+**Trade-off**: Requires indexer configuration. If indexer is unavailable, roles cannot be discovered (graceful degradation to empty array).

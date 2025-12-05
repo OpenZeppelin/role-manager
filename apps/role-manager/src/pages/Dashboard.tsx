@@ -4,23 +4,44 @@
  *
  * Displays an overview of the selected contract's access control configuration.
  * Shows contract info, role statistics, and provides refresh/export actions.
+ *
+ * Integrates with useDashboardData hook to display:
+ * - Real role count from useContractRoles
+ * - Unique authorized accounts count (deduplicated)
+ * - Loading/error states with retry functionality
+ * - Support for Ownable-only contracts
  */
-import { Download, RefreshCw, Shield, Users } from 'lucide-react';
+
+import { Download, Loader2, RefreshCw, Shield, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 import { Button } from '@openzeppelin/ui-builder-ui';
-import { logger } from '@openzeppelin/ui-builder-utils';
 
 import { ContractInfoCard } from '../components/Dashboard/ContractInfoCard';
 import { DashboardEmptyState } from '../components/Dashboard/DashboardEmptyState';
 import { DashboardStatsCard } from '../components/Dashboard/DashboardStatsCard';
 import { PendingChangesCard } from '../components/Dashboard/PendingChangesCard';
 import { PageHeader } from '../components/Shared/PageHeader';
-import { useSelectedContract } from '../hooks';
+import { useDashboardData, useSelectedContract } from '../hooks';
 
 export function Dashboard() {
   const navigate = useNavigate();
-  const { selectedContract, selectedNetwork, adapter } = useSelectedContract();
+  const { selectedContract, selectedNetwork, adapter, isContractRegistered } =
+    useSelectedContract();
+
+  // Get dashboard data including roles count and unique accounts count
+  // Pass isContractRegistered to prevent data fetching before registration is complete
+  const {
+    rolesCount,
+    uniqueAccountsCount,
+    hasAccessControl,
+    isLoading,
+    isRefreshing,
+    hasError,
+    errorMessage,
+    canRetry,
+    refetch,
+  } = useDashboardData(adapter, selectedContract?.address ?? '', isContractRegistered);
 
   // Determine if we have a contract selected
   const hasContract = selectedContract !== null;
@@ -29,6 +50,12 @@ export function Dashboard() {
   const explorerUrl =
     adapter && selectedContract ? adapter.getExplorerUrl(selectedContract.address) : null;
   const contractName = selectedContract?.label || selectedContract?.address || 'Unknown Contract';
+
+  // Determine if buttons should be disabled
+  const actionsDisabled = !hasContract || isLoading || isRefreshing;
+
+  // Combined loading state for stats cards (initial load OR manual refresh)
+  const isDataLoading = isLoading || isRefreshing;
 
   // If no contract is selected, show empty state
   if (!hasContract) {
@@ -53,16 +80,24 @@ export function Dashboard() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => logger.info('Dashboard', 'Refresh Data clicked')}
+              onClick={() => refetch()}
+              disabled={actionsDisabled}
               className="bg-white"
             >
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Refresh Data
+              {isRefreshing ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="mr-2 h-4 w-4" />
+              )}
+              {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
             </Button>
             <Button
               variant="outline"
               size="sm"
-              onClick={() => logger.info('Dashboard', 'Download Snapshot clicked')}
+              onClick={() => {
+                // Export functionality will be implemented in Phase 6
+              }}
+              disabled={actionsDisabled}
               className="bg-white"
             >
               <Download className="mr-2 h-4 w-4" />
@@ -90,18 +125,28 @@ export function Dashboard() {
         <div className="space-y-6">
           <DashboardStatsCard
             title="Roles"
-            count={5}
+            count={rolesCount}
             label="Configured in system"
             icon={<Shield className="h-5 w-5" />}
             onClick={() => navigate('/roles')}
+            isLoading={isDataLoading}
+            hasError={hasError && !hasAccessControl}
+            errorMessage={errorMessage}
+            onRetry={canRetry ? refetch : undefined}
+            isNotSupported={!hasAccessControl && !isDataLoading && !hasError}
+            disabled={!hasAccessControl}
           />
 
           <DashboardStatsCard
             title="Authorized Accounts"
-            count={12}
+            count={uniqueAccountsCount}
             label="With active permissions"
             icon={<Users className="h-5 w-5" />}
             onClick={() => navigate('/authorized-accounts')}
+            isLoading={isDataLoading}
+            hasError={hasError}
+            errorMessage={errorMessage}
+            onRetry={canRetry ? refetch : undefined}
           />
         </div>
       </div>
