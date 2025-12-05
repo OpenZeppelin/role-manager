@@ -42,14 +42,14 @@ export function ContractSelector({
   };
 
   const TriggerContent = selectedContract ? (
-    <div className="flex items-center gap-3 text-left">
+    <div className="flex min-w-0 flex-1 items-center gap-3 text-left">
       <div
-        className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-medium text-white"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-medium text-white"
         style={{ backgroundColor: getAvatarColor(selectedContract.address) }}
       >
         {(selectedContract.label || 'Unknown').substring(0, 2).toUpperCase()}
       </div>
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <span className="truncate text-sm font-medium text-foreground">
           {selectedContract.label || 'Unknown Contract'}
         </span>
