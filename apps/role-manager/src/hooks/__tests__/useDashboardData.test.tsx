@@ -32,6 +32,14 @@ describe('useDashboardData', () => {
   let mockAdapter: ContractAdapter;
   const testAddress = '0x1234567890123456789012345678901234567890';
 
+  // Default options for tests
+  const defaultOptions = {
+    networkId: 'stellar-testnet',
+    networkName: 'Stellar Testnet',
+    label: 'Test Contract',
+    isContractRegistered: true,
+  };
+
   const wrapper = ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
@@ -77,7 +85,10 @@ describe('useDashboardData', () => {
         hasError: false,
       });
 
-      const { result } = renderHook(() => useDashboardData(mockAdapter, testAddress), { wrapper });
+      const { result } = renderHook(
+        () => useDashboardData(mockAdapter, testAddress, defaultOptions),
+        { wrapper }
+      );
 
       expect(result.current.isLoading).toBe(true);
       expect(result.current.rolesCount).toBeNull();
@@ -121,26 +132,38 @@ describe('useDashboardData', () => {
     });
 
     it('returns correct roles count', () => {
-      const { result } = renderHook(() => useDashboardData(mockAdapter, testAddress), { wrapper });
+      const { result } = renderHook(
+        () => useDashboardData(mockAdapter, testAddress, defaultOptions),
+        { wrapper }
+      );
 
       expect(result.current.rolesCount).toBe(2);
     });
 
     it('returns correct unique accounts count (deduplicated)', () => {
-      const { result } = renderHook(() => useDashboardData(mockAdapter, testAddress), { wrapper });
+      const { result } = renderHook(
+        () => useDashboardData(mockAdapter, testAddress, defaultOptions),
+        { wrapper }
+      );
 
       // 0xabc, 0xdef, 0x123 = 3 unique accounts
       expect(result.current.uniqueAccountsCount).toBe(3);
     });
 
     it('returns isLoading as false when data is loaded', () => {
-      const { result } = renderHook(() => useDashboardData(mockAdapter, testAddress), { wrapper });
+      const { result } = renderHook(
+        () => useDashboardData(mockAdapter, testAddress, defaultOptions),
+        { wrapper }
+      );
 
       expect(result.current.isLoading).toBe(false);
     });
 
     it('returns hasError as false when no errors', () => {
-      const { result } = renderHook(() => useDashboardData(mockAdapter, testAddress), { wrapper });
+      const { result } = renderHook(
+        () => useDashboardData(mockAdapter, testAddress, defaultOptions),
+        { wrapper }
+      );
 
       expect(result.current.hasError).toBe(false);
       expect(result.current.errorMessage).toBeNull();
@@ -176,7 +199,10 @@ describe('useDashboardData', () => {
         hasError: false,
       });
 
-      const { result } = renderHook(() => useDashboardData(mockAdapter, testAddress), { wrapper });
+      const { result } = renderHook(
+        () => useDashboardData(mockAdapter, testAddress, defaultOptions),
+        { wrapper }
+      );
 
       expect(result.current.hasError).toBe(true);
       expect(result.current.errorMessage).toBe('Failed to load roles');
@@ -211,7 +237,10 @@ describe('useDashboardData', () => {
         hasError: true,
       });
 
-      const { result } = renderHook(() => useDashboardData(mockAdapter, testAddress), { wrapper });
+      const { result } = renderHook(
+        () => useDashboardData(mockAdapter, testAddress, defaultOptions),
+        { wrapper }
+      );
 
       expect(result.current.hasError).toBe(true);
       expect(result.current.errorMessage).toBe('Failed to load ownership');
@@ -252,7 +281,10 @@ describe('useDashboardData', () => {
         hasError: true,
       });
 
-      const { result } = renderHook(() => useDashboardData(mockAdapter, testAddress), { wrapper });
+      const { result } = renderHook(
+        () => useDashboardData(mockAdapter, testAddress, defaultOptions),
+        { wrapper }
+      );
 
       expect(result.current.hasError).toBe(true);
       // Should show first error or combined message
@@ -288,7 +320,10 @@ describe('useDashboardData', () => {
         hasError: false,
       });
 
-      const { result } = renderHook(() => useDashboardData(mockAdapter, testAddress), { wrapper });
+      const { result } = renderHook(
+        () => useDashboardData(mockAdapter, testAddress, defaultOptions),
+        { wrapper }
+      );
 
       await result.current.refetch();
 
@@ -323,7 +358,10 @@ describe('useDashboardData', () => {
         hasError: false,
       });
 
-      const { result } = renderHook(() => useDashboardData(mockAdapter, testAddress), { wrapper });
+      const { result } = renderHook(
+        () => useDashboardData(mockAdapter, testAddress, defaultOptions),
+        { wrapper }
+      );
 
       await expect(result.current.refetch()).rejects.toThrow('Network error');
     });
@@ -355,7 +393,10 @@ describe('useDashboardData', () => {
         hasError: false,
       });
 
-      const { result } = renderHook(() => useDashboardData(mockAdapter, testAddress), { wrapper });
+      const { result } = renderHook(
+        () => useDashboardData(mockAdapter, testAddress, defaultOptions),
+        { wrapper }
+      );
 
       await expect(result.current.refetch()).rejects.toThrow('Failed to load ownership');
     });
@@ -387,7 +428,10 @@ describe('useDashboardData', () => {
         hasError: false,
       });
 
-      const { result } = renderHook(() => useDashboardData(mockAdapter, testAddress), { wrapper });
+      const { result } = renderHook(
+        () => useDashboardData(mockAdapter, testAddress, defaultOptions),
+        { wrapper }
+      );
 
       await expect(result.current.refetch()).rejects.toThrow('Failed to refresh data');
     });
@@ -418,7 +462,10 @@ describe('useDashboardData', () => {
         hasError: false,
       });
 
-      const { result } = renderHook(() => useDashboardData(mockAdapter, testAddress), { wrapper });
+      const { result } = renderHook(
+        () => useDashboardData(mockAdapter, testAddress, defaultOptions),
+        { wrapper }
+      );
 
       expect(result.current.hasAccessControl).toBe(true);
     });
@@ -447,7 +494,10 @@ describe('useDashboardData', () => {
         hasError: false,
       });
 
-      const { result } = renderHook(() => useDashboardData(mockAdapter, testAddress), { wrapper });
+      const { result } = renderHook(
+        () => useDashboardData(mockAdapter, testAddress, defaultOptions),
+        { wrapper }
+      );
 
       expect(result.current.hasOwnable).toBe(true);
     });
@@ -478,7 +528,9 @@ describe('useDashboardData', () => {
         hasError: false,
       });
 
-      const { result } = renderHook(() => useDashboardData(null, testAddress), { wrapper });
+      const { result } = renderHook(() => useDashboardData(null, testAddress, defaultOptions), {
+        wrapper,
+      });
 
       expect(result.current.rolesCount).toBeNull();
       expect(result.current.uniqueAccountsCount).toBeNull();
@@ -510,7 +562,9 @@ describe('useDashboardData', () => {
         hasError: false,
       });
 
-      const { result } = renderHook(() => useDashboardData(mockAdapter, ''), { wrapper });
+      const { result } = renderHook(() => useDashboardData(mockAdapter, '', defaultOptions), {
+        wrapper,
+      });
 
       expect(result.current.rolesCount).toBeNull();
     });

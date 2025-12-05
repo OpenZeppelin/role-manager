@@ -125,11 +125,11 @@
 
 ### Implementation for User Story 4
 
-- [ ] T029 [P] [US4] Write unit tests for snapshot filename generation in `utils/__tests__/snapshot.test.ts`
-- [ ] T030 [P] [US4] Implement generateSnapshotFilename utility in `utils/snapshot.ts` with truncateAddress helper (4 chars prefix/suffix) per research.md §4
-- [ ] T031 [US4] Integrate useExportSnapshot hook in useDashboardData: expose exportSnapshot function, isExporting state, use custom filename from generateSnapshotFilename
-- [ ] T032 [US4] Update Dashboard.tsx Download Snapshot button: connect onClick to exportSnapshot, disable when no contract or isExporting per FR-012
-- [ ] T033 [US4] Verify exported JSON matches access-snapshot.schema.json: includes version "1.0", exportedAt, contract object, capabilities, roles, ownership
+- [x] T029 [P] [US4] Write unit tests for snapshot filename generation in `utils/__tests__/snapshot.test.ts`
+- [x] T030 [P] [US4] Implement generateSnapshotFilename utility in `utils/snapshot.ts` with truncateAddress helper (4 chars prefix/suffix) per research.md §4
+- [x] T031 [US4] Integrate useExportSnapshot hook in useDashboardData: expose exportSnapshot function, isExporting state, use custom filename from generateSnapshotFilename
+- [x] T032 [US4] Update Dashboard.tsx Download Snapshot button: connect onClick to exportSnapshot, disable when no contract or isExporting per FR-012
+- [x] T033 [US4] Verify exported JSON matches access-snapshot.schema.json: includes version "1.0", exportedAt, contract object, capabilities, roles, ownership
 
 **Checkpoint**: Download Snapshot generates valid JSON file with correct filename format
 

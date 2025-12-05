@@ -942,6 +942,7 @@ describe('useExportSnapshot', () => {
         () =>
           useExportSnapshot(mockAdapter, 'CONTRACT_ADDRESS', {
             networkId: 'stellar-testnet',
+            networkName: 'Stellar Testnet',
           }),
         { wrapper: createWrapper() }
       );
@@ -956,6 +957,7 @@ describe('useExportSnapshot', () => {
         () =>
           useExportSnapshot(null, 'CONTRACT_ADDRESS', {
             networkId: 'stellar-testnet',
+            networkName: 'Stellar Testnet',
           }),
         { wrapper: createWrapper() }
       );
@@ -970,6 +972,7 @@ describe('useExportSnapshot', () => {
         () =>
           useExportSnapshot(adapterWithoutService, 'CONTRACT_ADDRESS', {
             networkId: 'stellar-testnet',
+            networkName: 'Stellar Testnet',
           }),
         { wrapper: createWrapper() }
       );
@@ -986,6 +989,7 @@ describe('useExportSnapshot', () => {
         () =>
           useExportSnapshot(mockAdapter, 'CONTRACT_ADDRESS', {
             networkId: 'stellar-testnet',
+            networkName: 'Stellar Testnet',
             onSuccess,
           }),
         { wrapper: createWrapper() }
@@ -1004,14 +1008,37 @@ describe('useExportSnapshot', () => {
       expect(onSuccess).toHaveBeenCalledTimes(1);
       const snapshot: AccessSnapshot = onSuccess.mock.calls[0][0];
 
-      expect(snapshot.contractAddress).toBe('CONTRACT_ADDRESS');
-      expect(snapshot.networkId).toBe('stellar-testnet');
-      expect(snapshot.capabilities).toEqual(mockCapabilities);
-      expect(snapshot.ownership).toEqual(mockOwnership);
-      expect(snapshot.roles).toEqual(mockRoles);
-      expect(snapshot.metadata.version).toBe('1.0.0');
-      expect(snapshot.metadata.generatedBy).toBe('OpenZeppelin Role Manager');
-      expect(snapshot.timestamp).toBeDefined();
+      // Verify schema-compliant structure
+      expect(snapshot.version).toBe('1.0');
+      expect(snapshot.exportedAt).toBeDefined();
+      expect(snapshot.contract).toEqual({
+        address: 'CONTRACT_ADDRESS',
+        label: null,
+        networkId: 'stellar-testnet',
+        networkName: 'Stellar Testnet',
+      });
+      expect(snapshot.capabilities).toEqual({
+        hasAccessControl: mockCapabilities.hasAccessControl,
+        hasOwnable: mockCapabilities.hasOwnable,
+        hasEnumerableRoles: mockCapabilities.hasEnumerableRoles,
+      });
+      expect(snapshot.ownership).toEqual({
+        owner: mockOwnership.owner,
+        pendingOwner: null,
+      });
+      // Roles should be transformed to roleId/roleName format
+      expect(snapshot.roles).toEqual([
+        {
+          roleId: 'DEFAULT_ADMIN_ROLE',
+          roleName: 'DEFAULT_ADMIN_ROLE',
+          members: ['0x1111111111111111111111111111111111111111'],
+        },
+        {
+          roleId: 'MINTER_ROLE',
+          roleName: 'MINTER_ROLE',
+          members: ['0x2222222222222222222222222222222222222222'],
+        },
+      ]);
     });
 
     it('should fetch all data in parallel', async () => {
@@ -1021,6 +1048,7 @@ describe('useExportSnapshot', () => {
         () =>
           useExportSnapshot(mockAdapter, 'CONTRACT_ADDRESS', {
             networkId: 'stellar-testnet',
+            networkName: 'Stellar Testnet',
             onSuccess,
           }),
         { wrapper: createWrapper() }
@@ -1051,6 +1079,7 @@ describe('useExportSnapshot', () => {
         () =>
           useExportSnapshot(slowAdapter, 'CONTRACT_ADDRESS', {
             networkId: 'stellar-testnet',
+            networkName: 'Stellar Testnet',
           }),
         { wrapper: createWrapper() }
       );
@@ -1084,6 +1113,7 @@ describe('useExportSnapshot', () => {
         () =>
           useExportSnapshot(adapterWithoutService, 'CONTRACT_ADDRESS', {
             networkId: 'stellar-testnet',
+            networkName: 'Stellar Testnet',
             onError,
           }),
         { wrapper: createWrapper() }
@@ -1105,6 +1135,7 @@ describe('useExportSnapshot', () => {
         () =>
           useExportSnapshot(mockAdapter, '', {
             networkId: 'stellar-testnet',
+            networkName: 'Stellar Testnet',
             onError,
           }),
         { wrapper: createWrapper() }
@@ -1130,6 +1161,7 @@ describe('useExportSnapshot', () => {
         () =>
           useExportSnapshot(errorAdapter, 'CONTRACT_ADDRESS', {
             networkId: 'stellar-testnet',
+            networkName: 'Stellar Testnet',
             onError,
           }),
         { wrapper: createWrapper() }
@@ -1155,6 +1187,7 @@ describe('useExportSnapshot', () => {
         () =>
           useExportSnapshot(errorAdapter, 'CONTRACT_ADDRESS', {
             networkId: 'stellar-testnet',
+            networkName: 'Stellar Testnet',
           }),
         { wrapper: createWrapper() }
       );
@@ -1176,6 +1209,7 @@ describe('useExportSnapshot', () => {
         () =>
           useExportSnapshot(adapterWithoutService, 'CONTRACT_ADDRESS', {
             networkId: 'stellar-testnet',
+            networkName: 'Stellar Testnet',
           }),
         { wrapper: createWrapper() }
       );
@@ -1205,6 +1239,7 @@ describe('useExportSnapshot', () => {
         () =>
           useExportSnapshot(mockAdapter, 'CONTRACT_ADDRESS', {
             networkId: 'stellar-testnet',
+            networkName: 'Stellar Testnet',
             onSuccess,
           }),
         { wrapper: createWrapper() }
@@ -1215,17 +1250,18 @@ describe('useExportSnapshot', () => {
       });
 
       const snapshot: AccessSnapshot = onSuccess.mock.calls[0][0];
-      const parsedDate = new Date(snapshot.timestamp);
+      const parsedDate = new Date(snapshot.exportedAt);
       expect(parsedDate.toString()).not.toBe('Invalid Date');
     });
 
-    it('should include correct metadata', async () => {
+    it('should include correct version', async () => {
       const onSuccess = vi.fn();
 
       const { result } = renderHook(
         () =>
           useExportSnapshot(mockAdapter, 'CONTRACT_ADDRESS', {
             networkId: 'stellar-testnet',
+            networkName: 'Stellar Testnet',
             onSuccess,
           }),
         { wrapper: createWrapper() }
@@ -1236,10 +1272,7 @@ describe('useExportSnapshot', () => {
       });
 
       const snapshot: AccessSnapshot = onSuccess.mock.calls[0][0];
-      expect(snapshot.metadata).toEqual({
-        version: '1.0.0',
-        generatedBy: 'OpenZeppelin Role Manager',
-      });
+      expect(snapshot.version).toBe('1.0');
     });
   });
 });

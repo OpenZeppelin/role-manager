@@ -43,7 +43,14 @@ export function Dashboard() {
     errorMessage,
     canRetry,
     refetch,
-  } = useDashboardData(adapter, selectedContract?.address ?? '', isContractRegistered);
+    exportSnapshot,
+    isExporting,
+  } = useDashboardData(adapter, selectedContract?.address ?? '', {
+    networkId: selectedNetwork?.id ?? '',
+    networkName: selectedNetwork?.name ?? '',
+    label: selectedContract?.label,
+    isContractRegistered,
+  });
 
   // Determine if we have a contract selected
   const hasContract = selectedContract !== null;
@@ -55,6 +62,7 @@ export function Dashboard() {
 
   // Determine if buttons should be disabled
   const actionsDisabled = !hasContract || isLoading || isRefreshing;
+  const exportDisabled = actionsDisabled || isExporting;
 
   // Handle refresh with toast notification on error
   const handleRefresh = useCallback(async () => {
@@ -106,14 +114,16 @@ export function Dashboard() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => {
-                // Export functionality will be implemented in Phase 6
-              }}
-              disabled={actionsDisabled}
+              onClick={exportSnapshot}
+              disabled={exportDisabled}
               className="bg-white"
             >
-              <Download className="mr-2 h-4 w-4" />
-              Download Snapshot
+              {isExporting ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Download className="mr-2 h-4 w-4" />
+              )}
+              {isExporting ? 'Exporting...' : 'Download Snapshot'}
             </Button>
           </>
         }

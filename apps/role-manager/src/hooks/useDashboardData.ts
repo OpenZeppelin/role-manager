@@ -13,7 +13,23 @@ import type { ContractAdapter } from '@openzeppelin/ui-builder-types';
 
 import type { UseDashboardDataReturn } from '../types/dashboard';
 import { getUniqueAccountsCount } from '../utils/deduplication';
+import { generateSnapshotFilename } from '../utils/snapshot';
+import { useExportSnapshot } from './useAccessControlMutations';
 import { useContractOwnership, useContractRoles } from './useContractData';
+
+/**
+ * Options for useDashboardData hook
+ */
+export interface UseDashboardDataOptions {
+  /** Network identifier for export metadata */
+  networkId: string;
+  /** Human-readable network name for export metadata */
+  networkName: string;
+  /** User-defined contract label for export metadata (optional) */
+  label?: string | null;
+  /** Whether the contract has been registered with the service (required for Stellar) */
+  isContractRegistered?: boolean;
+}
 
 /**
  * Hook that aggregates all data needed for the Dashboard page.
@@ -24,7 +40,7 @@ import { useContractOwnership, useContractRoles } from './useContractData';
  *
  * @param adapter - The contract adapter instance, or null if not loaded
  * @param contractAddress - The contract address to fetch data for
- * @param isContractRegistered - Whether the contract has been registered with the service (required for Stellar)
+ * @param options - Configuration options including network info and contract label
  * @returns Object containing all Dashboard data and actions
  *
  * @example
@@ -35,21 +51,34 @@ import { useContractOwnership, useContractRoles } from './useContractData';
  *   isLoading,
  *   hasError,
  *   refetch,
- * } = useDashboardData(adapter, contractAddress, isContractRegistered);
+ *   exportSnapshot,
+ *   isExporting,
+ * } = useDashboardData(adapter, contractAddress, {
+ *   networkId: 'stellar-testnet',
+ *   networkName: 'Stellar Testnet',
+ *   label: 'My Token Contract',
+ *   isContractRegistered: true,
+ * });
  *
  * if (isLoading) return <Spinner />;
  * if (hasError) return <ErrorState onRetry={refetch} />;
  *
  * return (
- *   <StatsCard title="Roles" count={rolesCount} />
+ *   <>
+ *     <StatsCard title="Roles" count={rolesCount} />
+ *     <Button onClick={exportSnapshot} disabled={isExporting}>
+ *       {isExporting ? 'Exporting...' : 'Download Snapshot'}
+ *     </Button>
+ *   </>
  * );
  * ```
  */
 export function useDashboardData(
   adapter: ContractAdapter | null,
   contractAddress: string,
-  isContractRegistered: boolean = true
+  options: UseDashboardDataOptions
 ): UseDashboardDataReturn {
+  const { networkId, networkName, label, isContractRegistered = true } = options;
   // Track refreshing state separately from initial load
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -146,9 +175,29 @@ export function useDashboardData(
     }
   }, [rolesRefetch, ownershipRefetch]);
 
-  // Export functionality - placeholder for now, will be implemented in Phase 6
+  // Generate custom filename for snapshot export using truncated address and timestamp
+  const snapshotFilename = useMemo(() => {
+    if (!contractAddress) return undefined;
+    // Remove the .json extension since useExportSnapshot adds it
+    return generateSnapshotFilename(contractAddress).replace('.json', '');
+  }, [contractAddress]);
 
-  const exportSnapshot = useCallback((): void => {}, []);
+  // Export functionality using useExportSnapshot hook
+  const {
+    exportSnapshot: doExportSnapshot,
+    isExporting,
+    error: exportSnapshotError,
+  } = useExportSnapshot(adapter, contractAddress, {
+    networkId,
+    networkName,
+    label,
+    filename: snapshotFilename,
+  });
+
+  // Wrap exportSnapshot to handle void return type expected by UseDashboardDataReturn
+  const exportSnapshot = useCallback((): void => {
+    void doExportSnapshot();
+  }, [doExportSnapshot]);
 
   return {
     // Contract info (null handled at Dashboard level via useSelectedContract)
@@ -170,9 +219,9 @@ export function useDashboardData(
     // Actions
     refetch,
 
-    // Export (Phase 6)
+    // Export
     exportSnapshot,
-    isExporting: false,
-    exportError: null,
+    isExporting,
+    exportError: exportSnapshotError?.message ?? null,
   };
 }
