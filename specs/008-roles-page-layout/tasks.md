@@ -131,7 +131,7 @@
 
 > **Note**: US4 is implemented as part of T006 (AccountRow.tsx) via AddressDisplay component. This phase is an acceptance check, not new implementation.
 
-- [ ] T011 [US4] **[VERIFY]** Acceptance check for AddressDisplay integration in AccountRow.tsx:
+- [x] T011 [US4] **[VERIFY]** Acceptance check for AddressDisplay integration in AccountRow.tsx:
   - Confirm `showCopyButton={true}` prop is set in T006 implementation
   - Test: Click copy button → checkmark icon appears for 2 seconds
   - AddressDisplay handles copy + feedback automatically (built-in to UI Builder)
@@ -149,16 +149,16 @@
 
 ### Implementation for User Story 5
 
-- [ ] T012 [US5] Create `components/Roles/SecurityNotice.tsx` implementing SecurityNoticeProps interface:
+- [x] T012 [US5] Create `components/Roles/SecurityNotice.tsx` implementing SecurityNoticeProps interface:
   - Import Alert, AlertTitle, AlertDescription from `@openzeppelin/ui-builder-ui` OR custom div
   - AlertTriangle icon from lucide-react
   - Amber styling: bg-amber-50, border-amber-200, text-amber-800
   - Static text per FR-025 about transaction confirmation and Owner privileges
 
-- [ ] T013 [US5] Add SecurityNotice to `pages/Roles.tsx`:
+- [x] T013 [US5] Add SecurityNotice to `pages/Roles.tsx`:
   - Place at page bottom with 24px margin-top (mt-6)
 
-**Checkpoint**: Security notice visible - US5 independently testable
+**Checkpoint**: Security notice visible - US5 independently testable ✅
 
 ---
 
