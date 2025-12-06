@@ -166,16 +166,18 @@
 
 **Purpose**: Finalize exports and ensure all components work together
 
-- [ ] T014 Create barrel export `components/Roles/index.ts` exporting:
+- [x] T014 Create barrel export `components/Roles/index.ts` exporting:
   - RoleCard, RolesList, AccountRow, RoleDetails, RoleIdentifiersTable, SecurityNotice
   - Re-export types from `types/roles.ts` for convenience
 
-- [ ] T015 Final verification against design screenshots:
+- [x] T015 Final verification against design screenshots:
   - Compare layout with `assets/screencapture-oz-oss-apps-access-manager-vercel-app-2025-12-05-20_51_11-*.png`
   - Compare layout with `assets/screencapture-oz-oss-apps-access-manager-vercel-app-2025-12-05-20_52_54-*.png`
   - Verify spacing, typography, colors match design
 
-- [ ] T016 [P] Run linting and fix any issues: `pnpm --filter @openzeppelin/role-manager-app lint:fix`
+- [x] T016 [P] Run linting and fix any issues: `pnpm --filter @openzeppelin/role-manager-app lint:fix`
+
+**Checkpoint**: Phase 8 complete - all components exported and verified ✅
 
 ---
 

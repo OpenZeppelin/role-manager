@@ -14,11 +14,11 @@ import {
   getConnectedRoleIds,
   mockRoleIdentifiers,
   mockRoles,
-} from '../components/Roles/mockData';
-import { RoleDetails } from '../components/Roles/RoleDetails';
-import { RoleIdentifiersTable } from '../components/Roles/RoleIdentifiersTable';
-import { RolesList } from '../components/Roles/RolesList';
-import { SecurityNotice } from '../components/Roles/SecurityNotice';
+  RoleDetails,
+  RoleIdentifiersTable,
+  RolesList,
+  SecurityNotice,
+} from '../components/Roles';
 import { PageHeader } from '../components/Shared/PageHeader';
 
 export function Roles() {
