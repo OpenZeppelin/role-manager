@@ -125,7 +125,7 @@ After implementation, verify:
 - [ ] All 8 role cards render in left panel
 - [ ] Clicking a role card updates right panel
 - [ ] Owner role selected by default
-- [ ] Owner role shows crown icon and "Connected" badge
+- [ ] Owner role shows Crown icon (others show Shield), "Connected" badge when applicable
 - [ ] Owner role shows "Transfer Ownership" button
 - [ ] Non-owner roles show "+ Assign" and "Revoke" buttons
 - [ ] Address copy button works

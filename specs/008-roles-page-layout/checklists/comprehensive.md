@@ -11,7 +11,7 @@
 - [x] CHK001 - Are panel width/proportion requirements defined for the two-panel layout? [Resolved, Spec §FR-002: ~40%/~60% split, max 480px left panel, 24px gap]
 - [x] CHK002 - Is the empty state UI specified for roles with zero assigned accounts? [Resolved, Spec §Edge Cases: "No accounts assigned" message, centered, py-8]
 - [x] CHK003 - Are loading/skeleton states defined for initial page render? [Resolved, Spec §FR-029a: N/A for mock data—components render immediately]
-- [x] CHK004 - Are role icon requirements documented (which icon per role type)? [Resolved, Spec §FR-007a: lucide-react icons mapped per role]
+- [x] CHK004 - Are role icon requirements documented (which icon per role type)? [Resolved, Spec §FR-007a: Crown for Owner (Ownable), Shield for all others (generic)]
 
 ## Requirement Clarity
 

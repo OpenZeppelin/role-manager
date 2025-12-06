@@ -80,7 +80,7 @@ interface AddressDisplayProps {
 - lucide-react provides `Crown` icon (used in design)
 - Other roles can use generic icons: `Users` (Operator), `Coins` (Minter), `Eye` (Viewer), `Flame` (Burner), `Pause` (Pauser), `ArrowRightLeft` (Transfer), `Check` (Approver)
 
-**Decision**: Use lucide-react icons with a role-to-icon mapping utility.
+**Decision**: Use lucide-react icons. Only Owner role (from Ownable interface) gets a specific icon (Crown). All other roles use a generic Shield icon since roles are developer-defined and we cannot assume their meanings.
 
 **Rationale**: lucide-react is already a project dependency; consistent icon style.
 

@@ -121,13 +121,13 @@ A user scrolls to the bottom of the page to read important security information 
 - **FR-005a**: Role cards MUST be separated by 8px (0.5rem) vertical gap
 - **FR-006**: Each role card MUST display: role name (font-semibold), member count (text-sm text-muted), and description (text-sm text-muted)
 - **FR-007**: The Owner role card MUST display a crown icon (`Crown` from lucide-react) and a "Connected" badge when the user is the owner
-- **FR-007a**: Role icons MUST use lucide-react: Owner=`Crown`, Operator=`Users`, Minter=`Coins`, Viewer=`Eye`, Burner=`Flame`, Pauser=`Pause`, Transfer=`ArrowRightLeft`, Approver=`Check`
+- **FR-007a**: Role icons MUST use lucide-react: Owner=`Crown` (from Ownable interface), all other roles=`Shield` (generic icon since roles are developer-defined)
 - **FR-008**: The selected role card MUST display a highlighted border (`border-primary`, 2px, blue-600) to indicate selection
 - **FR-009**: The first role (Owner) MUST be selected by default when the page loads
 
 #### Role Details (Right Panel)
 
-- **FR-010**: Role details panel MUST display the selected role's name with appropriate icon (per FR-007a icon mapping)
+- **FR-010**: Role details panel MUST display the selected role's name with appropriate icon (Crown for Owner, Shield for others per FR-007a)
 - **FR-011**: Role details panel MUST display the role description
 - **FR-012**: Role details panel MUST display an "Assigned Accounts" section with a count header (e.g., "Assigned Accounts (3)")
 - **FR-013**: For Owner role: MUST display a "Transfer Ownership" action button for the assigned account

@@ -19,10 +19,10 @@
 
 **Purpose**: Create component directory structure and type definitions
 
-- [ ] T001 Create `components/Roles/` directory for feature components
-- [ ] T002 Create type definitions in `types/roles.ts` with Role, RoleAccount, RoleIdentifier interfaces per data-model.md
+- [x] T001 Create `components/Roles/` directory for feature components
+- [x] T002 Create type definitions in `types/roles.ts` with Role, RoleAccount, RoleIdentifier interfaces per data-model.md
 
-**Checkpoint**: Directory structure and types ready
+**Checkpoint**: Directory structure and types ready ✅
 
 ---
 
@@ -32,13 +32,13 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T003 Create mock data file `components/Roles/mockData.ts` with:
+- [x] T003 Create mock data file `components/Roles/mockData.ts` with:
   - `MOCK_CURRENT_USER` address constant
   - `mockRoles: Role[]` (8 roles per data-model.md)
   - `mockRoleAccounts: Record<string, RoleAccount[]>` (accounts grouped by role)
   - `mockRoleIdentifiers: RoleIdentifier[]` (8 identifier entries)
 
-**Checkpoint**: Foundation ready - user story implementation can begin
+**Checkpoint**: Foundation ready - user story implementation can begin ✅
 
 ---
 
@@ -50,18 +50,18 @@
 
 ### Implementation for User Story 1
 
-- [ ] T004 [P] [US1] Create `components/Roles/RoleCard.tsx` implementing RoleCardProps interface:
+- [x] T004 [P] [US1] Create `components/Roles/RoleCard.tsx` implementing RoleCardProps interface:
   - Import Card, CardHeader, CardContent from `@openzeppelin/ui-builder-ui`
-  - Display role icon (lucide-react per FR-007a), name (font-semibold), member count, description
+  - Display role icon (Crown for Owner, Shield for others per FR-007a), name (font-semibold), member count, description
   - Show "Connected" badge when `isConnected={true}`
   - Apply selection border (border-primary, 2px) when `isSelected={true}`
 
-- [ ] T005 [US1] Create `components/Roles/RolesList.tsx` implementing RolesListProps interface:
+- [x] T005 [US1] Create `components/Roles/RolesList.tsx` implementing RolesListProps interface:
   - Scrollable container (max-height calc(100vh-300px), overflow-y auto)
   - Map roles to RoleCard components with 8px gap
   - Handle selection state via `onSelectRole` callback
 
-**Checkpoint**: Role cards display in scrollable list - US1 independently testable
+**Checkpoint**: Role cards display in scrollable list - US1 independently testable ✅
 
 ---
 
@@ -75,27 +75,27 @@
 
 ### Implementation for User Story 2
 
-- [ ] T006 [P] [US2] Create `components/Roles/AccountRow.tsx` implementing AccountRowProps interface:
+- [x] T006 [P] [US2] Create `components/Roles/AccountRow.tsx` implementing AccountRowProps interface:
   - Import AddressDisplay from `@openzeppelin/ui-builder-ui` with startChars=10, endChars=7, showCopyButton=true
   - Display "You" badge for current user (bg-primary/10, text-primary, rounded-full)
   - Display assignment date for non-owner roles (format: M/D/YYYY)
   - Render action button: "Transfer Ownership" (owner) or "Revoke" (non-owner)
 
-- [ ] T007 [US2] Create `components/Roles/RoleDetails.tsx` implementing RoleDetailsProps interface:
+- [x] T007 [US2] Create `components/Roles/RoleDetails.tsx` implementing RoleDetailsProps interface:
   - Import Card, Button from `@openzeppelin/ui-builder-ui`
   - Display role name with icon, description
   - "Assigned Accounts (N)" header with "+ Assign" button (non-owner only)
   - Map accounts to AccountRow components
   - Empty state: "No accounts assigned to this role" (centered, py-8, text-muted)
 
-- [ ] T008 [US2] Update `pages/Roles.tsx` with two-panel layout:
+- [x] T008 [US2] Update `pages/Roles.tsx` with two-panel layout:
   - Import PageHeader from `components/Shared/PageHeader`
   - Add `useState<string>('OWNER_ROLE')` for selection
   - Two-panel flex layout: RolesList (~40%, max 480px) + RoleDetails (~60%)
   - 24px gap between panels (gap-6)
   - Wire up selection: `onSelectRole` → `setSelectedRoleId`
 
-**Checkpoint**: Full role browsing works - US1+US2 MVP independently testable
+**Checkpoint**: Full role browsing works - US1+US2 MVP independently testable ✅
 
 ---
 

@@ -58,7 +58,8 @@ export interface RoleIdentifier {
  * RoleCard - Individual role card in the roles list
  *
  * Displays role name, member count, description, and selection state.
- * Owner role shows crown icon and "Connected" badge when user is owner.
+ * Owner role shows Crown icon (other roles show generic Shield icon).
+ * Shows "Connected" badge when user is assigned to the role.
  *
  * @example
  * <RoleCard
