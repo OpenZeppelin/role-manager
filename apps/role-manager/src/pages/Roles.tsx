@@ -9,8 +9,14 @@ import { useState } from 'react';
 
 import { Card } from '@openzeppelin/ui-builder-ui';
 
-import { getAccountsForRole, getConnectedRoleIds, mockRoles } from '../components/Roles/mockData';
+import {
+  getAccountsForRole,
+  getConnectedRoleIds,
+  mockRoleIdentifiers,
+  mockRoles,
+} from '../components/Roles/mockData';
 import { RoleDetails } from '../components/Roles/RoleDetails';
+import { RoleIdentifiersTable } from '../components/Roles/RoleIdentifiersTable';
 import { RolesList } from '../components/Roles/RolesList';
 import { PageHeader } from '../components/Shared/PageHeader';
 
@@ -66,6 +72,9 @@ export function Roles() {
           </div>
         </div>
       </Card>
+
+      {/* Role Identifiers Reference Table */}
+      <RoleIdentifiersTable identifiers={mockRoleIdentifiers} />
     </div>
   );
 }

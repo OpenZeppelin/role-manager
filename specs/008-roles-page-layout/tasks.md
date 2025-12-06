@@ -107,17 +107,17 @@
 
 ### Implementation for User Story 3
 
-- [ ] T009 [US3] Create `components/Roles/RoleIdentifiersTable.tsx` implementing RoleIdentifiersTableProps interface:
+- [x] T009 [US3] Create `components/Roles/RoleIdentifiersTable.tsx` implementing RoleIdentifiersTableProps interface:
   - Section header "Available Role Identifiers" with description
   - HTML table with columns: Role Identifier (monospace), Name, Description
   - Tailwind styling: border, rounded, text-sm
   - No interactive elements (read-only per FR-023)
 
-- [ ] T010 [US3] Add RoleIdentifiersTable to `pages/Roles.tsx`:
+- [x] T010 [US3] Add RoleIdentifiersTable to `pages/Roles.tsx`:
   - Import mockRoleIdentifiers from mockData
   - Place below two-panel layout with 24px margin-top (mt-6)
 
-**Checkpoint**: Role identifiers reference table visible - US3 independently testable
+**Checkpoint**: Role identifiers reference table visible - US3 independently testable ✅
 
 ---
 
