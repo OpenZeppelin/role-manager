@@ -1,6 +1,6 @@
 /**
  * Role-related types for the Roles Page Layout feature
- * Feature: 008-roles-page-layout
+ * Feature: 008-roles-page-layout, 009-roles-page-data
  *
  * These types define the data structures for roles, accounts, and role identifiers
  * used throughout the Roles page components.
@@ -46,6 +46,30 @@ export interface RoleIdentifier {
   identifier: string;
   /** Human-readable name (e.g., "Owner") */
   name: string;
-  /** Description of the role's purpose */
-  description: string;
+  /** Description (custom or default, nullable) */
+  description: string | null;
+}
+
+// =============================================================================
+// View Model Types (spec 009)
+// =============================================================================
+
+/**
+ * Role data combined with resolved description.
+ * Used by RoleCard and RoleDetails components.
+ * Combines adapter data with custom descriptions from local storage.
+ */
+export interface RoleWithDescription {
+  /** Role identifier (e.g., "ADMIN_ROLE", bytes32 hash) */
+  roleId: string;
+  /** Human-readable role name */
+  roleName: string;
+  /** Resolved description: custom > adapter > null */
+  description: string | null;
+  /** Whether the current description is user-provided */
+  isCustomDescription: boolean;
+  /** Array of member addresses */
+  members: string[];
+  /** Whether this is the Owner role (special UI treatment) */
+  isOwnerRole: boolean;
 }

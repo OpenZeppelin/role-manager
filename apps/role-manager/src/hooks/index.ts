@@ -51,5 +51,9 @@ export type {
   ExportSnapshotOptions,
 } from './useAccessControlMutations';
 
+// Custom Role Descriptions (Feature: 009-roles-page-data)
+export { useCustomRoleDescriptions } from './useCustomRoleDescriptions';
+export type { UseCustomRoleDescriptionsReturn } from './useCustomRoleDescriptions';
+
 // Utility hooks
 export { useDebounce } from './useDebounce';

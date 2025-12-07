@@ -3,7 +3,11 @@ import type { Table } from 'dexie';
 import { EntityStorage, withQuotaHandling } from '@openzeppelin/ui-builder-storage';
 import { simpleHash } from '@openzeppelin/ui-builder-utils';
 
-import type { ContractSchemaInput, RecentContractRecord } from '@/types/storage';
+import type {
+  ContractSchemaInput,
+  CustomRoleDescriptions,
+  RecentContractRecord,
+} from '@/types/storage';
 
 import { db } from './database';
 
@@ -243,6 +247,81 @@ export class RecentContractsStorage extends EntityStorage<RecentContractRecord> 
       definitionArtifacts: undefined,
       schemaMetadata: undefined,
     });
+  }
+
+  // ===========================================================================
+  // Custom Role Descriptions (spec 009)
+  // ===========================================================================
+
+  /**
+   * Update a custom role description for a contract.
+   * If description is empty/whitespace, the description is cleared for that role.
+   *
+   * @param id - Contract record ID
+   * @param roleId - Role identifier (e.g., "ADMIN_ROLE")
+   * @param description - Custom description (max 256 chars) or empty to clear
+   * @throws Error if roleId is invalid or description exceeds 256 characters
+   */
+  async updateRoleDescription(id: string, roleId: string, description: string): Promise<void> {
+    // Validate roleId
+    if (!roleId || typeof roleId !== 'string' || roleId.trim().length === 0) {
+      throw new Error('storage/invalid-role-id');
+    }
+
+    const trimmedDescription = description.trim();
+
+    // Validate description length (only if not clearing)
+    if (trimmedDescription.length > 256) {
+      throw new Error('storage/description-too-long');
+    }
+
+    const record = await this.get(id);
+    if (!record) {
+      return;
+    }
+
+    // Get existing descriptions or initialize empty object
+    const customRoleDescriptions: CustomRoleDescriptions = {
+      ...(record.customRoleDescriptions || {}),
+    };
+
+    // Update or clear the description
+    if (trimmedDescription.length === 0) {
+      delete customRoleDescriptions[roleId];
+    } else {
+      customRoleDescriptions[roleId] = trimmedDescription;
+    }
+
+    await this.update(id, { customRoleDescriptions });
+  }
+
+  /**
+   * Get all custom role descriptions for a contract.
+   *
+   * @param id - Contract record ID
+   * @returns Custom descriptions map or empty object
+   */
+  async getCustomRoleDescriptions(id: string): Promise<CustomRoleDescriptions> {
+    const record = await this.get(id);
+    return record?.customRoleDescriptions || {};
+  }
+
+  /**
+   * Clear a specific custom role description.
+   *
+   * @param id - Contract record ID
+   * @param roleId - Role identifier to clear
+   */
+  async clearRoleDescription(id: string, roleId: string): Promise<void> {
+    const record = await this.get(id);
+    if (!record || !record.customRoleDescriptions) {
+      return;
+    }
+
+    const customRoleDescriptions: CustomRoleDescriptions = { ...record.customRoleDescriptions };
+    delete customRoleDescriptions[roleId];
+
+    await this.update(id, { customRoleDescriptions });
   }
 }
 

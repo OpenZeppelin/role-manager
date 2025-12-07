@@ -20,11 +20,11 @@
 
 **Purpose**: Type definitions and exports needed by all subsequent phases
 
-- [ ] T001 [P] Add `CustomRoleDescriptions` type to `types/storage.ts`
-- [ ] T002 [P] Add `RoleWithDescription` type to `types/roles.ts`
-- [ ] T003 [P] Add `RoleIdentifier` type to `types/roles.ts`
-- [ ] T004 Update `types/roles.ts` barrel export with new types
-- [ ] T005 Update `components/Roles/index.ts` to prepare for new component exports
+- [x] T001 [P] Add `CustomRoleDescriptions` type to `types/storage.ts`
+- [x] T002 [P] Add `RoleWithDescription` type to `types/roles.ts`
+- [x] T003 [P] Add `RoleIdentifier` type to `types/roles.ts`
+- [x] T004 Update `types/roles.ts` barrel export with new types
+- [x] T005 Update `components/Roles/index.ts` to prepare for new component exports
 
 ---
 
@@ -36,19 +36,19 @@
 
 ### Storage Layer Extension (TDD)
 
-- [ ] T006 [P] Write tests for `updateRoleDescription` method in `core/storage/__tests__/RecentContractsStorage.test.ts`
-- [ ] T007 [P] Write tests for `getCustomRoleDescriptions` method in `core/storage/__tests__/RecentContractsStorage.test.ts`
-- [ ] T008 [P] Write tests for `clearRoleDescription` method in `core/storage/__tests__/RecentContractsStorage.test.ts`
-- [ ] T009 Implement `updateRoleDescription` method in `core/storage/RecentContractsStorage.ts`
-- [ ] T010 Implement `getCustomRoleDescriptions` method in `core/storage/RecentContractsStorage.ts`
-- [ ] T011 Implement `clearRoleDescription` method in `core/storage/RecentContractsStorage.ts`
-- [ ] T012 Add 256-character validation with error code `storage/description-too-long`
+- [x] T006 [P] Write tests for `updateRoleDescription` method in `core/storage/__tests__/RecentContractsStorage.test.ts`
+- [x] T007 [P] Write tests for `getCustomRoleDescriptions` method in `core/storage/__tests__/RecentContractsStorage.test.ts`
+- [x] T008 [P] Write tests for `clearRoleDescription` method in `core/storage/__tests__/RecentContractsStorage.test.ts`
+- [x] T009 Implement `updateRoleDescription` method in `core/storage/RecentContractsStorage.ts`
+- [x] T010 Implement `getCustomRoleDescriptions` method in `core/storage/RecentContractsStorage.ts`
+- [x] T011 Implement `clearRoleDescription` method in `core/storage/RecentContractsStorage.ts`
+- [x] T012 Add 256-character validation with error code `storage/description-too-long`
 
 ### Custom Descriptions Hook (TDD)
 
-- [ ] T013 [P] Write tests for `useCustomRoleDescriptions` hook in `hooks/__tests__/useCustomRoleDescriptions.test.tsx`
-- [ ] T014 Create `useCustomRoleDescriptions` hook in `hooks/useCustomRoleDescriptions.ts`
-- [ ] T015 Export `useCustomRoleDescriptions` from `hooks/index.ts`
+- [x] T013 [P] Write tests for `useCustomRoleDescriptions` hook in `hooks/__tests__/useCustomRoleDescriptions.test.tsx`
+- [x] T014 Create `useCustomRoleDescriptions` hook in `hooks/useCustomRoleDescriptions.ts`
+- [x] T015 Export `useCustomRoleDescriptions` from `hooks/index.ts`
 
 **Checkpoint**: Storage layer and description hook ready - user story implementation can begin
 
@@ -170,7 +170,8 @@
 
 **Purpose**: Final cleanup and validation
 
-- [ ] T064 [P] Remove deprecated mock data file `components/Roles/mockData.ts`
+- [ ] T064 [P] Remove mock data file `components/Roles/mockData.ts`
+- [ ] T064a [P] Remove legacy `Role` type from `types/roles.ts` (replaced by `RoleWithDescription`)
 - [ ] T065 [P] Update component JSDoc comments with new prop types
 - [ ] T066 [P] Run TypeScript type check (`pnpm typecheck`)
 - [ ] T067 [P] Run linter (`pnpm lint`)
