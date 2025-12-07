@@ -27,8 +27,10 @@ import { useAccessControlService } from './useAccessControlService';
 export interface UseContractRolesReturn {
   /** Array of role assignments */
   roles: RoleAssignment[];
-  /** Whether the query is currently loading */
+  /** Whether the query is currently loading (initial fetch) */
   isLoading: boolean;
+  /** Whether data is being refetched (background refresh) */
+  isFetching: boolean;
   /** Error if role fetching failed */
   error: DataError | null;
   /** Function to manually refetch roles */
@@ -51,8 +53,10 @@ export interface UseContractRolesReturn {
 export interface UseContractOwnershipReturn {
   /** Ownership information */
   ownership: OwnershipInfo | null;
-  /** Whether the query is currently loading */
+  /** Whether the query is currently loading (initial fetch) */
   isLoading: boolean;
+  /** Whether data is being refetched (background refresh) */
+  isFetching: boolean;
   /** Error if ownership fetching failed */
   error: DataError | null;
   /** Function to manually refetch ownership */
@@ -138,6 +142,7 @@ export function useContractRoles(
   const {
     data: roles,
     isLoading,
+    isFetching,
     error: rawError,
     refetch: queryRefetch,
   } = useQuery({
@@ -185,6 +190,7 @@ export function useContractRoles(
   return {
     roles: roles ?? [],
     isLoading,
+    isFetching,
     error,
     refetch,
     isEmpty,
@@ -221,6 +227,7 @@ export function useContractOwnership(
   const {
     data: ownership,
     isLoading,
+    isFetching,
     error: rawError,
     refetch: queryRefetch,
   } = useQuery({
@@ -263,6 +270,7 @@ export function useContractOwnership(
   return {
     ownership: ownership ?? null,
     isLoading,
+    isFetching,
     error,
     refetch,
     hasOwner,

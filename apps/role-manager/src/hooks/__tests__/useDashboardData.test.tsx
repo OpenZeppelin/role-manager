@@ -65,6 +65,7 @@ describe('useDashboardData', () => {
       vi.mocked(useContractDataModule.useContractRoles).mockReturnValue({
         roles: [],
         isLoading: true,
+        isFetching: true,
         error: null,
         refetch: vi.fn(),
         isEmpty: true,
@@ -77,6 +78,7 @@ describe('useDashboardData', () => {
       vi.mocked(useContractDataModule.useContractOwnership).mockReturnValue({
         ownership: null,
         isLoading: true,
+        isFetching: true,
         error: null,
         refetch: vi.fn(),
         hasOwner: false,
@@ -110,6 +112,7 @@ describe('useDashboardData', () => {
       vi.mocked(useContractDataModule.useContractRoles).mockReturnValue({
         roles: mockRoles,
         isLoading: false,
+        isFetching: false,
         error: null,
         refetch: vi.fn().mockResolvedValue(undefined),
         isEmpty: false,
@@ -122,6 +125,7 @@ describe('useDashboardData', () => {
       vi.mocked(useContractDataModule.useContractOwnership).mockReturnValue({
         ownership: mockOwnership,
         isLoading: false,
+        isFetching: false,
         error: null,
         refetch: vi.fn().mockResolvedValue(undefined),
         hasOwner: true,
@@ -179,6 +183,7 @@ describe('useDashboardData', () => {
       vi.mocked(useContractDataModule.useContractRoles).mockReturnValue({
         roles: [],
         isLoading: false,
+        isFetching: false,
         error: mockError,
         refetch: vi.fn(),
         isEmpty: true,
@@ -191,6 +196,7 @@ describe('useDashboardData', () => {
       vi.mocked(useContractDataModule.useContractOwnership).mockReturnValue({
         ownership: null,
         isLoading: false,
+        isFetching: false,
         error: null,
         refetch: vi.fn(),
         hasOwner: false,
@@ -217,6 +223,7 @@ describe('useDashboardData', () => {
       vi.mocked(useContractDataModule.useContractRoles).mockReturnValue({
         roles: [],
         isLoading: false,
+        isFetching: false,
         error: null,
         refetch: vi.fn(),
         isEmpty: true,
@@ -229,6 +236,7 @@ describe('useDashboardData', () => {
       vi.mocked(useContractDataModule.useContractOwnership).mockReturnValue({
         ownership: null,
         isLoading: false,
+        isFetching: false,
         error: mockError,
         refetch: vi.fn(),
         hasOwner: false,
@@ -261,6 +269,7 @@ describe('useDashboardData', () => {
       vi.mocked(useContractDataModule.useContractRoles).mockReturnValue({
         roles: [],
         isLoading: false,
+        isFetching: false,
         error: rolesError,
         refetch: vi.fn(),
         isEmpty: true,
@@ -273,6 +282,7 @@ describe('useDashboardData', () => {
       vi.mocked(useContractDataModule.useContractOwnership).mockReturnValue({
         ownership: null,
         isLoading: false,
+        isFetching: false,
         error: ownershipError,
         refetch: vi.fn(),
         hasOwner: false,
@@ -300,6 +310,7 @@ describe('useDashboardData', () => {
       vi.mocked(useContractDataModule.useContractRoles).mockReturnValue({
         roles: [],
         isLoading: false,
+        isFetching: false,
         error: null,
         refetch: mockRolesRefetch,
         isEmpty: true,
@@ -312,6 +323,7 @@ describe('useDashboardData', () => {
       vi.mocked(useContractDataModule.useContractOwnership).mockReturnValue({
         ownership: null,
         isLoading: false,
+        isFetching: false,
         error: null,
         refetch: mockOwnershipRefetch,
         hasOwner: false,
@@ -338,6 +350,7 @@ describe('useDashboardData', () => {
       vi.mocked(useContractDataModule.useContractRoles).mockReturnValue({
         roles: [],
         isLoading: false,
+        isFetching: false,
         error: null,
         refetch: mockRolesRefetch,
         isEmpty: true,
@@ -350,6 +363,7 @@ describe('useDashboardData', () => {
       vi.mocked(useContractDataModule.useContractOwnership).mockReturnValue({
         ownership: null,
         isLoading: false,
+        isFetching: false,
         error: null,
         refetch: mockOwnershipRefetch,
         hasOwner: false,
@@ -373,6 +387,7 @@ describe('useDashboardData', () => {
       vi.mocked(useContractDataModule.useContractRoles).mockReturnValue({
         roles: [],
         isLoading: false,
+        isFetching: false,
         error: null,
         refetch: mockRolesRefetch,
         isEmpty: true,
@@ -385,6 +400,7 @@ describe('useDashboardData', () => {
       vi.mocked(useContractDataModule.useContractOwnership).mockReturnValue({
         ownership: null,
         isLoading: false,
+        isFetching: false,
         error: null,
         refetch: mockOwnershipRefetch,
         hasOwner: false,
@@ -408,6 +424,7 @@ describe('useDashboardData', () => {
       vi.mocked(useContractDataModule.useContractRoles).mockReturnValue({
         roles: [],
         isLoading: false,
+        isFetching: false,
         error: null,
         refetch: mockRolesRefetch,
         isEmpty: true,
@@ -420,6 +437,7 @@ describe('useDashboardData', () => {
       vi.mocked(useContractDataModule.useContractOwnership).mockReturnValue({
         ownership: null,
         isLoading: false,
+        isFetching: false,
         error: null,
         refetch: mockOwnershipRefetch,
         hasOwner: false,
@@ -442,6 +460,7 @@ describe('useDashboardData', () => {
       vi.mocked(useContractDataModule.useContractRoles).mockReturnValue({
         roles: [{ role: { id: '0x1', label: 'ADMIN' }, members: ['0xabc'] }],
         isLoading: false,
+        isFetching: false,
         error: null,
         refetch: vi.fn(),
         isEmpty: false,
@@ -454,6 +473,7 @@ describe('useDashboardData', () => {
       vi.mocked(useContractDataModule.useContractOwnership).mockReturnValue({
         ownership: null,
         isLoading: false,
+        isFetching: false,
         error: null,
         refetch: vi.fn(),
         hasOwner: false,
@@ -474,6 +494,7 @@ describe('useDashboardData', () => {
       vi.mocked(useContractDataModule.useContractRoles).mockReturnValue({
         roles: [],
         isLoading: false,
+        isFetching: false,
         error: null,
         refetch: vi.fn(),
         isEmpty: true,
@@ -486,6 +507,7 @@ describe('useDashboardData', () => {
       vi.mocked(useContractDataModule.useContractOwnership).mockReturnValue({
         ownership: { owner: '0xowner' },
         isLoading: false,
+        isFetching: false,
         error: null,
         refetch: vi.fn(),
         hasOwner: true,
@@ -508,6 +530,7 @@ describe('useDashboardData', () => {
       vi.mocked(useContractDataModule.useContractRoles).mockReturnValue({
         roles: [],
         isLoading: false,
+        isFetching: false,
         error: null,
         refetch: vi.fn(),
         isEmpty: true,
@@ -520,6 +543,7 @@ describe('useDashboardData', () => {
       vi.mocked(useContractDataModule.useContractOwnership).mockReturnValue({
         ownership: null,
         isLoading: false,
+        isFetching: false,
         error: null,
         refetch: vi.fn(),
         hasOwner: false,
@@ -542,6 +566,7 @@ describe('useDashboardData', () => {
       vi.mocked(useContractDataModule.useContractRoles).mockReturnValue({
         roles: [],
         isLoading: false,
+        isFetching: false,
         error: null,
         refetch: vi.fn(),
         isEmpty: true,
@@ -554,6 +579,7 @@ describe('useDashboardData', () => {
       vi.mocked(useContractDataModule.useContractOwnership).mockReturnValue({
         ownership: null,
         isLoading: false,
+        isFetching: false,
         error: null,
         refetch: vi.fn(),
         hasOwner: false,

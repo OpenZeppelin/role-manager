@@ -56,6 +56,8 @@ export interface UseRolesPageDataReturn {
   isCapabilitiesLoading: boolean;
   isRolesLoading: boolean;
   isOwnershipLoading: boolean;
+  /** Whether data is being refreshed in background (T051) */
+  isRefreshing: boolean;
 
   /** Error states */
   hasError: boolean;
@@ -199,6 +201,7 @@ export function useRolesPageData(): UseRolesPageDataReturn {
   const {
     roles: adapterRoles,
     isLoading: isRolesLoading,
+    isFetching: isRolesFetching,
     refetch: refetchRoles,
     hasError: hasRolesError,
     canRetry: canRetryRoles,
@@ -209,6 +212,7 @@ export function useRolesPageData(): UseRolesPageDataReturn {
   const {
     ownership,
     isLoading: isOwnershipLoading,
+    isFetching: isOwnershipFetching,
     refetch: refetchOwnership,
     hasOwner,
   } = useContractOwnership(adapter, contractAddress);
@@ -319,6 +323,8 @@ export function useRolesPageData(): UseRolesPageDataReturn {
   // =============================================================================
 
   const isLoading = isCapabilitiesLoading || isRolesLoading || isOwnershipLoading;
+  // T051: isRefreshing is true when we have data but are fetching in the background
+  const isRefreshing = !isLoading && (isRolesFetching || isOwnershipFetching);
   const hasError = !!capabilitiesError || hasRolesError;
   const errorMessage = rolesErrorMessage ?? capabilitiesError?.message ?? null;
   const canRetry = canRetryRoles || !!capabilitiesError;
@@ -357,6 +363,7 @@ export function useRolesPageData(): UseRolesPageDataReturn {
       isCapabilitiesLoading: false,
       isRolesLoading: false,
       isOwnershipLoading: false,
+      isRefreshing: false,
       hasError: false,
       errorMessage: null,
       canRetry: false,
@@ -379,6 +386,7 @@ export function useRolesPageData(): UseRolesPageDataReturn {
     isCapabilitiesLoading,
     isRolesLoading,
     isOwnershipLoading,
+    isRefreshing,
     hasError,
     errorMessage,
     canRetry,

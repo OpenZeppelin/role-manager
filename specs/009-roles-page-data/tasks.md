@@ -129,13 +129,13 @@
 
 ### Implementation
 
-- [ ] T048 [US5] Add `refetch` action to `useRolesPageData` return type
-- [ ] T049 [US5] Implement combined refetch logic (roles + ownership)
-- [ ] T050 [US5] Add refresh button to page header in `pages/Roles.tsx`
-- [ ] T051 [US5] Implement subtle refresh loading indicator (without replacing content)
-- [ ] T052 [US5] Handle contract switching (cancel pending, fetch new)
+- [x] T048 [US5] Add `refetch` action to `useRolesPageData` return type
+- [x] T049 [US5] Implement combined refetch logic (roles + ownership)
+- [x] T050 [US5] Add refresh button to page header in `pages/Roles.tsx`
+- [x] T051 [US5] Implement subtle refresh loading indicator (without replacing content)
+- [x] T052 [US5] Handle contract switching (cancel pending, fetch new)
 
-**Checkpoint**: Data refresh functional with proper loading indication
+**Checkpoint**: Data refresh functional with proper loading indication ✅
 
 ---
 

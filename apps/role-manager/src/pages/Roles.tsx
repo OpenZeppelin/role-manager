@@ -9,11 +9,18 @@
  * - Real data from adapter
  * - Loading, error, and empty state handling
  * - Partial data handling (FR-022)
+ *
+ * Phase 5 (T050-T052):
+ * - Added refresh button with subtle loading indicator
+ * - Contract switching handled via react-query key changes
  */
 
-import { useMemo } from 'react';
+import { RefreshCw } from 'lucide-react';
+import { toast } from 'sonner';
+import { useCallback, useMemo } from 'react';
 
-import { Card } from '@openzeppelin/ui-builder-ui';
+import { Button, Card } from '@openzeppelin/ui-builder-ui';
+import { cn } from '@openzeppelin/ui-builder-utils';
 
 import {
   RoleDetails,
@@ -37,6 +44,7 @@ export function Roles() {
     setSelectedRoleId,
     selectedRole,
     isLoading,
+    isRefreshing, // T051: Subtle refresh loading state
     isSupported,
     hasError,
     errorMessage,
@@ -51,6 +59,16 @@ export function Roles() {
   const { selectedContract } = useSelectedContract();
   const contractLabel = selectedContract?.label || selectedContract?.address || 'Unknown Contract';
   const networkId = selectedContract?.networkId || '';
+
+  // T050: Handle refresh with toast notification on error
+  const handleRefresh = useCallback(async () => {
+    try {
+      await refetch();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to refresh roles data';
+      toast.error(message);
+    }
+  }, [refetch]);
 
   // T036: Transform role members to AccountData format
   const selectedRoleAccounts = useMemo((): AccountData[] => {
@@ -101,6 +119,22 @@ export function Roles() {
               </>
             )}
           </span>
+        }
+        actions={
+          // T050: Refresh button with T051: subtle loading indicator
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            aria-label="Refresh roles data"
+          >
+            <RefreshCw
+              className={cn('mr-2 h-4 w-4', isRefreshing && 'animate-spin')}
+              aria-hidden="true"
+            />
+            {isRefreshing ? 'Refreshing...' : 'Refresh'}
+          </Button>
         }
       />
 
