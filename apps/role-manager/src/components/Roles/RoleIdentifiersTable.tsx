@@ -46,10 +46,12 @@ export interface RoleIdentifiersTableProps {
 }
 
 /**
- * Read-only reference table displaying all available role identifiers
+ * Read-only reference table displaying all available role identifiers.
+ * Data is sourced from useRolesPageData hook's roleIdentifiers array.
  *
  * @example
- * <RoleIdentifiersTable identifiers={mockRoleIdentifiers} />
+ * const { roleIdentifiers } = useRolesPageData();
+ * <RoleIdentifiersTable identifiers={roleIdentifiers} />
  */
 export function RoleIdentifiersTable({ identifiers, className }: RoleIdentifiersTableProps) {
   return (

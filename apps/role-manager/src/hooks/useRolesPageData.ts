@@ -178,7 +178,7 @@ export function useRolesPageData(): UseRolesPageDataReturn {
   // Context & State
   // =============================================================================
 
-  const { selectedContract, adapter } = useSelectedContract();
+  const { selectedContract, adapter, isContractRegistered } = useSelectedContract();
   const contractAddress = selectedContract?.address ?? '';
   const contractId = selectedContract?.id;
 
@@ -190,14 +190,16 @@ export function useRolesPageData(): UseRolesPageDataReturn {
   // =============================================================================
 
   // Capability detection (T018)
+  // Wait for contract to be registered before fetching capabilities
   const {
     capabilities,
     isLoading: isCapabilitiesLoading,
     error: capabilitiesError,
     isSupported,
-  } = useContractCapabilities(adapter, contractAddress);
+  } = useContractCapabilities(adapter, contractAddress, isContractRegistered);
 
   // Roles fetching (T019)
+  // Wait for contract to be registered before fetching roles
   const {
     roles: adapterRoles,
     isLoading: isRolesLoading,
@@ -206,16 +208,17 @@ export function useRolesPageData(): UseRolesPageDataReturn {
     hasError: hasRolesError,
     canRetry: canRetryRoles,
     errorMessage: rolesErrorMessage,
-  } = useContractRoles(adapter, contractAddress);
+  } = useContractRoles(adapter, contractAddress, isContractRegistered);
 
   // Ownership fetching (T020)
+  // Wait for contract to be registered before fetching ownership
   const {
     ownership,
     isLoading: isOwnershipLoading,
     isFetching: isOwnershipFetching,
     refetch: refetchOwnership,
     hasOwner,
-  } = useContractOwnership(adapter, contractAddress);
+  } = useContractOwnership(adapter, contractAddress, isContractRegistered);
 
   // Custom descriptions
   const { descriptions: customDescriptions, updateDescription } =

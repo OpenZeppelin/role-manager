@@ -1022,9 +1022,9 @@ describe('useExportSnapshot', () => {
         hasOwnable: mockCapabilities.hasOwnable,
         hasEnumerableRoles: mockCapabilities.hasEnumerableRoles,
       });
+      // pendingOwner is not currently provided by the adapter's OwnershipInfo
       expect(snapshot.ownership).toEqual({
         owner: mockOwnership.owner,
-        pendingOwner: null,
       });
       // Roles should be transformed to roleId/roleName format
       expect(snapshot.roles).toEqual([

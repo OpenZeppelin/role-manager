@@ -1,9 +1,12 @@
 /**
  * Roles Components - Barrel Export
- * Feature: 008-roles-page-layout, 009-roles-page-data
+ * Feature: 009-roles-page-data
  *
  * Central export point for all Roles page components.
  * Re-exports types for convenience.
+ *
+ * Note: Mock data was removed in spec 009 Phase 7. All components now use
+ * real data from the useRolesPageData hook.
  */
 
 // =============================================================================
@@ -46,26 +49,7 @@ export type { RolesLoadingSkeletonProps } from './RolesLoadingSkeleton';
 export type { EditRoleDialogProps } from './EditRoleDialog';
 
 // =============================================================================
-// Mock Data (DEPRECATED - for testing only)
-// =============================================================================
-
-/**
- * @deprecated Mock data is deprecated. Use useRolesPageData hook for real data.
- * These exports are retained only for backwards compatibility in existing tests.
- * Will be removed in a future version.
- */
-export {
-  getAccountsForRole,
-  getConnectedRoleIds,
-  isCurrentUserConnected,
-  MOCK_CURRENT_USER,
-  mockRoleAccounts,
-  mockRoleIdentifiers,
-  mockRoles,
-} from './mockData';
-
-// =============================================================================
 // Domain Types (re-exported from types/roles.ts)
 // =============================================================================
 
-export type { Role, RoleAccount, RoleIdentifier, RoleWithDescription } from '../../types/roles';
+export type { RoleAccount, RoleIdentifier, RoleWithDescription } from '../../types/roles';

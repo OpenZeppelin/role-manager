@@ -82,13 +82,8 @@ export function useDashboardData(
   // Track refreshing state separately from initial load
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Only pass the contract address to underlying hooks if the contract is registered
-  // This prevents the hooks from fetching before registration is complete
-  // We use empty string (not null) because the hooks expect string type and check
-  // `!!contractAddress` in their `enabled` condition, so empty string disables queries
-  const effectiveAddress = isContractRegistered ? contractAddress : '';
-
   // Fetch roles data
+  // Pass isContractRegistered to prevent fetching before registration is complete
   const {
     roles,
     isLoading: rolesLoading,
@@ -96,9 +91,10 @@ export function useDashboardData(
     errorMessage: rolesErrorMessage,
     canRetry: rolesCanRetry,
     refetch: rolesRefetch,
-  } = useContractRoles(adapter, effectiveAddress);
+  } = useContractRoles(adapter, contractAddress, isContractRegistered);
 
   // Fetch ownership data
+  // Pass isContractRegistered to prevent fetching before registration is complete
   const {
     // Ownership data is used via hasOwner flag for capability detection
     isLoading: ownershipLoading,
@@ -107,7 +103,7 @@ export function useDashboardData(
     canRetry: ownershipCanRetry,
     refetch: ownershipRefetch,
     hasOwner,
-  } = useContractOwnership(adapter, effectiveAddress);
+  } = useContractOwnership(adapter, contractAddress, isContractRegistered);
 
   // Compute roles count
   const rolesCount = useMemo(() => {

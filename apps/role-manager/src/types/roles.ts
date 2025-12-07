@@ -1,30 +1,18 @@
 /**
- * Role-related types for the Roles Page Layout feature
- * Feature: 008-roles-page-layout, 009-roles-page-data
+ * Role-related types for the Roles Page feature
+ * Feature: 009-roles-page-data
  *
  * These types define the data structures for roles, accounts, and role identifiers
  * used throughout the Roles page components.
+ *
+ * Note: The legacy `Role` interface was removed in spec 009 and replaced by
+ * `RoleWithDescription` which better represents the resolved view model with
+ * custom descriptions from local storage merged with adapter-provided data.
  */
 
 // =============================================================================
 // Domain Types
 // =============================================================================
-
-/**
- * Represents a role in the access control system
- */
-export interface Role {
-  /** Unique role identifier (e.g., "OWNER_ROLE", "OPERATOR_ROLE") */
-  id: string;
-  /** Human-readable role name (e.g., "Owner", "Operator") */
-  name: string;
-  /** Role description explaining permissions */
-  description: string;
-  /** Number of accounts assigned to this role */
-  memberCount: number;
-  /** Whether this is the owner role (special handling) */
-  isOwnerRole: boolean;
-}
 
 /**
  * Represents an account assigned to a role

@@ -170,12 +170,12 @@
 
 **Purpose**: Final cleanup and validation
 
-- [ ] T064 [P] Remove mock data file `components/Roles/mockData.ts`
-- [ ] T064a [P] Remove legacy `Role` type from `types/roles.ts` (replaced by `RoleWithDescription`)
-- [ ] T065 [P] Update component JSDoc comments with new prop types
-- [ ] T066 [P] Run TypeScript type check (`pnpm typecheck`)
-- [ ] T067 [P] Run linter (`pnpm lint`)
-- [ ] T068 Run all tests (`pnpm test`)
+- [x] T064 [P] Remove mock data file `components/Roles/mockData.ts`
+- [x] T064a [P] Remove legacy `Role` type from `types/roles.ts` (replaced by `RoleWithDescription`)
+- [x] T065 [P] Update component JSDoc comments with new prop types
+- [x] T066 [P] Run TypeScript type check (`pnpm typecheck`)
+- [x] T067 [P] Run linter (`pnpm lint`)
+- [x] T068 Run all tests (`pnpm test`)
 - [ ] T069 Validate against quickstart.md test scenarios
 - [ ] T070 Manual testing with real Stellar testnet contract
 - [ ] T071 Validate performance: initial load <3s, role selection <100ms (NFR-001, NFR-002, SC-004, SC-005)

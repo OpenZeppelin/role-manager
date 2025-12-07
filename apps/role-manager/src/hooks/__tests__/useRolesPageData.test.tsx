@@ -108,6 +108,7 @@ function setupDefaultMocks() {
     },
     adapter: { id: 'test-adapter' },
     isAdapterLoading: false,
+    isContractRegistered: true,
   });
 
   mockUseContractCapabilities.mockReturnValue({
@@ -227,12 +228,13 @@ describe('useRolesPageData', () => {
   });
 
   describe('capability detection integration (T018)', () => {
-    it('should pass adapter and contract address to useContractCapabilities', () => {
+    it('should pass adapter, contract address, and isContractRegistered to useContractCapabilities', () => {
       renderHook(() => useRolesPageData(), { wrapper: createWrapper() });
 
       expect(mockUseContractCapabilities).toHaveBeenCalledWith(
         { id: 'test-adapter' },
-        '0xcontract123'
+        '0xcontract123',
+        true // isContractRegistered
       );
     });
 
@@ -270,10 +272,14 @@ describe('useRolesPageData', () => {
   });
 
   describe('roles fetching integration (T019)', () => {
-    it('should pass adapter and contract address to useContractRoles', () => {
+    it('should pass adapter, contract address, and isContractRegistered to useContractRoles', () => {
       renderHook(() => useRolesPageData(), { wrapper: createWrapper() });
 
-      expect(mockUseContractRoles).toHaveBeenCalledWith({ id: 'test-adapter' }, '0xcontract123');
+      expect(mockUseContractRoles).toHaveBeenCalledWith(
+        { id: 'test-adapter' },
+        '0xcontract123',
+        true // isContractRegistered
+      );
     });
 
     it('should include roles from useContractRoles in output', () => {
@@ -287,12 +293,13 @@ describe('useRolesPageData', () => {
   });
 
   describe('ownership fetching integration (T020)', () => {
-    it('should pass adapter and contract address to useContractOwnership', () => {
+    it('should pass adapter, contract address, and isContractRegistered to useContractOwnership', () => {
       renderHook(() => useRolesPageData(), { wrapper: createWrapper() });
 
       expect(mockUseContractOwnership).toHaveBeenCalledWith(
         { id: 'test-adapter' },
-        '0xcontract123'
+        '0xcontract123',
+        true // isContractRegistered
       );
     });
 
