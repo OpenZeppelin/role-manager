@@ -43,12 +43,13 @@ const capabilitiesQueryKey = (address: string) => ['contractCapabilities', addre
  *
  * @param adapter - The contract adapter instance, or null if not loaded
  * @param contractAddress - The contract address to check
+ * @param isContractRegistered - Whether the contract is registered with the AccessControlService (default: true for backwards compatibility)
  * @returns Object containing capabilities, loading state, error, and helper functions
  *
  * @example
  * ```tsx
  * const { adapter } = useNetworkAdapter(selectedNetwork);
- * const { capabilities, isLoading, isSupported } = useContractCapabilities(adapter, address);
+ * const { capabilities, isLoading, isSupported } = useContractCapabilities(adapter, address, isContractRegistered);
  *
  * if (isLoading) return <Spinner />;
  * if (!isSupported) return <UnsupportedContractMessage />;
@@ -63,7 +64,8 @@ const capabilitiesQueryKey = (address: string) => ['contractCapabilities', addre
  */
 export function useContractCapabilities(
   adapter: ContractAdapter | null,
-  contractAddress: string
+  contractAddress: string,
+  isContractRegistered: boolean = true
 ): UseContractCapabilitiesReturn {
   // Get the access control service from the adapter
   const { service, isReady } = useAccessControlService(adapter);
@@ -82,8 +84,8 @@ export function useContractCapabilities(
       }
       return service.getCapabilities(contractAddress);
     },
-    // Only run query when we have a service and valid address
-    enabled: isReady && !!contractAddress,
+    // Only run query when we have a service, valid address, and contract is registered
+    enabled: isReady && !!contractAddress && isContractRegistered,
     // Stale time of 5 minutes - capabilities don't change often
     staleTime: 5 * 60 * 1000,
     // Keep in cache for 30 minutes

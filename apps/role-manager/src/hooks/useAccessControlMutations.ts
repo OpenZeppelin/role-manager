@@ -727,9 +727,10 @@ export function useExportSnapshot(
       ]);
 
       // Transform roles to schema format (roleId/roleName instead of role.id/role.label)
+      // Fallback to role.id if label is not available
       const snapshotRoles: SnapshotRole[] = roles.map((role: RoleAssignment) => ({
         roleId: role.role.id,
-        roleName: role.role.label,
+        roleName: role.role.label ?? role.role.id,
         members: role.members,
       }));
 
@@ -751,7 +752,8 @@ export function useExportSnapshot(
         roles: snapshotRoles,
         ownership: {
           owner: ownership?.owner ?? null,
-          pendingOwner: ownership?.pendingOwner ?? null,
+          // Note: pendingOwner is not currently provided by the adapter's OwnershipInfo
+          // It will be undefined in the snapshot until adapter support is added
         },
       };
 

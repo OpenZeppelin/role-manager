@@ -59,7 +59,23 @@ export interface RecentContractRecord extends BaseRecord {
 
   /** Detected access control capabilities (hasOwnable, hasAccessControl, etc.) */
   capabilities?: AccessControlCapabilities;
+
+  /** User-provided role descriptions, keyed by role identifier (spec 009) */
+  customRoleDescriptions?: CustomRoleDescriptions;
 }
+
+/**
+ * User-provided custom descriptions for roles.
+ * Keyed by role identifier (e.g., "ADMIN_ROLE", "MINTER_ROLE").
+ * Values are user-entered descriptions (max 256 characters).
+ *
+ * @example
+ * {
+ *   "ADMIN_ROLE": "Full system administrator with all permissions",
+ *   "MINTER_ROLE": "Can create new tokens"
+ * }
+ */
+export type CustomRoleDescriptions = Record<string, string>;
 
 /**
  * Input for adding or updating a contract with schema data

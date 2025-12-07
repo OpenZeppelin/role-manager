@@ -841,4 +841,218 @@ describe('RecentContractsStorage', () => {
       expect(record).toBeDefined();
     });
   });
+
+  // =============================================================================
+  // Custom Role Descriptions (spec 009)
+  // =============================================================================
+
+  describe('updateRoleDescription', () => {
+    it('should add a new custom role description', async () => {
+      const id = await storage.addOrUpdate({
+        networkId: 'stellar-testnet',
+        address: 'CROLE_DESC_TEST',
+      });
+
+      await storage.updateRoleDescription(id, 'ADMIN_ROLE', 'Full administrator access');
+
+      const record = await storage.get(id);
+      expect(record!.customRoleDescriptions).toBeDefined();
+      expect(record!.customRoleDescriptions!['ADMIN_ROLE']).toBe('Full administrator access');
+    });
+
+    it('should update an existing custom role description', async () => {
+      const id = await storage.addOrUpdate({
+        networkId: 'stellar-testnet',
+        address: 'CROLE_DESC_UPDATE',
+      });
+
+      await storage.updateRoleDescription(id, 'ADMIN_ROLE', 'Old description');
+      await storage.updateRoleDescription(id, 'ADMIN_ROLE', 'New description');
+
+      const record = await storage.get(id);
+      expect(record!.customRoleDescriptions!['ADMIN_ROLE']).toBe('New description');
+    });
+
+    it('should preserve other role descriptions when adding new one', async () => {
+      const id = await storage.addOrUpdate({
+        networkId: 'stellar-testnet',
+        address: 'CROLE_DESC_PRESERVE',
+      });
+
+      await storage.updateRoleDescription(id, 'ADMIN_ROLE', 'Admin description');
+      await storage.updateRoleDescription(id, 'MINTER_ROLE', 'Minter description');
+
+      const record = await storage.get(id);
+      expect(record!.customRoleDescriptions!['ADMIN_ROLE']).toBe('Admin description');
+      expect(record!.customRoleDescriptions!['MINTER_ROLE']).toBe('Minter description');
+    });
+
+    it('should trim description before saving', async () => {
+      const id = await storage.addOrUpdate({
+        networkId: 'stellar-testnet',
+        address: 'CROLE_DESC_TRIM',
+      });
+
+      await storage.updateRoleDescription(id, 'ADMIN_ROLE', '  Trimmed description  ');
+
+      const record = await storage.get(id);
+      expect(record!.customRoleDescriptions!['ADMIN_ROLE']).toBe('Trimmed description');
+    });
+
+    it('should reject description exceeding 256 characters', async () => {
+      const id = await storage.addOrUpdate({
+        networkId: 'stellar-testnet',
+        address: 'CROLE_DESC_TOO_LONG',
+      });
+
+      const longDescription = 'A'.repeat(257);
+
+      await expect(
+        storage.updateRoleDescription(id, 'ADMIN_ROLE', longDescription)
+      ).rejects.toThrow('storage/description-too-long');
+    });
+
+    it('should accept description at exactly 256 characters', async () => {
+      const id = await storage.addOrUpdate({
+        networkId: 'stellar-testnet',
+        address: 'CROLE_DESC_EXACT',
+      });
+
+      const exactDescription = 'A'.repeat(256);
+
+      await storage.updateRoleDescription(id, 'ADMIN_ROLE', exactDescription);
+
+      const record = await storage.get(id);
+      expect(record!.customRoleDescriptions!['ADMIN_ROLE']).toBe(exactDescription);
+    });
+
+    it('should reject empty roleId', async () => {
+      const id = await storage.addOrUpdate({
+        networkId: 'stellar-testnet',
+        address: 'CROLE_EMPTY_ROLE_ID',
+      });
+
+      await expect(storage.updateRoleDescription(id, '', 'Description')).rejects.toThrow(
+        'storage/invalid-role-id'
+      );
+    });
+
+    it('should reject whitespace-only roleId', async () => {
+      const id = await storage.addOrUpdate({
+        networkId: 'stellar-testnet',
+        address: 'CROLE_WHITESPACE_ROLE_ID',
+      });
+
+      await expect(storage.updateRoleDescription(id, '   ', 'Description')).rejects.toThrow(
+        'storage/invalid-role-id'
+      );
+    });
+
+    it('should clear description when empty string is provided', async () => {
+      const id = await storage.addOrUpdate({
+        networkId: 'stellar-testnet',
+        address: 'CROLE_DESC_CLEAR_EMPTY',
+      });
+
+      await storage.updateRoleDescription(id, 'ADMIN_ROLE', 'Initial description');
+      await storage.updateRoleDescription(id, 'ADMIN_ROLE', '');
+
+      const record = await storage.get(id);
+      expect(record!.customRoleDescriptions!['ADMIN_ROLE']).toBeUndefined();
+    });
+
+    it('should clear description when whitespace-only is provided', async () => {
+      const id = await storage.addOrUpdate({
+        networkId: 'stellar-testnet',
+        address: 'CROLE_DESC_CLEAR_WHITESPACE',
+      });
+
+      await storage.updateRoleDescription(id, 'ADMIN_ROLE', 'Initial description');
+      await storage.updateRoleDescription(id, 'ADMIN_ROLE', '   ');
+
+      const record = await storage.get(id);
+      expect(record!.customRoleDescriptions!['ADMIN_ROLE']).toBeUndefined();
+    });
+  });
+
+  describe('getCustomRoleDescriptions', () => {
+    it('should return empty object when no custom descriptions exist', async () => {
+      const id = await storage.addOrUpdate({
+        networkId: 'stellar-testnet',
+        address: 'CROLE_GET_EMPTY',
+      });
+
+      const descriptions = await storage.getCustomRoleDescriptions(id);
+      expect(descriptions).toEqual({});
+    });
+
+    it('should return all custom role descriptions', async () => {
+      const id = await storage.addOrUpdate({
+        networkId: 'stellar-testnet',
+        address: 'CROLE_GET_ALL',
+      });
+
+      await storage.updateRoleDescription(id, 'ADMIN_ROLE', 'Admin access');
+      await storage.updateRoleDescription(id, 'MINTER_ROLE', 'Can mint tokens');
+      await storage.updateRoleDescription(id, 'BURNER_ROLE', 'Can burn tokens');
+
+      const descriptions = await storage.getCustomRoleDescriptions(id);
+      expect(descriptions).toEqual({
+        ADMIN_ROLE: 'Admin access',
+        MINTER_ROLE: 'Can mint tokens',
+        BURNER_ROLE: 'Can burn tokens',
+      });
+    });
+
+    it('should return empty object for non-existent record', async () => {
+      const descriptions = await storage.getCustomRoleDescriptions('non-existent-id');
+      expect(descriptions).toEqual({});
+    });
+  });
+
+  describe('clearRoleDescription', () => {
+    it('should clear a specific role description', async () => {
+      const id = await storage.addOrUpdate({
+        networkId: 'stellar-testnet',
+        address: 'CROLE_CLEAR_SPECIFIC',
+      });
+
+      await storage.updateRoleDescription(id, 'ADMIN_ROLE', 'Admin access');
+      await storage.updateRoleDescription(id, 'MINTER_ROLE', 'Can mint tokens');
+
+      await storage.clearRoleDescription(id, 'ADMIN_ROLE');
+
+      const record = await storage.get(id);
+      expect(record!.customRoleDescriptions!['ADMIN_ROLE']).toBeUndefined();
+      expect(record!.customRoleDescriptions!['MINTER_ROLE']).toBe('Can mint tokens');
+    });
+
+    it('should not throw when clearing non-existent role description', async () => {
+      const id = await storage.addOrUpdate({
+        networkId: 'stellar-testnet',
+        address: 'CROLE_CLEAR_NON_EXISTENT',
+      });
+
+      await expect(storage.clearRoleDescription(id, 'NON_EXISTENT_ROLE')).resolves.not.toThrow();
+    });
+
+    it('should preserve other descriptions when clearing one', async () => {
+      const id = await storage.addOrUpdate({
+        networkId: 'stellar-testnet',
+        address: 'CROLE_CLEAR_PRESERVE',
+      });
+
+      await storage.updateRoleDescription(id, 'ROLE_A', 'Description A');
+      await storage.updateRoleDescription(id, 'ROLE_B', 'Description B');
+      await storage.updateRoleDescription(id, 'ROLE_C', 'Description C');
+
+      await storage.clearRoleDescription(id, 'ROLE_B');
+
+      const descriptions = await storage.getCustomRoleDescriptions(id);
+      expect(descriptions).toEqual({
+        ROLE_A: 'Description A',
+        ROLE_C: 'Description C',
+      });
+    });
+  });
 });

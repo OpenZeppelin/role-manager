@@ -27,8 +27,10 @@ import { useAccessControlService } from './useAccessControlService';
 export interface UseContractRolesReturn {
   /** Array of role assignments */
   roles: RoleAssignment[];
-  /** Whether the query is currently loading */
+  /** Whether the query is currently loading (initial fetch) */
   isLoading: boolean;
+  /** Whether data is being refetched (background refresh) */
+  isFetching: boolean;
   /** Error if role fetching failed */
   error: DataError | null;
   /** Function to manually refetch roles */
@@ -51,8 +53,10 @@ export interface UseContractRolesReturn {
 export interface UseContractOwnershipReturn {
   /** Ownership information */
   ownership: OwnershipInfo | null;
-  /** Whether the query is currently loading */
+  /** Whether the query is currently loading (initial fetch) */
   isLoading: boolean;
+  /** Whether data is being refetched (background refresh) */
+  isFetching: boolean;
   /** Error if ownership fetching failed */
   error: DataError | null;
   /** Function to manually refetch ownership */
@@ -117,11 +121,12 @@ const ownershipQueryKey = (address: string) => ['contractOwnership', address] as
  *
  * @param adapter - The contract adapter instance, or null if not loaded
  * @param contractAddress - The contract address to fetch roles for
+ * @param isContractRegistered - Whether the contract is registered with the AccessControlService (default: true for backwards compatibility)
  * @returns Object containing roles, loading state, error, and helper functions
  *
  * @example
  * ```tsx
- * const { roles, isLoading, isEmpty } = useContractRoles(adapter, address);
+ * const { roles, isLoading, isEmpty } = useContractRoles(adapter, address, isContractRegistered);
  *
  * if (isLoading) return <Spinner />;
  * if (isEmpty) return <NoRolesMessage />;
@@ -131,13 +136,15 @@ const ownershipQueryKey = (address: string) => ['contractOwnership', address] as
  */
 export function useContractRoles(
   adapter: ContractAdapter | null,
-  contractAddress: string
+  contractAddress: string,
+  isContractRegistered: boolean = true
 ): UseContractRolesReturn {
   const { service, isReady } = useAccessControlService(adapter);
 
   const {
     data: roles,
     isLoading,
+    isFetching,
     error: rawError,
     refetch: queryRefetch,
   } = useQuery({
@@ -156,7 +163,8 @@ export function useContractRoles(
         throw wrapError(err, 'roles');
       }
     },
-    enabled: isReady && !!contractAddress,
+    // Wait for contract to be registered before fetching
+    enabled: isReady && !!contractAddress && isContractRegistered,
     staleTime: 1 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     retry: false,
@@ -185,6 +193,7 @@ export function useContractRoles(
   return {
     roles: roles ?? [],
     isLoading,
+    isFetching,
     error,
     refetch,
     isEmpty,
@@ -200,11 +209,12 @@ export function useContractRoles(
  *
  * @param adapter - The contract adapter instance, or null if not loaded
  * @param contractAddress - The contract address to fetch ownership for
+ * @param isContractRegistered - Whether the contract is registered with the AccessControlService (default: true for backwards compatibility)
  * @returns Object containing ownership, loading state, error, and helper functions
  *
  * @example
  * ```tsx
- * const { ownership, isLoading, hasOwner } = useContractOwnership(adapter, address);
+ * const { ownership, isLoading, hasOwner } = useContractOwnership(adapter, address, isContractRegistered);
  *
  * if (isLoading) return <Spinner />;
  * if (!hasOwner) return <NoOwnerMessage />;
@@ -214,13 +224,15 @@ export function useContractRoles(
  */
 export function useContractOwnership(
   adapter: ContractAdapter | null,
-  contractAddress: string
+  contractAddress: string,
+  isContractRegistered: boolean = true
 ): UseContractOwnershipReturn {
   const { service, isReady } = useAccessControlService(adapter);
 
   const {
     data: ownership,
     isLoading,
+    isFetching,
     error: rawError,
     refetch: queryRefetch,
   } = useQuery({
@@ -239,7 +251,8 @@ export function useContractOwnership(
         throw wrapError(err, 'ownership');
       }
     },
-    enabled: isReady && !!contractAddress,
+    // Wait for contract to be registered before fetching
+    enabled: isReady && !!contractAddress && isContractRegistered,
     staleTime: 1 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     retry: false,
@@ -263,6 +276,7 @@ export function useContractOwnership(
   return {
     ownership: ownership ?? null,
     isLoading,
+    isFetching,
     error,
     refetch,
     hasOwner,

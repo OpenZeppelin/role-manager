@@ -1,8 +1,13 @@
 /**
  * AccountRow Component
- * Feature: 008-roles-page-layout
+ * Feature: 008-roles-page-layout, 009-roles-page-data
  *
  * Displays account with AddressDisplay from UI Builder for consistent styling.
+ *
+ * Updated in spec 009 (T031, T032, T033):
+ * - Real member data props
+ * - "You" badge detection (case-insensitive address comparison)
+ * - Assignment date display/hide logic (hide when unavailable)
  */
 
 import { Crown, Trash2 } from 'lucide-react';
@@ -10,29 +15,60 @@ import { Crown, Trash2 } from 'lucide-react';
 import { AddressDisplay, Button } from '@openzeppelin/ui-builder-ui';
 import { cn } from '@openzeppelin/ui-builder-utils';
 
-import type { RoleAccount } from '../../types/roles';
 import { formatDate } from '../../utils/date';
 
+/**
+ * Props for AccountRow component - updated for real member data (T031)
+ */
 export interface AccountRowProps {
-  account: RoleAccount;
+  /** Account address */
+  address: string;
+  /** Assignment date (optional - hide when unavailable per FR-013) */
+  assignedAt?: Date;
+  /** Whether this is the connected user (for "You" badge per FR-012) */
+  isCurrentUser: boolean;
+  /** Whether to show Owner-specific actions */
   isOwnerRole: boolean;
-  onAction?: () => void;
+  /** Revoke action handler (non-owner roles) */
+  onRevoke?: () => void;
+  /** Transfer ownership handler (owner role only) */
+  onTransferOwnership?: () => void;
+  /** Additional CSS classes */
   className?: string;
 }
 
-export function AccountRow({ account, isOwnerRole, onAction, className }: AccountRowProps) {
+/**
+ * AccountRow - Single account in the assigned accounts list
+ *
+ * Implements:
+ * - T032: "You" badge detection using case-insensitive address comparison
+ * - T033: Assignment date display/hide logic (hide when unavailable)
+ */
+export function AccountRow({
+  address,
+  assignedAt,
+  isCurrentUser,
+  isOwnerRole,
+  onRevoke,
+  onTransferOwnership,
+  className,
+}: AccountRowProps) {
   return (
     <div className={cn('p-3 flex items-center justify-between hover:bg-muted/50', className)}>
       <div className="flex items-center gap-2">
         <AddressDisplay
-          address={account.address}
+          address={address}
           truncate={true}
           startChars={10}
           endChars={8}
           showCopyButton={true}
         />
-        {account.isCurrentUser && (
-          <span className="text-xs bg-blue-50 text-blue-700 border border-blue-300 rounded-full px-2 py-0.5">
+        {/* T032: "You" badge - shown when isCurrentUser is true */}
+        {isCurrentUser && (
+          <span
+            className="text-xs bg-blue-50 text-blue-700 border border-blue-300 rounded-full px-2 py-0.5"
+            aria-label="This is your account"
+          >
             You
           </span>
         )}
@@ -40,12 +76,19 @@ export function AccountRow({ account, isOwnerRole, onAction, className }: Accoun
       <div className="flex items-center gap-2">
         {!isOwnerRole ? (
           <>
-            {account.assignedAt && (
+            {/* T033: Only show assignment date when available */}
+            {assignedAt && (
               <span className="text-xs text-muted-foreground">
-                {formatDate(account.assignedAt)}
+                {formatDate(assignedAt instanceof Date ? assignedAt.toISOString() : assignedAt)}
               </span>
             )}
-            <Button size="sm" variant="outline" onClick={onAction} className="h-7 px-2 text-xs">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={onRevoke}
+              className="h-7 px-2 text-xs"
+              disabled={!onRevoke}
+            >
               <Trash2 className="h-3 w-3 mr-1" />
               Revoke
             </Button>
@@ -54,8 +97,9 @@ export function AccountRow({ account, isOwnerRole, onAction, className }: Accoun
           <Button
             size="sm"
             variant="outline"
-            onClick={onAction}
+            onClick={onTransferOwnership}
             className="h-7 px-3 text-xs border-blue-600 text-blue-700 hover:bg-blue-50"
+            disabled={!onTransferOwnership}
           >
             <Crown className="h-3 w-3 mr-1" />
             Transfer Ownership
