@@ -3,7 +3,7 @@
  * Feature: 010-authorized-accounts-page
  *
  * Loading skeleton UI for the Authorized Accounts page.
- * Displays a skeleton matching the filter bar + table layout.
+ * Displays a skeleton matching the unified card layout with filter bar + table.
  *
  * Loading Skeleton Requirements (from spec):
  * - Matches table structure: header row + 4 data row skeletons
@@ -17,26 +17,6 @@ import { cn } from '@openzeppelin/ui-builder-utils';
 
 import type { AccountsLoadingSkeletonProps } from '../../types/authorized-accounts';
 import { Skeleton } from '../Shared/Skeleton';
-
-/**
- * Filter bar skeleton component
- */
-function FilterBarSkeleton() {
-  return (
-    <Card className="shadow-none">
-      <div className="flex flex-col sm:flex-row gap-4 p-4">
-        {/* Search input skeleton */}
-        <Skeleton className="h-10 flex-1 max-w-sm" />
-
-        {/* Dropdown filters skeleton */}
-        <div className="flex gap-2">
-          <Skeleton className="h-10 w-32" />
-          <Skeleton className="h-10 w-32" />
-        </div>
-      </div>
-    </Card>
-  );
-}
 
 /**
  * Single table row skeleton
@@ -73,43 +53,62 @@ function TableRowSkeleton() {
       </td>
       {/* Actions */}
       <td className="p-4">
-        <Skeleton className="h-8 w-8" />
+        <Skeleton className="h-8 w-8 rounded" />
       </td>
     </tr>
   );
 }
 
 /**
- * Table skeleton with header and rows
+ * AccountsLoadingSkeleton - Loading state for Authorized Accounts page
+ *
+ * Displays a unified card with filter bar skeleton + table skeleton.
  */
-function TableSkeleton({ rowCount }: { rowCount: number }) {
+export function AccountsLoadingSkeleton({ rowCount = 4, className }: AccountsLoadingSkeletonProps) {
   return (
-    <Card className="shadow-none overflow-hidden">
+    <Card
+      className={cn('p-0 shadow-none overflow-hidden', className)}
+      aria-busy="true"
+      aria-label="Loading authorized accounts"
+    >
+      {/* Filter bar skeleton */}
+      <div className="flex flex-col sm:flex-row gap-4 p-4">
+        {/* Search input skeleton */}
+        <Skeleton className="h-10 flex-1 max-w-sm" />
+
+        {/* Dropdown filters skeleton */}
+        <div className="flex gap-2 sm:ml-auto">
+          <Skeleton className="h-10 w-32" />
+          <Skeleton className="h-10 w-32" />
+        </div>
+      </div>
+
+      {/* Table skeleton */}
       <div className="overflow-x-auto">
         <table className="w-full">
           {/* Table header */}
           <thead className="border-b bg-muted/50">
             <tr>
-              <th className="p-4 text-left">
+              <th className="p-4 text-left w-12">
                 <Skeleton className="h-4 w-4" />
               </th>
               <th className="p-4 text-left">
                 <Skeleton className="h-4 w-16" />
               </th>
-              <th className="p-4 text-left">
+              <th className="p-4 text-left w-24">
                 <Skeleton className="h-4 w-12" />
               </th>
-              <th className="p-4 text-left">
+              <th className="p-4 text-left w-32">
                 <Skeleton className="h-4 w-20" />
               </th>
-              <th className="p-4 text-left">
+              <th className="p-4 text-left w-32">
                 <Skeleton className="h-4 w-16" />
               </th>
-              <th className="p-4 text-left">
+              <th className="p-4 text-left w-48">
                 <Skeleton className="h-4 w-12" />
               </th>
-              <th className="p-4 text-left">
-                <Skeleton className="h-4 w-16" />
+              <th className="p-4 text-left w-16">
+                <Skeleton className="h-4 w-14" />
               </th>
             </tr>
           </thead>
@@ -122,26 +121,5 @@ function TableSkeleton({ rowCount }: { rowCount: number }) {
         </table>
       </div>
     </Card>
-  );
-}
-
-/**
- * AccountsLoadingSkeleton - Loading state for Authorized Accounts page
- *
- * Displays skeleton placeholders matching the filter bar + table layout.
- */
-export function AccountsLoadingSkeleton({ rowCount = 4, className }: AccountsLoadingSkeletonProps) {
-  return (
-    <div
-      className={cn('space-y-4', className)}
-      aria-busy="true"
-      aria-label="Loading authorized accounts"
-    >
-      {/* Filter bar skeleton */}
-      <FilterBarSkeleton />
-
-      {/* Table skeleton */}
-      <TableSkeleton rowCount={rowCount} />
-    </div>
   );
 }

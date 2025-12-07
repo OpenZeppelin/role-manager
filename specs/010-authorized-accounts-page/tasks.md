@@ -78,10 +78,10 @@
 
 ### Implementation for User Story 2
 
-- [ ] T010 [P] [US2] Create StatusBadge component in `apps/role-manager/src/components/AuthorizedAccounts/StatusBadge.tsx` with colored backgrounds (green/red/yellow) per spec Badge Styling requirements
-- [ ] T011 [P] [US2] Create RoleBadge component in `apps/role-manager/src/components/AuthorizedAccounts/RoleBadge.tsx` with gray outline styling per spec Badge Styling requirements
-- [ ] T012 [P] [US2] Create AccountActionsMenu component in `apps/role-manager/src/components/AuthorizedAccounts/AccountActionsMenu.tsx` using DropdownMenu with Edit Roles, Revoke Access, View Details items per FR-009
-- [ ] T013 [US2] Create AccountRow component in `apps/role-manager/src/components/AuthorizedAccounts/AccountRow.tsx` with:
+- [x] T010 [P] [US2] Create StatusBadge component in `apps/role-manager/src/components/AuthorizedAccounts/StatusBadge.tsx` with colored backgrounds (green/red/yellow) per spec Badge Styling requirements
+- [x] T011 [P] [US2] Create RoleBadge component in `apps/role-manager/src/components/AuthorizedAccounts/RoleBadge.tsx` with gray outline styling per spec Badge Styling requirements
+- [x] T012 [P] [US2] Create AccountActionsMenu component in `apps/role-manager/src/components/AuthorizedAccounts/AccountActionsMenu.tsx` using DropdownMenu with Edit Roles, Revoke Access, View Details items per FR-009
+- [x] T013 [US2] Create AccountRow component in `apps/role-manager/src/components/AuthorizedAccounts/AccountRow.tsx` with:
   - Checkbox (using Radix Checkbox)
   - Truncated address display (0x1234...5678)
   - StatusBadge
@@ -89,19 +89,19 @@
   - Multiple RoleBadges
   - AccountActionsMenu
   - Hover/focus states per spec Interaction States
-- [ ] T014 [US2] Create AccountsTable component in `apps/role-manager/src/components/AuthorizedAccounts/AccountsTable.tsx` with:
+- [x] T014 [US2] Create AccountsTable component in `apps/role-manager/src/components/AuthorizedAccounts/AccountsTable.tsx` with:
   - HTML table with semantic structure
   - Header row with master checkbox (indeterminate support)
   - Column headers: Address, Status, Date Added, Expires, Roles, Actions
   - Map accounts to AccountRow components
   - Card container wrapper
-- [ ] T015 [US2] Add selection state management to AuthorizedAccounts page:
+- [x] T015 [US2] Add selection state management to AuthorizedAccounts page:
   - useState<Set<string>> for selectedIds
   - Selection change handlers (toggle row, toggle all)
   - getMasterCheckboxState helper usage
   - `logger.info` for action callbacks (from `@openzeppelin/ui-builder-utils`)
-- [ ] T016 [US2] Update page to conditionally render AccountsTable when mock accounts exist (add demo toggle between empty/populated)
-- [ ] T017 [US2] Export StatusBadge, RoleBadge, AccountActionsMenu, AccountRow, AccountsTable from `apps/role-manager/src/components/AuthorizedAccounts/index.ts`
+- [x] T016 [US2] Update page to conditionally render AccountsTable when mock accounts exist (add demo toggle between empty/populated)
+- [x] T017 [US2] Export StatusBadge, RoleBadge, AccountActionsMenu, AccountRow, AccountsTable from `apps/role-manager/src/components/AuthorizedAccounts/index.ts`
 
 **Checkpoint**: User Story 2 complete - table displays with all columns, selection works, actions log via logger
 

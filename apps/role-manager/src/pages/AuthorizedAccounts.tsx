@@ -11,30 +11,59 @@
  * - Filter bar UI shell (non-functional)
  * - Conditional render: loading skeleton vs empty state
  * - logger.info handlers for button clicks
+ *
+ * User Story 2 (Phase 4):
+ * - Selection state management with useState<Set<string>>
+ * - AccountsTable component with selection and actions
+ * - Demo toggle: empty vs populated vs loading states
+ * - logger.info handlers for all actions
  */
 
 import { Plus, Users } from 'lucide-react';
 import { useState } from 'react';
 
-import { Button } from '@openzeppelin/ui-builder-ui';
+import { Button, Card } from '@openzeppelin/ui-builder-ui';
 import { logger } from '@openzeppelin/ui-builder-utils';
 
-import { AccountsLoadingSkeleton } from '../components/AuthorizedAccounts';
+import {
+  AccountsFilterBar,
+  AccountsLoadingSkeleton,
+  AccountsTable,
+  DEFAULT_FILTER_STATE,
+  MOCK_ACCOUNTS,
+  MOCK_AVAILABLE_ROLES,
+  type AccountAction,
+  type AccountsFilterState,
+} from '../components/AuthorizedAccounts';
 import { PageEmptyState } from '../components/Shared/PageEmptyState';
 import { PageHeader } from '../components/Shared/PageHeader';
 
 /**
+ * Demo view states for showcasing different UI states
+ */
+type DemoViewState = 'empty' | 'populated' | 'loading';
+
+/**
  * AuthorizedAccounts - Main page component
  *
- * Phase 3 implementation (User Story 1):
+ * Phase 4 implementation (User Story 2):
  * - Shows page header with contract info
- * - Toggleable loading state for demo purposes
- * - Filter bar as disabled UI shell
- * - Empty state when no accounts exist
+ * - Demo toggle: switch between empty, populated, and loading states
+ * - Selection state management for table rows
+ * - Action handlers logging via logger
  */
 export function AuthorizedAccounts() {
-  // Demo toggle: switch between loading and empty states
-  const [isLoading, setIsLoading] = useState(false);
+  // Demo toggle: switch between different view states
+  const [demoView, setDemoView] = useState<DemoViewState>('populated');
+
+  // Selection state for table rows (Phase 4)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // Filter state (prepared for Phase 5)
+  const [filters, setFilters] = useState<AccountsFilterState>(DEFAULT_FILTER_STATE);
+
+  // Derive displayed accounts based on demo view
+  const accounts = demoView === 'populated' ? MOCK_ACCOUNTS : [];
 
   // Header button handler
   const handleAddAccountOrRole = () => {
@@ -46,10 +75,51 @@ export function AuthorizedAccounts() {
     logger.info('AuthorizedAccounts', 'Grant First Authorization clicked');
   };
 
-  // Demo: Toggle loading state
-  const handleToggleLoading = () => {
-    setIsLoading((prev) => !prev);
-    logger.info('AuthorizedAccounts', `Loading state toggled to: ${!isLoading}`);
+  // Selection change handler (Phase 4)
+  const handleSelectionChange = (newSelectedIds: Set<string>) => {
+    setSelectedIds(newSelectedIds);
+    logger.info('AuthorizedAccounts', `Selection changed: ${newSelectedIds.size} items selected`, {
+      selectedIds: Array.from(newSelectedIds),
+    });
+  };
+
+  // Action handler for table row actions (Phase 4)
+  const handleAction = (accountId: string, action: AccountAction) => {
+    const account = accounts.find((a) => a.id === accountId);
+    logger.info('AuthorizedAccounts', `Action "${action}" triggered for account`, {
+      accountId,
+      address: account?.address,
+      action,
+    });
+  };
+
+  // Filter change handler (prepared for Phase 5)
+  const handleFiltersChange = (newFilters: AccountsFilterState) => {
+    setFilters(newFilters);
+    logger.info('AuthorizedAccounts', 'Filters changed', { filters: newFilters });
+  };
+
+  // Demo: Cycle through view states
+  const handleCycleView = () => {
+    const states: DemoViewState[] = ['empty', 'populated', 'loading'];
+    const currentIndex = states.indexOf(demoView);
+    const nextState = states[(currentIndex + 1) % states.length];
+    setDemoView(nextState);
+    // Clear selection when changing views
+    setSelectedIds(new Set());
+    logger.info('AuthorizedAccounts', `Demo view changed to: ${nextState}`);
+  };
+
+  // Get demo button label
+  const getDemoButtonLabel = () => {
+    switch (demoView) {
+      case 'empty':
+        return 'View: Empty → Populated';
+      case 'populated':
+        return 'View: Populated → Loading';
+      case 'loading':
+        return 'View: Loading → Empty';
+    }
   };
 
   return (
@@ -66,8 +136,8 @@ export function AuthorizedAccounts() {
         actions={
           <div className="flex gap-2">
             {/* Demo toggle button (for development only) */}
-            <Button variant="outline" size="sm" onClick={handleToggleLoading}>
-              {isLoading ? 'Show Empty' : 'Show Loading'}
+            <Button variant="outline" size="sm" onClick={handleCycleView}>
+              {getDemoButtonLabel()}
             </Button>
             {/* Primary action button */}
             <Button onClick={handleAddAccountOrRole}>
@@ -78,18 +148,40 @@ export function AuthorizedAccounts() {
         }
       />
 
-      {/* Conditional Content: Loading vs Empty State */}
-      {isLoading ? (
+      {/* Conditional Content based on demo view */}
+      {demoView === 'loading' ? (
+        // Loading skeleton
         <AccountsLoadingSkeleton />
       ) : (
-        /* Empty state - filter bar hidden when no accounts exist */
-        <PageEmptyState
-          title="No accounts found"
-          description="No accounts have been authorized yet. Grant authorization to an account to get started."
-          icon={Users}
-          actionLabel="Grant First Authorization"
-          onAction={handleGrantAuthorization}
-        />
+        // Unified card with filter bar + table
+        <Card className="p-0 shadow-none overflow-hidden">
+          {/* Filter Bar (disabled in Phase 4, enabled in Phase 5) */}
+          <AccountsFilterBar
+            filters={filters}
+            availableRoles={MOCK_AVAILABLE_ROLES}
+            onFiltersChange={handleFiltersChange}
+            disabled={true}
+          />
+
+          {/* Accounts Table with selection (shows empty state when no accounts) */}
+          <AccountsTable
+            accounts={accounts}
+            selectedIds={selectedIds}
+            onSelectionChange={handleSelectionChange}
+            onAction={handleAction}
+            emptyState={
+              <div className="py-16 px-4">
+                <PageEmptyState
+                  title="No accounts found"
+                  description="No accounts have been authorized yet. Grant authorization to an account to get started."
+                  icon={Users}
+                  actionLabel="Grant First Authorization"
+                  onAction={handleGrantAuthorization}
+                />
+              </div>
+            }
+          />
+        </Card>
       )}
     </div>
   );

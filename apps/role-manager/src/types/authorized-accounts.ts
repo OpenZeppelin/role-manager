@@ -184,28 +184,6 @@ export interface AccountsFilterBarProps {
 }
 
 /**
- * Props for StatusBadge component
- */
-export interface StatusBadgeProps {
-  /** Status to display */
-  status: AccountStatus;
-
-  /** Additional CSS classes */
-  className?: string;
-}
-
-/**
- * Props for RoleBadge component
- */
-export interface RoleBadgeProps {
-  /** Role name to display */
-  role: string;
-
-  /** Additional CSS classes */
-  className?: string;
-}
-
-/**
  * Props for AccountActionsMenu component
  */
 export interface AccountActionsMenuProps {

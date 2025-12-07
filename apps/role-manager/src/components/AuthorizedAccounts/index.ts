@@ -14,6 +14,18 @@ export { AccountsFilterBar } from './AccountsFilterBar';
 export { AccountsLoadingSkeleton } from './AccountsLoadingSkeleton';
 
 // =============================================================================
+// Components (Phase 4 - User Story 2)
+// =============================================================================
+
+export { AccountActionsMenu } from './AccountActionsMenu';
+export { AccountRow } from './AccountRow';
+export { AccountsTable } from './AccountsTable';
+
+// Re-export badge components from Shared for convenience
+export { OutlineBadge } from '../Shared/OutlineBadge';
+export { StatusBadge } from '../Shared/StatusBadge';
+
+// =============================================================================
 // Mock Data (for development/demo)
 // =============================================================================
 
@@ -34,10 +46,12 @@ export type {
   AccountStatus,
   AuthorizedAccount,
   MasterCheckboxState,
-  RoleBadgeProps,
   SelectionState,
-  StatusBadgeProps,
 } from '../../types/authorized-accounts';
+
+// Re-export badge types from Shared
+export type { OutlineBadgeProps } from '../Shared/OutlineBadge';
+export type { StatusBadgeProps, StatusBadgeVariant } from '../Shared/StatusBadge';
 
 export {
   ACCOUNT_ACTIONS,
