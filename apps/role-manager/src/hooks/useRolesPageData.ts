@@ -20,8 +20,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { AccessControlCapabilities } from '@openzeppelin/ui-builder-types';
+import { truncateMiddle } from '@openzeppelin/ui-builder-utils';
 
 import type { RoleIdentifier, RoleWithDescription } from '../types/roles';
+import { isHash } from '../utils/hash';
 import { useContractCapabilities } from './useContractCapabilities';
 import { useContractOwnership, useContractRoles } from './useContractData';
 import { useCustomRoleDescriptions } from './useCustomRoleDescriptions';
@@ -106,6 +108,31 @@ function capitalizeRoleName(name: string): string {
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(' ')
   );
+}
+
+/**
+ * Get human-readable role name from adapter data.
+ * Falls back to role ID hash (truncated) when no readable name is available.
+ *
+ * Per US4.3: "the role ID hash is shown as a fallback"
+ *
+ * @param label Optional human-readable label from adapter
+ * @param roleId Role identifier (may be hash or constant string)
+ * @returns Human-readable name or truncated hash fallback
+ */
+function getRoleName(label: string | undefined, roleId: string): string {
+  // If adapter provides a label, use it (capitalized)
+  if (label && !isHash(label)) {
+    return capitalizeRoleName(label);
+  }
+
+  // If roleId is a readable identifier (not a hash), capitalize it
+  if (!isHash(roleId)) {
+    return capitalizeRoleName(roleId);
+  }
+
+  // Fallback: roleId is a hash, display truncated version using shared utility
+  return truncateMiddle(roleId, 6, 4);
 }
 
 // =============================================================================
@@ -214,11 +241,12 @@ export function useRolesPageData(): UseRolesPageDataReturn {
 
   // Transform adapter roles with description priority resolution (T022)
   // Note: RoleAssignment from adapter has { role: { id, label? }, members: string[] }
+  // T046: Implements fallback to role ID hash when name unavailable (US4.3)
   const transformedRoles = useMemo((): RoleWithDescription[] => {
     return adapterRoles.map((assignment) => {
       const roleId = assignment.role.id;
-      const rawName = assignment.role.label ?? assignment.role.id;
-      const roleName = capitalizeRoleName(rawName);
+      // T046: Use getRoleName for proper hash fallback handling
+      const roleName = getRoleName(assignment.role.label, roleId);
       const customDescription = customDescriptions[roleId];
       // Adapter doesn't provide description field, so use custom or null
       const resolvedDescription = customDescription ?? null;

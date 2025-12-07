@@ -112,12 +112,12 @@
 
 ### Implementation
 
-- [ ] T044 [US4] Add `roleIdentifiers` computation to `useRolesPageData` hook
-- [ ] T045 [US4] Update `RoleIdentifiersTable` props in `components/Roles/RoleIdentifiersTable.tsx`
-- [ ] T046 [US4] Implement fallback to role ID hash when name unavailable
-- [ ] T047 [US4] Wire identifiers table in `Roles.tsx` to real data
+- [x] T044 [US4] Add `roleIdentifiers` computation to `useRolesPageData` hook
+- [x] T045 [US4] Update `RoleIdentifiersTable` props in `components/Roles/RoleIdentifiersTable.tsx`
+- [x] T046 [US4] Implement fallback to role ID hash when name unavailable
+- [x] T047 [US4] Wire identifiers table in `Roles.tsx` to real data
 
-**Checkpoint**: Role identifiers table populated with real contract data
+**Checkpoint**: Role identifiers table populated with real contract data ✅
 
 ---
 
