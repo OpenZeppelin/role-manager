@@ -17,6 +17,11 @@
  * - AccountsTable component with selection and actions
  * - Demo toggle: empty vs populated vs loading states
  * - logger.info handlers for all actions
+ *
+ * User Story 3 (Phase 5):
+ * - Filter state management with useState<AccountsFilterState>
+ * - AccountsFilterBar fully functional (search, status dropdown, roles dropdown)
+ * - Filter interactions log changes via logger.info
  */
 
 import { Plus, Users } from 'lucide-react';
@@ -46,11 +51,12 @@ type DemoViewState = 'empty' | 'populated' | 'loading';
 /**
  * AuthorizedAccounts - Main page component
  *
- * Phase 4 implementation (User Story 2):
+ * Phase 5 implementation (User Story 3):
  * - Shows page header with contract info
  * - Demo toggle: switch between empty, populated, and loading states
  * - Selection state management for table rows
- * - Action handlers logging via logger
+ * - Filter state management with fully functional filter bar
+ * - All interactions (actions, selections, filters) log via logger
  */
 export function AuthorizedAccounts() {
   // Demo toggle: switch between different view states
@@ -59,7 +65,7 @@ export function AuthorizedAccounts() {
   // Selection state for table rows (Phase 4)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  // Filter state (prepared for Phase 5)
+  // Filter state (Phase 5 - User Story 3)
   const [filters, setFilters] = useState<AccountsFilterState>(DEFAULT_FILTER_STATE);
 
   // Derive displayed accounts based on demo view
@@ -93,7 +99,7 @@ export function AuthorizedAccounts() {
     });
   };
 
-  // Filter change handler (prepared for Phase 5)
+  // Filter change handler (Phase 5 - User Story 3)
   const handleFiltersChange = (newFilters: AccountsFilterState) => {
     setFilters(newFilters);
     logger.info('AuthorizedAccounts', 'Filters changed', { filters: newFilters });
@@ -155,12 +161,11 @@ export function AuthorizedAccounts() {
       ) : (
         // Unified card with filter bar + table
         <Card className="p-0 shadow-none overflow-hidden">
-          {/* Filter Bar (disabled in Phase 4, enabled in Phase 5) */}
+          {/* Filter Bar (Phase 5 - fully functional) */}
           <AccountsFilterBar
             filters={filters}
             availableRoles={MOCK_AVAILABLE_ROLES}
             onFiltersChange={handleFiltersChange}
-            disabled={true}
           />
 
           {/* Accounts Table with selection (shows empty state when no accounts) */}

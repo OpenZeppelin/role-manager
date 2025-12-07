@@ -115,17 +115,17 @@
 
 ### Implementation for User Story 3
 
-- [ ] T018 [US3] Update AccountsFilterBar component in `apps/role-manager/src/components/AuthorizedAccounts/AccountsFilterBar.tsx` to be fully functional:
+- [x] T018 [US3] Update AccountsFilterBar component in `apps/role-manager/src/components/AuthorizedAccounts/AccountsFilterBar.tsx` to be fully functional:
   - Enable search input with placeholder "Search by address or ENS..."
   - Enable Status dropdown with All Status, Active, Expired, Pending options
   - Enable Roles dropdown with All Roles + availableRoles from props
   - Controlled component pattern with filters prop and onFiltersChange callback
-- [ ] T019 [US3] Add filter state management to AuthorizedAccounts page:
+- [x] T019 [US3] Add filter state management to AuthorizedAccounts page:
   - useState<AccountsFilterState> with DEFAULT_FILTER_STATE
   - Filter change handler that logs changes via `logger.info` (from `@openzeppelin/ui-builder-utils`)
   - Pass MOCK_AVAILABLE_ROLES to AccountsFilterBar
-- [ ] T020 [US3] Wire AccountsFilterBar functionality into page (connect state to component, enable interactions)
-- [ ] T021 [US3] Verify AccountsFilterBar export is already in index.ts (added in T009)
+- [x] T020 [US3] Wire AccountsFilterBar functionality into page (connect state to component, enable interactions)
+- [x] T021 [US3] Verify AccountsFilterBar export is already in index.ts (added in T009)
 
 **Checkpoint**: User Story 3 complete - filter bar renders, interactions log via logger
 
