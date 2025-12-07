@@ -82,6 +82,33 @@ const OWNER_ROLE_NAME = 'Owner';
 const OWNER_ROLE_DESCRIPTION = 'Contract owner with full administrative privileges';
 
 // =============================================================================
+// Utilities
+// =============================================================================
+
+/**
+ * Capitalize each word in a role name for display.
+ * Handles snake_case, camelCase, and space-separated names.
+ *
+ * @example
+ * capitalizeRoleName('admin') // 'Admin'
+ * capitalizeRoleName('ADMIN_ROLE') // 'Admin Role'
+ * capitalizeRoleName('minterRole') // 'Minter Role'
+ */
+function capitalizeRoleName(name: string): string {
+  return (
+    name
+      // Insert space before uppercase letters (camelCase)
+      .replace(/([a-z])([A-Z])/g, '$1 $2')
+      // Replace underscores with spaces
+      .replace(/_/g, ' ')
+      // Capitalize first letter of each word, lowercase the rest
+      .split(' ')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ')
+  );
+}
+
+// =============================================================================
 // Hook Implementation
 // =============================================================================
 
@@ -190,7 +217,8 @@ export function useRolesPageData(): UseRolesPageDataReturn {
   const transformedRoles = useMemo((): RoleWithDescription[] => {
     return adapterRoles.map((assignment) => {
       const roleId = assignment.role.id;
-      const roleName = assignment.role.label ?? assignment.role.id;
+      const rawName = assignment.role.label ?? assignment.role.id;
+      const roleName = capitalizeRoleName(rawName);
       const customDescription = customDescriptions[roleId];
       // Adapter doesn't provide description field, so use custom or null
       const resolvedDescription = customDescription ?? null;
