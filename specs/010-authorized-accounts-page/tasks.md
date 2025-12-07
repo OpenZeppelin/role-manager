@@ -26,8 +26,8 @@
 
 **Purpose**: Create project structure and type definitions
 
-- [ ] T001 Create `components/AuthorizedAccounts/` directory structure in `apps/role-manager/src/components/`
-- [ ] T002 [P] Create type definitions file in `apps/role-manager/src/types/authorized-accounts.ts` with AuthorizedAccount, AccountStatus, AccountsFilterState, SelectionState, and all component props interfaces per data-model.md
+- [x] T001 Create `components/AuthorizedAccounts/` directory structure in `apps/role-manager/src/components/`
+- [x] T002 [P] Create type definitions file in `apps/role-manager/src/types/authorized-accounts.ts` with AuthorizedAccount, AccountStatus, AccountsFilterState, SelectionState, and all component props interfaces per data-model.md
 
 ---
 
@@ -37,8 +37,8 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T003 Create mock data file with MOCK_ACCOUNTS and MOCK_AVAILABLE_ROLES in `apps/role-manager/src/components/AuthorizedAccounts/mockData.ts` per data-model.md
-- [ ] T004 Create barrel exports file in `apps/role-manager/src/components/AuthorizedAccounts/index.ts` (initially empty, will add exports as components are created)
+- [x] T003 Create mock data file with MOCK_ACCOUNTS and MOCK_AVAILABLE_ROLES in `apps/role-manager/src/components/AuthorizedAccounts/mockData.ts` per data-model.md
+- [x] T004 Create barrel exports file in `apps/role-manager/src/components/AuthorizedAccounts/index.ts` (initially empty, will add exports as components are created)
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
 
@@ -52,19 +52,19 @@
 
 ### Implementation for User Story 1
 
-- [ ] T005 [P] [US1] Create AccountsEmptyState component in `apps/role-manager/src/components/AuthorizedAccounts/AccountsEmptyState.tsx` using shared EmptyState, Users icon, and "Grant First Authorization" CTA per spec Visual Design Requirements
-- [ ] T006 [P] [US1] Create AccountsLoadingSkeleton component in `apps/role-manager/src/components/AuthorizedAccounts/AccountsLoadingSkeleton.tsx` with table structure skeleton (header + 4 rows) per spec Loading Skeleton requirements
-- [ ] T007 [P] [US1] Create AccountsFilterBar UI shell in `apps/role-manager/src/components/AuthorizedAccounts/AccountsFilterBar.tsx` with:
+- [x] T005 [P] [US1] Create AccountsEmptyState component in `apps/role-manager/src/components/AuthorizedAccounts/AccountsEmptyState.tsx` using shared EmptyState, Users icon, and "Grant First Authorization" CTA per spec Visual Design Requirements
+- [x] T006 [P] [US1] Create AccountsLoadingSkeleton component in `apps/role-manager/src/components/AuthorizedAccounts/AccountsLoadingSkeleton.tsx` with table structure skeleton (header + 4 rows) per spec Loading Skeleton requirements
+- [x] T007 [P] [US1] Create AccountsFilterBar UI shell in `apps/role-manager/src/components/AuthorizedAccounts/AccountsFilterBar.tsx` with:
   - Search input (disabled/placeholder) with magnifying glass icon
   - Status and Roles dropdowns (disabled/placeholder)
   - Visual layout matching spec (functionality wired in US3)
-- [ ] T008 [US1] Update AuthorizedAccounts page in `apps/role-manager/src/pages/AuthorizedAccounts.tsx` with:
+- [x] T008 [US1] Update AuthorizedAccounts page in `apps/role-manager/src/pages/AuthorizedAccounts.tsx` with:
   - PageHeader with title, dynamic subtitle (contract/network), "Add Account or Role" button
   - Loading state toggle for demo (useState)
   - Filter bar UI shell (non-functional)
   - Conditional render: loading skeleton vs empty state
   - `logger.info` handlers for button clicks (from `@openzeppelin/ui-builder-utils`)
-- [ ] T009 [US1] Export AccountsEmptyState, AccountsLoadingSkeleton, AccountsFilterBar from `apps/role-manager/src/components/AuthorizedAccounts/index.ts`
+- [x] T009 [US1] Export AccountsEmptyState, AccountsLoadingSkeleton, AccountsFilterBar from `apps/role-manager/src/components/AuthorizedAccounts/index.ts`
 
 **Checkpoint**: User Story 1 complete - page shows header, filter placeholder, and empty state
 
