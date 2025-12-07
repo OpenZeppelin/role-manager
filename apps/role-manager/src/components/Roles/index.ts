@@ -25,8 +25,11 @@ export { RolesEmptyState } from './RolesEmptyState';
 export { RolesErrorState } from './RolesErrorState';
 export { RolesLoadingSkeleton } from './RolesLoadingSkeleton';
 
-// TODO: Export when implemented (Phase 6)
-// export { EditableDescription } from './EditableDescription';
+// =============================================================================
+// Dialog Components (spec 009 - Phase 6)
+// =============================================================================
+
+export { EditRoleDialog } from './EditRoleDialog';
 
 // =============================================================================
 // Component Props Types
@@ -40,6 +43,7 @@ export type { RolesEmptyStateProps } from './RolesEmptyState';
 export type { RolesErrorStateProps } from './RolesErrorState';
 export type { RolesListProps } from './RolesList';
 export type { RolesLoadingSkeletonProps } from './RolesLoadingSkeleton';
+export type { EditRoleDialogProps } from './EditRoleDialog';
 
 // =============================================================================
 // Mock Data (DEPRECATED - for testing only)

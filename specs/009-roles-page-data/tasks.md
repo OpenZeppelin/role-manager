@@ -141,28 +141,28 @@
 
 ## Phase 6: User Story 6 - Edit Role Description (Priority: P2)
 
-**Goal**: Enable inline editing of role descriptions with local storage persistence
+**Goal**: Enable editing of role descriptions via dialog with local storage persistence
 
-**Independent Test**: Click description placeholder, enter text, press Enter, reload page, verify description persists. Press Escape, verify changes discarded.
+**Independent Test**: Click Edit button on role details, modify description in dialog, click Save, reload page, verify description persists. Click Cancel, verify changes discarded.
 
-### EditableDescription Component
+### EditRoleDialog Component
 
-- [ ] T053 [P] [US6] Create `EditableDescription` component in `components/Roles/EditableDescription.tsx`
-- [ ] T054 [US6] Implement click-to-edit activation
-- [ ] T055 [US6] Implement inline text input with pre-filled value
-- [ ] T056 [US6] Implement Enter/blur to save
-- [ ] T057 [US6] Implement Escape to cancel
-- [ ] T058 [US6] Implement 256-character validation with error display
-- [ ] T059 [US6] Export `EditableDescription` from `components/Roles/index.ts`
+- [x] T053 [P] [US6] Create `EditRoleDialog` component in `components/Roles/EditRoleDialog.tsx`
+- [x] T054 [US6] Implement dialog with description input field
+- [x] T055 [US6] Implement pre-filled value from current description
+- [x] T056 [US6] Implement Save button to persist changes
+- [x] T057 [US6] Implement Cancel button to discard changes
+- [x] T058 [US6] Implement 256-character validation with error display
+- [x] T059 [US6] Export `EditRoleDialog` from `components/Roles/index.ts`
 
 ### Integration
 
-- [ ] T060 [US6] Add `onDescriptionChange` prop to `RoleDetails` component
-- [ ] T061 [US6] Integrate `EditableDescription` in `RoleDetails` for description display
-- [ ] T062 [US6] Wire description updates to `useRolesPageData.updateRoleDescription`
-- [ ] T063 [US6] Handle empty description save (clear custom, revert to adapter/placeholder)
+- [x] T060 [US6] Add `onEdit` prop to `RoleDetails` component (opens dialog)
+- [x] T061 [US6] Add Edit button in `RoleDetails` header
+- [x] T062 [US6] Wire dialog to `useRolesPageData.updateRoleDescription` in `Roles.tsx`
+- [x] T063 [US6] Handle empty description save (clear custom, revert to adapter/placeholder)
 
-**Checkpoint**: Inline description editing complete with persistence
+**Checkpoint**: Dialog-based description editing complete with persistence ✅
 
 ---
 

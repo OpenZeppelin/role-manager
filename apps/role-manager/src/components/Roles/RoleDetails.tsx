@@ -4,15 +4,16 @@
  *
  * Right panel showing selected role details:
  * - Role name with icon (Crown for Owner, Shield for others)
- * - Role description (with optional inline editing - Phase 6)
+ * - Role description (static display with Edit button)
  * - "Assigned Accounts (N)" header with "+ Assign" button (non-owner only)
  * - List of AccountRow components
  * - Empty state: "No accounts assigned to this role" (centered, py-8, text-muted)
  *
  * Updated in spec 009 (T034) to accept RoleWithDescription type.
+ * Phase 6: Edit button opens EditRoleDialog for description editing.
  */
 
-import { Crown, Plus } from 'lucide-react';
+import { Crown, Pencil, Plus } from 'lucide-react';
 
 import {
   Button,
@@ -48,8 +49,8 @@ export interface RoleDetailsProps {
   accounts: AccountData[];
   /** Whether connected user has this role */
   isConnected?: boolean;
-  /** Custom description update handler (Phase 6) */
-  onDescriptionChange?: (description: string) => Promise<void>;
+  /** Handler to open edit dialog (Phase 6) */
+  onEdit?: () => void;
   /** Assign action (placeholder for future) */
   onAssign?: () => void;
   /** Revoke action (placeholder for future) */
@@ -67,7 +68,7 @@ export function RoleDetails({
   role,
   accounts,
   isConnected,
-  onDescriptionChange: _onDescriptionChange, // TODO: Use in Phase 6 for inline editing
+  onEdit,
   onAssign,
   onRevoke,
   onTransferOwnership,
@@ -77,7 +78,7 @@ export function RoleDetails({
 
   return (
     <div className={cn(className)}>
-      <CardHeader>
+      <CardHeader className="pb-6">
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-2">
@@ -91,21 +92,24 @@ export function RoleDetails({
                 </span>
               )}
             </div>
+            {/* Description display */}
             <div className="mt-1">
               {role.description ? (
-                <CardDescription>
-                  {role.description}
-                  {role.isCustomDescription && (
-                    <span className="ml-1 text-xs text-muted-foreground/60">(custom)</span>
-                  )}
-                </CardDescription>
+                <CardDescription>{role.description}</CardDescription>
               ) : (
                 <CardDescription className="text-muted-foreground/60 italic">
-                  Click to add description
+                  No description
                 </CardDescription>
               )}
             </div>
           </div>
+          {/* Edit button */}
+          {onEdit && (
+            <Button variant="outline" size="sm" onClick={onEdit} aria-label="Edit role">
+              <Pencil className="h-4 w-4 mr-1" />
+              Edit
+            </Button>
+          )}
         </div>
       </CardHeader>
       <CardContent className="space-y-6">

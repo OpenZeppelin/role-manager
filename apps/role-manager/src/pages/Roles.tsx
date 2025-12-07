@@ -13,16 +13,19 @@
  * Phase 5 (T050-T052):
  * - Added refresh button with subtle loading indicator
  * - Contract switching handled via react-query key changes
+ *
+ * Phase 6: Edit role dialog for description editing
  */
 
 import { RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { Button, Card } from '@openzeppelin/ui-builder-ui';
 import { cn } from '@openzeppelin/ui-builder-utils';
 
 import {
+  EditRoleDialog,
   RoleDetails,
   RoleIdentifiersTable,
   RolesEmptyState,
@@ -33,7 +36,7 @@ import {
 } from '../components/Roles';
 import type { AccountData } from '../components/Roles/RoleDetails';
 import { PageHeader } from '../components/Shared/PageHeader';
-import { useRolesPageData } from '../hooks';
+import { useAllNetworks, useRolesPageData } from '../hooks';
 import { useSelectedContract } from '../hooks/useSelectedContract';
 
 export function Roles() {
@@ -50,15 +53,23 @@ export function Roles() {
     errorMessage,
     canRetry,
     refetch,
+    updateRoleDescription,
     connectedAddress,
     connectedRoleIds,
     roleIdentifiers,
   } = useRolesPageData();
 
+  // Phase 6: Edit dialog state
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
   // Get contract info for display
   const { selectedContract } = useSelectedContract();
   const contractLabel = selectedContract?.label || selectedContract?.address || 'Unknown Contract';
-  const networkId = selectedContract?.networkId || '';
+
+  // Get network name from networkId
+  const { networks } = useAllNetworks();
+  const network = networks.find((n) => n.id === selectedContract?.networkId);
+  const networkName = network?.name || '';
 
   // T050: Handle refresh with toast notification on error
   const handleRefresh = useCallback(async () => {
@@ -82,6 +93,25 @@ export function Roles() {
         : false,
     }));
   }, [selectedRole, connectedAddress]);
+
+  // Phase 6: Open edit dialog
+  const handleOpenEditDialog = useCallback(() => {
+    setIsEditDialogOpen(true);
+  }, []);
+
+  // Phase 6: Handle description save from dialog
+  const handleSaveDescription = useCallback(
+    async (roleId: string, description: string) => {
+      try {
+        await updateRoleDescription(roleId, description);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to save description';
+        toast.error(message);
+        throw error; // Re-throw to let dialog show the error
+      }
+    },
+    [updateRoleDescription]
+  );
 
   // T037: Loading state
   if (isLoading) {
@@ -112,10 +142,10 @@ export function Roles() {
         subtitle={
           <span>
             View and manage roles for <span className="font-semibold">{contractLabel}</span>
-            {networkId && (
+            {networkName && (
               <>
                 {' '}
-                on <span className="font-medium">{networkId}</span>
+                on <span className="font-medium">{networkName}</span>
               </>
             )}
           </span>
@@ -159,6 +189,7 @@ export function Roles() {
                 role={selectedRole}
                 accounts={selectedRoleAccounts}
                 isConnected={connectedRoleIds.includes(selectedRole.roleId)}
+                onEdit={handleOpenEditDialog}
                 onAssign={() => {
                   // Action placeholder for future mutations (spec 010)
                 }}
@@ -183,6 +214,14 @@ export function Roles() {
 
       {/* Security Notice */}
       <SecurityNotice />
+
+      {/* Phase 6: Edit Role Dialog */}
+      <EditRoleDialog
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        role={selectedRole}
+        onSaveDescription={handleSaveDescription}
+      />
     </div>
   );
 }
