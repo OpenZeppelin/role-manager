@@ -2,7 +2,19 @@
  * Mock data for the Roles Page Layout feature
  * Feature: 008-roles-page-layout
  *
- * This file provides static mock data for development and testing.
+ * @deprecated This file is deprecated as of spec 009-roles-page-data.
+ * The Roles page now uses useRolesPageData hook to fetch real data from
+ * the adapter. This mock data is retained only for backwards compatibility
+ * in existing tests. Use real data hooks instead:
+ *
+ * ```tsx
+ * import { useRolesPageData } from '@/hooks';
+ * const { roles, selectedRole, ... } = useRolesPageData();
+ * ```
+ *
+ * This file will be removed in a future version.
+ *
+ * Original purpose: Static mock data for development and testing.
  * All data structures match the interfaces defined in types/roles.ts.
  */
 

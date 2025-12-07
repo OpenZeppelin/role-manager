@@ -62,43 +62,43 @@
 
 ### Data Orchestration Hook (TDD)
 
-- [ ] T016 [P] [US1] Write tests for `useRolesPageData` hook in `hooks/__tests__/useRolesPageData.test.tsx`
-- [ ] T017 [US1] Create `useRolesPageData` hook in `hooks/useRolesPageData.ts`
-- [ ] T018 [US1] Implement capability detection integration (useContractCapabilities)
-- [ ] T019 [US1] Implement roles fetching integration (useContractRoles)
-- [ ] T020 [US1] Implement ownership fetching integration (useContractOwnership)
-- [ ] T021 [US1] Implement Owner role synthesis from OwnershipInfo
-- [ ] T022 [US1] Implement description priority resolution (custom > adapter > null)
-- [ ] T023 [US1] Implement role selection state management (default to first role)
-- [ ] T024 [US1] Export `useRolesPageData` from `hooks/index.ts`
+- [x] T016 [P] [US1] Write tests for `useRolesPageData` hook in `hooks/__tests__/useRolesPageData.test.tsx`
+- [x] T017 [US1] Create `useRolesPageData` hook in `hooks/useRolesPageData.ts`
+- [x] T018 [US1] Implement capability detection integration (useContractCapabilities)
+- [x] T019 [US1] Implement roles fetching integration (useContractRoles)
+- [x] T020 [US1] Implement ownership fetching integration (useContractOwnership)
+- [x] T021 [US1] Implement Owner role synthesis from OwnershipInfo
+- [x] T022 [US1] Implement description priority resolution (custom > adapter > null)
+- [x] T023 [US1] Implement role selection state management (default to first role)
+- [x] T024 [US1] Export `useRolesPageData` from `hooks/index.ts`
 
 ### UI State Components
 
-- [ ] T025 [P] [US3] Create `RolesLoadingSkeleton` component in `components/Roles/RolesLoadingSkeleton.tsx`
-- [ ] T026 [P] [US3] Create `RolesErrorState` component in `components/Roles/RolesErrorState.tsx`
-- [ ] T027 [P] [US3] Create `RolesEmptyState` component in `components/Roles/RolesEmptyState.tsx`
-- [ ] T028 [US3] Export new state components from `components/Roles/index.ts`
+- [x] T025 [P] [US3] Create `RolesLoadingSkeleton` component in `components/Roles/RolesLoadingSkeleton.tsx`
+- [x] T026 [P] [US3] Create `RolesErrorState` component in `components/Roles/RolesErrorState.tsx`
+- [x] T027 [P] [US3] Create `RolesEmptyState` component in `components/Roles/RolesEmptyState.tsx`
+- [x] T028 [US3] Export new state components from `components/Roles/index.ts`
 
 ### Component Updates for Real Data
 
-- [ ] T029 [P] [US1] Update `RoleCard` props to accept `RoleWithDescription` in `components/Roles/RoleCard.tsx`
-- [ ] T030 [P] [US1] Update `RolesList` props to accept real roles array in `components/Roles/RolesList.tsx`
-- [ ] T031 [P] [US2] Update `AccountRow` props for real member data in `components/Roles/AccountRow.tsx`
-- [ ] T032 [US2] Implement "You" badge detection in `AccountRow` (case-insensitive address comparison)
-- [ ] T033 [US2] Implement assignment date display/hide logic in `AccountRow`
-- [ ] T034 [P] [US1] Update `RoleDetails` props to accept `RoleWithDescription` in `components/Roles/RoleDetails.tsx`
+- [x] T029 [P] [US1] Update `RoleCard` props to accept `RoleWithDescription` in `components/Roles/RoleCard.tsx`
+- [x] T030 [P] [US1] Update `RolesList` props to accept real roles array in `components/Roles/RolesList.tsx`
+- [x] T031 [P] [US2] Update `AccountRow` props for real member data in `components/Roles/AccountRow.tsx`
+- [x] T032 [US2] Implement "You" badge detection in `AccountRow` (case-insensitive address comparison)
+- [x] T033 [US2] Implement assignment date display/hide logic in `AccountRow`
+- [x] T034 [P] [US1] Update `RoleDetails` props to accept `RoleWithDescription` in `components/Roles/RoleDetails.tsx`
 
 ### Page Integration
 
-- [ ] T035 [US1] Update `Roles.tsx` to use `useRolesPageData` hook in `pages/Roles.tsx`
-- [ ] T036 [US1] Replace mock data imports with real data from hook
-- [ ] T037 [US3] Add conditional rendering for loading skeleton state
-- [ ] T038 [US3] Add conditional rendering for error state with retry
-- [ ] T039 [US3] Add conditional rendering for empty state (unsupported contract)
-- [ ] T040 [US1] Wire role selection callbacks to hook's `setSelectedRoleId`
-- [ ] T041 [US1] Remove mock data exports from `components/Roles/mockData.ts` (deprecate file)
-- [ ] T042 [US3] Implement partial data handling (display roles if ownership fetch fails, per FR-022)
-- [ ] T043 [US1] Implement optimistic UI updates for description saves (per FR-018)
+- [x] T035 [US1] Update `Roles.tsx` to use `useRolesPageData` hook in `pages/Roles.tsx`
+- [x] T036 [US1] Replace mock data imports with real data from hook
+- [x] T037 [US3] Add conditional rendering for loading skeleton state
+- [x] T038 [US3] Add conditional rendering for error state with retry
+- [x] T039 [US3] Add conditional rendering for empty state (unsupported contract)
+- [x] T040 [US1] Wire role selection callbacks to hook's `setSelectedRoleId`
+- [x] T041 [US1] Remove mock data exports from `components/Roles/mockData.ts` (deprecate file)
+- [x] T042 [US3] Implement partial data handling (display roles if ownership fetch fails, per FR-022)
+- [x] T043 [US1] Implement optimistic UI updates for description saves (per FR-018)
 
 **Checkpoint**: Core P1 features complete - roles display, accounts display, error handling all functional
 

@@ -18,14 +18,15 @@ export { RolesList } from './RolesList';
 export { SecurityNotice } from './SecurityNotice';
 
 // =============================================================================
-// State Components (spec 009 - will be added in Phase 3)
+// State Components (spec 009)
 // =============================================================================
 
-// TODO: Export when implemented
+export { RolesEmptyState } from './RolesEmptyState';
+export { RolesErrorState } from './RolesErrorState';
+export { RolesLoadingSkeleton } from './RolesLoadingSkeleton';
+
+// TODO: Export when implemented (Phase 6)
 // export { EditableDescription } from './EditableDescription';
-// export { RolesLoadingSkeleton } from './RolesLoadingSkeleton';
-// export { RolesErrorState } from './RolesErrorState';
-// export { RolesEmptyState } from './RolesEmptyState';
 
 // =============================================================================
 // Component Props Types
@@ -35,12 +36,20 @@ export type { AccountRowProps } from './AccountRow';
 export type { RoleCardProps } from './RoleCard';
 export type { RoleDetailsProps } from './RoleDetails';
 export type { RoleIdentifiersTableProps } from './RoleIdentifiersTable';
+export type { RolesEmptyStateProps } from './RolesEmptyState';
+export type { RolesErrorStateProps } from './RolesErrorState';
 export type { RolesListProps } from './RolesList';
+export type { RolesLoadingSkeletonProps } from './RolesLoadingSkeleton';
 
 // =============================================================================
-// Mock Data (for development/testing)
+// Mock Data (DEPRECATED - for testing only)
 // =============================================================================
 
+/**
+ * @deprecated Mock data is deprecated. Use useRolesPageData hook for real data.
+ * These exports are retained only for backwards compatibility in existing tests.
+ * Will be removed in a future version.
+ */
 export {
   getAccountsForRole,
   getConnectedRoleIds,

@@ -55,5 +55,9 @@ export type {
 export { useCustomRoleDescriptions } from './useCustomRoleDescriptions';
 export type { UseCustomRoleDescriptionsReturn } from './useCustomRoleDescriptions';
 
+// Roles Page Data Orchestration (Feature: 009-roles-page-data)
+export { useRolesPageData } from './useRolesPageData';
+export type { UseRolesPageDataReturn } from './useRolesPageData';
+
 // Utility hooks
 export { useDebounce } from './useDebounce';
