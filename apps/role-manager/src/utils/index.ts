@@ -10,3 +10,4 @@ export * from './hash';
 export * from './network';
 export * from './role-name';
 export * from './snapshot';
+export * from './history-transformer';

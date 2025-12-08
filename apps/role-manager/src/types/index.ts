@@ -19,3 +19,31 @@ export * from './schema';
 
 // Storage types
 export * from './storage';
+
+// Role Changes types (Feature: 012-role-changes-data)
+export {
+  // Domain types
+  type RoleChangeAction,
+  type HistoryChangeType,
+  CHANGE_TYPE_TO_ACTION,
+  // API types
+  type PageInfo,
+  type HistoryEntry,
+  type PaginatedHistoryResult,
+  type HistoryQueryOptions,
+  // Presentation types
+  type RoleChangeEventView,
+  // Filter types
+  type HistoryFilterState,
+  DEFAULT_HISTORY_FILTER_STATE,
+  // Display configuration
+  type ActionTypeConfig,
+  ACTION_TYPE_CONFIG,
+  // Pagination types
+  type CursorPaginationState,
+  DEFAULT_CURSOR_PAGINATION_STATE,
+  type CursorPaginationControls,
+  // Hook return types
+  type UseContractHistoryReturn,
+  type UseRoleChangesPageDataReturn,
+} from './role-changes';

@@ -19,11 +19,11 @@
 
 **Purpose**: Create foundational types and utilities needed by all user stories
 
-- [ ] T001 [P] Create type definitions in `types/role-changes.ts` (copy from `contracts/role-changes.ts` in spec folder)
-- [ ] T002 [P] Create data transformation utilities in `utils/history-transformer.ts` (CHANGE_TYPE_MAP, transformEntry function, sort by timestamp descending per FR-016)
-- [ ] T003 [P] Create RoleChanges component folder structure with `components/RoleChanges/index.ts` barrel export
+- [x] T001 [P] Create type definitions in `types/role-changes.ts` (copy from `contracts/role-changes.ts` in spec folder)
+- [x] T002 [P] Create data transformation utilities in `utils/history-transformer.ts` (CHANGE_TYPE_MAP, transformEntry function, sort by timestamp descending per FR-016)
+- [x] T003 [P] Create RoleChanges component folder structure with `components/RoleChanges/index.ts` barrel export
 
-**Checkpoint**: Types and utilities ready for component implementation
+**Checkpoint**: Types and utilities ready for component implementation ✅
 
 ---
 
@@ -33,17 +33,17 @@
 
 **⚠️ CRITICAL**: These hooks block all user story implementation
 
-- [ ] T004 Create `useContractHistory` hook in `hooks/useContractHistory.ts` (react-query wrapper for adapter.getHistory(), DEFAULT_PAGE_SIZE = 20 per FR-023)
-- [ ] T005 Create `useRoleChangesPageData` orchestration hook in `hooks/useRoleChangesPageData.ts` (combines context, capabilities, history, filters, pagination state)
+- [x] T004 Create `useContractHistory` hook in `hooks/useContractHistory.ts` (react-query wrapper for adapter.getHistory(), DEFAULT_PAGE_SIZE = 20 per FR-023)
+- [x] T005 Create `useRoleChangesPageData` orchestration hook in `hooks/useRoleChangesPageData.ts` (combines context, capabilities, history, filters, pagination state)
 
 ### Optional: Hook Tests (Constitution V - TDD for Business Logic)
 
 > **Note**: These tests are recommended per Constitution V but marked optional. If following TDD, write these tests FIRST before T004/T005 implementation.
 
-- [ ] T004a [P] _(Optional)_ Create test for `useContractHistory` hook in `hooks/__tests__/useContractHistory.test.ts`
-- [ ] T005a _(Optional)_ Create test for `useRoleChangesPageData` hook in `hooks/__tests__/useRoleChangesPageData.test.ts`
+- [x] T004a [P] _(Optional)_ Create test for `useContractHistory` hook in `hooks/__tests__/useContractHistory.test.tsx` (21 tests)
+- [x] T005a _(Optional)_ Create test for `useRoleChangesPageData` hook in `hooks/__tests__/useRoleChangesPageData.test.tsx` (31 tests)
 
-**Checkpoint**: Data layer ready - UI component implementation can now begin
+**Checkpoint**: Data layer ready - UI component implementation can now begin ✅
 
 ---
 
@@ -55,14 +55,14 @@
 
 ### Implementation for User Story 1
 
-- [ ] T006 [P] [US1] Create `ChangeRow.tsx` component in `components/RoleChanges/ChangeRow.tsx` (single event row with all columns)
-- [ ] T007 [P] [US1] Create `ChangesTable.tsx` component in `components/RoleChanges/ChangesTable.tsx` (table with column headers, renders ChangeRow)
-- [ ] T008 [P] [US1] Create `ChangesLoadingSkeleton.tsx` component in `components/RoleChanges/ChangesLoadingSkeleton.tsx` (loading state)
-- [ ] T009 [US1] Create `RoleChanges.tsx` page in `pages/RoleChanges.tsx` (basic page structure with PageHeader, Card, Table)
-- [ ] T010 [US1] Wire `useRoleChangesPageData` hook to `RoleChanges.tsx` page (display events in table)
-- [ ] T011 [US1] Update barrel export in `components/RoleChanges/index.ts` with US1 components
+- [x] T006 [P] [US1] Create `ChangeRow.tsx` component in `components/RoleChanges/ChangeRow.tsx` (single event row with all columns)
+- [x] T007 [P] [US1] Create `ChangesTable.tsx` component in `components/RoleChanges/ChangesTable.tsx` (table with column headers, renders ChangeRow)
+- [x] T008 [P] [US1] Create `ChangesLoadingSkeleton.tsx` component in `components/RoleChanges/ChangesLoadingSkeleton.tsx` (loading state)
+- [x] T009 [US1] Create `RoleChanges.tsx` page in `pages/RoleChanges.tsx` (basic page structure with PageHeader, Card, Table)
+- [x] T010 [US1] Wire `useRoleChangesPageData` hook to `RoleChanges.tsx` page (display events in table)
+- [x] T011 [US1] Update barrel export in `components/RoleChanges/index.ts` with US1 components
 
-**Checkpoint**: Can view role change history for selected contracts
+**Checkpoint**: Can view role change history for selected contracts ✅
 
 ---
 

@@ -68,5 +68,11 @@ export type {
   PaginationControls,
 } from './useAuthorizedAccountsPageData';
 
+// Role Changes Data Hook (Feature: 012-role-changes-data)
+export { useContractHistory, DEFAULT_PAGE_SIZE } from './useContractHistory';
+export type { UseContractHistoryReturn } from '../types/role-changes';
+export { useRoleChangesPageData } from './useRoleChangesPageData';
+export type { UseRoleChangesPageDataReturn } from '../types/role-changes';
+
 // Utility hooks
 export { useDebounce } from './useDebounce';
