@@ -1,13 +1,13 @@
 /**
  * AccountRow Component
  * Feature: 010-authorized-accounts-page
+ * Updated by: 011-accounts-real-data
  *
  * Single row in the Authorized Accounts table displaying:
  * - Checkbox for selection
  * - Truncated address (0x1234...5678)
  * - Status badge
- * - Date added
- * - Expiration date (or "Never")
+ * - Date added (or "-" if unavailable)
  * - Role badges (multiple)
  * - Actions menu
  *
@@ -20,11 +20,29 @@
 import { AddressDisplay, Checkbox } from '@openzeppelin/ui-builder-ui';
 import { cn } from '@openzeppelin/ui-builder-utils';
 
-import { ACCOUNT_STATUS_CONFIG, type AccountRowProps } from '../../types/authorized-accounts';
+import {
+  ACCOUNT_STATUS_CONFIG,
+  type AccountAction,
+  type AuthorizedAccountView,
+} from '../../types/authorized-accounts';
 import { formatDate } from '../../utils/date';
 import { OutlineBadge } from '../Shared/OutlineBadge';
 import { StatusBadge } from '../Shared/StatusBadge';
 import { AccountActionsMenu } from './AccountActionsMenu';
+
+/**
+ * Props for AccountRow component
+ */
+export interface AccountRowProps {
+  /** Account data to display */
+  account: AuthorizedAccountView;
+  /** Whether this row is currently selected */
+  isSelected: boolean;
+  /** Callback when selection checkbox changes */
+  onToggleSelection: () => void;
+  /** Callback when an action is triggered */
+  onAction: (action: AccountAction) => void;
+}
 
 /**
  * AccountRow - Single account row in the Authorized Accounts table
@@ -74,21 +92,16 @@ export function AccountRow({ account, isSelected, onToggleSelection, onAction }:
         </StatusBadge>
       </td>
 
-      {/* Date Added */}
+      {/* Date Added - display "-" if unavailable */}
       <td className="p-4 text-sm text-muted-foreground">
-        {formatDate(account.dateAdded.toISOString())}
-      </td>
-
-      {/* Expires - "Never" if no expiration */}
-      <td className="p-4 text-sm text-muted-foreground">
-        {account.expiresAt ? formatDate(account.expiresAt.toISOString()) : 'Never'}
+        {account.dateAdded ? formatDate(account.dateAdded) : '-'}
       </td>
 
       {/* Roles - multiple badges */}
       <td className="p-4">
         <div className="flex flex-wrap gap-1">
           {account.roles.map((role) => (
-            <OutlineBadge key={role}>{role}</OutlineBadge>
+            <OutlineBadge key={role.id}>{role.name}</OutlineBadge>
           ))}
         </div>
       </td>

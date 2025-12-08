@@ -10,7 +10,7 @@ import { cn } from '@openzeppelin/ui-builder-utils';
 /**
  * Available status badge variants
  */
-export type StatusBadgeVariant = 'success' | 'error' | 'warning';
+export type StatusBadgeVariant = 'success' | 'error' | 'warning' | 'info';
 
 /**
  * Props for StatusBadge component
@@ -31,6 +31,7 @@ const VARIANT_CLASSES: Record<StatusBadgeVariant, string> = {
   success: 'bg-green-500 text-white',
   error: 'bg-red-500 text-white',
   warning: 'bg-yellow-500 text-white',
+  info: 'bg-blue-500 text-white',
 };
 
 /**

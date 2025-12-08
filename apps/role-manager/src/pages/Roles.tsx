@@ -17,7 +17,7 @@
  * Phase 6: Edit role dialog for description editing
  */
 
-import { RefreshCw } from 'lucide-react';
+import { FileSearch, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCallback, useMemo, useState } from 'react';
 
@@ -35,6 +35,7 @@ import {
   SecurityNotice,
 } from '../components/Roles';
 import type { AccountData } from '../components/Roles/RoleDetails';
+import { PageEmptyState } from '../components/Shared/PageEmptyState';
 import { PageHeader } from '../components/Shared/PageHeader';
 import { useAllNetworks, useRolesPageData } from '../hooks';
 import { useSelectedContract } from '../hooks/useSelectedContract';
@@ -46,6 +47,7 @@ export function Roles() {
     selectedRoleId,
     setSelectedRoleId,
     selectedRole,
+    hasContractSelected,
     isLoading,
     isRefreshing, // T051: Subtle refresh loading state
     isSupported,
@@ -126,6 +128,24 @@ export function Roles() {
         canRetry={canRetry}
         onRetry={refetch}
       />
+    );
+  }
+
+  // Empty state when no contract is selected
+  if (!hasContractSelected) {
+    return (
+      <div className="space-y-6 p-6">
+        <PageHeader title="Roles" subtitle="Select a contract to view roles" />
+        <Card className="p-0 shadow-none overflow-hidden">
+          <div className="py-16 px-4">
+            <PageEmptyState
+              title="No Contract Selected"
+              description="Select a contract from the dropdown above to view its roles and access control configuration."
+              icon={FileSearch}
+            />
+          </div>
+        </Card>
+      </div>
     );
   }
 

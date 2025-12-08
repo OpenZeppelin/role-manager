@@ -1,87 +1,76 @@
 /**
  * Authorized Accounts Page
  * Feature: 010-authorized-accounts-page
+ * Updated by: 011-accounts-real-data
  *
- * UI skeleton for the Authorized Accounts page with mock data.
- * Displays a table of authorized accounts with filtering, selection, and action capabilities.
+ * Displays authorized accounts with real blockchain data.
+ * Implements User Stories 1, 2, 6 from spec 011:
+ * - US1: View real authorized accounts
+ * - US2: Auto-load on contract selection
+ * - US6: Error/empty states for unsupported contracts
  *
- * User Story 1 (Phase 3):
- * - PageHeader with title, dynamic subtitle (contract/network), "Add Account or Role" button
- * - Loading state toggle for demo (useState)
- * - Filter bar UI shell (non-functional)
- * - Conditional render: loading skeleton vs empty state
- * - logger.info handlers for button clicks
- *
- * User Story 2 (Phase 4):
- * - Selection state management with useState<Set<string>>
- * - AccountsTable component with selection and actions
- * - Demo toggle: empty vs populated vs loading states
- * - logger.info handlers for all actions
- *
- * User Story 3 (Phase 5):
- * - Filter state management with useState<AccountsFilterState>
- * - AccountsFilterBar fully functional (search, status dropdown, roles dropdown)
- * - Filter interactions log changes via logger.info
+ * Tasks: T040-T045
  */
 
-import { Plus, Users } from 'lucide-react';
+import { FileSearch, RefreshCw, Users } from 'lucide-react';
 import { useState } from 'react';
 
 import { Button, Card } from '@openzeppelin/ui-builder-ui';
-import { logger } from '@openzeppelin/ui-builder-utils';
+import { cn, logger } from '@openzeppelin/ui-builder-utils';
 
 import {
+  AccountsEmptyState,
+  AccountsErrorState,
   AccountsFilterBar,
   AccountsLoadingSkeleton,
+  AccountsPagination,
   AccountsTable,
-  DEFAULT_FILTER_STATE,
-  MOCK_ACCOUNTS,
-  MOCK_AVAILABLE_ROLES,
   type AccountAction,
-  type AccountsFilterState,
 } from '../components/AuthorizedAccounts';
 import { PageEmptyState } from '../components/Shared/PageEmptyState';
 import { PageHeader } from '../components/Shared/PageHeader';
-
-/**
- * Demo view states for showcasing different UI states
- */
-type DemoViewState = 'empty' | 'populated' | 'loading';
+import { useAuthorizedAccountsPageData } from '../hooks';
+import { useSelectedContract } from '../hooks/useSelectedContract';
 
 /**
  * AuthorizedAccounts - Main page component
  *
- * Phase 5 implementation (User Story 3):
- * - Shows page header with contract info
- * - Demo toggle: switch between empty, populated, and loading states
- * - Selection state management for table rows
- * - Filter state management with fully functional filter bar
- * - All interactions (actions, selections, filters) log via logger
+ * Phase 3 implementation (Feature 011):
+ * - Uses useAuthorizedAccountsPageData hook for real data
+ * - Shows loading skeleton during initial fetch
+ * - Shows error state with retry option
+ * - Shows empty state for unsupported contracts
+ * - Selection and actions log to console (placeholder behavior)
  */
 export function AuthorizedAccounts() {
-  // Demo toggle: switch between different view states
-  const [demoView, setDemoView] = useState<DemoViewState>('populated');
+  // Get real data from hook (T040)
+  const {
+    paginatedAccounts,
+    availableRoles,
+    filters,
+    setFilters,
+    pagination,
+    hasContractSelected,
+    isSupported,
+    isLoading,
+    isRefreshing,
+    hasError,
+    errorMessage,
+    canRetry,
+    refetch,
+  } = useAuthorizedAccountsPageData();
 
-  // Selection state for table rows (Phase 4)
+  // T060: Determine if pagination controls should be visible
+  const showPagination = pagination.totalItems > pagination.pageSize;
+
+  // Get contract info for display
+  const { selectedContract } = useSelectedContract();
+  const contractLabel = selectedContract?.label || 'Unknown Contract';
+
+  // Selection state for table rows (placeholder behavior - T069)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  // Filter state (Phase 5 - User Story 3)
-  const [filters, setFilters] = useState<AccountsFilterState>(DEFAULT_FILTER_STATE);
-
-  // Derive displayed accounts based on demo view
-  const accounts = demoView === 'populated' ? MOCK_ACCOUNTS : [];
-
-  // Header button handler
-  const handleAddAccountOrRole = () => {
-    logger.info('AuthorizedAccounts', 'Add Account or Role clicked');
-  };
-
-  // Empty state CTA handler
-  const handleGrantAuthorization = () => {
-    logger.info('AuthorizedAccounts', 'Grant First Authorization clicked');
-  };
-
-  // Selection change handler (Phase 4)
+  // Selection change handler (logs to console per T069)
   const handleSelectionChange = (newSelectedIds: Set<string>) => {
     setSelectedIds(newSelectedIds);
     logger.info('AuthorizedAccounts', `Selection changed: ${newSelectedIds.size} items selected`, {
@@ -89,9 +78,9 @@ export function AuthorizedAccounts() {
     });
   };
 
-  // Action handler for table row actions (Phase 4)
+  // Action handler for table row actions (logs to console per T070)
   const handleAction = (accountId: string, action: AccountAction) => {
-    const account = accounts.find((a) => a.id === accountId);
+    const account = paginatedAccounts.find((a) => a.id === accountId);
     logger.info('AuthorizedAccounts', `Action "${action}" triggered for account`, {
       accountId,
       address: account?.address,
@@ -99,97 +88,148 @@ export function AuthorizedAccounts() {
     });
   };
 
-  // Filter change handler (Phase 5 - User Story 3)
-  const handleFiltersChange = (newFilters: AccountsFilterState) => {
+  // Filter change handler
+  const handleFiltersChange = (newFilters: typeof filters) => {
     setFilters(newFilters);
     logger.info('AuthorizedAccounts', 'Filters changed', { filters: newFilters });
   };
 
-  // Demo: Cycle through view states
-  const handleCycleView = () => {
-    const states: DemoViewState[] = ['empty', 'populated', 'loading'];
-    const currentIndex = states.indexOf(demoView);
-    const nextState = states[(currentIndex + 1) % states.length];
-    setDemoView(nextState);
-    // Clear selection when changing views
-    setSelectedIds(new Set());
-    logger.info('AuthorizedAccounts', `Demo view changed to: ${nextState}`);
-  };
+  // T041: Loading skeleton display during initial fetch
+  if (isLoading) {
+    return (
+      <div className="p-6 space-y-6">
+        <PageHeader
+          title="Authorized Accounts"
+          subtitle={
+            <span>
+              Loading accounts for{' '}
+              <span className="font-bold text-foreground">{contractLabel}</span>
+            </span>
+          }
+        />
+        <AccountsLoadingSkeleton />
+      </div>
+    );
+  }
 
-  // Get demo button label
-  const getDemoButtonLabel = () => {
-    switch (demoView) {
-      case 'empty':
-        return 'View: Empty → Populated';
-      case 'populated':
-        return 'View: Populated → Loading';
-      case 'loading':
-        return 'View: Loading → Empty';
-    }
-  };
+  // T042: Error state display with retry action
+  if (hasError) {
+    return (
+      <div className="p-6 space-y-6">
+        <PageHeader
+          title="Authorized Accounts"
+          subtitle={
+            <span>
+              Error loading <span className="font-bold text-foreground">{contractLabel}</span>
+            </span>
+          }
+        />
+        <Card className="p-0 shadow-none overflow-hidden">
+          <AccountsErrorState
+            message={errorMessage || 'An unexpected error occurred while loading accounts.'}
+            canRetry={canRetry}
+            onRetry={refetch}
+          />
+        </Card>
+      </div>
+    );
+  }
 
+  // Empty state when no contract is selected
+  if (!hasContractSelected) {
+    return (
+      <div className="p-6 space-y-6">
+        <PageHeader
+          title="Authorized Accounts"
+          subtitle="Select a contract to view authorized accounts"
+        />
+        <Card className="p-0 shadow-none overflow-hidden">
+          <div className="py-16 px-4">
+            <PageEmptyState
+              title="No Contract Selected"
+              description="Select a contract from the dropdown above to view its authorized accounts and role assignments."
+              icon={FileSearch}
+            />
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  // T043: Empty state display for unsupported contracts
+  if (!isSupported) {
+    return (
+      <div className="p-6 space-y-6">
+        <PageHeader
+          title="Authorized Accounts"
+          subtitle={
+            <span>
+              <span className="font-bold text-foreground">{contractLabel}</span> is not supported
+            </span>
+          }
+        />
+        <Card className="p-0 shadow-none overflow-hidden">
+          <AccountsEmptyState contractName={contractLabel} />
+        </Card>
+      </div>
+    );
+  }
+
+  // Main content with real data
   return (
     <div className="p-6 space-y-6">
-      {/* Page Header */}
+      {/* Page Header - T045: "Add Account or Role" button hidden (view-only scope) */}
       <PageHeader
         title="Authorized Accounts"
         subtitle={
           <span>
             Manage accounts and roles for{' '}
-            <span className="font-bold text-foreground">Demo Contract</span> on Ethereum
+            <span className="font-bold text-foreground">{contractLabel}</span>
           </span>
         }
         actions={
-          <div className="flex gap-2">
-            {/* Demo toggle button (development only - hidden in production) */}
-            {import.meta.env.DEV && (
-              <Button variant="outline" size="sm" onClick={handleCycleView}>
-                {getDemoButtonLabel()}
-              </Button>
-            )}
-            {/* Primary action button */}
-            <Button onClick={handleAddAccountOrRole}>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Account or Role
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => refetch()}
+            disabled={isRefreshing}
+            className="gap-2"
+          >
+            <RefreshCw className={cn('h-4 w-4', isRefreshing && 'animate-spin')} />
+            {isRefreshing ? 'Refreshing...' : 'Refresh'}
+          </Button>
         }
       />
 
-      {/* Conditional Content based on demo view */}
-      {demoView === 'loading' ? (
-        // Loading skeleton
-        <AccountsLoadingSkeleton />
-      ) : (
-        // Unified card with filter bar + table
-        <Card className="p-0 shadow-none overflow-hidden">
-          {/* Filter Bar (Phase 5 - fully functional) */}
-          <AccountsFilterBar
-            filters={filters}
-            availableRoles={MOCK_AVAILABLE_ROLES}
-            onFiltersChange={handleFiltersChange}
-          />
+      {/* Main content card with filter bar + table */}
+      <Card className="p-0 shadow-none overflow-hidden">
+        {/* Filter Bar - wired to real availableRoles */}
+        <AccountsFilterBar
+          filters={filters}
+          availableRoles={availableRoles}
+          onFiltersChange={handleFiltersChange}
+        />
 
-          {/* Accounts Table with selection (shows empty state when no accounts) */}
-          <AccountsTable
-            accounts={accounts}
-            selectedIds={selectedIds}
-            onSelectionChange={handleSelectionChange}
-            onAction={handleAction}
-            emptyState={
-              <div className="py-16 px-4">
-                <PageEmptyState
-                  title="No accounts found"
-                  description="No accounts have been authorized yet. Grant authorization to an account to get started."
-                  icon={Users}
-                  actionLabel="Grant First Authorization"
-                  onAction={handleGrantAuthorization}
-                />
-              </div>
-            }
-          />
-        </Card>
-      )}
+        {/* Accounts Table with real data */}
+        <AccountsTable
+          accounts={paginatedAccounts}
+          selectedIds={selectedIds}
+          onSelectionChange={handleSelectionChange}
+          onAction={handleAction}
+          emptyState={
+            <div className="py-16 px-4">
+              <PageEmptyState
+                title="No matching accounts found"
+                description="Try adjusting your search or filter criteria."
+                icon={Users}
+              />
+            </div>
+          }
+        />
+
+        {/* T059/T060: Pagination controls (only shown when totalItems > pageSize) */}
+        {showPagination && <AccountsPagination pagination={pagination} />}
+      </Card>
     </div>
   );
 }

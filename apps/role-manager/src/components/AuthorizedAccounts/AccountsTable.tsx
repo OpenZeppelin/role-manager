@@ -1,6 +1,7 @@
 /**
  * AccountsTable Component
  * Feature: 010-authorized-accounts-page
+ * Updated by: 011-accounts-real-data
  *
  * Main data table for displaying authorized accounts.
  *
@@ -8,7 +9,7 @@
  * - Card container wrapper
  * - HTML table with semantic structure
  * - Header row with master checkbox (supports indeterminate state)
- * - Column headers: Address, Status, Date Added, Expires, Roles, Actions
+ * - Column headers: Address, Status, Date Added, Roles, Actions
  * - Body maps accounts to AccountRow components
  *
  * Selection behavior (FR-005):
@@ -22,14 +23,22 @@ import { cn } from '@openzeppelin/ui-builder-utils';
 import {
   getMasterCheckboxState,
   type AccountAction,
-  type AccountsTableProps,
+  type AuthorizedAccountView,
 } from '../../types/authorized-accounts';
 import { AccountRow } from './AccountRow';
 
 /**
- * Extended props for AccountsTable supporting empty state
+ * Props for AccountsTable component
  */
-interface AccountsTableWithEmptyProps extends AccountsTableProps {
+export interface AccountsTableProps {
+  /** List of accounts to display */
+  accounts: AuthorizedAccountView[];
+  /** Set of selected account IDs */
+  selectedIds: Set<string>;
+  /** Callback when row selection changes */
+  onSelectionChange: (selectedIds: Set<string>) => void;
+  /** Callback when an action is triggered on an account */
+  onAction: (accountId: string, action: AccountAction) => void;
   /** Optional content to render when accounts array is empty */
   emptyState?: React.ReactNode;
 }
@@ -42,7 +51,6 @@ const COLUMNS = [
   { id: 'address', label: 'Address', width: '' },
   { id: 'status', label: 'Status', width: 'w-24' },
   { id: 'dateAdded', label: 'Date Added', width: 'w-32' },
-  { id: 'expires', label: 'Expires', width: 'w-32' },
   { id: 'roles', label: 'Roles', width: 'w-48' },
   { id: 'actions', label: 'Actions', width: 'w-16' },
 ] as const;
@@ -61,7 +69,7 @@ export function AccountsTable({
   onSelectionChange,
   onAction,
   emptyState,
-}: AccountsTableWithEmptyProps) {
+}: AccountsTableProps) {
   // Derive master checkbox state
   const masterState = getMasterCheckboxState(selectedIds.size, accounts.length);
   const isAllSelected = masterState === 'checked';

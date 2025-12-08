@@ -1,6 +1,7 @@
 /**
  * AccountsFilterBar Component
  * Feature: 010-authorized-accounts-page
+ * Updated by: 011-accounts-real-data
  *
  * Filter bar with search input and dropdown filters for the Authorized Accounts table.
  *
@@ -10,7 +11,7 @@
  * Visual Design Requirements (from spec):
  * - Card container with search input (left) + dropdowns (right), horizontal layout
  * - Search input with magnifying glass icon
- * - Status dropdown: All Status, Active, Expired, Pending
+ * - Status dropdown: All Status, Active, Pending, Awaiting Signature
  * - Roles dropdown: All Roles + available roles from props
  */
 
@@ -26,7 +27,23 @@ import {
 } from '@openzeppelin/ui-builder-ui';
 import { cn } from '@openzeppelin/ui-builder-utils';
 
-import type { AccountsFilterBarProps } from '../../types/authorized-accounts';
+import type { AccountsFilterState, RoleBadgeInfo } from '../../types/authorized-accounts';
+
+/**
+ * Props for AccountsFilterBar component
+ */
+export interface AccountsFilterBarProps {
+  /** Current filter state */
+  filters: AccountsFilterState;
+  /** Available roles for the role filter dropdown (id for filtering, name for display) */
+  availableRoles: RoleBadgeInfo[];
+  /** Callback when filter state changes */
+  onFiltersChange: (filters: AccountsFilterState) => void;
+  /** Whether the filter bar is disabled (used for initial shell state) */
+  disabled?: boolean;
+  /** Additional CSS classes */
+  className?: string;
+}
 
 /**
  * AccountsFilterBar - Filter bar for Authorized Accounts table
@@ -90,14 +107,14 @@ export function AccountsFilterBar({
       <div className="flex gap-2 sm:ml-auto">
         {/* Status filter */}
         <Select value={filters.statusFilter} onValueChange={handleStatusChange} disabled={disabled}>
-          <SelectTrigger className="w-32" aria-label="Filter by status">
+          <SelectTrigger className="w-40" aria-label="Filter by status">
             <SelectValue placeholder="All Status" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="expired">Expired</SelectItem>
             <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="awaiting-signature">Awaiting Signature</SelectItem>
           </SelectContent>
         </Select>
 
@@ -109,8 +126,8 @@ export function AccountsFilterBar({
           <SelectContent>
             <SelectItem value="all">All Roles</SelectItem>
             {availableRoles.map((role) => (
-              <SelectItem key={role} value={role}>
-                {role}
+              <SelectItem key={role.id} value={role.id}>
+                {role.name}
               </SelectItem>
             ))}
           </SelectContent>

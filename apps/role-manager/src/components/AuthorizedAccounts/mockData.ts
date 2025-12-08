@@ -1,57 +1,81 @@
 /**
  * Mock Data for Authorized Accounts Page
  * Feature: 010-authorized-accounts-page
+ * Updated by: 011-accounts-real-data
  *
  * Provides sample data for demonstrating all visual states of the
  * Authorized Accounts page. Includes accounts with various statuses
  * and role combinations to showcase the full UI.
  */
 
-import type { AuthorizedAccount } from '../../types/authorized-accounts';
+import type { AuthorizedAccountView, RoleBadgeInfo } from '../../types/authorized-accounts';
 
 /**
  * Mock accounts demonstrating all visual states:
- * - Active with multiple roles, never expires
- * - Active with single role, has expiration
- * - Expired status
+ * - Active with multiple roles
+ * - Active with single role
+ * - Awaiting signature status (multisig pending)
  * - Pending status with multiple roles
+ * - Account with no timestamp (dateAdded: null)
+ *
+ * Note: Both `id` and `address` are lowercase to match the real
+ * transformRolesToAccounts() behavior which normalizes addresses.
  */
-export const MOCK_ACCOUNTS: AuthorizedAccount[] = [
+export const MOCK_ACCOUNTS: AuthorizedAccountView[] = [
   {
-    id: '1',
-    address: '0x742d35Cc6634C0532925a3b844Bc9e7595f8fEb6',
+    id: '0x742d35cc6634c0532925a3b844bc9e7595f8feb6',
+    address: '0x742d35cc6634c0532925a3b844bc9e7595f8feb6',
     status: 'active',
-    dateAdded: new Date('2024-01-15'),
-    expiresAt: undefined, // Never expires
-    roles: ['Admin', 'Minter'],
+    dateAdded: '2024-01-15T00:00:00.000Z',
+    roles: [
+      { id: 'ADMIN_ROLE', name: 'Admin' },
+      { id: 'MINTER_ROLE', name: 'Minter' },
+    ],
   },
   {
-    id: '2',
-    address: '0x8ba1f109551bD432803012645Ac136ddd64DBA72',
+    id: '0x8ba1f109551bd432803012645ac136ddd64dba72',
+    address: '0x8ba1f109551bd432803012645ac136ddd64dba72',
     status: 'active',
-    dateAdded: new Date('2024-02-20'),
-    expiresAt: new Date('2025-02-20'),
-    roles: ['Operator'],
+    dateAdded: '2024-02-20T00:00:00.000Z',
+    roles: [{ id: 'OPERATOR_ROLE', name: 'Operator' }],
   },
   {
-    id: '3',
-    address: '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B',
-    status: 'expired',
-    dateAdded: new Date('2023-06-01'),
-    expiresAt: new Date('2024-06-01'),
-    roles: ['Pauser'],
+    id: '0xab5801a7d398351b8be11c439e05c5b3259aec9b',
+    address: '0xab5801a7d398351b8be11c439e05c5b3259aec9b',
+    status: 'awaiting-signature',
+    dateAdded: '2023-06-01T00:00:00.000Z',
+    roles: [{ id: 'PAUSER_ROLE', name: 'Pauser' }],
   },
   {
-    id: '4',
+    id: '0x1234567890123456789012345678901234567890',
     address: '0x1234567890123456789012345678901234567890',
     status: 'pending',
-    dateAdded: new Date('2024-11-30'),
-    expiresAt: new Date('2025-11-30'),
-    roles: ['Upgrader', 'Admin', 'Burner'],
+    dateAdded: '2024-11-30T00:00:00.000Z',
+    roles: [
+      { id: 'UPGRADER_ROLE', name: 'Upgrader' },
+      { id: 'ADMIN_ROLE', name: 'Admin' },
+      { id: 'BURNER_ROLE', name: 'Burner' },
+    ],
+  },
+  {
+    id: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
+    address: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
+    status: 'active',
+    dateAdded: null, // No timestamp available
+    roles: [{ id: 'OWNER_ROLE', name: 'Owner' }],
   },
 ];
 
 /**
  * Available roles extracted from mock data for filter dropdown
+ * Uses RoleBadgeInfo for proper display (name) and filtering (id)
  */
-export const MOCK_AVAILABLE_ROLES = ['Admin', 'Minter', 'Operator', 'Pauser', 'Upgrader', 'Burner'];
+export const MOCK_AVAILABLE_ROLES: RoleBadgeInfo[] = [
+  { id: 'ADMIN_ROLE', name: 'Admin' },
+  { id: 'MINTER_ROLE', name: 'Minter' },
+  { id: 'OPERATOR_ROLE', name: 'Operator' },
+  { id: 'PAUSER_ROLE', name: 'Pauser' },
+  { id: 'UPGRADER_ROLE', name: 'Upgrader' },
+  { id: 'BURNER_ROLE', name: 'Burner' },
+  { id: 'OWNER_ROLE', name: 'Owner' },
+];
