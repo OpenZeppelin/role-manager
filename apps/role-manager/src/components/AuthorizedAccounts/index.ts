@@ -65,7 +65,6 @@ export type {
   AccountAction,
   AccountsFilterState,
   AccountStatus,
-  AuthorizedAccount,
   AuthorizedAccountView,
   MasterCheckboxState,
   RoleBadgeInfo,

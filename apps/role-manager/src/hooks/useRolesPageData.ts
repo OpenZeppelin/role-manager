@@ -46,6 +46,8 @@ export interface UseRolesPageDataReturn {
   /** Selected role data (convenience) */
   selectedRole: RoleWithDescription | null;
 
+  /** Whether a contract is currently selected */
+  hasContractSelected: boolean;
   /** Capabilities (hasAccessControl, hasOwnable) */
   capabilities: AccessControlCapabilities | null;
   /** Whether contract is supported */
@@ -300,6 +302,7 @@ export function useRolesPageData(): UseRolesPageDataReturn {
       selectedRoleId: null,
       setSelectedRoleId: () => {},
       selectedRole: null,
+      hasContractSelected: false,
       capabilities: null,
       isSupported: false,
       isLoading: false,
@@ -323,6 +326,7 @@ export function useRolesPageData(): UseRolesPageDataReturn {
     selectedRoleId: selectedRoleId ?? roles[0]?.roleId ?? null,
     setSelectedRoleId,
     selectedRole,
+    hasContractSelected: true,
     capabilities,
     isSupported,
     isLoading,

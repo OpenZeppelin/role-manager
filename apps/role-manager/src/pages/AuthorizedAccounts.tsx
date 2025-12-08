@@ -12,7 +12,7 @@
  * Tasks: T040-T045
  */
 
-import { RefreshCw, Users } from 'lucide-react';
+import { FileSearch, RefreshCw, Users } from 'lucide-react';
 import { useState } from 'react';
 
 import { Button, Card } from '@openzeppelin/ui-builder-ui';
@@ -50,6 +50,7 @@ export function AuthorizedAccounts() {
     filters,
     setFilters,
     pagination,
+    hasContractSelected,
     isSupported,
     isLoading,
     isRefreshing,
@@ -129,6 +130,27 @@ export function AuthorizedAccounts() {
             canRetry={canRetry}
             onRetry={refetch}
           />
+        </Card>
+      </div>
+    );
+  }
+
+  // Empty state when no contract is selected
+  if (!hasContractSelected) {
+    return (
+      <div className="p-6 space-y-6">
+        <PageHeader
+          title="Authorized Accounts"
+          subtitle="Select a contract to view authorized accounts"
+        />
+        <Card className="p-0 shadow-none overflow-hidden">
+          <div className="py-16 px-4">
+            <PageEmptyState
+              title="No Contract Selected"
+              description="Select a contract from the dropdown above to view its authorized accounts and role assignments."
+              icon={FileSearch}
+            />
+          </div>
         </Card>
       </div>
     );

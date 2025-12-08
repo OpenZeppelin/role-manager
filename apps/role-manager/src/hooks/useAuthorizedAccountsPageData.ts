@@ -71,7 +71,9 @@ export interface UseAuthorizedAccountsPageDataReturn {
   /** Pagination controls and state */
   pagination: PaginationControls;
 
-  // === Capabilities ===
+  // === Contract State ===
+  /** Whether a contract is currently selected */
+  hasContractSelected: boolean;
   /** Contract capabilities (hasAccessControl, hasOwnable) */
   capabilities: AccessControlCapabilities | null;
   /** Whether contract supports access control features */
@@ -307,6 +309,7 @@ export function useAuthorizedAccountsPageData(): UseAuthorizedAccountsPageDataRe
         previousPage: () => {},
         goToPage: () => {},
       },
+      hasContractSelected: false,
       capabilities: null,
       isSupported: false,
       isLoading: false,
@@ -327,6 +330,7 @@ export function useAuthorizedAccountsPageData(): UseAuthorizedAccountsPageDataRe
     setFilters,
     resetFilters,
     pagination,
+    hasContractSelected: true,
     capabilities,
     isSupported,
     isLoading,

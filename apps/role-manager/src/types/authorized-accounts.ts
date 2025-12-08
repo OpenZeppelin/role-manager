@@ -82,30 +82,6 @@ export interface AuthorizedAccountView {
   roles: RoleBadgeInfo[];
 }
 
-/**
- * @deprecated Use AuthorizedAccountView instead
- * Kept for backwards compatibility during migration
- */
-export interface AuthorizedAccount {
-  /** Unique identifier - the account address */
-  id: string;
-
-  /** Ethereum address (0x prefixed, 42 characters) */
-  address: string;
-
-  /** Current authorization status */
-  status: AccountStatus;
-
-  /** Date when authorization was granted */
-  dateAdded: Date;
-
-  /** Optional expiration date (undefined = never expires) */
-  expiresAt?: Date;
-
-  /** Array of role names assigned to this account */
-  roles: string[];
-}
-
 // =============================================================================
 // Filter State Types
 // =============================================================================

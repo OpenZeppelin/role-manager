@@ -184,14 +184,16 @@
 
 **Purpose**: Final cleanup and verification
 
-- [ ] T068 [P] Verify "No matching accounts found" message displays when search has no results in `apps/role-manager/src/pages/AuthorizedAccounts.tsx`
-- [ ] T069 [P] Verify selection checkboxes log to console on interaction (placeholder behavior) in `apps/role-manager/src/pages/AuthorizedAccounts.tsx`
-- [ ] T070 [P] Verify row action menus log to console (placeholder behavior) in `apps/role-manager/src/components/AuthorizedAccounts/AccountRow.tsx`
-- [ ] T071 Verify "You" badge stub returns null (awaiting wallet integration) in `apps/role-manager/src/pages/AuthorizedAccounts.tsx`
-- [ ] T072 Run all tests and ensure 100% pass rate
+- [x] T068 [P] Verify "No matching accounts found" message displays when search has no results in `apps/role-manager/src/pages/AuthorizedAccounts.tsx`
+- [x] T069 [P] Verify selection checkboxes log to console on interaction (placeholder behavior) in `apps/role-manager/src/pages/AuthorizedAccounts.tsx`
+- [x] T070 [P] Verify row action menus log to console (placeholder behavior) in `apps/role-manager/src/components/AuthorizedAccounts/AccountRow.tsx`
+- [x] T071 Verify "You" badge stub returns null (awaiting wallet integration) in `apps/role-manager/src/pages/AuthorizedAccounts.tsx`
+- [x] T072 Run all tests and ensure 100% pass rate (537 tests passed)
 - [ ] T073 Manual end-to-end testing with real contract
-- [ ] T074 Update component index exports if needed in `apps/role-manager/src/components/AuthorizedAccounts/index.ts`
-- [ ] T075 Remove deprecated `AuthorizedAccount` interface from `apps/role-manager/src/types/authorized-accounts.ts` (kept for backwards compatibility, replace all usages with `AuthorizedAccountView`)
+- [x] T074 Update component index exports if needed in `apps/role-manager/src/components/AuthorizedAccounts/index.ts`
+- [x] T075 Remove deprecated `AuthorizedAccount` interface from `apps/role-manager/src/types/authorized-accounts.ts` (kept for backwards compatibility, replace all usages with `AuthorizedAccountView`)
+
+**Checkpoint**: Phase 7 complete (T073 requires manual testing). All code tasks done, 537 tests pass. ✅
 
 ---
 
