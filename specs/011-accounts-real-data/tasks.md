@@ -166,17 +166,17 @@
 
 ### Tests for Refresh
 
-- [ ] T062 [P] [US5] Add test cases for refetch functionality in `apps/role-manager/tests/hooks/useAuthorizedAccountsPageData.test.tsx`
-- [ ] T063 [P] [US5] Add test cases for isRefreshing state in `apps/role-manager/tests/hooks/useAuthorizedAccountsPageData.test.tsx`
+- [x] T062 [P] [US5] Add test cases for refetch functionality in `apps/role-manager/src/hooks/__tests__/useAuthorizedAccountsPageData.test.tsx` (already existed: 'exposes refetch function', 'calls refetch on underlying hooks')
+- [x] T063 [P] [US5] Add test cases for isRefreshing state in `apps/role-manager/src/hooks/__tests__/useAuthorizedAccountsPageData.test.tsx` (already existed: 'should return isRefreshing=true when fetching but not initial load')
 
 ### Implementation for Refresh
 
-- [ ] T064 [US5] Add Refresh button to page header in `apps/role-manager/src/pages/AuthorizedAccounts.tsx`
-- [ ] T065 [US5] Wire Refresh button to `refetch` function from hook in `apps/role-manager/src/pages/AuthorizedAccounts.tsx`
-- [ ] T066 [US5] Display spinning icon when `isRefreshing` is true in `apps/role-manager/src/pages/AuthorizedAccounts.tsx`
-- [ ] T067 Verify refresh tests pass
+- [x] T064 [US5] Add Refresh button to page header in `apps/role-manager/src/pages/AuthorizedAccounts.tsx` (already implemented at lines 168-179)
+- [x] T065 [US5] Wire Refresh button to `refetch` function from hook in `apps/role-manager/src/pages/AuthorizedAccounts.tsx` (onClick={() => refetch()})
+- [x] T066 [US5] Display spinning icon when `isRefreshing` is true in `apps/role-manager/src/pages/AuthorizedAccounts.tsx` (animate-spin class + 'Refreshing...' text)
+- [x] T067 Verify refresh tests pass (537 tests passed)
 
-**Checkpoint**: User Story 5 complete - Manual refresh functional
+**Checkpoint**: User Story 5 complete - Manual refresh functional ✅
 
 ---
 
