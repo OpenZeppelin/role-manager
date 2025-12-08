@@ -23,6 +23,7 @@ import {
   AccountsErrorState,
   AccountsFilterBar,
   AccountsLoadingSkeleton,
+  AccountsPagination,
   AccountsTable,
   type AccountAction,
 } from '../components/AuthorizedAccounts';
@@ -48,6 +49,7 @@ export function AuthorizedAccounts() {
     availableRoles,
     filters,
     setFilters,
+    pagination,
     isSupported,
     isLoading,
     isRefreshing,
@@ -56,6 +58,9 @@ export function AuthorizedAccounts() {
     canRetry,
     refetch,
   } = useAuthorizedAccountsPageData();
+
+  // T060: Determine if pagination controls should be visible
+  const showPagination = pagination.totalItems > pagination.pageSize;
 
   // Get contract info for display
   const { selectedContract } = useSelectedContract();
@@ -199,6 +204,9 @@ export function AuthorizedAccounts() {
             </div>
           }
         />
+
+        {/* T059/T060: Pagination controls (only shown when totalItems > pageSize) */}
+        {showPagination && <AccountsPagination pagination={pagination} />}
       </Card>
     </div>
   );

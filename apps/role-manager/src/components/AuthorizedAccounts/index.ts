@@ -22,6 +22,12 @@ export { AccountsEmptyState } from './AccountsEmptyState';
 export { AccountsErrorState } from './AccountsErrorState';
 
 // =============================================================================
+// Components (Feature 011 - Phase 5 Pagination)
+// =============================================================================
+
+export { AccountsPagination } from './AccountsPagination';
+
+// =============================================================================
 // Components (Phase 4 - User Story 2)
 // =============================================================================
 
@@ -29,8 +35,9 @@ export { AccountActionsMenu } from './AccountActionsMenu';
 export { AccountRow } from './AccountRow';
 export { AccountsTable } from './AccountsTable';
 
-// Re-export badge components from Shared for convenience
+// Re-export shared components for convenience
 export { OutlineBadge } from '../Shared/OutlineBadge';
+export { Pagination } from '../Shared/Pagination';
 export { StatusBadge } from '../Shared/StatusBadge';
 
 // =============================================================================
@@ -48,6 +55,7 @@ export type { AccountActionsMenuProps } from './AccountActionsMenu';
 export type { AccountRowProps } from './AccountRow';
 export type { AccountsFilterBarProps } from './AccountsFilterBar';
 export type { AccountsLoadingSkeletonProps } from './AccountsLoadingSkeleton';
+export type { AccountsPaginationProps } from './AccountsPagination';
 export type { AccountsTableProps } from './AccountsTable';
 export type { AccountsEmptyStateProps } from './AccountsEmptyState';
 export type { AccountsErrorStateProps } from './AccountsErrorState';
@@ -64,8 +72,9 @@ export type {
   SelectionState,
 } from '../../types/authorized-accounts';
 
-// Re-export badge types from Shared
+// Re-export shared types
 export type { OutlineBadgeProps } from '../Shared/OutlineBadge';
+export type { PaginationProps, PaginationState } from '../Shared/Pagination';
 export type { StatusBadgeProps, StatusBadgeVariant } from '../Shared/StatusBadge';
 
 export {

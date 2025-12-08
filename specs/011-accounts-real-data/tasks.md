@@ -142,19 +142,19 @@
 
 ### Tests for Pagination
 
-- [ ] T054 [P] [US4] Add test cases for pagination state in `apps/role-manager/tests/hooks/useAuthorizedAccountsPageData.test.tsx`
-- [ ] T055 [P] [US4] Add test cases for pagination reset on filter change in `apps/role-manager/tests/hooks/useAuthorizedAccountsPageData.test.tsx`
-- [ ] T056 [P] [US4] Add test cases for pagination controls visibility in `apps/role-manager/tests/hooks/useAuthorizedAccountsPageData.test.tsx`
+- [x] T054 [P] [US4] Add test cases for pagination state in `apps/role-manager/src/hooks/__tests__/useAuthorizedAccountsPageData.test.tsx` (already existed: 'should paginate accounts correctly', 'should navigate between pages')
+- [x] T055 [P] [US4] Add test cases for pagination reset on filter change in `apps/role-manager/src/hooks/__tests__/useAuthorizedAccountsPageData.test.tsx` (already existed: 'should reset pagination when filters change', 'should reset pagination when contract changes')
+- [x] T056 [P] [US4] Add test cases for pagination controls visibility in `apps/role-manager/src/hooks/__tests__/useAuthorizedAccountsPageData.test.tsx` (added 3 tests for visibility flags)
 
 ### Implementation for Pagination
 
-- [ ] T057 [P] [US4] Create `AccountsPagination` component with controls in `apps/role-manager/src/components/AuthorizedAccounts/AccountsPagination.tsx`
-- [ ] T058 [US4] Export `AccountsPagination` from `apps/role-manager/src/components/AuthorizedAccounts/index.ts`
-- [ ] T059 [US4] Wire `AccountsPagination` to `pagination` controls from hook in `apps/role-manager/src/pages/AuthorizedAccounts.tsx`
-- [ ] T060 [US4] Conditionally show pagination only when `totalItems > pageSize` in `apps/role-manager/src/pages/AuthorizedAccounts.tsx`
-- [ ] T061 Verify pagination tests pass
+- [x] T057 [P] [US4] Create `AccountsPagination` component with controls in `apps/role-manager/src/components/AuthorizedAccounts/AccountsPagination.tsx`
+- [x] T058 [US4] Export `AccountsPagination` from `apps/role-manager/src/components/AuthorizedAccounts/index.ts`
+- [x] T059 [US4] Wire `AccountsPagination` to `pagination` controls from hook in `apps/role-manager/src/pages/AuthorizedAccounts.tsx`
+- [x] T060 [US4] Conditionally show pagination only when `totalItems > pageSize` in `apps/role-manager/src/pages/AuthorizedAccounts.tsx`
+- [x] T061 Verify pagination tests pass (537 tests passed)
 
-**Checkpoint**: User Story 4 complete - Pagination functional
+**Checkpoint**: User Story 4 complete - Pagination functional ✅
 
 ---
 

@@ -298,7 +298,7 @@ export function useAuthorizedAccountsPageData(): UseAuthorizedAccountsPageDataRe
       resetFilters: () => {},
       pagination: {
         currentPage: 1,
-        totalPages: 0,
+        totalPages: 1, // Consistent with Math.max(1, ...) in normal path
         totalItems: 0,
         pageSize: DEFAULT_PAGE_SIZE,
         hasNextPage: false,

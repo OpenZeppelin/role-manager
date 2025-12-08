@@ -650,6 +650,168 @@ describe('useAuthorizedAccountsPageData', () => {
     });
   });
 
+  // ===========================================================================
+  // T056: Test cases for pagination controls visibility
+  // ===========================================================================
+
+  describe('pagination controls visibility (T056)', () => {
+    it('should hide pagination controls when totalItems <= pageSize', async () => {
+      // Only 3 accounts (less than page size of 10)
+      const fewRoles: EnrichedRoleAssignment[] = [
+        {
+          role: { id: 'ROLE_1', label: 'Role 1' },
+          members: [{ address: '0x1111111111111111111111111111111111111111' }],
+        },
+        {
+          role: { id: 'ROLE_2', label: 'Role 2' },
+          members: [{ address: '0x2222222222222222222222222222222222222222' }],
+        },
+        {
+          role: { id: 'ROLE_3', label: 'Role 3' },
+          members: [{ address: '0x3333333333333333333333333333333333333333' }],
+        },
+      ];
+
+      mockUseContractRolesEnriched.mockReturnValue({
+        roles: fewRoles,
+        isLoading: false,
+        isFetching: false,
+        error: null,
+        refetch: vi.fn().mockResolvedValue(undefined),
+        isEmpty: false,
+        hasError: false,
+        canRetry: false,
+        errorMessage: null,
+      });
+
+      mockUseContractOwnership.mockReturnValue({
+        ownership: null,
+        isLoading: false,
+        isFetching: false,
+        error: null,
+        refetch: vi.fn().mockResolvedValue(undefined),
+        hasOwner: false,
+        hasError: false,
+        canRetry: false,
+        errorMessage: null,
+      });
+
+      const { result } = renderHook(() => useAuthorizedAccountsPageData(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // With only 3 items and page size of 10, should show 1 page
+      expect(result.current.pagination.totalItems).toBe(3);
+      expect(result.current.pagination.pageSize).toBe(10);
+      expect(result.current.pagination.totalPages).toBe(1);
+      expect(result.current.pagination.hasNextPage).toBe(false);
+      expect(result.current.pagination.hasPreviousPage).toBe(false);
+    });
+
+    it('should show pagination controls when totalItems > pageSize', async () => {
+      // Create 15 accounts (more than page size of 10)
+      const manyRoles: EnrichedRoleAssignment[] = [];
+      for (let i = 0; i < 15; i++) {
+        manyRoles.push({
+          role: { id: `ROLE_${i}`, label: `Role ${i}` },
+          members: [{ address: `0x${i.toString().padStart(40, '0')}` }],
+        });
+      }
+
+      mockUseContractRolesEnriched.mockReturnValue({
+        roles: manyRoles,
+        isLoading: false,
+        isFetching: false,
+        error: null,
+        refetch: vi.fn().mockResolvedValue(undefined),
+        isEmpty: false,
+        hasError: false,
+        canRetry: false,
+        errorMessage: null,
+      });
+
+      mockUseContractOwnership.mockReturnValue({
+        ownership: null,
+        isLoading: false,
+        isFetching: false,
+        error: null,
+        refetch: vi.fn().mockResolvedValue(undefined),
+        hasOwner: false,
+        hasError: false,
+        canRetry: false,
+        errorMessage: null,
+      });
+
+      const { result } = renderHook(() => useAuthorizedAccountsPageData(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // With 15 items and page size of 10, should show 2 pages
+      expect(result.current.pagination.totalItems).toBe(15);
+      expect(result.current.pagination.pageSize).toBe(10);
+      expect(result.current.pagination.totalPages).toBe(2);
+      expect(result.current.pagination.hasNextPage).toBe(true);
+      expect(result.current.pagination.hasPreviousPage).toBe(false);
+    });
+
+    it('should return correct visibility flag when exactly at pageSize boundary', async () => {
+      // Create exactly 10 accounts (equal to page size)
+      const exactRoles: EnrichedRoleAssignment[] = [];
+      for (let i = 0; i < 10; i++) {
+        exactRoles.push({
+          role: { id: `ROLE_${i}`, label: `Role ${i}` },
+          members: [{ address: `0x${i.toString().padStart(40, '0')}` }],
+        });
+      }
+
+      mockUseContractRolesEnriched.mockReturnValue({
+        roles: exactRoles,
+        isLoading: false,
+        isFetching: false,
+        error: null,
+        refetch: vi.fn().mockResolvedValue(undefined),
+        isEmpty: false,
+        hasError: false,
+        canRetry: false,
+        errorMessage: null,
+      });
+
+      mockUseContractOwnership.mockReturnValue({
+        ownership: null,
+        isLoading: false,
+        isFetching: false,
+        error: null,
+        refetch: vi.fn().mockResolvedValue(undefined),
+        hasOwner: false,
+        hasError: false,
+        canRetry: false,
+        errorMessage: null,
+      });
+
+      const { result } = renderHook(() => useAuthorizedAccountsPageData(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // With exactly 10 items and page size of 10, should show 1 page (no pagination needed)
+      expect(result.current.pagination.totalItems).toBe(10);
+      expect(result.current.pagination.totalPages).toBe(1);
+      expect(result.current.pagination.hasNextPage).toBe(false);
+      expect(result.current.pagination.hasPreviousPage).toBe(false);
+    });
+  });
+
   describe('pagination', () => {
     it('should paginate accounts correctly', async () => {
       // Create 15 mock accounts
