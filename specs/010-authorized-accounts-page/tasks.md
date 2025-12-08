@@ -137,12 +137,12 @@
 
 **Purpose**: Final cleanup and verification
 
-- [ ] T022 [P] Verify all component exports in `apps/role-manager/src/components/AuthorizedAccounts/index.ts` are complete and typed
-- [ ] T023 [P] Add JSDoc comments with feature reference (010-authorized-accounts-page) to all new components
-- [ ] T024 Verify all visual states work: empty, loading, populated, selection (none/partial/all), filter interactions
-- [ ] T025 Verify responsive breakpoints per SC-005: test at desktop (≥1024px) and tablet (768-1023px) viewports
-- [ ] T026 Run quickstart.md validation - verify all expected `logger.info` outputs appear in browser console
-- [ ] T027 Run linting and fix any TypeScript/ESLint errors
+- [x] T022 [P] Verify all component exports in `apps/role-manager/src/components/AuthorizedAccounts/index.ts` are complete and typed
+- [x] T023 [P] Add JSDoc comments with feature reference (010-authorized-accounts-page) to all new components
+- [x] T024 Verify all visual states work: empty, loading, populated, selection (none/partial/all), filter interactions
+- [x] T025 Verify responsive breakpoints per SC-005: test at desktop (≥1024px) and tablet (768-1023px) viewports
+- [x] T026 Run quickstart.md validation - verify all expected `logger.info` outputs appear in browser console
+- [x] T027 Run linting and fix any TypeScript/ESLint errors
 
 ---
 
