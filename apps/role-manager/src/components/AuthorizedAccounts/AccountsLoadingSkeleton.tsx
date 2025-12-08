@@ -15,8 +15,17 @@
 import { Card } from '@openzeppelin/ui-builder-ui';
 import { cn } from '@openzeppelin/ui-builder-utils';
 
-import type { AccountsLoadingSkeletonProps } from '../../types/authorized-accounts';
 import { Skeleton } from '../Shared/Skeleton';
+
+/**
+ * Props for AccountsLoadingSkeleton component
+ */
+export interface AccountsLoadingSkeletonProps {
+  /** Number of skeleton rows to show in the table */
+  rowCount?: number;
+  /** Additional CSS classes */
+  className?: string;
+}
 
 /**
  * Single table row skeleton

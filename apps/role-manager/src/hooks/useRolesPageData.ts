@@ -22,6 +22,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { AccessControlCapabilities } from '@openzeppelin/ui-builder-types';
 import { truncateMiddle } from '@openzeppelin/ui-builder-utils';
 
+import { OWNER_ROLE_DESCRIPTION, OWNER_ROLE_ID, OWNER_ROLE_NAME } from '../constants';
 import type { RoleIdentifier, RoleWithDescription } from '../types/roles';
 import { isHash } from '../utils/hash';
 import { useContractCapabilities } from './useContractCapabilities';
@@ -76,14 +77,6 @@ export interface UseRolesPageDataReturn {
   /** Role identifiers for reference table */
   roleIdentifiers: RoleIdentifier[];
 }
-
-// =============================================================================
-// Constants
-// =============================================================================
-
-const OWNER_ROLE_ID = 'OWNER_ROLE';
-const OWNER_ROLE_NAME = 'Owner';
-const OWNER_ROLE_DESCRIPTION = 'Contract owner with full administrative privileges';
 
 // =============================================================================
 // Utilities

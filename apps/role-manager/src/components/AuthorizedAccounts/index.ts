@@ -32,17 +32,20 @@ export { StatusBadge } from '../Shared/StatusBadge';
 export { MOCK_ACCOUNTS, MOCK_AVAILABLE_ROLES } from './mockData';
 
 // =============================================================================
-// Component Props Types (re-exported from types/authorized-accounts.ts)
+// Component Props Types (colocated with components)
 // =============================================================================
 
+// Props exported from their respective component files
+export type { AccountActionsMenuProps } from './AccountActionsMenu';
+export type { AccountRowProps } from './AccountRow';
+export type { AccountsFilterBarProps } from './AccountsFilterBar';
+export type { AccountsLoadingSkeletonProps } from './AccountsLoadingSkeleton';
+export type { AccountsTableProps } from './AccountsTable';
+
+// Domain types from types file
 export type {
   AccountAction,
-  AccountActionsMenuProps,
-  AccountRowProps,
-  AccountsFilterBarProps,
   AccountsFilterState,
-  AccountsLoadingSkeletonProps,
-  AccountsTableProps,
   AccountStatus,
   AuthorizedAccount,
   MasterCheckboxState,

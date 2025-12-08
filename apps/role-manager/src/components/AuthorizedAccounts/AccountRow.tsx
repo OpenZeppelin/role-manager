@@ -20,11 +20,29 @@
 import { AddressDisplay, Checkbox } from '@openzeppelin/ui-builder-ui';
 import { cn } from '@openzeppelin/ui-builder-utils';
 
-import { ACCOUNT_STATUS_CONFIG, type AccountRowProps } from '../../types/authorized-accounts';
+import {
+  ACCOUNT_STATUS_CONFIG,
+  type AccountAction,
+  type AuthorizedAccount,
+} from '../../types/authorized-accounts';
 import { formatDate } from '../../utils/date';
 import { OutlineBadge } from '../Shared/OutlineBadge';
 import { StatusBadge } from '../Shared/StatusBadge';
 import { AccountActionsMenu } from './AccountActionsMenu';
+
+/**
+ * Props for AccountRow component
+ */
+export interface AccountRowProps {
+  /** Account data to display */
+  account: AuthorizedAccount;
+  /** Whether this row is currently selected */
+  isSelected: boolean;
+  /** Callback when selection checkbox changes */
+  onToggleSelection: () => void;
+  /** Callback when an action is triggered */
+  onAction: (action: AccountAction) => void;
+}
 
 /**
  * AccountRow - Single account row in the Authorized Accounts table

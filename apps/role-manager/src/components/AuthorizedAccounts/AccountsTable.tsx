@@ -22,14 +22,22 @@ import { cn } from '@openzeppelin/ui-builder-utils';
 import {
   getMasterCheckboxState,
   type AccountAction,
-  type AccountsTableProps,
+  type AuthorizedAccount,
 } from '../../types/authorized-accounts';
 import { AccountRow } from './AccountRow';
 
 /**
- * Extended props for AccountsTable supporting empty state
+ * Props for AccountsTable component
  */
-interface AccountsTableWithEmptyProps extends AccountsTableProps {
+export interface AccountsTableProps {
+  /** List of accounts to display */
+  accounts: AuthorizedAccount[];
+  /** Set of selected account IDs */
+  selectedIds: Set<string>;
+  /** Callback when row selection changes */
+  onSelectionChange: (selectedIds: Set<string>) => void;
+  /** Callback when an action is triggered on an account */
+  onAction: (accountId: string, action: AccountAction) => void;
   /** Optional content to render when accounts array is empty */
   emptyState?: React.ReactNode;
 }
@@ -61,7 +69,7 @@ export function AccountsTable({
   onSelectionChange,
   onAction,
   emptyState,
-}: AccountsTableWithEmptyProps) {
+}: AccountsTableProps) {
   // Derive master checkbox state
   const masterState = getMasterCheckboxState(selectedIds.size, accounts.length);
   const isAllSelected = masterState === 'checked';

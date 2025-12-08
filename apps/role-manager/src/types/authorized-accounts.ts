@@ -1,19 +1,31 @@
 /**
  * Type definitions for the Authorized Accounts page
- * Feature: 010-authorized-accounts-page
+ * Feature: 010-authorized-accounts-page (initial skeleton)
+ * Updated by: 011-accounts-real-data (real data integration)
  *
- * Presentation-focused types for the Authorized Accounts UI skeleton.
- * All types support mock data rendering without business logic.
+ * Presentation-focused types for the Authorized Accounts UI.
+ * Supports real blockchain data from AccessControlService.
  */
+
+import type { EnrichedRoleAssignment, EnrichedRoleMember } from '@openzeppelin/ui-builder-types';
+
+// Re-export adapter types for convenience
+// Note: RoleIdentifier is not re-exported here as it's defined in ./roles.ts
+export type { EnrichedRoleAssignment, EnrichedRoleMember };
 
 // =============================================================================
 // Domain Types
 // =============================================================================
 
 /**
- * Possible statuses for an authorized account
+ * Transaction-state based account status.
+ * - 'active': Role confirmed on-chain (all accounts from adapter)
+ * - 'pending': Transaction in progress (future: during transaction execution)
+ * - 'awaiting-signature': Multisig pending signatures (future: multisig support)
+ *
+ * Note: 'expired' removed - OZ AccessControl has no timelock roles
  */
-export type AccountStatus = 'active' | 'expired' | 'pending';
+export type AccountStatus = 'active' | 'pending' | 'awaiting-signature';
 
 /**
  * Display configuration for each status
@@ -22,16 +34,57 @@ export const ACCOUNT_STATUS_CONFIG: Record<
   AccountStatus,
   {
     label: string;
-    variant: 'success' | 'error' | 'warning';
+    variant: 'success' | 'warning' | 'info';
   }
 > = {
   active: { label: 'Active', variant: 'success' },
-  expired: { label: 'Expired', variant: 'error' },
   pending: { label: 'Pending', variant: 'warning' },
+  'awaiting-signature': { label: 'Awaiting Signature', variant: 'info' },
 };
 
+// =============================================================================
+// Role Badge Types
+// =============================================================================
+
 /**
- * Represents an authorized account with role assignments
+ * Minimal role information for display as badge.
+ */
+export interface RoleBadgeInfo {
+  /** Role identifier (hash or name constant) */
+  id: string;
+  /** Human-readable role name */
+  name: string;
+}
+
+// =============================================================================
+// Presentation Types
+// =============================================================================
+
+/**
+ * Presentation model for an authorized account.
+ * Aggregates data from multiple roles into account-centric view.
+ *
+ * This replaces the old AuthorizedAccount interface with:
+ * - dateAdded as nullable string (ISO8601) instead of Date
+ * - roles as RoleBadgeInfo[] instead of string[]
+ * - expiresAt removed (no timelock support)
+ */
+export interface AuthorizedAccountView {
+  /** Unique identifier (same as address) */
+  id: string;
+  /** Blockchain address (0x-prefixed) */
+  address: string;
+  /** Transaction-state based status */
+  status: AccountStatus;
+  /** ISO8601 timestamp of earliest role grant, or null if unavailable */
+  dateAdded: string | null;
+  /** Array of assigned roles */
+  roles: RoleBadgeInfo[];
+}
+
+/**
+ * @deprecated Use AuthorizedAccountView instead
+ * Kept for backwards compatibility during migration
  */
 export interface AuthorizedAccount {
   /** Unique identifier - the account address */
@@ -58,16 +111,19 @@ export interface AuthorizedAccount {
 // =============================================================================
 
 /**
- * Filter state for the accounts table
+ * Filter state for the accounts table.
+ *
+ * Note: 'expired' status option removed since OZ AccessControl has no timelock roles.
+ * Filter dropdown should only show: All, Active, Pending, Awaiting Signature
  */
 export interface AccountsFilterState {
-  /** Search query for address/ENS filtering */
+  /** Search query for address filtering (case-insensitive partial match) */
   searchQuery: string;
 
   /** Selected status filter ('all' or specific status) */
   statusFilter: AccountStatus | 'all';
 
-  /** Selected role filter ('all' or specific role name) */
+  /** Selected role filter ('all' or specific role ID) */
   roleFilter: string;
 }
 
@@ -127,83 +183,3 @@ export const ACCOUNT_ACTIONS: Array<{
   { id: 'revoke-access', label: 'Revoke Access' },
   { id: 'view-details', label: 'View Details' },
 ];
-
-// =============================================================================
-// Component Props Interfaces
-// =============================================================================
-
-/**
- * Props for AccountsTable component
- */
-export interface AccountsTableProps {
-  /** List of accounts to display */
-  accounts: AuthorizedAccount[];
-
-  /** Set of selected account IDs */
-  selectedIds: Set<string>;
-
-  /** Callback when row selection changes */
-  onSelectionChange: (selectedIds: Set<string>) => void;
-
-  /** Callback when an action is triggered on an account */
-  onAction: (accountId: string, action: AccountAction) => void;
-}
-
-/**
- * Props for AccountRow component
- */
-export interface AccountRowProps {
-  /** Account data to display */
-  account: AuthorizedAccount;
-
-  /** Whether this row is currently selected */
-  isSelected: boolean;
-
-  /** Callback when selection checkbox changes */
-  onToggleSelection: () => void;
-
-  /** Callback when an action is triggered */
-  onAction: (action: AccountAction) => void;
-}
-
-/**
- * Props for AccountsFilterBar component
- */
-export interface AccountsFilterBarProps {
-  /** Current filter state */
-  filters: AccountsFilterState;
-
-  /** Available roles for the role filter dropdown */
-  availableRoles: string[];
-
-  /** Callback when filter state changes */
-  onFiltersChange: (filters: AccountsFilterState) => void;
-
-  /** Whether the filter bar is disabled (used for initial shell state) */
-  disabled?: boolean;
-
-  /** Additional CSS classes */
-  className?: string;
-}
-
-/**
- * Props for AccountActionsMenu component
- */
-export interface AccountActionsMenuProps {
-  /** Callback when an action is triggered */
-  onAction: (action: AccountAction) => void;
-
-  /** Additional CSS classes */
-  className?: string;
-}
-
-/**
- * Props for AccountsLoadingSkeleton component
- */
-export interface AccountsLoadingSkeletonProps {
-  /** Number of skeleton rows to show in the table */
-  rowCount?: number;
-
-  /** Additional CSS classes */
-  className?: string;
-}

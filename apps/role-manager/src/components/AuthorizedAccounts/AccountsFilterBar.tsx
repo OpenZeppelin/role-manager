@@ -26,7 +26,23 @@ import {
 } from '@openzeppelin/ui-builder-ui';
 import { cn } from '@openzeppelin/ui-builder-utils';
 
-import type { AccountsFilterBarProps } from '../../types/authorized-accounts';
+import type { AccountsFilterState } from '../../types/authorized-accounts';
+
+/**
+ * Props for AccountsFilterBar component
+ */
+export interface AccountsFilterBarProps {
+  /** Current filter state */
+  filters: AccountsFilterState;
+  /** Available roles for the role filter dropdown */
+  availableRoles: string[];
+  /** Callback when filter state changes */
+  onFiltersChange: (filters: AccountsFilterState) => void;
+  /** Whether the filter bar is disabled (used for initial shell state) */
+  disabled?: boolean;
+  /** Additional CSS classes */
+  className?: string;
+}
 
 /**
  * AccountsFilterBar - Filter bar for Authorized Accounts table

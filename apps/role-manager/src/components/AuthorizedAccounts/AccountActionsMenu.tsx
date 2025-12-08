@@ -23,11 +23,17 @@ import {
 } from '@openzeppelin/ui-builder-ui';
 import { cn } from '@openzeppelin/ui-builder-utils';
 
-import {
-  ACCOUNT_ACTIONS,
-  type AccountAction,
-  type AccountActionsMenuProps,
-} from '../../types/authorized-accounts';
+import { ACCOUNT_ACTIONS, type AccountAction } from '../../types/authorized-accounts';
+
+/**
+ * Props for AccountActionsMenu component
+ */
+export interface AccountActionsMenuProps {
+  /** Callback when an action is triggered */
+  onAction: (action: AccountAction) => void;
+  /** Additional CSS classes */
+  className?: string;
+}
 
 /**
  * Maps action IDs to their corresponding icons

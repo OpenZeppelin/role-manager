@@ -19,15 +19,15 @@
 
 **Purpose**: Update shared type definitions required by all subsequent phases
 
-- [ ] T001 Update `AccountStatus` type to remove `'expired'` and add `'awaiting-signature'` in `apps/role-manager/src/types/authorized-accounts.ts`
-- [ ] T002 Update `ACCOUNT_STATUS_CONFIG` to remove expired entry and add awaiting-signature in `apps/role-manager/src/types/authorized-accounts.ts`
-- [ ] T003 Create `RoleBadgeInfo` interface in `apps/role-manager/src/types/authorized-accounts.ts`
-- [ ] T004 Rename `AuthorizedAccount` to `AuthorizedAccountView` with new structure (remove `expiresAt`, change `dateAdded` to `string | null`, change `roles` to `RoleBadgeInfo[]`) in `apps/role-manager/src/types/authorized-accounts.ts`
-- [ ] T005 Add `EnrichedRoleMember` and `EnrichedRoleAssignment` types in `apps/role-manager/src/types/authorized-accounts.ts`
-- [ ] T006 Add `AccountsFilterState` with `DEFAULT_FILTER_STATE` in `apps/role-manager/src/types/authorized-accounts.ts`
-- [ ] T007 Export new types from `apps/role-manager/src/types/index.ts`
+- [x] T001 Update `AccountStatus` type to remove `'expired'` and add `'awaiting-signature'` in `apps/role-manager/src/types/authorized-accounts.ts`
+- [x] T002 Update `ACCOUNT_STATUS_CONFIG` to remove expired entry and add awaiting-signature in `apps/role-manager/src/types/authorized-accounts.ts`
+- [x] T003 Create `RoleBadgeInfo` interface in `apps/role-manager/src/types/authorized-accounts.ts`
+- [x] T004 Rename `AuthorizedAccount` to `AuthorizedAccountView` with new structure (remove `expiresAt`, change `dateAdded` to `string | null`, change `roles` to `RoleBadgeInfo[]`) in `apps/role-manager/src/types/authorized-accounts.ts`
+- [x] T005 Add `EnrichedRoleMember` and `EnrichedRoleAssignment` types in `apps/role-manager/src/types/authorized-accounts.ts`
+- [x] T006 Add `AccountsFilterState` with `DEFAULT_FILTER_STATE` in `apps/role-manager/src/types/authorized-accounts.ts`
+- [x] T007 Export new types from `apps/role-manager/src/types/index.ts`
 
-**Checkpoint**: Type foundation ready - utility and hook implementation can begin
+**Checkpoint**: Type foundation ready - utility and hook implementation can begin ✅
 
 ---
 
@@ -39,22 +39,22 @@
 
 ### Tests for Utilities
 
-- [ ] T008 [P] Create test file with TDD tests for `transformRolesToAccounts` in `apps/role-manager/tests/utils/account-transformer.test.ts`
-- [ ] T009 [P] Add test cases for multi-role account aggregation in `apps/role-manager/tests/utils/account-transformer.test.ts`
-- [ ] T010 [P] Add test cases for earliest timestamp selection in `apps/role-manager/tests/utils/account-transformer.test.ts`
-- [ ] T011 [P] Add test cases for owner integration in `apps/role-manager/tests/utils/account-transformer.test.ts`
-- [ ] T012 [P] Add test cases for `sortAccounts` in `apps/role-manager/tests/utils/account-transformer.test.ts`
-- [ ] T013 [P] Add test cases for `applyAccountsFilters` in `apps/role-manager/tests/utils/account-transformer.test.ts`
+- [x] T008 [P] Create test file with TDD tests for `transformRolesToAccounts` in `apps/role-manager/src/utils/__tests__/account-transformer.test.ts`
+- [x] T009 [P] Add test cases for multi-role account aggregation in `apps/role-manager/src/utils/__tests__/account-transformer.test.ts`
+- [x] T010 [P] Add test cases for earliest timestamp selection in `apps/role-manager/src/utils/__tests__/account-transformer.test.ts`
+- [x] T011 [P] Add test cases for owner integration in `apps/role-manager/src/utils/__tests__/account-transformer.test.ts`
+- [x] T012 [P] Add test cases for `sortAccounts` in `apps/role-manager/src/utils/__tests__/account-transformer.test.ts`
+- [x] T013 [P] Add test cases for `applyAccountsFilters` in `apps/role-manager/src/utils/__tests__/account-transformer.test.ts`
 
 ### Implementation for Utilities
 
-- [ ] T014 Create `transformRolesToAccounts()` function in `apps/role-manager/src/utils/account-transformer.ts`
-- [ ] T015 Create `sortAccounts()` function in `apps/role-manager/src/utils/account-transformer.ts`
-- [ ] T016 Create `applyAccountsFilters()` function in `apps/role-manager/src/utils/account-transformer.ts`
-- [ ] T017 Export utility functions from `apps/role-manager/src/utils/index.ts`
-- [ ] T018 Verify all utility tests pass
+- [x] T014 Create `transformRolesToAccounts()` function in `apps/role-manager/src/utils/account-transformer.ts`
+- [x] T015 Create `sortAccounts()` function in `apps/role-manager/src/utils/account-transformer.ts`
+- [x] T016 Create `applyAccountsFilters()` function in `apps/role-manager/src/utils/account-transformer.ts`
+- [x] T017 Export utility functions from `apps/role-manager/src/utils/index.ts`
+- [x] T018 Verify all utility tests pass (35 tests passed)
 
-**Checkpoint**: Foundation ready - user story implementation can now begin
+**Checkpoint**: Foundation ready - user story implementation can now begin ✅
 
 ---
 
@@ -191,6 +191,7 @@
 - [ ] T072 Run all tests and ensure 100% pass rate
 - [ ] T073 Manual end-to-end testing with real contract
 - [ ] T074 Update component index exports if needed in `apps/role-manager/src/components/AuthorizedAccounts/index.ts`
+- [ ] T075 Remove deprecated `AuthorizedAccount` interface from `apps/role-manager/src/types/authorized-accounts.ts` (kept for backwards compatibility, replace all usages with `AuthorizedAccountView`)
 
 ---
 
@@ -300,8 +301,8 @@ Task T038: "Update AccountRow for RoleBadgeInfo[]"
 | 4: US3          | 8      | Search/Filter     |
 | 5: US4          | 8      | Pagination        |
 | 6: US5          | 6      | Refresh           |
-| 7: Polish       | 7      | Cleanup           |
-| **Total**       | **74** |                   |
+| 7: Polish       | 8      | Cleanup           |
+| **Total**       | **75** |                   |
 
 ---
 

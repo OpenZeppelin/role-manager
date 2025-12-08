@@ -13,7 +13,7 @@ import type { AuthorizedAccount } from '../../types/authorized-accounts';
  * Mock accounts demonstrating all visual states:
  * - Active with multiple roles, never expires
  * - Active with single role, has expiration
- * - Expired status
+ * - Awaiting signature status (multisig pending)
  * - Pending status with multiple roles
  */
 export const MOCK_ACCOUNTS: AuthorizedAccount[] = [
@@ -36,7 +36,7 @@ export const MOCK_ACCOUNTS: AuthorizedAccount[] = [
   {
     id: '3',
     address: '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B',
-    status: 'expired',
+    status: 'awaiting-signature',
     dateAdded: new Date('2023-06-01'),
     expiresAt: new Date('2024-06-01'),
     roles: ['Pauser'],
