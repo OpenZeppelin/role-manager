@@ -801,4 +801,424 @@ describe('useAuthorizedAccountsPageData', () => {
       expect(result.current.filters.roleFilter).toBe('all');
     });
   });
+
+  // ===========================================================================
+  // T046: Test cases for search filter functionality
+  // ===========================================================================
+
+  describe('search filter functionality (T046)', () => {
+    it('should filter accounts by partial address match', async () => {
+      const { result } = renderHook(() => useAuthorizedAccountsPageData(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Get initial count
+      const initialCount = result.current.allAccounts.length;
+      expect(initialCount).toBeGreaterThan(0);
+
+      // Search for partial address (use a prefix unique to one account)
+      // 0xabcdef... is unique to the minter account
+      act(() => {
+        result.current.setFilters({
+          ...result.current.filters,
+          searchQuery: '0xabcdef12345678',
+        });
+      });
+
+      // Should find only the account with 0xabcdef...
+      expect(result.current.allAccounts.length).toBeLessThan(initialCount);
+      expect(result.current.allAccounts.length).toBe(1);
+      expect(result.current.allAccounts[0].address.toLowerCase()).toContain('abcdef');
+    });
+
+    it('should perform case-insensitive search', async () => {
+      const { result } = renderHook(() => useAuthorizedAccountsPageData(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Search with uppercase
+      act(() => {
+        result.current.setFilters({
+          ...result.current.filters,
+          searchQuery: 'ABCDEF',
+        });
+      });
+
+      const uppercaseResults = result.current.allAccounts.length;
+
+      // Reset filters
+      act(() => {
+        result.current.resetFilters();
+      });
+
+      // Search with lowercase
+      act(() => {
+        result.current.setFilters({
+          ...result.current.filters,
+          searchQuery: 'abcdef',
+        });
+      });
+
+      const lowercaseResults = result.current.allAccounts.length;
+
+      // Should return same results regardless of case
+      expect(uppercaseResults).toBe(lowercaseResults);
+    });
+
+    it('should return empty results for non-matching search query', async () => {
+      const { result } = renderHook(() => useAuthorizedAccountsPageData(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      act(() => {
+        result.current.setFilters({
+          ...result.current.filters,
+          searchQuery: 'nonexistent_address_xyz',
+        });
+      });
+
+      expect(result.current.allAccounts.length).toBe(0);
+    });
+
+    it('should return all accounts when search query is empty', async () => {
+      const { result } = renderHook(() => useAuthorizedAccountsPageData(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      const initialCount = result.current.allAccounts.length;
+
+      // Set and then clear search query
+      act(() => {
+        result.current.setFilters({
+          ...result.current.filters,
+          searchQuery: 'abcdef',
+        });
+      });
+
+      const filteredCount = result.current.allAccounts.length;
+      expect(filteredCount).toBeLessThan(initialCount);
+
+      act(() => {
+        result.current.setFilters({
+          ...result.current.filters,
+          searchQuery: '',
+        });
+      });
+
+      expect(result.current.allAccounts.length).toBe(initialCount);
+    });
+  });
+
+  // ===========================================================================
+  // T047: Test cases for role filter functionality
+  // ===========================================================================
+
+  describe('role filter functionality (T047)', () => {
+    it('should filter accounts by specific role', async () => {
+      const { result } = renderHook(() => useAuthorizedAccountsPageData(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Filter by ADMIN_ROLE
+      act(() => {
+        result.current.setFilters({
+          ...result.current.filters,
+          roleFilter: 'ADMIN_ROLE',
+        });
+      });
+
+      // All accounts should have ADMIN_ROLE
+      expect(result.current.allAccounts.length).toBeGreaterThan(0);
+      expect(
+        result.current.allAccounts.every((a) => a.roles.some((r) => r.id === 'ADMIN_ROLE'))
+      ).toBe(true);
+    });
+
+    it('should filter accounts by MINTER_ROLE', async () => {
+      const { result } = renderHook(() => useAuthorizedAccountsPageData(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Filter by MINTER_ROLE
+      act(() => {
+        result.current.setFilters({
+          ...result.current.filters,
+          roleFilter: 'MINTER_ROLE',
+        });
+      });
+
+      // All accounts should have MINTER_ROLE
+      expect(result.current.allAccounts.length).toBeGreaterThan(0);
+      expect(
+        result.current.allAccounts.every((a) => a.roles.some((r) => r.id === 'MINTER_ROLE'))
+      ).toBe(true);
+    });
+
+    it('should show all accounts when roleFilter is "all"', async () => {
+      const { result } = renderHook(() => useAuthorizedAccountsPageData(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      const allAccountsCount = result.current.allAccounts.length;
+
+      // Apply role filter
+      act(() => {
+        result.current.setFilters({
+          ...result.current.filters,
+          roleFilter: 'ADMIN_ROLE',
+        });
+      });
+
+      const filteredCount = result.current.allAccounts.length;
+      expect(filteredCount).toBeLessThan(allAccountsCount);
+
+      // Reset to 'all'
+      act(() => {
+        result.current.setFilters({
+          ...result.current.filters,
+          roleFilter: 'all',
+        });
+      });
+
+      expect(result.current.allAccounts.length).toBe(allAccountsCount);
+    });
+
+    it('should return empty results for non-existent role', async () => {
+      const { result } = renderHook(() => useAuthorizedAccountsPageData(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      act(() => {
+        result.current.setFilters({
+          ...result.current.filters,
+          roleFilter: 'NON_EXISTENT_ROLE',
+        });
+      });
+
+      expect(result.current.allAccounts.length).toBe(0);
+    });
+
+    it('should include multi-role accounts when filtering by any of their roles', async () => {
+      const { result } = renderHook(() => useAuthorizedAccountsPageData(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Account 0x1234... has both ADMIN_ROLE and MINTER_ROLE
+      // Should appear in both filtered results
+
+      act(() => {
+        result.current.setFilters({
+          ...result.current.filters,
+          roleFilter: 'ADMIN_ROLE',
+        });
+      });
+
+      const adminFiltered = result.current.allAccounts.find((a) =>
+        a.address.includes('1234567890123456789012345678901234567890')
+      );
+      expect(adminFiltered).toBeDefined();
+
+      act(() => {
+        result.current.setFilters({
+          ...result.current.filters,
+          roleFilter: 'MINTER_ROLE',
+        });
+      });
+
+      const minterFiltered = result.current.allAccounts.find((a) =>
+        a.address.includes('1234567890123456789012345678901234567890')
+      );
+      expect(minterFiltered).toBeDefined();
+    });
+  });
+
+  // ===========================================================================
+  // T048: Test cases for combined filter AND logic
+  // ===========================================================================
+
+  describe('combined filter AND logic (T048)', () => {
+    it('should combine search and role filters with AND logic', async () => {
+      const { result } = renderHook(() => useAuthorizedAccountsPageData(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Apply both search and role filter
+      act(() => {
+        result.current.setFilters({
+          searchQuery: '1234',
+          statusFilter: 'all',
+          roleFilter: 'MINTER_ROLE',
+        });
+      });
+
+      // Account must match BOTH criteria
+      expect(result.current.allAccounts.length).toBeGreaterThan(0);
+      expect(
+        result.current.allAccounts.every(
+          (a) =>
+            a.address.toLowerCase().includes('1234') && a.roles.some((r) => r.id === 'MINTER_ROLE')
+        )
+      ).toBe(true);
+    });
+
+    it('should return empty when combined filters have no matches', async () => {
+      const { result } = renderHook(() => useAuthorizedAccountsPageData(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Search for owner address but filter by ADMIN_ROLE
+      // Owner doesn't have ADMIN_ROLE, so should return empty
+      act(() => {
+        result.current.setFilters({
+          searchQuery: 'owner1234',
+          statusFilter: 'all',
+          roleFilter: 'ADMIN_ROLE',
+        });
+      });
+
+      expect(result.current.allAccounts.length).toBe(0);
+    });
+
+    it('should combine search, status, and role filters with AND logic', async () => {
+      const { result } = renderHook(() => useAuthorizedAccountsPageData(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // All three filters applied
+      act(() => {
+        result.current.setFilters({
+          searchQuery: '1234',
+          statusFilter: 'active',
+          roleFilter: 'ADMIN_ROLE',
+        });
+      });
+
+      // Results must match ALL three criteria
+      expect(
+        result.current.allAccounts.every(
+          (a) =>
+            a.address.toLowerCase().includes('1234') &&
+            a.status === 'active' &&
+            a.roles.some((r) => r.id === 'ADMIN_ROLE')
+        )
+      ).toBe(true);
+    });
+
+    it('should progressively narrow results as filters are added', async () => {
+      const { result } = renderHook(() => useAuthorizedAccountsPageData(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      const noFilterCount = result.current.allAccounts.length;
+
+      // Add search filter
+      act(() => {
+        result.current.setFilters({
+          searchQuery: '',
+          statusFilter: 'all',
+          roleFilter: 'MINTER_ROLE',
+        });
+      });
+
+      const roleFilterCount = result.current.allAccounts.length;
+      expect(roleFilterCount).toBeLessThanOrEqual(noFilterCount);
+
+      // Add search filter on top of role filter
+      act(() => {
+        result.current.setFilters({
+          searchQuery: 'abcdef',
+          statusFilter: 'all',
+          roleFilter: 'MINTER_ROLE',
+        });
+      });
+
+      const combinedFilterCount = result.current.allAccounts.length;
+      expect(combinedFilterCount).toBeLessThanOrEqual(roleFilterCount);
+    });
+
+    it('should work correctly with status filter', async () => {
+      const { result } = renderHook(() => useAuthorizedAccountsPageData(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // All accounts are 'active' in mock data
+      act(() => {
+        result.current.setFilters({
+          searchQuery: '',
+          statusFilter: 'active',
+          roleFilter: 'all',
+        });
+      });
+
+      const activeCount = result.current.allAccounts.length;
+      expect(activeCount).toBeGreaterThan(0);
+
+      // Filter by 'pending' - no mock accounts have this status
+      act(() => {
+        result.current.setFilters({
+          searchQuery: '',
+          statusFilter: 'pending',
+          roleFilter: 'all',
+        });
+      });
+
+      expect(result.current.allAccounts.length).toBe(0);
+    });
+  });
 });

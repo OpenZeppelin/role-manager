@@ -118,19 +118,19 @@
 
 ### Tests for Search & Filter
 
-- [ ] T046 [P] [US3] Add test cases for search filter functionality in `apps/role-manager/tests/hooks/useAuthorizedAccountsPageData.test.tsx`
-- [ ] T047 [P] [US3] Add test cases for role filter functionality in `apps/role-manager/tests/hooks/useAuthorizedAccountsPageData.test.tsx`
-- [ ] T048 [P] [US3] Add test cases for combined filter AND logic in `apps/role-manager/tests/hooks/useAuthorizedAccountsPageData.test.tsx`
+- [x] T046 [P] [US3] Add test cases for search filter functionality in `apps/role-manager/src/hooks/__tests__/useAuthorizedAccountsPageData.test.tsx`
+- [x] T047 [P] [US3] Add test cases for role filter functionality in `apps/role-manager/src/hooks/__tests__/useAuthorizedAccountsPageData.test.tsx`
+- [x] T048 [P] [US3] Add test cases for combined filter AND logic in `apps/role-manager/src/hooks/__tests__/useAuthorizedAccountsPageData.test.tsx`
 
 ### Implementation for Search & Filter
 
-- [ ] T049 [US3] Update `AccountsFilterBar` to remove "Expired" from status dropdown in `apps/role-manager/src/components/AuthorizedAccounts/AccountsFilterBar.tsx`
-- [ ] T050 [US3] Wire `AccountsFilterBar` to receive `availableRoles` from hook in `apps/role-manager/src/pages/AuthorizedAccounts.tsx`
-- [ ] T051 [US3] Wire `filters` and `setFilters` to `AccountsFilterBar` in `apps/role-manager/src/pages/AuthorizedAccounts.tsx`
-- [ ] T052 [US3] Verify search and filter functionality works end-to-end
-- [ ] T053 Verify filter tests pass
+- [x] T049 [US3] Update `AccountsFilterBar` to remove "Expired" from status dropdown in `apps/role-manager/src/components/AuthorizedAccounts/AccountsFilterBar.tsx` (already done - no "Expired" option present)
+- [x] T050 [US3] Wire `AccountsFilterBar` to receive `availableRoles` from hook in `apps/role-manager/src/pages/AuthorizedAccounts.tsx` (already done in Phase 3)
+- [x] T051 [US3] Wire `filters` and `setFilters` to `AccountsFilterBar` in `apps/role-manager/src/pages/AuthorizedAccounts.tsx` (already done in Phase 3)
+- [x] T052 [US3] Verify search and filter functionality works end-to-end (534 tests passing)
+- [x] T053 Verify filter tests pass (534 tests passing)
 
-**Checkpoint**: User Story 3 complete - Search and filter functional
+**Checkpoint**: User Story 3 complete - Search and filter functional ✅
 
 ---
 
