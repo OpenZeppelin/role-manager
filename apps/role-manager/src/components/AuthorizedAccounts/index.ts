@@ -48,7 +48,9 @@ export type {
   AccountsFilterState,
   AccountStatus,
   AuthorizedAccount,
+  AuthorizedAccountView,
   MasterCheckboxState,
+  RoleBadgeInfo,
   SelectionState,
 } from '../../types/authorized-accounts';
 

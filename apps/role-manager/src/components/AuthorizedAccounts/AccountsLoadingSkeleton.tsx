@@ -1,6 +1,7 @@
 /**
  * AccountsLoadingSkeleton Component
  * Feature: 010-authorized-accounts-page
+ * Updated by: 011-accounts-real-data
  *
  * Loading skeleton UI for the Authorized Accounts page.
  * Displays a skeleton matching the unified card layout with filter bar + table.
@@ -8,7 +9,7 @@
  * Loading Skeleton Requirements (from spec):
  * - Matches table structure: header row + 4 data row skeletons
  * - Each row skeleton includes: checkbox placeholder, address (w-48), status badge (w-16),
- *   dates (w-24 each), roles (w-32), actions (w-8)
+ *   date added (w-24), roles (w-32), actions (w-8)
  * - Uses shimmer animation via animate-pulse class
  */
 
@@ -46,10 +47,6 @@ function TableRowSkeleton() {
         <Skeleton className="h-5 w-16 rounded-full" />
       </td>
       {/* Date Added */}
-      <td className="p-4">
-        <Skeleton className="h-4 w-24" />
-      </td>
-      {/* Expires */}
       <td className="p-4">
         <Skeleton className="h-4 w-24" />
       </td>
@@ -109,9 +106,6 @@ export function AccountsLoadingSkeleton({ rowCount = 4, className }: AccountsLoa
               </th>
               <th className="p-4 text-left w-32">
                 <Skeleton className="h-4 w-20" />
-              </th>
-              <th className="p-4 text-left w-32">
-                <Skeleton className="h-4 w-16" />
               </th>
               <th className="p-4 text-left w-48">
                 <Skeleton className="h-4 w-12" />

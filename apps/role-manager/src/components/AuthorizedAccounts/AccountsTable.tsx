@@ -1,6 +1,7 @@
 /**
  * AccountsTable Component
  * Feature: 010-authorized-accounts-page
+ * Updated by: 011-accounts-real-data
  *
  * Main data table for displaying authorized accounts.
  *
@@ -8,7 +9,7 @@
  * - Card container wrapper
  * - HTML table with semantic structure
  * - Header row with master checkbox (supports indeterminate state)
- * - Column headers: Address, Status, Date Added, Expires, Roles, Actions
+ * - Column headers: Address, Status, Date Added, Roles, Actions
  * - Body maps accounts to AccountRow components
  *
  * Selection behavior (FR-005):
@@ -22,7 +23,7 @@ import { cn } from '@openzeppelin/ui-builder-utils';
 import {
   getMasterCheckboxState,
   type AccountAction,
-  type AuthorizedAccount,
+  type AuthorizedAccountView,
 } from '../../types/authorized-accounts';
 import { AccountRow } from './AccountRow';
 
@@ -31,7 +32,7 @@ import { AccountRow } from './AccountRow';
  */
 export interface AccountsTableProps {
   /** List of accounts to display */
-  accounts: AuthorizedAccount[];
+  accounts: AuthorizedAccountView[];
   /** Set of selected account IDs */
   selectedIds: Set<string>;
   /** Callback when row selection changes */
@@ -50,7 +51,6 @@ const COLUMNS = [
   { id: 'address', label: 'Address', width: '' },
   { id: 'status', label: 'Status', width: 'w-24' },
   { id: 'dateAdded', label: 'Date Added', width: 'w-32' },
-  { id: 'expires', label: 'Expires', width: 'w-32' },
   { id: 'roles', label: 'Roles', width: 'w-48' },
   { id: 'actions', label: 'Actions', width: 'w-16' },
 ] as const;
