@@ -71,14 +71,15 @@ describe('transformRolesToAccounts', () => {
     expect(result[0].roles[0]).toEqual({ id: 'ADMIN_ROLE', name: 'Admin' });
   });
 
-  it('should use role ID as name when label is not provided', () => {
+  it('should use capitalized role ID as name when label is not provided', () => {
     const roles: EnrichedRoleAssignment[] = [
       createEnrichedRole('MINTER_ROLE', undefined, [{ address: '0x1234' }]),
     ];
 
     const result = transformRolesToAccounts(roles, null);
 
-    expect(result[0].roles[0].name).toBe('MINTER_ROLE');
+    // Role names are capitalized using getRoleName utility
+    expect(result[0].roles[0].name).toBe('Minter Role');
   });
 
   it('should normalize addresses to lowercase', () => {

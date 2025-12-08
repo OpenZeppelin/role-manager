@@ -66,47 +66,47 @@
 
 ### Tests for Core Data Hooks
 
-- [ ] T019 [P] [US1] Create test file for `useContractRolesEnriched` in `apps/role-manager/tests/hooks/useContractRolesEnriched.test.tsx`
-- [ ] T020 [P] [US1] Add test cases for successful enriched role fetch in `apps/role-manager/tests/hooks/useContractRolesEnriched.test.tsx`
-- [ ] T021 [P] [US1] Add test cases for fallback to regular API in `apps/role-manager/tests/hooks/useContractRolesEnriched.test.tsx`
-- [ ] T022 [P] [US1] Add test cases for error handling in `apps/role-manager/tests/hooks/useContractRolesEnriched.test.tsx`
-- [ ] T023 [P] [US1] Create test file for `useAuthorizedAccountsPageData` in `apps/role-manager/tests/hooks/useAuthorizedAccountsPageData.test.tsx`
-- [ ] T024 [P] [US1] Add test cases for data transformation integration in `apps/role-manager/tests/hooks/useAuthorizedAccountsPageData.test.tsx`
-- [ ] T025 [P] [US2] Add test cases for contract change auto-refresh in `apps/role-manager/tests/hooks/useAuthorizedAccountsPageData.test.tsx`
-- [ ] T026 [P] [US6] Add test cases for unsupported contract handling in `apps/role-manager/tests/hooks/useAuthorizedAccountsPageData.test.tsx`
+- [x] T019 [P] [US1] Create test file for `useContractRolesEnriched` in `apps/role-manager/src/hooks/__tests__/useContractRolesEnriched.test.tsx`
+- [x] T020 [P] [US1] Add test cases for successful enriched role fetch in `apps/role-manager/src/hooks/__tests__/useContractRolesEnriched.test.tsx`
+- [x] T021 [P] [US1] Add test cases for fallback to regular API in `apps/role-manager/src/hooks/__tests__/useContractRolesEnriched.test.tsx`
+- [x] T022 [P] [US1] Add test cases for error handling in `apps/role-manager/src/hooks/__tests__/useContractRolesEnriched.test.tsx`
+- [x] T023 [P] [US1] Create test file for `useAuthorizedAccountsPageData` in `apps/role-manager/src/hooks/__tests__/useAuthorizedAccountsPageData.test.tsx`
+- [x] T024 [P] [US1] Add test cases for data transformation integration in `apps/role-manager/src/hooks/__tests__/useAuthorizedAccountsPageData.test.tsx`
+- [x] T025 [P] [US2] Add test cases for contract change auto-refresh in `apps/role-manager/src/hooks/__tests__/useAuthorizedAccountsPageData.test.tsx`
+- [x] T026 [P] [US6] Add test cases for unsupported contract handling in `apps/role-manager/src/hooks/__tests__/useAuthorizedAccountsPageData.test.tsx`
 
 ### Implementation for Core Data Hooks
 
-- [ ] T027 [US1] Create `useContractRolesEnriched` hook with react-query in `apps/role-manager/src/hooks/useContractRolesEnriched.ts`
-- [ ] T028 [US1] Implement fallback from `getCurrentRolesEnriched` to `getCurrentRoles` in `apps/role-manager/src/hooks/useContractRolesEnriched.ts`
-- [ ] T029 [US1] Create `useAuthorizedAccountsPageData` orchestration hook in `apps/role-manager/src/hooks/useAuthorizedAccountsPageData.ts`
-- [ ] T030 [US2] Implement contract change detection and state reset in `apps/role-manager/src/hooks/useAuthorizedAccountsPageData.ts`
-- [ ] T031 [US1] Export new hooks from `apps/role-manager/src/hooks/index.ts`
-- [ ] T032 Verify all hook tests pass
+- [x] T027 [US1] Create `useContractRolesEnriched` hook with react-query in `apps/role-manager/src/hooks/useContractRolesEnriched.ts`
+- [x] T028 [US1] Implement fallback from `getCurrentRolesEnriched` to `getCurrentRoles` in `apps/role-manager/src/hooks/useContractRolesEnriched.ts`
+- [x] T029 [US1] Create `useAuthorizedAccountsPageData` orchestration hook in `apps/role-manager/src/hooks/useAuthorizedAccountsPageData.ts`
+- [x] T030 [US2] Implement contract change detection and state reset in `apps/role-manager/src/hooks/useAuthorizedAccountsPageData.ts`
+- [x] T031 [US1] Export new hooks from `apps/role-manager/src/hooks/index.ts`
+- [x] T032 Verify all hook tests pass (511 tests passed)
 
 ### Implementation for Error/Empty State Components
 
-- [ ] T033 [P] [US6] Create `AccountsEmptyState` component for unsupported contracts in `apps/role-manager/src/components/AuthorizedAccounts/AccountsEmptyState.tsx`
-- [ ] T034 [P] [US6] Create `AccountsErrorState` component with retry button in `apps/role-manager/src/components/AuthorizedAccounts/AccountsErrorState.tsx`
-- [ ] T035 [US6] Export new components from `apps/role-manager/src/components/AuthorizedAccounts/index.ts`
+- [x] T033 [P] [US6] Create `AccountsEmptyState` component for unsupported contracts in `apps/role-manager/src/components/AuthorizedAccounts/AccountsEmptyState.tsx`
+- [x] T034 [P] [US6] Create `AccountsErrorState` component with retry button in `apps/role-manager/src/components/AuthorizedAccounts/AccountsErrorState.tsx`
+- [x] T035 [US6] Export new components from `apps/role-manager/src/components/AuthorizedAccounts/index.ts`
 
 ### Implementation for UI Component Updates
 
-- [ ] T036 [P] [US1] Update `AccountRow` to handle `dateAdded: null` (display "-") in `apps/role-manager/src/components/AuthorizedAccounts/AccountRow.tsx`
-- [ ] T037 [P] [US1] Update `AccountRow` to remove Expires column rendering in `apps/role-manager/src/components/AuthorizedAccounts/AccountRow.tsx`
-- [ ] T038 [P] [US1] Update `AccountRow` to display `RoleBadgeInfo[]` as role badges in `apps/role-manager/src/components/AuthorizedAccounts/AccountRow.tsx`
-- [ ] T039 [US1] Update `AccountsTable` to wire to real data props in `apps/role-manager/src/components/AuthorizedAccounts/AccountsTable.tsx`
+- [x] T036 [P] [US1] Update `AccountRow` to handle `dateAdded: null` (display "-") in `apps/role-manager/src/components/AuthorizedAccounts/AccountRow.tsx` (already implemented in Phase 1)
+- [x] T037 [P] [US1] Update `AccountRow` to remove Expires column rendering in `apps/role-manager/src/components/AuthorizedAccounts/AccountRow.tsx` (already removed in Phase 1)
+- [x] T038 [P] [US1] Update `AccountRow` to display `RoleBadgeInfo[]` as role badges in `apps/role-manager/src/components/AuthorizedAccounts/AccountRow.tsx` (already implemented in Phase 1)
+- [x] T039 [US1] Update `AccountsTable` to wire to real data props in `apps/role-manager/src/components/AuthorizedAccounts/AccountsTable.tsx` (already works with AuthorizedAccountView[])
 
 ### Implementation for Page Integration
 
-- [ ] T040 [US1] Update `AuthorizedAccounts` page to use `useAuthorizedAccountsPageData` hook in `apps/role-manager/src/pages/AuthorizedAccounts.tsx`
-- [ ] T041 [US1] Wire loading skeleton display during initial fetch in `apps/role-manager/src/pages/AuthorizedAccounts.tsx`
-- [ ] T042 [US6] Wire error state display with retry action in `apps/role-manager/src/pages/AuthorizedAccounts.tsx`
-- [ ] T043 [US6] Wire empty state display for unsupported contracts in `apps/role-manager/src/pages/AuthorizedAccounts.tsx`
-- [ ] T044 [US1] Remove demo toggle and mock data from spec 010 in `apps/role-manager/src/pages/AuthorizedAccounts.tsx`
-- [ ] T045 [US1] Hide "Add Account or Role" button (view-only scope) in `apps/role-manager/src/pages/AuthorizedAccounts.tsx`
+- [x] T040 [US1] Update `AuthorizedAccounts` page to use `useAuthorizedAccountsPageData` hook in `apps/role-manager/src/pages/AuthorizedAccounts.tsx`
+- [x] T041 [US1] Wire loading skeleton display during initial fetch in `apps/role-manager/src/pages/AuthorizedAccounts.tsx`
+- [x] T042 [US6] Wire error state display with retry action in `apps/role-manager/src/pages/AuthorizedAccounts.tsx`
+- [x] T043 [US6] Wire empty state display for unsupported contracts in `apps/role-manager/src/pages/AuthorizedAccounts.tsx`
+- [x] T044 [US1] Remove demo toggle and mock data from spec 010 in `apps/role-manager/src/pages/AuthorizedAccounts.tsx`
+- [x] T045 [US1] Hide "Add Account or Role" button (view-only scope) in `apps/role-manager/src/pages/AuthorizedAccounts.tsx`
 
-**Checkpoint**: MVP complete - User Stories 1, 2, 6 functional. Real data displays, auto-refresh on contract change, error handling works.
+**Checkpoint**: MVP complete - User Stories 1, 2, 6 functional. Real data displays, auto-refresh on contract change, error handling works. ✅
 
 ---
 

@@ -59,5 +59,14 @@ export type { UseCustomRoleDescriptionsReturn } from './useCustomRoleDescription
 export { useRolesPageData } from './useRolesPageData';
 export type { UseRolesPageDataReturn } from './useRolesPageData';
 
+// Authorized Accounts Data Hook (Feature: 011-accounts-real-data)
+export { useContractRolesEnriched } from './useContractRolesEnriched';
+export type { UseContractRolesEnrichedReturn } from './useContractRolesEnriched';
+export { useAuthorizedAccountsPageData } from './useAuthorizedAccountsPageData';
+export type {
+  UseAuthorizedAccountsPageDataReturn,
+  PaginationControls,
+} from './useAuthorizedAccountsPageData';
+
 // Utility hooks
 export { useDebounce } from './useDebounce';

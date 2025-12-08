@@ -1,6 +1,7 @@
 /**
  * Authorized Accounts Components - Barrel Export
  * Feature: 010-authorized-accounts-page
+ * Updated by: 011-accounts-real-data
  *
  * Central export point for all Authorized Accounts page components.
  * Re-exports types for convenience.
@@ -12,6 +13,13 @@
 
 export { AccountsFilterBar } from './AccountsFilterBar';
 export { AccountsLoadingSkeleton } from './AccountsLoadingSkeleton';
+
+// =============================================================================
+// Components (Feature 011 - Empty/Error States)
+// =============================================================================
+
+export { AccountsEmptyState } from './AccountsEmptyState';
+export { AccountsErrorState } from './AccountsErrorState';
 
 // =============================================================================
 // Components (Phase 4 - User Story 2)
@@ -41,6 +49,8 @@ export type { AccountRowProps } from './AccountRow';
 export type { AccountsFilterBarProps } from './AccountsFilterBar';
 export type { AccountsLoadingSkeletonProps } from './AccountsLoadingSkeleton';
 export type { AccountsTableProps } from './AccountsTable';
+export type { AccountsEmptyStateProps } from './AccountsEmptyState';
+export type { AccountsErrorStateProps } from './AccountsErrorState';
 
 // Domain types from types file
 export type {

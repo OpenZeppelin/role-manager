@@ -20,11 +20,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { AccessControlCapabilities } from '@openzeppelin/ui-builder-types';
-import { truncateMiddle } from '@openzeppelin/ui-builder-utils';
 
 import { OWNER_ROLE_DESCRIPTION, OWNER_ROLE_ID, OWNER_ROLE_NAME } from '../constants';
 import type { RoleIdentifier, RoleWithDescription } from '../types/roles';
-import { isHash } from '../utils/hash';
+import { getRoleName } from '../utils/role-name';
 import { useContractCapabilities } from './useContractCapabilities';
 import { useContractOwnership, useContractRoles } from './useContractData';
 import { useCustomRoleDescriptions } from './useCustomRoleDescriptions';
@@ -76,58 +75,6 @@ export interface UseRolesPageDataReturn {
 
   /** Role identifiers for reference table */
   roleIdentifiers: RoleIdentifier[];
-}
-
-// =============================================================================
-// Utilities
-// =============================================================================
-
-/**
- * Capitalize each word in a role name for display.
- * Handles snake_case, camelCase, and space-separated names.
- *
- * @example
- * capitalizeRoleName('admin') // 'Admin'
- * capitalizeRoleName('ADMIN_ROLE') // 'Admin Role'
- * capitalizeRoleName('minterRole') // 'Minter Role'
- */
-function capitalizeRoleName(name: string): string {
-  return (
-    name
-      // Insert space before uppercase letters (camelCase)
-      .replace(/([a-z])([A-Z])/g, '$1 $2')
-      // Replace underscores with spaces
-      .replace(/_/g, ' ')
-      // Capitalize first letter of each word, lowercase the rest
-      .split(' ')
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(' ')
-  );
-}
-
-/**
- * Get human-readable role name from adapter data.
- * Falls back to role ID hash (truncated) when no readable name is available.
- *
- * Per US4.3: "the role ID hash is shown as a fallback"
- *
- * @param label Optional human-readable label from adapter
- * @param roleId Role identifier (may be hash or constant string)
- * @returns Human-readable name or truncated hash fallback
- */
-function getRoleName(label: string | undefined, roleId: string): string {
-  // If adapter provides a label, use it (capitalized)
-  if (label && !isHash(label)) {
-    return capitalizeRoleName(label);
-  }
-
-  // If roleId is a readable identifier (not a hash), capitalize it
-  if (!isHash(roleId)) {
-    return capitalizeRoleName(roleId);
-  }
-
-  // Fallback: roleId is a hash, display truncated version using shared utility
-  return truncateMiddle(roleId, 6, 4);
 }
 
 // =============================================================================

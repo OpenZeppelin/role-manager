@@ -16,6 +16,7 @@ import type {
   EnrichedRoleAssignment,
   RoleBadgeInfo,
 } from '../types/authorized-accounts';
+import { getRoleName } from './role-name';
 
 // =============================================================================
 // T014: transformRolesToAccounts
@@ -56,7 +57,7 @@ export function transformRolesToAccounts(
   for (const roleAssignment of enrichedRoles) {
     const roleInfo: RoleBadgeInfo = {
       id: roleAssignment.role.id,
-      name: roleAssignment.role.label || roleAssignment.role.id,
+      name: getRoleName(roleAssignment.role.label, roleAssignment.role.id),
     };
 
     for (const member of roleAssignment.members) {
