@@ -6,9 +6,13 @@
 
 export { EmptyState } from './EmptyState';
 export { FeatureBadge } from './FeatureBadge';
+export { OutlineBadge } from './OutlineBadge';
 export { PageEmptyState } from './PageEmptyState';
 export { PageHeader } from './PageHeader';
 export { Skeleton } from './Skeleton';
+export { StatusBadge } from './StatusBadge';
 
 // Types
+export type { OutlineBadgeProps } from './OutlineBadge';
 export type { SkeletonProps } from './Skeleton';
+export type { StatusBadgeProps, StatusBadgeVariant } from './StatusBadge';
