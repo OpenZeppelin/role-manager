@@ -17,11 +17,14 @@ import type { AuthorizedAccountView, RoleBadgeInfo } from '../../types/authorize
  * - Awaiting signature status (multisig pending)
  * - Pending status with multiple roles
  * - Account with no timestamp (dateAdded: null)
+ *
+ * Note: Both `id` and `address` are lowercase to match the real
+ * transformRolesToAccounts() behavior which normalizes addresses.
  */
 export const MOCK_ACCOUNTS: AuthorizedAccountView[] = [
   {
     id: '0x742d35cc6634c0532925a3b844bc9e7595f8feb6',
-    address: '0x742d35Cc6634C0532925a3b844Bc9e7595f8fEb6',
+    address: '0x742d35cc6634c0532925a3b844bc9e7595f8feb6',
     status: 'active',
     dateAdded: '2024-01-15T00:00:00.000Z',
     roles: [
@@ -31,14 +34,14 @@ export const MOCK_ACCOUNTS: AuthorizedAccountView[] = [
   },
   {
     id: '0x8ba1f109551bd432803012645ac136ddd64dba72',
-    address: '0x8ba1f109551bD432803012645Ac136ddd64DBA72',
+    address: '0x8ba1f109551bd432803012645ac136ddd64dba72',
     status: 'active',
     dateAdded: '2024-02-20T00:00:00.000Z',
     roles: [{ id: 'OPERATOR_ROLE', name: 'Operator' }],
   },
   {
     id: '0xab5801a7d398351b8be11c439e05c5b3259aec9b',
-    address: '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B',
+    address: '0xab5801a7d398351b8be11c439e05c5b3259aec9b',
     status: 'awaiting-signature',
     dateAdded: '2023-06-01T00:00:00.000Z',
     roles: [{ id: 'PAUSER_ROLE', name: 'Pauser' }],
@@ -56,7 +59,7 @@ export const MOCK_ACCOUNTS: AuthorizedAccountView[] = [
   },
   {
     id: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
-    address: '0xDeadBeefDeadBeefDeadBeefDeadBeefDeadBeef',
+    address: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
     status: 'active',
     dateAdded: null, // No timestamp available
     roles: [{ id: 'OWNER_ROLE', name: 'Owner' }],
