@@ -16,8 +16,6 @@
  * - Indeterminate state when partial selection
  */
 
-import { Minus } from 'lucide-react';
-
 import { Checkbox } from '@openzeppelin/ui-builder-ui';
 import { cn } from '@openzeppelin/ui-builder-utils';
 
@@ -112,21 +110,12 @@ export function AccountsTable({
           <tr>
             {/* Master Checkbox */}
             <th className={cn('p-4 text-left', COLUMNS[0].width)}>
-              <div className="relative">
-                <Checkbox
-                  checked={isIndeterminate ? 'indeterminate' : isAllSelected}
-                  onCheckedChange={handleMasterToggle}
-                  aria-label="Select all accounts"
-                  className="focus-visible:ring-2 focus-visible:ring-ring"
-                />
-                {/* Indeterminate icon overlay */}
-                {isIndeterminate && (
-                  <Minus
-                    className="absolute top-0 left-0 h-4 w-4 text-primary-foreground pointer-events-none"
-                    aria-hidden="true"
-                  />
-                )}
-              </div>
+              <Checkbox
+                checked={isIndeterminate ? 'indeterminate' : isAllSelected}
+                onCheckedChange={handleMasterToggle}
+                aria-label="Select all accounts"
+                className="focus-visible:ring-2 focus-visible:ring-ring"
+              />
             </th>
 
             {/* Other column headers */}

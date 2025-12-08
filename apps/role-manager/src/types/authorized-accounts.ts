@@ -181,6 +181,9 @@ export interface AccountsFilterBarProps {
 
   /** Whether the filter bar is disabled (used for initial shell state) */
   disabled?: boolean;
+
+  /** Additional CSS classes */
+  className?: string;
 }
 
 /**
@@ -189,17 +192,6 @@ export interface AccountsFilterBarProps {
 export interface AccountActionsMenuProps {
   /** Callback when an action is triggered */
   onAction: (action: AccountAction) => void;
-
-  /** Additional CSS classes */
-  className?: string;
-}
-
-/**
- * Props for AccountsEmptyState component
- */
-export interface AccountsEmptyStateProps {
-  /** Callback when the CTA button is clicked */
-  onGrantAuthorization?: () => void;
 
   /** Additional CSS classes */
   className?: string;

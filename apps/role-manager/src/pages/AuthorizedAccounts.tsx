@@ -141,10 +141,12 @@ export function AuthorizedAccounts() {
         }
         actions={
           <div className="flex gap-2">
-            {/* Demo toggle button (for development only) */}
-            <Button variant="outline" size="sm" onClick={handleCycleView}>
-              {getDemoButtonLabel()}
-            </Button>
+            {/* Demo toggle button (development only - hidden in production) */}
+            {import.meta.env.DEV && (
+              <Button variant="outline" size="sm" onClick={handleCycleView}>
+                {getDemoButtonLabel()}
+              </Button>
+            )}
             {/* Primary action button */}
             <Button onClick={handleAddAccountOrRole}>
               <Plus className="mr-2 h-4 w-4" />

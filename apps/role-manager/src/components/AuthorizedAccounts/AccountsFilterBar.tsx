@@ -45,7 +45,7 @@ export function AccountsFilterBar({
   onFiltersChange,
   disabled = false,
   className,
-}: AccountsFilterBarProps & { className?: string }) {
+}: AccountsFilterBarProps) {
   const handleSearchChange = (value: string) => {
     if (!disabled) {
       onFiltersChange({ ...filters, searchQuery: value });
