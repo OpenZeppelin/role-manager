@@ -92,11 +92,11 @@
 
 ### Implementation for User Story 2
 
-- [ ] T017 [US2] Add contract change detection to `useRoleChangesPageData.ts` hook (reset state on contract change)
-- [ ] T018 [US2] Verify react-query key includes contractId for automatic cache invalidation
-- [ ] T019 [US2] Add loading state during contract switch in `RoleChanges.tsx` page
+- [x] T017 [US2] Add contract change detection to `useRoleChangesPageData.ts` hook (reset state on contract change)
+- [x] T018 [US2] Verify react-query key includes contractId for automatic cache invalidation
+- [x] T019 [US2] Add loading state during contract switch in `RoleChanges.tsx` page
 
-**Checkpoint**: Data loads automatically when switching contracts, stale requests cancelled
+**Checkpoint**: Data loads automatically when switching contracts, stale requests cancelled ✅
 
 ---
 
