@@ -78,7 +78,11 @@ export function ChangesFilterBar({
   };
 
   return (
-    <div className={cn('flex flex-col sm:flex-row gap-4 p-4', className)}>
+    <div
+      className={cn('flex flex-col sm:flex-row gap-4 p-4', className)}
+      role="search"
+      aria-label="Filter role changes"
+    >
       {/* Filter dropdowns */}
       <div className="flex gap-2 sm:ml-auto">
         {/* Action type filter */}
