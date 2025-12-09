@@ -68,9 +68,11 @@ export interface RoleChangeEventView {
   roleName: string;
   /** Affected account address */
   account: string;
+  /** Block explorer URL for the account (null if unavailable) */
+  accountUrl: string | null;
   /** Transaction hash (null if unavailable) */
   transactionHash: string | null;
-  /** Full block explorer URL (null if unavailable) */
+  /** Full block explorer URL for the transaction (null if unavailable) */
   transactionUrl: string | null;
   /** Block/ledger number */
   ledger: number | null;

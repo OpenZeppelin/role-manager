@@ -19,6 +19,7 @@ import {
   type HistoryQueryOptions,
   type UseRoleChangesPageDataReturn,
 } from '../types/role-changes';
+import { createGetAccountUrl, createGetTransactionUrl } from '../utils/explorer-urls';
 import {
   applyHistoryFilters,
   extractAvailableRoles,
@@ -124,18 +125,13 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
   } = useContractHistory(adapter, contractAddress, shouldFetchHistory, queryOptions);
 
   // =============================================================================
-  // Transaction URL Helper
+  // Explorer URL Helpers (chain-agnostic via adapter)
   // =============================================================================
 
-  // Use adapter's getExplorerTxUrl for chain-agnostic transaction URLs
-  // This properly handles different URL patterns (EVM: /tx/, Stellar: /transaction/, etc.)
-  const getTransactionUrl = useCallback(
-    (txHash: string): string | null => {
-      if (!adapter) return null;
-      return adapter.getExplorerTxUrl?.(txHash) ?? null;
-    },
-    [adapter]
-  );
+  // Create URL generator functions using shared utilities
+  // These handle different URL patterns across chains (EVM, Stellar, etc.)
+  const getTransactionUrl = useMemo(() => createGetTransactionUrl(adapter), [adapter]);
+  const getAccountUrl = useMemo(() => createGetAccountUrl(adapter), [adapter]);
 
   // =============================================================================
   // Computed Values
@@ -143,8 +139,8 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
 
   // Transform history entries to view models
   const transformedEvents = useMemo(
-    () => transformHistoryEntries(historyItems, getTransactionUrl),
-    [historyItems, getTransactionUrl]
+    () => transformHistoryEntries(historyItems, { getTransactionUrl, getAccountUrl }),
+    [historyItems, getTransactionUrl, getAccountUrl]
   );
 
   // Apply client-side filters (action type)

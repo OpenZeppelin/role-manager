@@ -56,4 +56,3 @@ export function ChangesErrorState({ message, canRetry, onRetry }: ChangesErrorSt
     </div>
   );
 }
-

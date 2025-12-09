@@ -5,9 +5,10 @@
  * Displays role change history (grants, revokes, transfers) for selected contracts.
  * Implements User Stories from spec 012:
  * - US1: View chronological list of role changes
+ * - US3: Navigate through paginated history (cursor-based)
  * - US6: Handle contracts without history support (error/empty states)
  *
- * Tasks: T009, T010, T014, T015
+ * Tasks: T009, T010, T014, T015, T022
  */
 
 import { FileSearch } from 'lucide-react';
@@ -19,6 +20,7 @@ import {
   ChangesErrorState,
   ChangesLoadingSkeleton,
   ChangesTable,
+  CursorPagination,
 } from '../components/RoleChanges';
 import { PageEmptyState } from '../components/Shared/PageEmptyState';
 import { PageHeader } from '../components/Shared/PageHeader';
@@ -36,9 +38,10 @@ import { useSelectedContract } from '../hooks/useSelectedContract';
  * - Displays events in table format
  */
 export function RoleChanges() {
-  // Get real data from hook (T010)
+  // Get real data from hook (T010, T022)
   const {
     events,
+    pagination,
     hasContractSelected,
     supportsHistory,
     isSupported,
@@ -170,6 +173,8 @@ export function RoleChanges() {
           events={events}
           emptyState={<ChangesEmptyState noEventsFound contractName={contractLabel} />}
         />
+        {/* Cursor-based pagination (T022 - US3) */}
+        <CursorPagination pagination={pagination} />
       </Card>
     </div>
   );

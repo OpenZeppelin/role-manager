@@ -18,6 +18,7 @@ import {
   type RoleChangeAction,
   type RoleChangeEventView,
 } from '../types/role-changes';
+import type { GetExplorerUrlFn } from './explorer-urls';
 import { getRoleName } from './role-name';
 
 // =============================================================================
@@ -35,27 +36,34 @@ export const CHANGE_TYPE_MAP: Record<HistoryChangeType, RoleChangeAction> = CHAN
 // =============================================================================
 
 /**
- * Function type for generating transaction URLs.
- * Used to delegate URL construction to the adapter's getExplorerTxUrl method.
+ * Options for transforming history entries.
  */
-export type GetTransactionUrlFn = (txHash: string) => string | null;
+export interface TransformOptions {
+  /** Function to generate transaction URL (typically adapter.getExplorerTxUrl) */
+  getTransactionUrl: GetExplorerUrlFn;
+  /** Function to generate account URL (typically adapter.getExplorerUrl) */
+  getAccountUrl: GetExplorerUrlFn;
+}
 
 /**
  * Transform a single history entry from the API into a presentation model.
  *
  * @param entry - Raw history entry from getHistory() API
- * @param getTransactionUrl - Function to generate transaction URL (typically adapter.getExplorerTxUrl)
+ * @param options - Transform options with URL generator functions
  * @returns Presentation model for the UI
  *
  * @example
  * ```typescript
- * const event = transformHistoryEntry(entry, (hash) => adapter.getExplorerTxUrl?.(hash) ?? null);
- * // { id: '...', timestamp: '...', action: 'grant', ... }
+ * const event = transformHistoryEntry(entry, {
+ *   getTransactionUrl: (hash) => adapter.getExplorerTxUrl?.(hash) ?? null,
+ *   getAccountUrl: (address) => adapter.getExplorerUrl?.(address) ?? null,
+ * });
+ * // { id: '...', timestamp: '...', action: 'grant', accountUrl: '...', ... }
  * ```
  */
 export function transformHistoryEntry(
   entry: HistoryEntry,
-  getTransactionUrl: GetTransactionUrlFn
+  options: TransformOptions
 ): RoleChangeEventView {
   const action = CHANGE_TYPE_MAP[entry.changeType] ?? 'grant';
   const timestamp = entry.timestamp ?? new Date().toISOString();
@@ -67,8 +75,9 @@ export function transformHistoryEntry(
     roleId: entry.role.id,
     roleName: getRoleName(undefined, entry.role.id),
     account: entry.account,
+    accountUrl: options.getAccountUrl(entry.account),
     transactionHash: entry.txId ?? null,
-    transactionUrl: entry.txId ? getTransactionUrl(entry.txId) : null,
+    transactionUrl: entry.txId ? options.getTransactionUrl(entry.txId) : null,
     ledger: entry.ledger ?? null,
   };
 }
@@ -78,20 +87,23 @@ export function transformHistoryEntry(
  * Results are sorted by timestamp descending (newest first) per FR-016.
  *
  * @param entries - Array of raw history entries from getHistory() API
- * @param getTransactionUrl - Function to generate transaction URL (typically adapter.getExplorerTxUrl)
+ * @param options - Transform options with URL generator functions
  * @returns Array of presentation models sorted by timestamp (newest first)
  *
  * @example
  * ```typescript
- * const events = transformHistoryEntries(data.items, (hash) => adapter.getExplorerTxUrl?.(hash) ?? null);
+ * const events = transformHistoryEntries(data.items, {
+ *   getTransactionUrl: (hash) => adapter.getExplorerTxUrl?.(hash) ?? null,
+ *   getAccountUrl: (address) => adapter.getExplorerUrl?.(address) ?? null,
+ * });
  * // Returns events sorted by timestamp descending
  * ```
  */
 export function transformHistoryEntries(
   entries: HistoryEntry[],
-  getTransactionUrl: GetTransactionUrlFn
+  options: TransformOptions
 ): RoleChangeEventView[] {
-  const transformed = entries.map((entry) => transformHistoryEntry(entry, getTransactionUrl));
+  const transformed = entries.map((entry) => transformHistoryEntry(entry, options));
   return sortHistoryEvents(transformed);
 }
 

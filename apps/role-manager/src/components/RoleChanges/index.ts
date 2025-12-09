@@ -15,7 +15,7 @@ export { ChangesEmptyState, type ChangesEmptyStateProps } from './ChangesEmptySt
 export { ChangesErrorState, type ChangesErrorStateProps } from './ChangesErrorState';
 
 // Phase 6 (US3): Pagination
-// export { CursorPagination } from './CursorPagination';
+export { CursorPagination, type CursorPaginationProps } from './CursorPagination';
 
 // Phase 7 (US4): Filtering
 // export { ChangesFilterBar } from './ChangesFilterBar';

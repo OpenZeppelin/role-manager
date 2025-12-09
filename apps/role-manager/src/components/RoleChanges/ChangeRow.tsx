@@ -12,13 +12,11 @@
  * Tasks: T006
  */
 
-import { ExternalLink } from 'lucide-react';
-
 import { AddressDisplay } from '@openzeppelin/ui-builder-ui';
-import { cn, truncateMiddle } from '@openzeppelin/ui-builder-utils';
+import { cn } from '@openzeppelin/ui-builder-utils';
 
 import { ACTION_TYPE_CONFIG, type RoleChangeEventView } from '../../types/role-changes';
-import { formatDate } from '../../utils/date';
+import { formatDateTime } from '../../utils/date';
 import { OutlineBadge } from '../Shared/OutlineBadge';
 import { StatusBadge } from '../Shared/StatusBadge';
 
@@ -37,7 +35,7 @@ export interface ChangeRowProps {
  * - Formatted timestamp display
  * - Action type badge with color coding
  * - Role badge
- * - Truncated address with copy functionality
+ * - Truncated address with copy functionality and explorer link
  * - Transaction link to block explorer
  */
 export function ChangeRow({ event }: ChangeRowProps) {
@@ -47,7 +45,7 @@ export function ChangeRow({ event }: ChangeRowProps) {
     <tr className={cn('border-b last:border-b-0 transition-colors', 'hover:bg-accent/50')}>
       {/* Timestamp */}
       <td className="p-4 text-sm text-muted-foreground whitespace-nowrap">
-        {formatDate(event.timestamp)}
+        {formatDateTime(event.timestamp)}
       </td>
 
       {/* Action badge */}
@@ -68,23 +66,23 @@ export function ChangeRow({ event }: ChangeRowProps) {
           startChars={6}
           endChars={4}
           showCopyButton={true}
+          explorerUrl={event.accountUrl ?? undefined}
           className="font-mono text-sm"
         />
       </td>
 
-      {/* Transaction link */}
+      {/* Transaction hash */}
       <td className="p-4">
-        {event.transactionUrl ? (
-          <a
-            href={event.transactionUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
-            aria-label={`View transaction ${event.transactionHash} on block explorer`}
-          >
-            <span className="font-mono">{truncateMiddle(event.transactionHash ?? '', 6, 4)}</span>
-            <ExternalLink className="h-3.5 w-3.5" />
-          </a>
+        {event.transactionHash ? (
+          <AddressDisplay
+            address={event.transactionHash}
+            truncate={true}
+            startChars={6}
+            endChars={4}
+            showCopyButton={true}
+            explorerUrl={event.transactionUrl ?? undefined}
+            className="font-mono text-sm"
+          />
         ) : (
           <span className="text-sm text-muted-foreground">-</span>
         )}

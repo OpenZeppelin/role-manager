@@ -108,12 +108,12 @@
 
 ### Implementation for User Story 3
 
-- [ ] T020 [P] [US3] Create `CursorPagination.tsx` component in `components/RoleChanges/CursorPagination.tsx` (Previous/Next buttons, no page numbers)
-- [ ] T021 [US3] Add cursor pagination state management to `useRoleChangesPageData.ts` hook (currentCursor, cursorHistory for back nav)
-- [ ] T022 [US3] Add pagination controls to `RoleChanges.tsx` page (render CursorPagination below table)
-- [ ] T023 [US3] Update barrel export in `components/RoleChanges/index.ts` with CursorPagination
+- [x] T020 [P] [US3] Create `CursorPagination.tsx` component in `components/RoleChanges/CursorPagination.tsx` (Previous/Next buttons, no page numbers)
+- [x] T021 [US3] Add cursor pagination state management to `useRoleChangesPageData.ts` hook (currentCursor, cursorHistory for back nav)
+- [x] T022 [US3] Add pagination controls to `RoleChanges.tsx` page (render CursorPagination below table)
+- [x] T023 [US3] Update barrel export in `components/RoleChanges/index.ts` with CursorPagination
 
-**Checkpoint**: Can navigate through paginated history with Previous/Next buttons
+**Checkpoint**: Can navigate through paginated history with Previous/Next buttons ✅
 
 ---
 
