@@ -36,7 +36,11 @@ export interface ChangesErrorStateProps {
  */
 export function ChangesErrorState({ message, canRetry, onRetry }: ChangesErrorStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center py-16 px-4">
+    <div
+      className="flex flex-col items-center justify-center py-16 px-4"
+      role="alert"
+      aria-live="assertive"
+    >
       <div className="flex flex-col items-center text-center max-w-md">
         <div className="rounded-full bg-destructive/10 p-3 mb-4">
           <AlertCircle className="h-8 w-8 text-destructive" />
