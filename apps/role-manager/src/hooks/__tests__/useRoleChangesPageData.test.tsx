@@ -124,6 +124,9 @@ function setupDefaultMocks() {
     adapter: {
       id: 'test-adapter',
       getExplorerUrl: vi.fn().mockReturnValue('https://explorer.example.com/address/0xcontract123'),
+      getExplorerTxUrl: vi.fn(
+        (txHash: string) => `https://explorer.example.com/transaction/${txHash}`
+      ),
     },
     isAdapterLoading: false,
     isContractRegistered: true,
@@ -463,6 +466,9 @@ describe('useRoleChangesPageData', () => {
         adapter: {
           id: 'test-adapter',
           getExplorerUrl: vi.fn().mockReturnValue('https://explorer.example.com/address/0xnew'),
+          getExplorerTxUrl: vi.fn(
+            (txHash: string) => `https://explorer.example.com/transaction/${txHash}`
+          ),
         },
         isAdapterLoading: false,
         isContractRegistered: true,

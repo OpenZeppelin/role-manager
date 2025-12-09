@@ -124,22 +124,18 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
   } = useContractHistory(adapter, contractAddress, shouldFetchHistory, queryOptions);
 
   // =============================================================================
-  // Get Explorer Base URL
+  // Transaction URL Helper
   // =============================================================================
 
-  // Derive base explorer URL from the contract's explorer URL
-  // e.g., "https://etherscan.io/address/0x123" -> "https://etherscan.io"
-  const explorerBaseUrl = useMemo(() => {
-    if (!adapter || !contractAddress) return '';
-    const addressUrl = adapter.getExplorerUrl?.(contractAddress) ?? '';
-    // Remove path to get base URL (handles /address/, /account/, etc.)
-    try {
-      const url = new URL(addressUrl);
-      return url.origin;
-    } catch {
-      return '';
-    }
-  }, [adapter, contractAddress]);
+  // Use adapter's getExplorerTxUrl for chain-agnostic transaction URLs
+  // This properly handles different URL patterns (EVM: /tx/, Stellar: /transaction/, etc.)
+  const getTransactionUrl = useCallback(
+    (txHash: string): string | null => {
+      if (!adapter) return null;
+      return adapter.getExplorerTxUrl?.(txHash) ?? null;
+    },
+    [adapter]
+  );
 
   // =============================================================================
   // Computed Values
@@ -147,8 +143,8 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
 
   // Transform history entries to view models
   const transformedEvents = useMemo(
-    () => transformHistoryEntries(historyItems, explorerBaseUrl),
-    [historyItems, explorerBaseUrl]
+    () => transformHistoryEntries(historyItems, getTransactionUrl),
+    [historyItems, getTransactionUrl]
   );
 
   // Apply client-side filters (action type)

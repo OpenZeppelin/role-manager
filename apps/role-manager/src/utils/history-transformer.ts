@@ -35,21 +35,27 @@ export const CHANGE_TYPE_MAP: Record<HistoryChangeType, RoleChangeAction> = CHAN
 // =============================================================================
 
 /**
+ * Function type for generating transaction URLs.
+ * Used to delegate URL construction to the adapter's getExplorerTxUrl method.
+ */
+export type GetTransactionUrlFn = (txHash: string) => string | null;
+
+/**
  * Transform a single history entry from the API into a presentation model.
  *
  * @param entry - Raw history entry from getHistory() API
- * @param explorerUrl - Base URL for block explorer (e.g., "https://etherscan.io")
+ * @param getTransactionUrl - Function to generate transaction URL (typically adapter.getExplorerTxUrl)
  * @returns Presentation model for the UI
  *
  * @example
  * ```typescript
- * const event = transformHistoryEntry(entry, 'https://etherscan.io');
+ * const event = transformHistoryEntry(entry, (hash) => adapter.getExplorerTxUrl?.(hash) ?? null);
  * // { id: '...', timestamp: '...', action: 'grant', ... }
  * ```
  */
 export function transformHistoryEntry(
   entry: HistoryEntry,
-  explorerUrl: string
+  getTransactionUrl: GetTransactionUrlFn
 ): RoleChangeEventView {
   const action = CHANGE_TYPE_MAP[entry.changeType] ?? 'grant';
   const timestamp = entry.timestamp ?? new Date().toISOString();
@@ -62,7 +68,7 @@ export function transformHistoryEntry(
     roleName: getRoleName(undefined, entry.role.id),
     account: entry.account,
     transactionHash: entry.txId ?? null,
-    transactionUrl: entry.txId ? getTransactionUrl(explorerUrl, entry.txId) : null,
+    transactionUrl: entry.txId ? getTransactionUrl(entry.txId) : null,
     ledger: entry.ledger ?? null,
   };
 }
@@ -72,20 +78,20 @@ export function transformHistoryEntry(
  * Results are sorted by timestamp descending (newest first) per FR-016.
  *
  * @param entries - Array of raw history entries from getHistory() API
- * @param explorerUrl - Base URL for block explorer
+ * @param getTransactionUrl - Function to generate transaction URL (typically adapter.getExplorerTxUrl)
  * @returns Array of presentation models sorted by timestamp (newest first)
  *
  * @example
  * ```typescript
- * const events = transformHistoryEntries(data.items, explorerUrl);
+ * const events = transformHistoryEntries(data.items, (hash) => adapter.getExplorerTxUrl?.(hash) ?? null);
  * // Returns events sorted by timestamp descending
  * ```
  */
 export function transformHistoryEntries(
   entries: HistoryEntry[],
-  explorerUrl: string
+  getTransactionUrl: GetTransactionUrlFn
 ): RoleChangeEventView[] {
-  const transformed = entries.map((entry) => transformHistoryEntry(entry, explorerUrl));
+  const transformed = entries.map((entry) => transformHistoryEntry(entry, getTransactionUrl));
   return sortHistoryEvents(transformed);
 }
 
@@ -201,27 +207,4 @@ export function extractAvailableRoles(events: RoleChangeEventView[]): RoleBadgeI
 
   // Sort alphabetically by name for consistent dropdown order
   return Array.from(rolesMap.values()).sort((a, b) => a.name.localeCompare(b.name));
-}
-
-// =============================================================================
-// URL Helpers
-// =============================================================================
-
-/**
- * Generate transaction URL from explorer base URL and transaction hash.
- *
- * @param explorerUrl - Base URL for block explorer (e.g., "https://etherscan.io")
- * @param txHash - Transaction hash (64-char hex)
- * @returns Full transaction URL
- *
- * @example
- * ```typescript
- * const url = getTransactionUrl('https://etherscan.io', '0x123...');
- * // 'https://etherscan.io/tx/0x123...'
- * ```
- */
-export function getTransactionUrl(explorerUrl: string, txHash: string): string {
-  // Remove trailing slash if present
-  const baseUrl = explorerUrl.replace(/\/$/, '');
-  return `${baseUrl}/tx/${txHash}`;
 }
