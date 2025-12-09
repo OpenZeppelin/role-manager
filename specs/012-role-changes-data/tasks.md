@@ -74,13 +74,13 @@
 
 ### Implementation for User Story 6
 
-- [ ] T012 [P] [US6] Create `ChangesEmptyState.tsx` component in `components/RoleChanges/ChangesEmptyState.tsx` (no AC/Ownable or no events)
-- [ ] T013 [P] [US6] Create `ChangesErrorState.tsx` component in `components/RoleChanges/ChangesErrorState.tsx` (error with retry button)
-- [ ] T014 [US6] Add history support check to `RoleChanges.tsx` page (show informative message when `supportsHistory: false`)
-- [ ] T015 [US6] Add error handling to `RoleChanges.tsx` page (show error state with retry when fetch fails)
-- [ ] T016 [US6] Update barrel export in `components/RoleChanges/index.ts` with US6 components
+- [x] T012 [P] [US6] Create `ChangesEmptyState.tsx` component in `components/RoleChanges/ChangesEmptyState.tsx` (no AC/Ownable or no events)
+- [x] T013 [P] [US6] Create `ChangesErrorState.tsx` component in `components/RoleChanges/ChangesErrorState.tsx` (error with retry button)
+- [x] T014 [US6] Add history support check to `RoleChanges.tsx` page (show informative message when `supportsHistory: false`)
+- [x] T015 [US6] Add error handling to `RoleChanges.tsx` page (show error state with retry when fetch fails)
+- [x] T016 [US6] Update barrel export in `components/RoleChanges/index.ts` with US6 components
 
-**Checkpoint**: Error and empty states display correctly for all edge cases
+**Checkpoint**: Error and empty states display correctly for all edge cases ✅
 
 ---
 

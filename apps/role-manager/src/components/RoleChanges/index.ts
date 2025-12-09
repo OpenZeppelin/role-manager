@@ -11,8 +11,8 @@ export { ChangesTable, type ChangesTableProps } from './ChangesTable';
 export { ChangesLoadingSkeleton, type ChangesLoadingSkeletonProps } from './ChangesLoadingSkeleton';
 
 // Phase 4 (US6): State components
-// export { ChangesEmptyState } from './ChangesEmptyState';
-// export { ChangesErrorState } from './ChangesErrorState';
+export { ChangesEmptyState, type ChangesEmptyStateProps } from './ChangesEmptyState';
+export { ChangesErrorState, type ChangesErrorStateProps } from './ChangesErrorState';
 
 // Phase 6 (US3): Pagination
 // export { CursorPagination } from './CursorPagination';

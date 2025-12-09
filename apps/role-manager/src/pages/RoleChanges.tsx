@@ -3,17 +3,23 @@
  * Feature: 012-role-changes-data
  *
  * Displays role change history (grants, revokes, transfers) for selected contracts.
- * Implements User Story 1 from spec 012:
+ * Implements User Stories from spec 012:
  * - US1: View chronological list of role changes
+ * - US6: Handle contracts without history support (error/empty states)
  *
- * Tasks: T009, T010
+ * Tasks: T009, T010, T014, T015
  */
 
-import { ArrowRightLeft, FileSearch } from 'lucide-react';
+import { FileSearch } from 'lucide-react';
 
 import { Card } from '@openzeppelin/ui-builder-ui';
 
-import { ChangesLoadingSkeleton, ChangesTable } from '../components/RoleChanges';
+import {
+  ChangesEmptyState,
+  ChangesErrorState,
+  ChangesLoadingSkeleton,
+  ChangesTable,
+} from '../components/RoleChanges';
 import { PageEmptyState } from '../components/Shared/PageEmptyState';
 import { PageHeader } from '../components/Shared/PageHeader';
 import { useRoleChangesPageData } from '../hooks/useRoleChangesPageData';
@@ -22,10 +28,11 @@ import { useSelectedContract } from '../hooks/useSelectedContract';
 /**
  * RoleChanges - Main page component
  *
- * Phase 3 implementation (Feature 012):
+ * Phase 3 & 4 implementation (Feature 012):
  * - Uses useRoleChangesPageData hook for real data
  * - Shows loading skeleton during initial fetch
- * - Shows empty state for unsupported contracts or no history support
+ * - Shows empty state for unsupported contracts or no history support (US6)
+ * - Shows error state with retry for fetch failures (US6)
  * - Displays events in table format
  */
 export function RoleChanges() {
@@ -38,6 +45,8 @@ export function RoleChanges() {
     isLoading,
     hasError,
     errorMessage,
+    canRetry,
+    refetch,
   } = useRoleChangesPageData();
 
   // Get contract info for display
@@ -61,7 +70,7 @@ export function RoleChanges() {
     );
   }
 
-  // Error state display (basic - enhanced in Phase 4)
+  // Error state with retry option (T015 - US6)
   if (hasError) {
     return (
       <div className="p-6 space-y-6">
@@ -74,13 +83,11 @@ export function RoleChanges() {
           }
         />
         <Card className="p-0 shadow-none overflow-hidden">
-          <div className="py-16 px-4">
-            <PageEmptyState
-              title="Error Loading History"
-              description={errorMessage || 'An unexpected error occurred while loading history.'}
-              icon={ArrowRightLeft}
-            />
-          </div>
+          <ChangesErrorState
+            message={errorMessage || 'An unexpected error occurred while loading history.'}
+            canRetry={canRetry}
+            onRetry={refetch}
+          />
         </Card>
       </div>
     );
@@ -104,7 +111,7 @@ export function RoleChanges() {
     );
   }
 
-  // Empty state for unsupported contracts (no AccessControl/Ownable)
+  // Empty state for unsupported contracts (no AccessControl/Ownable) (T014 - US6)
   if (!isSupported) {
     return (
       <div className="p-6 space-y-6">
@@ -117,19 +124,13 @@ export function RoleChanges() {
           }
         />
         <Card className="p-0 shadow-none overflow-hidden">
-          <div className="py-16 px-4">
-            <PageEmptyState
-              title="Contract Not Supported"
-              description="This contract does not implement AccessControl or Ownable interfaces."
-              icon={ArrowRightLeft}
-            />
-          </div>
+          <ChangesEmptyState contractName={contractLabel} />
         </Card>
       </div>
     );
   }
 
-  // Empty state when history is not available (supportsHistory: false)
+  // Empty state when history is not available (supportsHistory: false) (T014 - US6)
   if (!supportsHistory) {
     return (
       <div className="p-6 space-y-6">
@@ -143,13 +144,7 @@ export function RoleChanges() {
           }
         />
         <Card className="p-0 shadow-none overflow-hidden">
-          <div className="py-16 px-4">
-            <PageEmptyState
-              title="History Not Available"
-              description="Role change history is not available for this contract. The indexer may not support this network or contract type."
-              icon={ArrowRightLeft}
-            />
-          </div>
+          <ChangesEmptyState historyNotSupported contractName={contractLabel} />
         </Card>
       </div>
     );
@@ -173,15 +168,7 @@ export function RoleChanges() {
       <Card className="p-0 shadow-none overflow-hidden">
         <ChangesTable
           events={events}
-          emptyState={
-            <div className="py-16 px-4">
-              <PageEmptyState
-                title="No Role Changes Found"
-                description="No role changes have been recorded for this contract yet."
-                icon={ArrowRightLeft}
-              />
-            </div>
-          }
+          emptyState={<ChangesEmptyState noEventsFound contractName={contractLabel} />}
         />
       </Card>
     </div>
