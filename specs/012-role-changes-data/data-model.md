@@ -31,9 +31,9 @@ This document defines the data structures for the Role Changes page. The model f
 │  (UI Presentation)      │
 └───────────┬─────────────┘
             │
-            ▼ Filter (client-side action type)
+            ▼ Filter state (drives server-side query params)
 ┌─────────────────────────┐
-│  HistoryFilterState     │  ← User-controlled filters
+│  HistoryFilterState     │  ← User-controlled filters (sent to API)
 └───────────┬─────────────┘
             │
             ▼ Display

@@ -53,7 +53,7 @@ export interface RoleChangeEventView {
 }
 
 export interface HistoryFilterState {
-  actionFilter: RoleChangeAction | 'all'; // Client-side filter
+  actionFilter: RoleChangeAction | 'all'; // Server-side filter via changeType param
   roleFilter: string; // Server-side filter via roleId param
 }
 
@@ -138,26 +138,25 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
     hasNextPage: false,
   });
 
-  // Build query options with server-side role filter
+  // Build query options with server-side filters (role and action type)
   const queryOptions: HistoryQueryOptions = useMemo(
     () => ({
       limit: 20,
       cursor: paginationState.currentCursor,
       roleId: filters.roleFilter !== 'all' ? filters.roleFilter : undefined,
+      changeType: filters.actionFilter !== 'all' ? mapActionToChangeType(filters.actionFilter) : undefined,
     }),
-    [paginationState.currentCursor, filters.roleFilter]
+    [paginationState.currentCursor, filters.roleFilter, filters.actionFilter]
   );
 
   // Data fetching with cursor
   const { capabilities, isSupported } = useContractCapabilities(...);
   const { data, isLoading, ... } = useContractHistory(adapter, contractAddress, isContractRegistered, queryOptions);
 
-  // Transform to view models
+  // Transform to view models (server already filtered by action type and role)
   const events = useMemo(() => {
-    const transformed = transformEntries(data?.items ?? [], explorerUrl);
-    // Client-side filter for action type
-    return filterByActionType(transformed, filters.actionFilter);
-  }, [data?.items, filters.actionFilter]);
+    return transformEntries(data?.items ?? [], explorerUrl);
+  }, [data?.items]);
 
   // Update hasNextPage from API response
   useEffect(() => {

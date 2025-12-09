@@ -136,9 +136,9 @@ export interface RoleBadgeInfo {
  * Filter state for the role changes table.
  */
 export interface HistoryFilterState {
-  /** Filter by action type ('all' shows all) - client-side filter */
+  /** Filter by action type ('all' shows all) - server-side filter via changeType param */
   actionFilter: RoleChangeAction | 'all';
-  /** Filter by role ID ('all' shows all) - server-side filter */
+  /** Filter by role ID ('all' shows all) - server-side filter via roleId param */
   roleFilter: string;
 }
 

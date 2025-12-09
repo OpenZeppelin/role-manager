@@ -128,7 +128,7 @@
 - [x] T024 [P] [US4] Create `ChangesFilterBar.tsx` component in `components/RoleChanges/ChangesFilterBar.tsx` (action type dropdown + role dropdown)
 - [x] T025 [US4] Add filter state management to `useRoleChangesPageData.ts` hook (actionFilter, roleFilter, reset on contract change)
 - [x] T026 [US4] Add server-side role filter integration to `useContractHistory.ts` hook (pass roleId to API)
-- [x] T027 [US4] Add client-side action type filtering to `useRoleChangesPageData.ts` hook (filter transformed events)
+- [x] T027 [US4] Add server-side action type filtering to `useRoleChangesPageData.ts` hook (via changeType API param)
 - [x] T028 [US4] Add filter bar to `RoleChanges.tsx` page (render ChangesFilterBar above table)
 - [x] T029 [US4] Reset pagination when filters change in `useRoleChangesPageData.ts` hook
 - [x] T030 [US4] Update barrel export in `components/RoleChanges/index.ts` with ChangesFilterBar

@@ -68,34 +68,34 @@ How should filtering work for history events?
 
 ### Decision
 
-Use **server-side filtering** via the `HistoryQueryOptions` parameters, with client-side filtering for action type.
+Use **server-side filtering** via the `HistoryQueryOptions` parameters for both role and action type filters.
 
 ### Rationale
 
-1. **API Support**: The adapter now supports `roleId` and `account` filter parameters
-2. **Performance**: Server-side filtering reduces data transfer
+1. **API Support**: The adapter supports `roleId`, `account`, and `changeType` filter parameters
+2. **Performance**: Server-side filtering reduces data transfer and is more efficient
 3. **Scalability**: Essential for contracts with large history datasets
+4. **Consistency**: Server-side filtering ensures correct pagination (page counts reflect filtered results)
 
 ### Implementation
 
 ```typescript
-// Server-side filtering by role
+// Server-side filtering for both role and action type
 const result = await service.getHistory(contractAddress, {
   roleId: filters.roleFilter !== 'all' ? filters.roleFilter : undefined,
+  changeType: filters.actionFilter !== 'all' ? mapActionToChangeType(filters.actionFilter) : undefined,
   limit: 20,
   cursor: currentCursor,
 });
 
-// Client-side filtering for action type (changeType)
-// Note: Server filters by role, client filters by action type
-function filterByActionType(items: HistoryEntry[], actionFilter: string): HistoryEntry[] {
-  if (actionFilter === 'all') return items;
+// Map UI action filter to API changeType
+function mapActionToChangeType(action: string): HistoryChangeType {
   const changeTypeMap = {
     grant: 'GRANTED',
     revoke: 'REVOKED',
     'ownership-transfer': 'TRANSFERRED',
   };
-  return items.filter((item) => item.changeType === changeTypeMap[actionFilter]);
+  return changeTypeMap[action];
 }
 ```
 
