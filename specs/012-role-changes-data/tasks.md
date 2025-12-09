@@ -145,11 +145,11 @@
 
 ### Implementation for User Story 5
 
-- [ ] T031 [US5] Add refresh functionality to `useRoleChangesPageData.ts` hook (expose refetch, isRefreshing state)
-- [ ] T032 [US5] Add Refresh button to `RoleChanges.tsx` page header (with spinner during refresh)
-- [ ] T033 [US5] Ensure refresh doesn't replace table content (background refresh pattern)
+- [x] T031 [US5] Add refresh functionality to `useRoleChangesPageData.ts` hook (expose refetch, isRefreshing state)
+- [x] T032 [US5] Add Refresh button to `RoleChanges.tsx` page header (with spinner during refresh)
+- [x] T033 [US5] Ensure refresh doesn't replace table content (background refresh pattern)
 
-**Checkpoint**: Can manually refresh data without page flicker
+**Checkpoint**: Can manually refresh data without page flicker ✅
 
 ---
 

@@ -6,14 +6,16 @@
  * Implements User Stories from spec 012:
  * - US1: View chronological list of role changes
  * - US3: Navigate through paginated history (cursor-based)
+ * - US5: Manual data refresh (refresh button with spinner)
  * - US6: Handle contracts without history support (error/empty states)
  *
- * Tasks: T009, T010, T014, T015, T022
+ * Tasks: T009, T010, T014, T015, T022, T032
  */
 
-import { FileSearch } from 'lucide-react';
+import { FileSearch, RefreshCw } from 'lucide-react';
 
-import { Card } from '@openzeppelin/ui-builder-ui';
+import { Button, Card } from '@openzeppelin/ui-builder-ui';
+import { cn } from '@openzeppelin/ui-builder-utils';
 
 import {
   ChangesEmptyState,
@@ -39,7 +41,7 @@ import { useSelectedContract } from '../hooks/useSelectedContract';
  * - Displays events in table format
  */
 export function RoleChanges() {
-  // Get real data from hook (T010, T022, T028)
+  // Get real data from hook (T010, T022, T028, T032)
   const {
     events,
     availableRoles,
@@ -51,6 +53,7 @@ export function RoleChanges() {
     supportsHistory,
     isSupported,
     isLoading,
+    isRefreshing,
     hasError,
     errorMessage,
     canRetry,
@@ -161,7 +164,7 @@ export function RoleChanges() {
   // Main content with real data
   return (
     <div className="p-6 space-y-6">
-      {/* Page Header */}
+      {/* Page Header with Refresh button (T032 - US5) */}
       <PageHeader
         title="Role Changes"
         subtitle={
@@ -169,6 +172,18 @@ export function RoleChanges() {
             View role change history for{' '}
             <span className="font-bold text-foreground">{contractLabel}</span>
           </span>
+        }
+        actions={
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => refetch()}
+            disabled={isRefreshing}
+            className="gap-2"
+          >
+            <RefreshCw className={cn('h-4 w-4', isRefreshing && 'animate-spin')} />
+            {isRefreshing ? 'Refreshing...' : 'Refresh'}
+          </Button>
         }
       />
 
