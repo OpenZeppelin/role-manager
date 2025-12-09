@@ -120,7 +120,7 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
       cursor: paginationState.currentCursor,
       roleId: filters.roleFilter !== 'all' ? filters.roleFilter : undefined,
       changeType,
-    } as HistoryQueryOptions;
+    };
   }, [paginationState.currentCursor, filters.roleFilter, filters.actionFilter]);
 
   // Determine if history fetch should be enabled

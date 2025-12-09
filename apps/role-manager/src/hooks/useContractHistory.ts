@@ -13,7 +13,6 @@ import { useMemo } from 'react';
 import type { ContractAdapter } from '@openzeppelin/ui-builder-types';
 
 import type {
-  HistoryChangeType,
   HistoryQueryOptions,
   PageInfo,
   PaginatedHistoryResult,
@@ -52,12 +51,12 @@ const EMPTY_PAGE_INFO: PageInfo = {
  * Hook that fetches paginated history entries for a contract.
  *
  * Uses the AccessControlService's getHistory() API with cursor-based pagination.
- * Supports server-side filtering by roleId.
+ * Supports server-side filtering by roleId and changeType.
  *
  * @param adapter - Contract adapter instance
  * @param contractAddress - Contract address to fetch history for
  * @param isContractRegistered - Whether contract is registered (default: true)
- * @param options - Query options (cursor, roleId, limit)
+ * @param options - Query options (cursor, roleId, changeType, limit)
  * @returns History data and controls
  *
  * @example
@@ -84,21 +83,16 @@ export function useContractHistory(
   const { service, isReady } = useAccessControlService(adapter);
 
   // Normalize options with defaults
-  const queryOptions = useMemo(() => {
-    const opts: HistoryQueryOptions & { changeType?: HistoryChangeType } = {
+  const queryOptions = useMemo(
+    (): HistoryQueryOptions => ({
       limit: options?.limit ?? DEFAULT_PAGE_SIZE,
       cursor: options?.cursor,
       roleId: options?.roleId,
       account: options?.account,
-    };
-
-    // Add changeType if provided
-    if (options && 'changeType' in options) {
-      opts.changeType = (options as typeof opts).changeType;
-    }
-
-    return opts;
-  }, [options]);
+      changeType: options?.changeType,
+    }),
+    [options]
+  );
 
   const {
     data,

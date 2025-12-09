@@ -158,7 +158,7 @@ A user attempts to view the Role Changes page for a contract where history is un
 
 - **FR-017**: Filter bar MUST include action type filter dropdown (All, Grant, Revoke, Ownership Transfer)
 - **FR-018**: Filter bar MUST include role filter dropdown populated with roles from the contract
-- **FR-019**: Filters MUST apply server-side using `roleId` parameter in `HistoryQueryOptions`
+- **FR-019**: Filters MUST apply server-side using `roleId` and `changeType` parameters in `HistoryQueryOptions`
 - **FR-020**: Multiple filters MUST combine with AND logic
 - **FR-021**: Filter state MUST reset when contract changes
 
