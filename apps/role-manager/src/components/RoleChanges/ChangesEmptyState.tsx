@@ -4,13 +4,14 @@
  *
  * Empty state displayed when:
  * 1. History is not supported for the contract (supportsHistory: false)
- * 2. No role changes have been recorded yet
- * 3. Contract doesn't implement AccessControl/Ownable
+ * 2. No matching results when filters are applied (Phase 7)
+ * 3. No role changes have been recorded yet (genuinely empty)
+ * 4. Contract doesn't implement AccessControl/Ownable
  *
  * Task: T012
  */
 
-import { ArrowRightLeft, FileSearch } from 'lucide-react';
+import { ArrowRightLeft, FileSearch, FilterX } from 'lucide-react';
 
 import { PageEmptyState } from '../Shared/PageEmptyState';
 
@@ -22,8 +23,10 @@ export interface ChangesEmptyStateProps {
   historyNotSupported?: boolean;
   /** Contract name for display */
   contractName?: string;
-  /** Whether there are simply no events (filters may be applied) */
+  /** Whether there are simply no events recorded (genuinely empty history) */
   noEventsFound?: boolean;
+  /** Whether filters are applied but no results match (for Phase 7 - Filtering) */
+  noMatchingResults?: boolean;
 }
 
 /**
@@ -31,17 +34,20 @@ export interface ChangesEmptyStateProps {
  *
  * Displays appropriate messaging based on the reason for empty state:
  * - History not supported: Indexer doesn't support this network/contract
- * - No events found: No role changes recorded yet
+ * - No matching results: Filters applied but no events match
+ * - No events found: No role changes recorded yet (genuinely empty)
  * - Default: Contract doesn't support AccessControl/Ownable
  *
  * @param historyNotSupported - True when supportsHistory capability is false
  * @param contractName - Contract label for personalized messaging
- * @param noEventsFound - True when data loaded but no events exist
+ * @param noEventsFound - True when data loaded but no events exist (no filters)
+ * @param noMatchingResults - True when filters are applied but no results match
  */
 export function ChangesEmptyState({
   historyNotSupported = false,
   contractName,
   noEventsFound = false,
+  noMatchingResults = false,
 }: ChangesEmptyStateProps) {
   // History not supported by indexer
   if (historyNotSupported) {
@@ -60,7 +66,20 @@ export function ChangesEmptyState({
     );
   }
 
-  // No events found (data loaded but empty)
+  // No matching results (filters applied but no events match)
+  if (noMatchingResults) {
+    return (
+      <div className="py-16 px-4">
+        <PageEmptyState
+          title="No Matching Events"
+          description="No role changes match your current filters. Try adjusting the filter criteria or clear filters to see all events."
+          icon={FilterX}
+        />
+      </div>
+    );
+  }
+
+  // No events found (genuinely empty history, no filters applied)
   if (noEventsFound) {
     return (
       <div className="py-16 px-4">
@@ -92,4 +111,3 @@ export function ChangesEmptyState({
     </div>
   );
 }
-
