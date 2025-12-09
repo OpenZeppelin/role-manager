@@ -18,6 +18,7 @@ import { Card } from '@openzeppelin/ui-builder-ui';
 import {
   ChangesEmptyState,
   ChangesErrorState,
+  ChangesFilterBar,
   ChangesLoadingSkeleton,
   ChangesTable,
   CursorPagination,
@@ -38,9 +39,13 @@ import { useSelectedContract } from '../hooks/useSelectedContract';
  * - Displays events in table format
  */
 export function RoleChanges() {
-  // Get real data from hook (T010, T022)
+  // Get real data from hook (T010, T022, T028)
   const {
     events,
+    availableRoles,
+    availableRolesLoading,
+    filters,
+    setFilters,
     pagination,
     hasContractSelected,
     supportsHistory,
@@ -167,8 +172,15 @@ export function RoleChanges() {
         }
       />
 
-      {/* Main content card with table */}
+      {/* Main content card with filters and table */}
       <Card className="p-0 shadow-none overflow-hidden">
+        {/* Filter bar (T028 - US4) */}
+        <ChangesFilterBar
+          filters={filters}
+          availableRoles={availableRoles}
+          availableRolesLoading={availableRolesLoading}
+          onFiltersChange={setFilters}
+        />
         <ChangesTable
           events={events}
           emptyState={<ChangesEmptyState noEventsFound contractName={contractLabel} />}

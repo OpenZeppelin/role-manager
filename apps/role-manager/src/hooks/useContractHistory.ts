@@ -13,6 +13,7 @@ import { useMemo } from 'react';
 import type { ContractAdapter } from '@openzeppelin/ui-builder-types';
 
 import type {
+  HistoryChangeType,
   HistoryQueryOptions,
   PageInfo,
   PaginatedHistoryResult,
@@ -31,8 +32,13 @@ export const DEFAULT_PAGE_SIZE = 20;
  * Query key factory for contract history.
  * Includes all parameters that affect the query result.
  */
-const historyQueryKey = (address: string, cursor?: string, roleId?: string, limit?: number) =>
-  ['contract-history', address, { cursor, roleId, limit }] as const;
+const historyQueryKey = (
+  address: string,
+  cursor?: string,
+  roleId?: string,
+  changeType?: string,
+  limit?: number
+) => ['contract-history', address, { cursor, roleId, changeType, limit }] as const;
 
 /**
  * Empty page info for default/error states.
@@ -78,15 +84,21 @@ export function useContractHistory(
   const { service, isReady } = useAccessControlService(adapter);
 
   // Normalize options with defaults
-  const queryOptions = useMemo(
-    () => ({
+  const queryOptions = useMemo(() => {
+    const opts: HistoryQueryOptions & { changeType?: HistoryChangeType } = {
       limit: options?.limit ?? DEFAULT_PAGE_SIZE,
       cursor: options?.cursor,
       roleId: options?.roleId,
       account: options?.account,
-    }),
-    [options?.limit, options?.cursor, options?.roleId, options?.account]
-  );
+    };
+
+    // Add changeType if provided
+    if (options && 'changeType' in options) {
+      opts.changeType = (options as typeof opts).changeType;
+    }
+
+    return opts;
+  }, [options]);
 
   const {
     data,
@@ -99,6 +111,7 @@ export function useContractHistory(
       contractAddress,
       queryOptions.cursor,
       queryOptions.roleId,
+      queryOptions.changeType,
       queryOptions.limit
     ),
     queryFn: async (): Promise<PaginatedHistoryResult> => {

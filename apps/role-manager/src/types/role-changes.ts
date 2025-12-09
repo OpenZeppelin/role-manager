@@ -10,6 +10,7 @@
  */
 
 import type {
+  HistoryChangeType,
   HistoryEntry,
   HistoryQueryOptions,
   PageInfo,
@@ -20,7 +21,13 @@ import type {
 import type { RoleBadgeInfo } from './authorized-accounts';
 
 // Re-export API types for convenience
-export type { HistoryEntry, HistoryQueryOptions, PageInfo, PaginatedHistoryResult };
+export type {
+  HistoryChangeType,
+  HistoryEntry,
+  HistoryQueryOptions,
+  PageInfo,
+  PaginatedHistoryResult,
+};
 
 export type { RoleBadgeInfo };
 
@@ -32,11 +39,6 @@ export type { RoleBadgeInfo };
  * Action types for role change events (UI representation).
  */
 export type RoleChangeAction = 'grant' | 'revoke' | 'ownership-transfer';
-
-/**
- * Change types from the adapter API (matches HistoryEntry.changeType).
- */
-export type HistoryChangeType = HistoryEntry['changeType'] | 'TRANSFERRED';
 
 /**
  * Mapping from API changeType to UI action.
@@ -131,8 +133,6 @@ export interface CursorPaginationState {
   currentCursor: string | undefined;
   /** Stack of previous cursors for back navigation */
   cursorHistory: string[];
-  /** From API pageInfo.hasNextPage */
-  hasNextPage: boolean;
 }
 
 /**
@@ -141,7 +141,6 @@ export interface CursorPaginationState {
 export const DEFAULT_CURSOR_PAGINATION_STATE: CursorPaginationState = {
   currentCursor: undefined,
   cursorHistory: [],
-  hasNextPage: false,
 };
 
 /**
@@ -197,6 +196,8 @@ export interface UseRoleChangesPageDataReturn {
   events: RoleChangeEventView[];
   /** Available roles for filter dropdown */
   availableRoles: RoleBadgeInfo[];
+  /** Whether roles are still loading (used for filter dropdown state) */
+  availableRolesLoading: boolean;
 
   // === Filter State ===
   /** Current filter state */

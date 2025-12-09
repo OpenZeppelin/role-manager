@@ -10,11 +10,13 @@ export { OutlineBadge } from './OutlineBadge';
 export { PageEmptyState } from './PageEmptyState';
 export { PageHeader } from './PageHeader';
 export { Pagination } from './Pagination';
+export { SelectLoadingPlaceholder } from './SelectLoadingPlaceholder';
 export { Skeleton } from './Skeleton';
 export { StatusBadge } from './StatusBadge';
 
 // Types
 export type { OutlineBadgeProps } from './OutlineBadge';
 export type { PaginationProps, PaginationState } from './Pagination';
+export type { SelectLoadingPlaceholderProps } from './SelectLoadingPlaceholder';
 export type { SkeletonProps } from './Skeleton';
 export type { StatusBadgeProps, StatusBadgeVariant } from './StatusBadge';

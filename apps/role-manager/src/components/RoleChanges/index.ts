@@ -18,4 +18,4 @@ export { ChangesErrorState, type ChangesErrorStateProps } from './ChangesErrorSt
 export { CursorPagination, type CursorPaginationProps } from './CursorPagination';
 
 // Phase 7 (US4): Filtering
-// export { ChangesFilterBar } from './ChangesFilterBar';
+export { ChangesFilterBar, type ChangesFilterBarProps } from './ChangesFilterBar';

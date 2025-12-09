@@ -15,17 +15,16 @@ import {
   DEFAULT_HISTORY_FILTER_STATE,
   type CursorPaginationControls,
   type CursorPaginationState,
+  type HistoryChangeType,
   type HistoryFilterState,
   type HistoryQueryOptions,
   type UseRoleChangesPageDataReturn,
 } from '../types/role-changes';
 import { createGetAccountUrl, createGetTransactionUrl } from '../utils/explorer-urls';
-import {
-  applyHistoryFilters,
-  extractAvailableRoles,
-  transformHistoryEntries,
-} from '../utils/history-transformer';
+import { transformHistoryEntries } from '../utils/history-transformer';
+import { getRoleName } from '../utils/role-name';
 import { useContractCapabilities } from './useContractCapabilities';
+import { useContractRoles } from './useContractData';
 import { DEFAULT_PAGE_SIZE, useContractHistory } from './useContractHistory';
 import { useSelectedContract } from './useSelectedContract';
 
@@ -99,15 +98,30 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
   // Check if history is supported
   const supportsHistory = capabilities?.supportsHistory ?? false;
 
-  // Build query options with server-side role filter
-  const queryOptions: HistoryQueryOptions = useMemo(
-    () => ({
+  // Build query options with server-side filters (role and changeType)
+  // Map UI action filter to API changeType for server-side filtering
+  const queryOptions: HistoryQueryOptions = useMemo(() => {
+    // Map UI action filter to API changeType
+    let changeType: HistoryChangeType | undefined = undefined;
+    if (filters.actionFilter !== 'all') {
+      const actionToChangeTypeMap: Record<
+        Exclude<HistoryFilterState['actionFilter'], 'all'>,
+        HistoryChangeType
+      > = {
+        grant: 'GRANTED',
+        revoke: 'REVOKED',
+        'ownership-transfer': 'TRANSFERRED',
+      };
+      changeType = actionToChangeTypeMap[filters.actionFilter];
+    }
+
+    return {
       limit: DEFAULT_PAGE_SIZE,
       cursor: paginationState.currentCursor,
       roleId: filters.roleFilter !== 'all' ? filters.roleFilter : undefined,
-    }),
-    [paginationState.currentCursor, filters.roleFilter]
-  );
+      changeType,
+    } as HistoryQueryOptions;
+  }, [paginationState.currentCursor, filters.roleFilter, filters.actionFilter]);
 
   // Determine if history fetch should be enabled
   const shouldFetchHistory = isContractRegistered && isSupported && supportsHistory;
@@ -123,6 +137,13 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
     canRetry: canRetryHistory,
     refetch: refetchHistory,
   } = useContractHistory(adapter, contractAddress, shouldFetchHistory, queryOptions);
+
+  // Contract roles (cached via react-query)
+  const {
+    roles: contractRoles,
+    isLoading: areRolesLoading,
+    isFetching: areRolesFetching,
+  } = useContractRoles(adapter, contractAddress, isContractRegistered);
 
   // =============================================================================
   // Explorer URL Helpers (chain-agnostic via adapter)
@@ -143,45 +164,40 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
     [historyItems, getTransactionUrl, getAccountUrl]
   );
 
-  // Apply client-side filters (action type)
-  const events = useMemo(
-    () => applyHistoryFilters(transformedEvents, filters),
-    [transformedEvents, filters]
-  );
+  const events = transformedEvents;
 
-  // Extract available roles for filter dropdown
-  // Note: Using transformed events (before client-side filter) to show all roles
-  const availableRoles = useMemo(
-    (): RoleBadgeInfo[] => extractAvailableRoles(transformedEvents),
-    [transformedEvents]
-  );
+  // Available roles for filter dropdown (reuses cached roles query)
+  const availableRoles = useMemo((): RoleBadgeInfo[] => {
+    if (!contractRoles) return [];
+    const badges = contractRoles.map((assignment) => ({
+      id: assignment.role.id,
+      name: getRoleName(assignment.role.label, assignment.role.id),
+    }));
+    return badges.sort((a, b) => a.name.localeCompare(b.name));
+  }, [contractRoles]);
+  const availableRolesLoading = areRolesLoading || areRolesFetching;
 
   // =============================================================================
   // Effects - State Reset
   // =============================================================================
 
-  // Update hasNextPage from API response
-  useEffect(() => {
-    if (pageInfo) {
-      setPaginationState((prev) => ({
-        ...prev,
-        hasNextPage: pageInfo.hasNextPage,
-      }));
-    }
-  }, [pageInfo]);
+  // Track previous filter values (skip initial mount)
+  const prevFiltersRef = useRef<HistoryFilterState>(filters);
 
-  // Track if role filter has changed (skip initial mount)
-  const prevRoleFilterRef = useRef(filters.roleFilter);
-
-  // Reset pagination when server-side filters change (roleFilter)
-  // Client-side filters (actionFilter) don't need pagination reset
+  // Reset pagination when filters change (FR-026)
+  // Note: Resets for both server-side (roleFilter) and client-side (actionFilter) filters
+  // per spec requirement that pagination resets on any filter change
   useEffect(() => {
-    // Skip on mount - only reset when filter actually changes
-    if (prevRoleFilterRef.current !== filters.roleFilter) {
-      prevRoleFilterRef.current = filters.roleFilter;
+    // Skip on mount - only reset when filters actually change
+    const filtersChanged =
+      prevFiltersRef.current.actionFilter !== filters.actionFilter ||
+      prevFiltersRef.current.roleFilter !== filters.roleFilter;
+
+    if (filtersChanged) {
+      prevFiltersRef.current = filters;
       setPaginationState(DEFAULT_CURSOR_PAGINATION_STATE);
     }
-  }, [filters.roleFilter]);
+  }, [filters]);
 
   // Reset state when contract changes (FR-008, FR-021)
   useEffect(() => {
@@ -219,7 +235,7 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
 
   const pagination: CursorPaginationControls = useMemo(
     () => ({
-      hasNextPage: paginationState.hasNextPage,
+      hasNextPage: pageInfo?.hasNextPage ?? false,
       hasPrevPage: paginationState.cursorHistory.length > 0,
       nextPage: () => {
         if (pageInfo.endCursor) {
@@ -228,7 +244,6 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
             cursorHistory: prev.currentCursor
               ? [...prev.cursorHistory, prev.currentCursor]
               : prev.cursorHistory,
-            hasNextPage: false, // Will be updated when new data loads
           }));
         }
       },
@@ -239,7 +254,6 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
           return {
             currentCursor: prevCursor,
             cursorHistory: newHistory,
-            hasNextPage: true, // We know there's at least a next page (current one)
           };
         });
       },
@@ -260,6 +274,7 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
     return {
       events: [],
       availableRoles: [],
+      availableRolesLoading: false,
       filters: DEFAULT_HISTORY_FILTER_STATE,
       setFilters: () => {},
       resetFilters: () => {},
@@ -286,6 +301,7 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
   return {
     events,
     availableRoles,
+    availableRolesLoading,
     filters,
     setFilters,
     resetFilters,

@@ -125,13 +125,13 @@
 
 ### Implementation for User Story 4
 
-- [ ] T024 [P] [US4] Create `ChangesFilterBar.tsx` component in `components/RoleChanges/ChangesFilterBar.tsx` (action type dropdown + role dropdown)
-- [ ] T025 [US4] Add filter state management to `useRoleChangesPageData.ts` hook (actionFilter, roleFilter, reset on contract change)
-- [ ] T026 [US4] Add server-side role filter integration to `useContractHistory.ts` hook (pass roleId to API)
-- [ ] T027 [US4] Add client-side action type filtering to `useRoleChangesPageData.ts` hook (filter transformed events)
-- [ ] T028 [US4] Add filter bar to `RoleChanges.tsx` page (render ChangesFilterBar above table)
-- [ ] T029 [US4] Reset pagination when filters change in `useRoleChangesPageData.ts` hook
-- [ ] T030 [US4] Update barrel export in `components/RoleChanges/index.ts` with ChangesFilterBar
+- [x] T024 [P] [US4] Create `ChangesFilterBar.tsx` component in `components/RoleChanges/ChangesFilterBar.tsx` (action type dropdown + role dropdown)
+- [x] T025 [US4] Add filter state management to `useRoleChangesPageData.ts` hook (actionFilter, roleFilter, reset on contract change)
+- [x] T026 [US4] Add server-side role filter integration to `useContractHistory.ts` hook (pass roleId to API)
+- [x] T027 [US4] Add client-side action type filtering to `useRoleChangesPageData.ts` hook (filter transformed events)
+- [x] T028 [US4] Add filter bar to `RoleChanges.tsx` page (render ChangesFilterBar above table)
+- [x] T029 [US4] Reset pagination when filters change in `useRoleChangesPageData.ts` hook
+- [x] T030 [US4] Update barrel export in `components/RoleChanges/index.ts` with ChangesFilterBar
 
 **Checkpoint**: Can filter events by action type and role, pagination resets on filter change
 
