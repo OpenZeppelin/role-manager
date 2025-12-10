@@ -85,9 +85,9 @@ interface WalletHeaderSectionProps {
 │  ┌─────────────────────────────────────────────────────────────┐   │
 │  │  AdapterProvider (resolves adapters by network config)       │   │
 │  │  ┌───────────────────────────────────────────────────────┐  │   │
-│  │  │  WalletStateProvider (manages wallet connection)       │  │   │
+│  │  │  ContractProvider (manages contract selection)         │  │   │
 │  │  │  ┌─────────────────────────────────────────────────┐  │  │   │
-│  │  │  │  ContractProvider (manages contract selection)   │  │  │   │
+│  │  │  │  WalletStateProvider (manages wallet connection) │  │  │   │
 │  │  │  │  ┌───────────────────────────────────────────┐  │  │  │   │
 │  │  │  │  │  WalletSyncProvider                        │  │  │  │   │
 │  │  │  │  │  • Reads selectedNetwork from Contract     │  │  │  │   │
@@ -104,6 +104,9 @@ interface WalletHeaderSectionProps {
 │  │  └───────────────────────────────────────────────────────┘  │   │
 │  └─────────────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────────────┘
+
+NOTE: ContractProvider is OUTSIDE WalletStateProvider to prevent remounting
+when WalletStateProvider's internal dynamic key changes (adapter loads).
 ```
 
 ## State Transitions

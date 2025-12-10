@@ -96,24 +96,25 @@ apps/role-manager/src/
 
 ```tsx
 // App.tsx - Updated provider structure
+// IMPORTANT: ContractProvider must be OUTSIDE WalletStateProvider to prevent
+// infinite loop from remounting when WalletStateProvider's dynamic key changes.
 <QueryClientProvider client={queryClient}>
   <BrowserRouter>
     <AdapterProvider resolveAdapter={getAdapter}>
-      <WalletStateProvider
-        initialNetworkId={null}
-        getNetworkConfigById={getNetworkById}
-        loadConfigModule={loadAppConfigModule}
-      >
-        <ContractProvider>
+      <ContractProvider>
+        <WalletStateProvider
+          initialNetworkId={null}
+          getNetworkConfigById={getNetworkById}
+          loadConfigModule={loadAppConfigModule}
+        >
           <WalletSyncProvider>
-            {' '}
             {/* NEW: syncs network selection → wallet state */}
             <MainLayout>
               <Routes>...</Routes>
             </MainLayout>
           </WalletSyncProvider>
-        </ContractProvider>
-      </WalletStateProvider>
+        </WalletStateProvider>
+      </ContractProvider>
     </AdapterProvider>
   </BrowserRouter>
 </QueryClientProvider>

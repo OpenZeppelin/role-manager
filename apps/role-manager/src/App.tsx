@@ -7,6 +7,7 @@ import type { NativeConfigLoader } from '@openzeppelin/ui-builder-types';
 
 import { MainLayout } from './components/Layout/MainLayout';
 import { ContractProvider } from './context/ContractContext';
+import { WalletSyncProvider } from './context/WalletSyncProvider';
 import { getAdapter, getNetworkById } from './core/ecosystems/ecosystemManager';
 import { AuthorizedAccounts } from './pages/AuthorizedAccounts';
 import { Dashboard } from './pages/Dashboard';
@@ -51,15 +52,22 @@ function createQueryClient(): QueryClient {
  * - QueryClientProvider: React Query for data fetching/caching
  * - BrowserRouter: Client-side routing
  * - AdapterProvider: Manages adapter singleton instances
+ * - ContractProvider: Shared contract selection state (OUTSIDE WalletStateProvider)
  * - WalletStateProvider: Manages wallet connection state
- * - ContractProvider: Shared contract selection state
+ * - WalletSyncProvider: Syncs ContractContext network → WalletStateProvider
  *
- * ContractProvider wraps inside BrowserRouter to enable:
- * - Shared contract selection state across all pages
- * - Access to selected contract in Dashboard and other pages
+ * IMPORTANT: ContractProvider must be OUTSIDE WalletStateProvider because
+ * WalletStateProvider uses a dynamic key for its internal UI context provider.
+ * When the key changes (adapter loads), React remounts children. If ContractProvider
+ * were inside, it would remount and reset selectedNetwork to null, causing an
+ * infinite loop: network selected → adapter loads → provider remounts → network
+ * resets to null → network selected again...
+ *
+ * WalletSyncProvider syncs the selected network from ContractContext to
+ * WalletStateProvider, enabling the wallet UI to load the correct adapter.
  *
  * Feature: 007-dashboard-real-data
- * Feature: 013-wallet-connect-header (AdapterProvider, WalletStateProvider)
+ * Feature: 013-wallet-connect-header (AdapterProvider, WalletStateProvider, WalletSyncProvider)
  */
 function App() {
   // Create QueryClient inside component with useState for proper encapsulation
@@ -92,22 +100,24 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AdapterProvider resolveAdapter={getAdapter}>
-          <WalletStateProvider
-            initialNetworkId={null}
-            getNetworkConfigById={getNetworkById}
-            loadConfigModule={loadAppConfigModule}
-          >
-            <ContractProvider>
-              <MainLayout>
-                <Routes>
-                  <Route path="/" element={<Dashboard />} />
-                  <Route path="/authorized-accounts" element={<AuthorizedAccounts />} />
-                  <Route path="/roles" element={<Roles />} />
-                  <Route path="/role-changes" element={<RoleChanges />} />
-                </Routes>
-              </MainLayout>
-            </ContractProvider>
-          </WalletStateProvider>
+          <ContractProvider>
+            <WalletStateProvider
+              initialNetworkId={null}
+              getNetworkConfigById={getNetworkById}
+              loadConfigModule={loadAppConfigModule}
+            >
+              <WalletSyncProvider>
+                <MainLayout>
+                  <Routes>
+                    <Route path="/" element={<Dashboard />} />
+                    <Route path="/authorized-accounts" element={<AuthorizedAccounts />} />
+                    <Route path="/roles" element={<Roles />} />
+                    <Route path="/role-changes" element={<RoleChanges />} />
+                  </Routes>
+                </MainLayout>
+              </WalletSyncProvider>
+            </WalletStateProvider>
+          </ContractProvider>
         </AdapterProvider>
       </BrowserRouter>
     </QueryClientProvider>

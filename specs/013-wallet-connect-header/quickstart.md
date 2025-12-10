@@ -246,16 +246,19 @@ function App() {
     return null;
   }, []);
 
+  // IMPORTANT: ContractProvider must be OUTSIDE WalletStateProvider
+  // WalletStateProvider uses a dynamic key that causes remounts when adapter loads.
+  // If ContractProvider were inside, it would reset selectedNetwork to null.
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AdapterProvider resolveAdapter={getAdapter}>
-          <WalletStateProvider
-            initialNetworkId={null}
-            getNetworkConfigById={getNetworkById}
-            loadConfigModule={loadAppConfigModule}
-          >
-            <ContractProvider>
+          <ContractProvider>
+            <WalletStateProvider
+              initialNetworkId={null}
+              getNetworkConfigById={getNetworkById}
+              loadConfigModule={loadAppConfigModule}
+            >
               <WalletSyncProvider>
                 <MainLayout>
                   <Routes>
@@ -263,8 +266,8 @@ function App() {
                   </Routes>
                 </MainLayout>
               </WalletSyncProvider>
-            </ContractProvider>
-          </WalletStateProvider>
+            </WalletStateProvider>
+          </ContractProvider>
         </AdapterProvider>
       </BrowserRouter>
     </QueryClientProvider>

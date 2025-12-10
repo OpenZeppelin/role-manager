@@ -56,13 +56,13 @@
 
 ### Implementation
 
-- [ ] T010 [US1] Create `WalletSyncProvider` component at `apps/role-manager/src/context/WalletSyncProvider.tsx` (syncs `selectedNetwork` from `ContractContext` to wallet adapter)
-- [ ] T010a [US1] Write unit tests for `WalletSyncProvider` hook logic at `apps/role-manager/src/context/__tests__/WalletSyncProvider.test.tsx`
-- [ ] T011 [US1] Add `WalletSyncProvider` to provider hierarchy in `apps/role-manager/src/App.tsx`
-- [ ] T012 [P] [US1] Create `WalletHeaderSection` component at `apps/role-manager/src/components/Layout/WalletHeaderSection.tsx` (shows wallet UI when network is selected)
-- [ ] T013 [US1] Update `AppHeader` to include `WalletHeaderSection` in `apps/role-manager/src/components/Layout/AppHeader.tsx`
+- [x] T010 [US1] Create `WalletSyncProvider` component at `apps/role-manager/src/context/WalletSyncProvider.tsx` (syncs `selectedNetwork` from `ContractContext` to wallet adapter)
+- [x] T010a [US1] Write unit tests for `WalletSyncProvider` hook logic at `apps/role-manager/src/context/__tests__/WalletSyncProvider.test.tsx`
+- [x] T011 [US1] Add `WalletSyncProvider` to provider hierarchy in `apps/role-manager/src/App.tsx`
+- [x] T012 [P] [US1] Create `WalletHeaderSection` component at `apps/role-manager/src/components/Layout/WalletHeaderSection.tsx` (shows wallet UI when network is selected)
+- [x] T013 [US1] Update `AppHeader` to include `WalletHeaderSection` in `apps/role-manager/src/components/Layout/AppHeader.tsx`
 
-**Checkpoint**: User Stories 1 & 2 complete - users can connect wallet and view status
+**Checkpoint**: User Stories 1 & 2 complete - users can connect wallet and view status ✅
 
 ---
 
