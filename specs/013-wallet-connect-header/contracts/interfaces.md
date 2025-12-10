@@ -11,7 +11,7 @@ This feature consumes existing interfaces from UI Builder packages and introduce
 
 ### WalletSyncProvider
 
-Bridges the ContractContext with WalletStateProvider.
+Bridges the ContractContext with WalletStateProvider and handles network switching.
 
 ```typescript
 /**
@@ -23,12 +23,17 @@ interface WalletSyncProviderProps {
 
 /**
  * Component that synchronizes network selection with wallet state.
+ * Also handles seamless network switching within the same ecosystem.
  *
  * @contract
  * - MUST read selectedNetwork from ContractContext
  * - MUST call setActiveNetworkId when selectedNetwork changes
  * - MUST pass null to setActiveNetworkId when no network selected
+ * - MUST track networkToSwitchTo for pending switches
+ * - MUST render NetworkSwitchManager when adapter is ready (for EVM chain switching)
+ * - MUST handle wallet reconnection scenarios via useWalletReconnectionHandler
  * - MUST NOT modify ContractContext state
+ * - MUST NOT re-sync when remounted with same network (optimization)
  */
 declare function WalletSyncProvider(props: WalletSyncProviderProps): JSX.Element;
 ```

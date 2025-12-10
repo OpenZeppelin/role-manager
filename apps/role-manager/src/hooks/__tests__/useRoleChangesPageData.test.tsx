@@ -95,6 +95,13 @@ vi.mock('../useContractHistory', () => ({
   DEFAULT_PAGE_SIZE: 20,
 }));
 
+// Mock for useContractRoles (used by availableRoles)
+const mockUseContractRoles = vi.fn();
+
+vi.mock('../useContractData', () => ({
+  useContractRoles: (...args: unknown[]) => mockUseContractRoles(...args),
+}));
+
 // =============================================================================
 // Test Utilities
 // =============================================================================
@@ -149,6 +156,16 @@ function setupDefaultMocks() {
     errorMessage: null,
     canRetry: false,
     refetch: vi.fn().mockResolvedValue(undefined),
+  });
+
+  // Mock contract roles for availableRoles
+  mockUseContractRoles.mockReturnValue({
+    roles: [
+      { role: { id: 'ADMIN_ROLE', label: 'Admin' }, members: [] },
+      { role: { id: 'MINTER_ROLE', label: 'Minter' }, members: [] },
+    ],
+    isLoading: false,
+    isFetching: false,
   });
 }
 
@@ -359,7 +376,7 @@ describe('useRoleChangesPageData', () => {
       expect(result.current.filters.roleFilter).toBe('all');
     });
 
-    it('should filter events by action type (client-side)', async () => {
+    it('should pass action filter to API (server-side filtering)', async () => {
       const { result } = renderHook(() => useRoleChangesPageData(), {
         wrapper: createWrapper(),
       });
@@ -368,7 +385,8 @@ describe('useRoleChangesPageData', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      const initialCount = result.current.events.length;
+      // Clear mock calls to capture the next call
+      mockUseContractHistory.mockClear();
 
       act(() => {
         result.current.setFilters({
@@ -377,12 +395,17 @@ describe('useRoleChangesPageData', () => {
         });
       });
 
-      // Should only show grant events
-      expect(result.current.events.length).toBeLessThan(initialCount);
-      expect(result.current.events.every((e) => e.action === 'grant')).toBe(true);
+      // Verify useContractHistory was called with changeType: 'GRANTED'
+      // The server-side filtering is done by passing the changeType option to the API
+      await waitFor(() => {
+        const lastCall =
+          mockUseContractHistory.mock.calls[mockUseContractHistory.mock.calls.length - 1];
+        const queryOptions = lastCall?.[3]; // 4th argument is queryOptions
+        expect(queryOptions?.changeType).toBe('GRANTED');
+      });
     });
 
-    it('should filter events by revoke action', async () => {
+    it('should pass revoke action filter to API', async () => {
       const { result } = renderHook(() => useRoleChangesPageData(), {
         wrapper: createWrapper(),
       });
@@ -391,6 +414,9 @@ describe('useRoleChangesPageData', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
+      // Clear mock calls
+      mockUseContractHistory.mockClear();
+
       act(() => {
         result.current.setFilters({
           ...result.current.filters,
@@ -398,7 +424,13 @@ describe('useRoleChangesPageData', () => {
         });
       });
 
-      expect(result.current.events.every((e) => e.action === 'revoke')).toBe(true);
+      // Verify useContractHistory was called with changeType: 'REVOKED'
+      await waitFor(() => {
+        const lastCall =
+          mockUseContractHistory.mock.calls[mockUseContractHistory.mock.calls.length - 1];
+        const queryOptions = lastCall?.[3];
+        expect(queryOptions?.changeType).toBe('REVOKED');
+      });
     });
 
     it('should reset filters with resetFilters', async () => {
@@ -744,6 +776,13 @@ describe('useRoleChangesPageData', () => {
         errorMessage: null,
         canRetry: false,
         refetch: vi.fn(),
+      });
+
+      // Also mock empty roles for complete empty state
+      mockUseContractRoles.mockReturnValue({
+        roles: [],
+        isLoading: false,
+        isFetching: false,
       });
 
       const { result } = renderHook(() => useRoleChangesPageData(), {

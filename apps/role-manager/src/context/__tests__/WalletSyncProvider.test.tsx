@@ -59,7 +59,7 @@ vi.mock('../ContractContext', () => ({
   }),
 }));
 
-// Mock WalletState hook from react-core
+// Mock WalletState hook and related exports from react-core
 vi.mock('@openzeppelin/ui-builder-react-core', () => ({
   useWalletState: () => ({
     setActiveNetworkId: mocks.setActiveNetworkId,
@@ -70,6 +70,20 @@ vi.mock('@openzeppelin/ui-builder-react-core', () => ({
     walletFacadeHooks: null,
     reconfigureActiveAdapterUiKit: vi.fn(),
   }),
+  // Mock useWalletReconnectionHandler - does nothing in tests
+  useWalletReconnectionHandler: vi.fn(),
+  // Mock NetworkSwitchManager - renders nothing in tests
+  NetworkSwitchManager: () => null,
+}));
+
+// Mock logger from ui-builder-utils
+vi.mock('@openzeppelin/ui-builder-utils', () => ({
+  logger: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+  },
 }));
 
 // =============================================================================

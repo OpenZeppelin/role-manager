@@ -113,11 +113,11 @@
 
 **Purpose**: Final validation and documentation
 
-- [ ] T017 Run full quickstart.md validation checklist
-- [ ] T018 [P] Verify loading skeleton appears during adapter initialization
-- [ ] T019 [P] Verify error handling displays raw wallet provider errors
-- [ ] T020 [P] Test ecosystem switching (select different ecosystem network from sidebar, verify adapter switch)
-- [ ] T021 Update any outdated documentation if needed
+- [x] T017 Run full quickstart.md validation checklist
+- [x] T018 [P] Verify loading skeleton appears during adapter initialization
+- [x] T019 [P] Verify error handling displays raw wallet provider errors
+- [x] T020 [P] Test ecosystem switching (select different ecosystem network from sidebar, verify adapter switch)
+- [x] T021 Update any outdated documentation if needed
 
 ---
 
