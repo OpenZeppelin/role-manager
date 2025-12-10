@@ -3,7 +3,7 @@
 **Input**: Design documents from `/specs/013-wallet-connect-header/`  
 **Prerequisites**: plan.md ✅, spec.md ✅, research.md ✅, data-model.md ✅, contracts/ ✅
 
-**Tests**: Not requested in specification. Manual testing via quickstart.md.
+**Tests**: Unit tests required for hook state logic per constitution (Principle V). UI components use manual testing via quickstart.md.
 
 **Organization**: Tasks grouped by user story for independent implementation and testing.
 
@@ -57,6 +57,7 @@
 ### Implementation
 
 - [ ] T010 [US1] Create `WalletSyncProvider` component at `apps/role-manager/src/context/WalletSyncProvider.tsx`
+- [ ] T010a [US1] Write unit tests for `WalletSyncProvider` hook logic at `apps/role-manager/src/context/__tests__/WalletSyncProvider.test.tsx`
 - [ ] T011 [US1] Add `WalletSyncProvider` to provider hierarchy in `apps/role-manager/src/App.tsx`
 - [ ] T012 [P] [US1] Create `WalletHeaderSection` component at `apps/role-manager/src/components/Layout/WalletHeaderSection.tsx`
 - [ ] T013 [US1] Update `AppHeader` to include `WalletHeaderSection` in `apps/role-manager/src/components/Layout/AppHeader.tsx`
@@ -147,6 +148,7 @@ Phase 6 (Polish)
 **Phase 3 (US1 & US2)**:
 
 - T010 (WalletSyncProvider) → Depends on Phase 2 complete
+- T010a (WalletSyncProvider tests) → Depends on T010
 - T011 (Add to App.tsx) → Depends on T010
 - T012 (WalletHeaderSection) → Can run parallel with T010-T011 [P]
 - T013 (Update AppHeader) → Depends on T012
@@ -175,17 +177,17 @@ T018, T019, T020 can run in parallel
 
 1. Complete Phase 1: Setup (3 tasks)
 2. Complete Phase 2: Foundational (6 tasks)
-3. Complete Phase 3: User Stories 1 & 2 (4 tasks)
+3. Complete Phase 3: User Stories 1 & 2 (5 tasks, includes unit test)
 4. **STOP and VALIDATE**: Test wallet connect/view flow
-5. Deploy/demo - **13 tasks total for MVP**
+5. Deploy/demo - **14 tasks total for MVP**
 
 ### Full Implementation
 
-1. MVP (Phases 1-3) → 13 tasks
+1. MVP (Phases 1-3) → 14 tasks
 2. Add Phase 4: US3 verification → 1 task
 3. Add Phase 5: US4 verification → 2 tasks
 4. Add Phase 6: Polish → 5 tasks
-5. **Total: 21 tasks**
+5. **Total: 22 tasks**
 
 ### Key Insight: Minimal Custom Code
 
@@ -202,20 +204,20 @@ Most wallet functionality is provided by UI Builder adapters:
 | --------- | ------ | ------------------------------------ |
 | Phase 1   | 3      | Setup & dependencies                 |
 | Phase 2   | 6      | Foundational (provider hierarchy)    |
-| Phase 3   | 4      | US1 & US2 - Connect & View (MVP)     |
+| Phase 3   | 5      | US1 & US2 - Connect & View (MVP)     |
 | Phase 4   | 1      | US3 - Disconnect (verification)      |
 | Phase 5   | 2      | US4 - Multi-ecosystem (verification) |
 | Phase 6   | 5      | Polish & validation                  |
-| **Total** | **21** |                                      |
+| **Total** | **22** |                                      |
 
 ### Tasks per User Story
 
-| User Story            | Tasks | Notes             |
-| --------------------- | ----- | ----------------- |
-| US1 (Connect)         | 4     | Combined with US2 |
-| US2 (View Status)     | 0     | Shared with US1   |
-| US3 (Disconnect)      | 1     | Verification only |
-| US4 (Multi-ecosystem) | 2     | Verification only |
+| User Story            | Tasks | Notes                        |
+| --------------------- | ----- | ---------------------------- |
+| US1 (Connect)         | 5     | Combined with US2, incl test |
+| US2 (View Status)     | 0     | Shared with US1              |
+| US3 (Disconnect)      | 1     | Verification only            |
+| US4 (Multi-ecosystem) | 2     | Verification only            |
 
 ---
 
@@ -225,5 +227,6 @@ Most wallet functionality is provided by UI Builder adapters:
 - US1 & US2 combined because they share components and are both P1 priority
 - US3 & US4 are primarily verification tasks since adapters handle the functionality
 - Stellar is primary focus; EVM is future expansion
-- No automated tests requested - use quickstart.md for manual validation
+- Unit tests required for hook state logic (WalletSyncProvider) per constitution Principle V
+- UI components use manual validation via quickstart.md
 - [P] tasks can run in parallel within their phase

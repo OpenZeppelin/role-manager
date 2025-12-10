@@ -80,7 +80,7 @@ A user wants to connect wallets from different blockchain ecosystems (Stellar as
 ### Edge Cases
 
 - What happens when no contract is selected? The wallet connection UI is not displayed in the header; the header shows only the application title and navigation. Users must first select a contract to enable wallet connection.
-- What happens when the user's browser extension wallet is locked? The connection attempt should timeout gracefully with a message suggesting the user unlock their wallet.
+- What happens when the user's browser extension wallet is locked? The connection attempt will use the wallet provider's default timeout behavior (typically 30-60 seconds depending on wallet). The adapter surfaces the raw timeout error from the wallet provider.
 - What happens if the user rejects the connection request in their wallet? The UI returns to the disconnected state with a message indicating the connection was cancelled.
 - How does the system handle wallet disconnection initiated from the wallet extension itself? The application detects the disconnection event and updates the UI accordingly.
 - What happens during adapter initialization/loading? A skeleton loader is displayed in the header where the wallet UI would appear, indicating the wallet functionality is loading.
@@ -126,11 +126,26 @@ Raw wallet provider errors are displayed without custom formatting.
 
 ### Measurable Outcomes
 
-- **SC-001**: Users can connect a wallet within 3 clicks from any page in the application
-- **SC-002**: Wallet connection status is visually updated within 1 second of connection state changes
-- **SC-003**: 95% of wallet connection attempts complete successfully (excluding user-cancelled actions)
-- **SC-004**: Zero state corruption when disconnecting wallets
-- **SC-005**: Wallet components render correctly across all supported browsers and screen sizes
+- **SC-001**: Users can connect a wallet within 3 clicks from any page in the application (contract selected → connect button → wallet selection → connected)
+- **SC-002**: Wallet connection status is visually updated within 1 second of connection state changes (verified via manual observation during quickstart testing)
+- **SC-003**: Wallet connection flow completes without errors for supported wallet providers when user approves connection (excluding user-cancelled or wallet-locked scenarios)
+- **SC-004**: Disconnecting wallet resets UI to "Connect Wallet" state without stale data (verified by checking header displays connect button and no address persists)
+- **SC-005**: Wallet components render correctly on Chrome, Firefox, Safari, and Edge (latest versions); responsive down to 768px viewport width
+
+### Browser Support Matrix
+
+| Browser | Version | Status    |
+| ------- | ------- | --------- |
+| Chrome  | Latest  | Primary   |
+| Firefox | Latest  | Supported |
+| Safari  | Latest  | Supported |
+| Edge    | Latest  | Supported |
+
+### Responsive Breakpoints
+
+- **Desktop**: ≥1024px - Full header with wallet UI
+- **Tablet**: 768px-1023px - Condensed header, wallet UI visible
+- **Mobile**: <768px - Wallet UI in mobile menu (future consideration)
 
 ## Assumptions
 
