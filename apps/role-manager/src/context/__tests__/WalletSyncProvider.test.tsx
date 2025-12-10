@@ -205,5 +205,50 @@ describe('WalletSyncProvider', () => {
       // Only setActiveNetworkId should be called, not any ContractContext setters
       expect(mocks.setActiveNetworkId).toHaveBeenCalledTimes(1);
     });
+
+    it('should NOT call setActiveNetworkId on rerender with same network', () => {
+      // This tests the optimization that prevents duplicate syncs on remount
+      // When WalletStateProvider's children remount due to key changes,
+      // WalletSyncProvider should not re-call setActiveNetworkId if network is unchanged
+      mocks.selectedNetwork = mockStellarNetwork;
+
+      const { rerender } = render(
+        <WalletSyncProvider>
+          <div>Test</div>
+        </WalletSyncProvider>
+      );
+
+      // First render should sync
+      expect(mocks.setActiveNetworkId).toHaveBeenCalledTimes(1);
+      expect(mocks.setActiveNetworkId).toHaveBeenCalledWith('stellar-testnet');
+      mocks.setActiveNetworkId.mockClear();
+
+      // Rerender with same network - should NOT call setActiveNetworkId again
+      rerender(
+        <WalletSyncProvider>
+          <div>Test</div>
+        </WalletSyncProvider>
+      );
+
+      // Should NOT have been called again since network is unchanged
+      expect(mocks.setActiveNetworkId).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('NetworkSwitchHandler integration', () => {
+    it('should work alongside NetworkSwitchHandler for seamless EVM network switching', () => {
+      // Note: NetworkSwitchHandler is a separate component that handles EVM chain switching
+      // This test verifies WalletSyncProvider correctly syncs the network, which then
+      // triggers NetworkSwitchHandler to request a chain switch in the wallet
+      mocks.selectedNetwork = mockEvmNetwork;
+
+      render(
+        <WalletSyncProvider>
+          <div>Test</div>
+        </WalletSyncProvider>
+      );
+
+      expect(mocks.setActiveNetworkId).toHaveBeenCalledWith('ethereum-sepolia');
+    });
   });
 });

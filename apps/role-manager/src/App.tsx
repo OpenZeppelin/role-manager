@@ -54,7 +54,7 @@ function createQueryClient(): QueryClient {
  * - AdapterProvider: Manages adapter singleton instances
  * - ContractProvider: Shared contract selection state (OUTSIDE WalletStateProvider)
  * - WalletStateProvider: Manages wallet connection state
- * - WalletSyncProvider: Syncs ContractContext network → WalletStateProvider
+ * - WalletSyncProvider: Syncs ContractContext network → WalletStateProvider + handles EVM chain switches
  *
  * IMPORTANT: ContractProvider must be OUTSIDE WalletStateProvider because
  * WalletStateProvider uses a dynamic key for its internal UI context provider.
@@ -65,6 +65,8 @@ function createQueryClient(): QueryClient {
  *
  * WalletSyncProvider syncs the selected network from ContractContext to
  * WalletStateProvider, enabling the wallet UI to load the correct adapter.
+ * It also handles EVM chain switching - when users switch between EVM networks,
+ * it triggers the wallet's chain switch prompt instead of disconnecting.
  *
  * Feature: 007-dashboard-real-data
  * Feature: 013-wallet-connect-header (AdapterProvider, WalletStateProvider, WalletSyncProvider)

@@ -12,8 +12,12 @@
         }
       },
       "evm": {
-        "kitName": "rainbowkit",
-        "kitConfig": {}
+        "kitName": "custom",
+        "kitConfig": {
+          "components": {
+            "exclude": ["NetworkSwitcher"]
+          }
+        }
       },
       "default": {
         "kitName": "custom",

@@ -78,7 +78,7 @@
 
 ### Implementation
 
-- [ ] T014 [US3] Verify disconnect functionality works via `CustomAccountDisplay` (provided by adapter - no code needed, just verification)
+- [x] T014 [US3] Verify disconnect functionality works via `CustomAccountDisplay` (provided by adapter - no code needed, just verification)
 
 **Note**: Disconnect is fully provided by `CustomAccountDisplay` component from adapters. This phase is verification only.
 
@@ -97,10 +97,13 @@
 
 ### Implementation
 
-- [ ] T015 [US4] Verify Stellar ecosystem integration with installed Stellar wallets (select Stellar network)
-- [ ] T016 [US4] Verify EVM ecosystem integration with browser wallets (select EVM network)
+- [x] T015a [US4] Add NetworkSwitchManager component (copied from UI Builder) at `apps/role-manager/src/components/Wallet/NetworkSwitchManager.tsx`
+- [x] T015b [US4] Update WalletSyncProvider to integrate NetworkSwitchManager with networkToSwitchTo state tracking
+- [x] T015c [US4] Add wallet reconnection handling to WalletSyncProvider (re-queue switch on reconnect)
+- [x] T015 [US4] Verify Stellar ecosystem integration with installed Stellar wallets (select Stellar network)
+- [x] T016 [US4] Verify EVM ecosystem integration with browser wallets (select EVM network)
 
-**Note**: Multi-ecosystem support is provided by adapters. These are verification tasks.
+**Note**: Multi-ecosystem support now includes seamless network switching (users stay connected when switching networks). NetworkSwitchManager handles EVM chain switching. These are verification tasks.
 
 **Checkpoint**: User Story 4 complete - both ecosystems supported
 
