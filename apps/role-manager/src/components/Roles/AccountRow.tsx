@@ -16,6 +16,7 @@ import { AddressDisplay, Button } from '@openzeppelin/ui-builder-ui';
 import { cn } from '@openzeppelin/ui-builder-utils';
 
 import { formatDate } from '../../utils/date';
+import { YouBadge } from '../Shared/YouBadge';
 
 /**
  * Props for AccountRow component - updated for real member data (T031)
@@ -64,14 +65,7 @@ export function AccountRow({
           showCopyButton={true}
         />
         {/* T032: "You" badge - shown when isCurrentUser is true */}
-        {isCurrentUser && (
-          <span
-            className="text-xs bg-blue-50 text-blue-700 border border-blue-300 rounded-full px-2 py-0.5"
-            aria-label="This is your account"
-          >
-            You
-          </span>
-        )}
+        {isCurrentUser && <YouBadge />}
       </div>
       <div className="flex items-center gap-2">
         {!isOwnerRole ? (

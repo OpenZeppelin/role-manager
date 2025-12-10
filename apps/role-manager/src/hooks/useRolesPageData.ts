@@ -19,6 +19,7 @@
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { useDerivedAccountStatus } from '@openzeppelin/ui-builder-react-core';
 import type { AccessControlCapabilities } from '@openzeppelin/ui-builder-types';
 
 import { OWNER_ROLE_DESCRIPTION, OWNER_ROLE_ID, OWNER_ROLE_NAME } from '../constants';
@@ -242,13 +243,13 @@ export function useRolesPageData(): UseRolesPageDataReturn {
     setSelectedRoleId(null);
   }, [contractId]);
 
+  // Get connected wallet address from wallet state (spec 013)
+  const { address: connectedAddress } = useDerivedAccountStatus();
+
   // Compute connected role IDs
-  // TODO: Integrate with actual wallet connection hook (e.g., useConnectedWallet)
-  // For now, this is always null until wallet integration is added
-  const connectedAddress = null as string | null;
   const connectedRoleIds = useMemo((): string[] => {
     if (!connectedAddress) return [];
-    const lowerCaseConnected = (connectedAddress as string).toLowerCase();
+    const lowerCaseConnected = connectedAddress.toLowerCase();
     return roles
       .filter((role) => role.members.some((member) => member.toLowerCase() === lowerCaseConnected))
       .map((role) => role.roleId);
@@ -339,7 +340,7 @@ export function useRolesPageData(): UseRolesPageDataReturn {
     canRetry,
     refetch,
     updateRoleDescription,
-    connectedAddress,
+    connectedAddress: connectedAddress ?? null,
     connectedRoleIds,
     roleIdentifiers,
   };

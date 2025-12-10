@@ -83,6 +83,13 @@ vi.mock('../useContractData', () => ({
   useContractOwnership: (...args: unknown[]) => mockUseContractOwnership(...args),
 }));
 
+// Mock useDerivedAccountStatus from react-core (spec 013)
+const mockUseDerivedAccountStatus = vi.fn();
+
+vi.mock('@openzeppelin/ui-builder-react-core', () => ({
+  useDerivedAccountStatus: () => mockUseDerivedAccountStatus(),
+}));
+
 // =============================================================================
 // Test Utilities
 // =============================================================================
@@ -144,6 +151,13 @@ function setupDefaultMocks() {
     hasError: false,
     canRetry: false,
     errorMessage: null,
+  });
+
+  // Default: no wallet connected
+  mockUseDerivedAccountStatus.mockReturnValue({
+    isConnected: false,
+    address: undefined,
+    chainId: undefined,
   });
 }
 

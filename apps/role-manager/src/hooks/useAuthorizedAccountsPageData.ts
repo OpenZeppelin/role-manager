@@ -9,6 +9,7 @@
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { useDerivedAccountStatus } from '@openzeppelin/ui-builder-react-core';
 import type { AccessControlCapabilities } from '@openzeppelin/ui-builder-types';
 
 import {
@@ -282,8 +283,8 @@ export function useAuthorizedAccountsPageData(): UseAuthorizedAccountsPageDataRe
     [currentPage, totalPages, totalItems]
   );
 
-  // Stubbed connected wallet (future: wallet integration)
-  const connectedAddress = null;
+  // Get connected wallet address from wallet state (spec 013)
+  const { address: connectedAddress } = useDerivedAccountStatus();
 
   // =============================================================================
   // Return
@@ -339,6 +340,6 @@ export function useAuthorizedAccountsPageData(): UseAuthorizedAccountsPageDataRe
     errorMessage,
     canRetry,
     refetch,
-    connectedAddress,
+    connectedAddress: connectedAddress ?? null,
   };
 }

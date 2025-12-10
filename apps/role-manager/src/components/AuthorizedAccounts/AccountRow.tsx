@@ -28,6 +28,7 @@ import {
 import { formatDate } from '../../utils/date';
 import { OutlineBadge } from '../Shared/OutlineBadge';
 import { StatusBadge } from '../Shared/StatusBadge';
+import { YouBadge } from '../Shared/YouBadge';
 import { AccountActionsMenu } from './AccountActionsMenu';
 
 /**
@@ -38,6 +39,8 @@ export interface AccountRowProps {
   account: AuthorizedAccountView;
   /** Whether this row is currently selected */
   isSelected: boolean;
+  /** Whether this account belongs to the connected wallet (for "You" badge) */
+  isCurrentUser?: boolean;
   /** Callback when selection checkbox changes */
   onToggleSelection: () => void;
   /** Callback when an action is triggered */
@@ -54,7 +57,13 @@ export interface AccountRowProps {
  * - Date formatting with "Never" fallback for no expiration
  * - Actions dropdown menu
  */
-export function AccountRow({ account, isSelected, onToggleSelection, onAction }: AccountRowProps) {
+export function AccountRow({
+  account,
+  isSelected,
+  isCurrentUser = false,
+  onToggleSelection,
+  onAction,
+}: AccountRowProps) {
   return (
     <tr
       className={cn(
@@ -75,14 +84,18 @@ export function AccountRow({ account, isSelected, onToggleSelection, onAction }:
 
       {/* Address - truncated display */}
       <td className="p-4">
-        <AddressDisplay
-          address={account.address}
-          truncate={true}
-          startChars={6}
-          endChars={4}
-          showCopyButton={true}
-          className="font-mono text-sm"
-        />
+        <div className="flex items-center gap-2">
+          <AddressDisplay
+            address={account.address}
+            truncate={true}
+            startChars={6}
+            endChars={4}
+            showCopyButton={true}
+            className="font-mono text-sm"
+          />
+          {/* "You" badge - shown when account matches connected wallet */}
+          {isCurrentUser && <YouBadge />}
+        </div>
       </td>
 
       {/* Status badge */}

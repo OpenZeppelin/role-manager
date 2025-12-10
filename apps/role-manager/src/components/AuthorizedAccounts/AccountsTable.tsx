@@ -35,6 +35,8 @@ export interface AccountsTableProps {
   accounts: AuthorizedAccountView[];
   /** Set of selected account IDs */
   selectedIds: Set<string>;
+  /** Connected wallet address for "You" badge detection */
+  connectedAddress?: string | null;
   /** Callback when row selection changes */
   onSelectionChange: (selectedIds: Set<string>) => void;
   /** Callback when an action is triggered on an account */
@@ -66,6 +68,7 @@ const COLUMNS = [
 export function AccountsTable({
   accounts,
   selectedIds,
+  connectedAddress,
   onSelectionChange,
   onAction,
   emptyState,
@@ -155,6 +158,11 @@ export function AccountsTable({
                 key={account.id}
                 account={account}
                 isSelected={selectedIds.has(account.id)}
+                isCurrentUser={
+                  connectedAddress
+                    ? account.address.toLowerCase() === connectedAddress.toLowerCase()
+                    : false
+                }
                 onToggleSelection={() => handleRowToggle(account.id)}
                 onAction={(action) => handleAction(account.id, action)}
               />

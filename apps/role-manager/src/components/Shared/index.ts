@@ -13,6 +13,7 @@ export { Pagination } from './Pagination';
 export { SelectLoadingPlaceholder } from './SelectLoadingPlaceholder';
 export { Skeleton } from './Skeleton';
 export { StatusBadge } from './StatusBadge';
+export { YouBadge } from './YouBadge';
 
 // Types
 export type { OutlineBadgeProps } from './OutlineBadge';
@@ -20,3 +21,4 @@ export type { PaginationProps, PaginationState } from './Pagination';
 export type { SelectLoadingPlaceholderProps } from './SelectLoadingPlaceholder';
 export type { SkeletonProps } from './Skeleton';
 export type { StatusBadgeProps, StatusBadgeVariant } from './StatusBadge';
+export type { YouBadgeProps } from './YouBadge';

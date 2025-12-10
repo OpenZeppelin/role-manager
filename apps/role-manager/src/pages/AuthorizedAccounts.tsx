@@ -58,6 +58,7 @@ export function AuthorizedAccounts() {
     errorMessage,
     canRetry,
     refetch,
+    connectedAddress,
   } = useAuthorizedAccountsPageData();
 
   // T060: Determine if pagination controls should be visible
@@ -214,6 +215,7 @@ export function AuthorizedAccounts() {
         <AccountsTable
           accounts={paginatedAccounts}
           selectedIds={selectedIds}
+          connectedAddress={connectedAddress}
           onSelectionChange={handleSelectionChange}
           onAction={handleAction}
           emptyState={

@@ -80,6 +80,13 @@ vi.mock('../useSelectedContract', () => ({
   useSelectedContract: () => mockUseSelectedContract(),
 }));
 
+// Mock useDerivedAccountStatus from react-core (spec 013)
+const mockUseDerivedAccountStatus = vi.fn();
+
+vi.mock('@openzeppelin/ui-builder-react-core', () => ({
+  useDerivedAccountStatus: () => mockUseDerivedAccountStatus(),
+}));
+
 // =============================================================================
 // Test Utilities
 // =============================================================================
@@ -147,6 +154,13 @@ function setupDefaultMocks() {
     isLoading: false,
     updateDescription: vi.fn().mockResolvedValue(undefined),
     clearDescription: vi.fn().mockResolvedValue(undefined),
+  });
+
+  // Default: no wallet connected
+  mockUseDerivedAccountStatus.mockReturnValue({
+    isConnected: false,
+    address: undefined,
+    chainId: undefined,
   });
 }
 
@@ -615,11 +629,11 @@ describe('useRolesPageData', () => {
   });
 
   describe('connected wallet', () => {
-    it('should return connectedAddress as null when no contract selected', () => {
-      mockUseSelectedContract.mockReturnValue({
-        selectedContract: null,
-        adapter: null,
-        isAdapterLoading: false,
+    it('should return connectedAddress as null when wallet is not connected', () => {
+      mockUseDerivedAccountStatus.mockReturnValue({
+        isConnected: false,
+        address: undefined,
+        chainId: undefined,
       });
 
       const { result } = renderHook(() => useRolesPageData(), { wrapper: createWrapper() });
@@ -627,13 +641,72 @@ describe('useRolesPageData', () => {
       expect(result.current.connectedAddress).toBeNull();
     });
 
+    it('should return connectedAddress when wallet is connected', () => {
+      const connectedAddr = '0xConnectedUser123456789012345678901234';
+      mockUseDerivedAccountStatus.mockReturnValue({
+        isConnected: true,
+        address: connectedAddr,
+        chainId: 1,
+      });
+
+      const { result } = renderHook(() => useRolesPageData(), { wrapper: createWrapper() });
+
+      expect(result.current.connectedAddress).toBe(connectedAddr);
+    });
+
     it('should compute connectedRoleIds based on connected address', () => {
+      const connectedAddr = '0xconnectedaddress123456789012345678901234';
+
+      // Mock connected wallet
+      mockUseDerivedAccountStatus.mockReturnValue({
+        isConnected: true,
+        address: connectedAddr,
+        chainId: 1,
+      });
+
       // Mock that connected address is in ADMIN_ROLE members
       mockUseContractRoles.mockReturnValue({
         roles: [
           {
             role: { id: 'ADMIN_ROLE', label: 'Admin' },
-            members: ['0xconnectedaddress123456789012345678901234'],
+            members: [connectedAddr],
+          },
+          {
+            role: { id: 'MINTER_ROLE', label: 'Minter' },
+            members: ['0xsomeoneelse12345678901234567890123456'],
+          },
+        ],
+        isLoading: false,
+        error: null,
+        refetch: vi.fn(),
+        isEmpty: false,
+        totalMemberCount: 2,
+        hasError: false,
+        canRetry: false,
+        errorMessage: null,
+      });
+
+      const { result } = renderHook(() => useRolesPageData(), { wrapper: createWrapper() });
+
+      expect(result.current.connectedRoleIds).toEqual(['ADMIN_ROLE']);
+    });
+
+    it('should handle case-insensitive address matching for connectedRoleIds', () => {
+      // Connected address in lowercase
+      const connectedAddr = '0xconnectedaddress123456789012345678901234';
+
+      mockUseDerivedAccountStatus.mockReturnValue({
+        isConnected: true,
+        address: connectedAddr,
+        chainId: 1,
+      });
+
+      // Role members in mixed case
+      mockUseContractRoles.mockReturnValue({
+        roles: [
+          {
+            role: { id: 'ADMIN_ROLE', label: 'Admin' },
+            members: ['0xCONNECTEDADDRESS123456789012345678901234'], // uppercase
           },
         ],
         isLoading: false,
@@ -646,13 +719,9 @@ describe('useRolesPageData', () => {
         errorMessage: null,
       });
 
-      // For this test, we need to simulate connected wallet
-      // The actual implementation will use useConnectedWallet or similar
       const { result } = renderHook(() => useRolesPageData(), { wrapper: createWrapper() });
 
-      // connectedRoleIds should be computed based on membership
-      expect(result.current.connectedRoleIds).toBeDefined();
-      expect(Array.isArray(result.current.connectedRoleIds)).toBe(true);
+      expect(result.current.connectedRoleIds).toEqual(['ADMIN_ROLE']);
     });
   });
 
