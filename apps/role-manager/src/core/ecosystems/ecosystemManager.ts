@@ -141,6 +141,55 @@ export async function getNetworksByEcosystem(ecosystem: Ecosystem): Promise<Netw
 }
 
 // =============================================================================
+// Network Lookup
+// =============================================================================
+
+/**
+ * Get a network configuration by its ID.
+ * Ported from UI Builder's ecosystemManager pattern.
+ *
+ * Uses two-step lookup:
+ * 1. Check already-cached ecosystems first (performance optimization)
+ * 2. Load ecosystems on-demand if not found in cache
+ *
+ * @param id - The unique network identifier
+ * @returns NetworkConfig if found, undefined otherwise
+ *
+ * Feature: 013-wallet-connect-header
+ */
+export async function getNetworkById(id: string): Promise<NetworkConfig | undefined> {
+  // 1. Check existing cached ecosystems first
+  for (const ecosystemKey of Object.keys(networksByEcosystemCache)) {
+    const ecosystem = ecosystemKey as Ecosystem;
+    const cachedNetworks = networksByEcosystemCache[ecosystem];
+    if (cachedNetworks) {
+      const network = cachedNetworks.find((n) => n.id === id);
+      if (network) return network;
+    }
+  }
+
+  // 2. If not found, iterate through all registered ecosystems and load on-demand
+  const allEcosystems = Object.keys(ecosystemRegistry) as Ecosystem[];
+
+  for (const ecosystem of allEcosystems) {
+    let networksForEcosystem = networksByEcosystemCache[ecosystem];
+
+    if (!networksForEcosystem) {
+      try {
+        networksForEcosystem = await getNetworksByEcosystem(ecosystem);
+      } catch {
+        continue; // Skip ecosystems that fail to load
+      }
+    }
+
+    const foundNetwork = networksForEcosystem?.find((n) => n.id === id);
+    if (foundNetwork) return foundNetwork;
+  }
+
+  return undefined;
+}
+
+// =============================================================================
 // Adapter Instantiation
 // =============================================================================
 
