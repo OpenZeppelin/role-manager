@@ -110,9 +110,11 @@ export function WalletSyncProvider({ children }: WalletSyncProviderProps): React
       // Reset adapter ready state when network changes
       setIsAdapterReady(false);
 
-      // Queue the network switch
+      // Queue the network switch, or clear pending switch if network deselected
       if (newNetworkId) {
         setNetworkToSwitchTo(newNetworkId);
+      } else {
+        setNetworkToSwitchTo(null);
       }
 
       lastSyncedNetworkIdRef.current = newNetworkId;
@@ -132,7 +134,8 @@ export function WalletSyncProvider({ children }: WalletSyncProviderProps): React
     }
 
     // Adapter is ready when it matches the target network
-    if (selectedNetwork.id === networkToSwitchTo && activeAdapter && !isAdapterLoading) {
+    // Note: activeAdapter is guaranteed truthy here due to early return above
+    if (selectedNetwork.id === networkToSwitchTo && !isAdapterLoading) {
       logger.info(
         'WalletSyncProvider',
         `✅ Adapter ready for target network ${selectedNetwork.id}. Setting isAdapterReady.`
