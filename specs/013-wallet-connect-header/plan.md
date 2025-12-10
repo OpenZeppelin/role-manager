@@ -5,7 +5,7 @@
 
 ## Summary
 
-Add wallet connection capability to the Role Manager header by integrating the UI Builder's `@openzeppelin/ui-builder-react-core` package. The wallet UI is **contract-dependent**: it only appears when a contract is selected (which determines the ecosystem/adapter). The implementation reuses the existing `ContractContext` for contract/network selection and adds wallet state management via the UI Builder's established `WalletStateProvider` pattern.
+Add wallet connection capability to the Role Manager header by integrating the UI Builder's `@openzeppelin/ui-builder-react-core` package. The wallet UI is **network-dependent**: it only appears when a network is selected from the ecosystem picker in the sidebar (which determines the ecosystem via `selectedNetwork.ecosystem`). The implementation reuses the existing `ContractContext` for network selection and adds wallet state management via the UI Builder's established `WalletStateProvider` pattern.
 
 ## Technical Context
 
@@ -23,7 +23,7 @@ Add wallet connection capability to the Role Manager header by integrating the U
 **Target Platform**: Web SPA (browser)  
 **Project Type**: Web application (monorepo app)  
 **Performance Goals**: <1s UI update on connection state change (per SC-002)  
-**Constraints**: Wallet UI only visible when contract selected (per clarification)  
+**Constraints**: Wallet UI only visible when network selected (per clarification)  
 **Scale/Scope**: Single-user client-side application
 
 ## Constitution Check
@@ -107,7 +107,7 @@ apps/role-manager/src/
         <ContractProvider>
           <WalletSyncProvider>
             {' '}
-            {/* NEW: syncs contract selection → wallet state */}
+            {/* NEW: syncs network selection → wallet state */}
             <MainLayout>
               <Routes>...</Routes>
             </MainLayout>
@@ -121,8 +121,8 @@ apps/role-manager/src/
 
 ### Key Integration Points
 
-1. **Contract Selection → Wallet Network Sync**: When user selects a contract, `WalletSyncProvider` calls `setActiveNetworkId` on `WalletStateProvider` to configure the correct adapter for wallet operations.
+1. **Network Selection → Wallet Adapter Sync**: When user selects a network from the ecosystem picker, `WalletSyncProvider` calls `setActiveNetworkId` on `WalletStateProvider` to configure the correct adapter for wallet operations.
 
-2. **Header Conditional Rendering**: `WalletHeaderSection` reads `selectedContract` from `ContractContext` and only renders `WalletConnectionHeader` when a contract is selected.
+2. **Header Conditional Rendering**: `WalletHeaderSection` reads `selectedNetwork` from `ContractContext` and only renders `WalletConnectionHeader` when a network is selected.
 
 3. **Ecosystem Manager Integration**: The existing `getAdapter` function already creates adapter instances by network config, which is what `AdapterProvider.resolveAdapter` needs.

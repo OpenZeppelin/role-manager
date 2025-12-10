@@ -22,7 +22,7 @@ interface WalletSyncProviderProps {
 }
 
 /**
- * Component that synchronizes contract selection with wallet state.
+ * Component that synchronizes network selection with wallet state.
  *
  * @contract
  * - MUST read selectedNetwork from ContractContext
@@ -49,9 +49,9 @@ interface WalletHeaderSectionProps {
  * Component that conditionally renders wallet connection UI.
  *
  * @contract
- * - MUST read selectedContract from ContractContext
- * - MUST return null when selectedContract is null/undefined
- * - MUST render WalletConnectionHeader when selectedContract exists
+ * - MUST read selectedNetwork from ContractContext
+ * - MUST return null when selectedNetwork is null/undefined
+ * - MUST render WalletConnectionHeader when selectedNetwork exists
  * - MUST forward className to WalletConnectionHeader container
  */
 declare function WalletHeaderSection(props: WalletHeaderSectionProps): JSX.Element | null;
@@ -168,7 +168,7 @@ declare function useWalletState(): WalletStateContextValue;
 AppHeader
 └── rightContent (prop)
     └── WalletHeaderSection
-        ├── [null if no contract selected]
+        ├── [null if no network selected]
         └── WalletConnectionHeader (from react-core)
             ├── Loading: Skeleton
             └── Ready: WalletConnectionUI

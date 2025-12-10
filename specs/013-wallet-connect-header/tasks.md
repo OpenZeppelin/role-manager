@@ -48,18 +48,18 @@
 
 **Independent Test**:
 
-1. Select a contract → "Connect Wallet" button appears
-2. Click connect → Wallet modal appears
+1. Select a network from ecosystem picker → "Connect Wallet" button appears in header
+2. Click connect → Wallet modal appears with ecosystem-appropriate options
 3. Complete connection → Address displayed in header
 
 **Note**: US1 and US2 are combined because they share the same components and are both P1 priority.
 
 ### Implementation
 
-- [ ] T010 [US1] Create `WalletSyncProvider` component at `apps/role-manager/src/context/WalletSyncProvider.tsx`
+- [ ] T010 [US1] Create `WalletSyncProvider` component at `apps/role-manager/src/context/WalletSyncProvider.tsx` (syncs `selectedNetwork` from `ContractContext` to wallet adapter)
 - [ ] T010a [US1] Write unit tests for `WalletSyncProvider` hook logic at `apps/role-manager/src/context/__tests__/WalletSyncProvider.test.tsx`
 - [ ] T011 [US1] Add `WalletSyncProvider` to provider hierarchy in `apps/role-manager/src/App.tsx`
-- [ ] T012 [P] [US1] Create `WalletHeaderSection` component at `apps/role-manager/src/components/Layout/WalletHeaderSection.tsx`
+- [ ] T012 [P] [US1] Create `WalletHeaderSection` component at `apps/role-manager/src/components/Layout/WalletHeaderSection.tsx` (shows wallet UI when network is selected)
 - [ ] T013 [US1] Update `AppHeader` to include `WalletHeaderSection` in `apps/role-manager/src/components/Layout/AppHeader.tsx`
 
 **Checkpoint**: User Stories 1 & 2 complete - users can connect wallet and view status
@@ -92,13 +92,13 @@
 
 **Independent Test**:
 
-1. Select Stellar contract → Stellar wallet options appear (Freighter, Albedo, xBull)
-2. Select EVM contract → EVM wallet options appear (MetaMask, WalletConnect)
+1. Select Stellar network from ecosystem picker → Stellar wallet options appear (Freighter, Albedo, xBull)
+2. Select EVM network from ecosystem picker → EVM wallet options appear (MetaMask, WalletConnect)
 
 ### Implementation
 
-- [ ] T015 [US4] Verify Stellar ecosystem integration with installed Stellar wallets
-- [ ] T016 [US4] Verify EVM ecosystem integration with browser wallets (if EVM contracts available)
+- [ ] T015 [US4] Verify Stellar ecosystem integration with installed Stellar wallets (select Stellar network)
+- [ ] T016 [US4] Verify EVM ecosystem integration with browser wallets (select EVM network)
 
 **Note**: Multi-ecosystem support is provided by adapters. These are verification tasks.
 
@@ -113,7 +113,7 @@
 - [ ] T017 Run full quickstart.md validation checklist
 - [ ] T018 [P] Verify loading skeleton appears during adapter initialization
 - [ ] T019 [P] Verify error handling displays raw wallet provider errors
-- [ ] T020 [P] Test ecosystem switching (select different ecosystem contract, verify adapter switch)
+- [ ] T020 [P] Test ecosystem switching (select different ecosystem network from sidebar, verify adapter switch)
 - [ ] T021 Update any outdated documentation if needed
 
 ---
@@ -193,8 +193,9 @@ T018, T019, T020 can run in parallel
 
 Most wallet functionality is provided by UI Builder adapters:
 
-- **Role Manager implements**: Provider integration (T008-T011), conditional rendering (T012-T013)
+- **Role Manager implements**: Provider integration (T008-T011), conditional rendering based on `selectedNetwork` (T012-T013)
 - **Adapters provide**: Connect button, account display, disconnect, wallet modals, error handling
+- **Ecosystem determination**: Via `selectedNetwork.ecosystem` from the ecosystem picker in sidebar (NOT from selected contract)
 
 ---
 
@@ -230,3 +231,4 @@ Most wallet functionality is provided by UI Builder adapters:
 - Unit tests required for hook state logic (WalletSyncProvider) per constitution Principle V
 - UI components use manual validation via quickstart.md
 - [P] tasks can run in parallel within their phase
+- **Ecosystem determination**: The ecosystem is derived from `selectedNetwork.ecosystem` (via the NetworkSelector/ecosystem picker in the sidebar), NOT from the selected contract

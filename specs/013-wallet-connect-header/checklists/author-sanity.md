@@ -18,7 +18,7 @@
 
 ## Requirement Clarity
 
-- [x] **CHK006** - Is "contract selected" clearly defined as the trigger for showing wallet UI? [Clarity, Spec §Clarifications]
+- [x] **CHK006** - Is "network selected" clearly defined as the trigger for showing wallet UI? [Clarity, Spec §Clarifications]
 - [x] **CHK007** - Is the provider hierarchy order explicitly documented? [Clarity, Plan §Integration]
 - [x] **CHK008** - Is "truncated address" format specified for each ecosystem? [Clarity, Spec §FR-003] _(Added: "first 6 + last 4 characters")_
 - [x] **CHK009** - Are the specific timing thresholds (1s, 5s) tied to specific operations? [Clarity, Spec §SC-002/003]
@@ -33,9 +33,9 @@
 
 ## Scenario Coverage
 
-- [x] **CHK015** - Are requirements defined for "no contract selected" state? [Coverage, Spec §Edge Cases]
+- [x] **CHK015** - Are requirements defined for "no network selected" state? [Coverage, Spec §Edge Cases]
 - [x] **CHK016** - Are requirements defined for wallet extension locked? [Coverage, Spec §Edge Cases]
-- [x] **CHK017** - Are requirements defined for network mismatch between wallet and contract? [Coverage, Spec §Edge Cases]
+- [x] **CHK017** - Are requirements defined for network mismatch between wallet and selected network? [Coverage, Spec §Edge Cases]
 - [x] **CHK018** - Are requirements defined for user-rejected connection? [Coverage, Spec §Edge Cases]
 - [x] **CHK019** - Are requirements defined for external wallet disconnection? [Coverage, Spec §Edge Cases]
 
@@ -64,13 +64,13 @@
 
 - [x] **CHK032** - Is loading state behavior specified for adapter initialization? _(Provided by `WalletConnectionHeader` skeleton; documented in Adapter Capability Analysis)_
 - [x] **CHK033** - Is error message content/format specified for connection failures? _(Deferred: adapters expose raw errors; custom formatting noted as future enhancement)_
-- [x] **CHK034** - Is the behavior when switching contracts between ecosystems defined? _(Documented in Edge Cases + Adapter Capability Analysis)_
+- [x] **CHK034** - Is the behavior when switching networks between ecosystems defined? _(Documented in Edge Cases + Adapter Capability Analysis)_
 - [x] **CHK035** - Are accessibility requirements for wallet UI components specified? _(Deferred: would require adapter changes; noted as future enhancement)_
 
 ## Adapter Capability Review (NEW)
 
 - [x] **CHK036** - Are adapter-provided features clearly distinguished from Role Manager implementation work?
-- [x] **CHK037** - Is network switching explicitly out of scope? _(Network determined by contract selection)_
+- [x] **CHK037** - Is network switching from wallet explicitly out of scope? _(Network determined by ecosystem picker in sidebar)_
 - [x] **CHK038** - Is the address truncation format aligned with adapter behavior? _(Uses `truncateMiddle(4, 4)`)_
 - [x] **CHK039** - Are a11y and custom error formatting explicitly out of scope?
 
@@ -106,7 +106,7 @@
 | Finding                      | Resolution                                                  |
 | ---------------------------- | ----------------------------------------------------------- |
 | CHK036 (Feature attribution) | FRs annotated with "provided by adapter" vs "requires impl" |
-| CHK037 (Network switching)   | Explicitly out of scope; network from contract selection    |
+| CHK037 (Network switching)   | Explicitly out of scope; network from ecosystem picker      |
 | CHK038 (Address format)      | Uses adapter's `truncateMiddle(4, 4)` as-is                 |
 | CHK039 (Out of scope)        | a11y + custom error formatting explicitly out of scope      |
 

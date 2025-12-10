@@ -9,7 +9,7 @@
 
 ### Session 2025-12-10
 
-- Q: Should the wallet connection button be available in the header at all times, or only when a contract is selected? → A: Only visible when a contract is selected (Option B) — because until the contract is selected we don't know which ecosystem we are dealing with and can't decide which adapter wallet implementation to use.
+- Q: Should the wallet connection button be available in the header at all times, or only when a contract is selected? → A: Only visible when a **network** is selected from the ecosystem picker in the sidebar — because the network determines the ecosystem (via `selectedNetwork.ecosystem`), which tells us which wallet adapter implementation to use. The contract selection is independent from wallet connection availability.
 
 ## User Scenarios & Testing _(mandatory)_
 
@@ -23,7 +23,7 @@ A user visiting the Role Manager application wants to connect their cryptocurren
 
 **Acceptance Scenarios**:
 
-1. **Given** a user is on any page with a contract selected and no wallet connected, **When** they click the "Connect Wallet" button in the header, **Then** a wallet selection modal appears showing wallet providers compatible with the contract's ecosystem
+1. **Given** a user is on any page with a network selected from the ecosystem picker and no wallet connected, **When** they click the "Connect Wallet" button in the header, **Then** a wallet selection modal appears showing wallet providers compatible with the selected network's ecosystem
 2. **Given** a user has clicked the Connect Wallet button and selected a provider, **When** they complete the authentication in their wallet, **Then** the header displays their connected wallet address and the connection status changes to "connected"
 3. **Given** a user's wallet connection attempt fails, **When** the error is returned, **Then** the user sees a clear error message and can retry the connection
 
@@ -71,20 +71,20 @@ A user wants to connect wallets from different blockchain ecosystems (Stellar as
 
 **Acceptance Scenarios**:
 
-1. **Given** a user is connecting a wallet, **When** the selected contract/network is on Stellar (primary focus), **Then** Stellar-compatible wallet options are displayed (Freighter, Albedo, xBull, etc. via Stellar Wallets Kit)
-2. **Given** a user is connecting a wallet, **When** the selected contract/network is on an EVM chain (future expansion), **Then** EVM-compatible wallet options (MetaMask, WalletConnect, etc.) are displayed via RainbowKit
-3. **Given** a user switches between contracts on different ecosystems, **When** a wallet from a different ecosystem is needed, **Then** the appropriate wallet connection options for that ecosystem are presented
+1. **Given** a user is connecting a wallet, **When** the selected network is on Stellar (primary focus), **Then** Stellar-compatible wallet options are displayed (Freighter, Albedo, xBull, etc. via Stellar Wallets Kit)
+2. **Given** a user is connecting a wallet, **When** the selected network is on an EVM chain (future expansion), **Then** EVM-compatible wallet options (MetaMask, WalletConnect, etc.) are displayed via RainbowKit
+3. **Given** a user switches networks to a different ecosystem via the ecosystem picker, **When** a wallet from a different ecosystem is needed, **Then** the appropriate wallet connection options for that ecosystem are presented
 
 ---
 
 ### Edge Cases
 
-- What happens when no contract is selected? The wallet connection UI is not displayed in the header; the header shows only the application title and navigation. Users must first select a contract to enable wallet connection.
+- What happens when no network is selected? The wallet connection UI is not displayed in the header; the header shows only the application title and navigation. Users must first select a network from the ecosystem picker to enable wallet connection.
 - What happens when the user's browser extension wallet is locked? The connection attempt will use the wallet provider's default timeout behavior (typically 30-60 seconds depending on wallet). The adapter surfaces the raw timeout error from the wallet provider.
 - What happens if the user rejects the connection request in their wallet? The UI returns to the disconnected state with a message indicating the connection was cancelled.
 - How does the system handle wallet disconnection initiated from the wallet extension itself? The application detects the disconnection event and updates the UI accordingly.
 - What happens during adapter initialization/loading? A skeleton loader is displayed in the header where the wallet UI would appear, indicating the wallet functionality is loading.
-- What happens when switching between contracts on different ecosystems? The current wallet is disconnected, the new ecosystem's adapter is loaded (with loading skeleton), and the user must reconnect with a wallet compatible with the new ecosystem.
+- What happens when switching networks to a different ecosystem? The current wallet is disconnected, the new ecosystem's adapter is loaded (with loading skeleton), and the user must reconnect with a wallet compatible with the new ecosystem.
 
 ### Error Handling
 
@@ -101,8 +101,8 @@ Raw wallet provider errors are displayed without custom formatting.
 
 #### Role Manager Implementation Required
 
-- **FR-001**: System MUST display a wallet connection button in the application header when no wallet is connected AND a contract is selected (wallet UI is hidden until contract selection determines the ecosystem) — _requires `WalletHeaderSection` wrapper_
-- **FR-002**: System MUST integrate with the UI Builder's adapter architecture (`AdapterProvider`, `WalletStateProvider`) for wallet management — _requires `WalletSyncProvider` to bridge `ContractContext`_
+- **FR-001**: System MUST display a wallet connection button in the application header when no wallet is connected AND a network is selected from the ecosystem picker (wallet UI is hidden until network selection determines the ecosystem via `selectedNetwork.ecosystem`) — _requires `WalletHeaderSection` wrapper_
+- **FR-002**: System MUST integrate with the UI Builder's adapter architecture (`AdapterProvider`, `WalletStateProvider`) for wallet management — _requires `WalletSyncProvider` to bridge `ContractContext` (specifically `selectedNetwork`)_
 
 #### Provided by UI Builder Adapters (No Implementation Required)
 
@@ -126,7 +126,7 @@ Raw wallet provider errors are displayed without custom formatting.
 
 ### Measurable Outcomes
 
-- **SC-001**: Users can connect a wallet within 3 clicks from any page in the application (contract selected → connect button → wallet selection → connected)
+- **SC-001**: Users can connect a wallet within 3 clicks from any page in the application (network selected → connect button → wallet selection → connected)
 - **SC-002**: Wallet connection status is visually updated within 1 second of connection state changes (verified via manual observation during quickstart testing)
 - **SC-003**: Wallet connection flow completes without errors for supported wallet providers when user approves connection (excluding user-cancelled or wallet-locked scenarios)
 - **SC-004**: Disconnecting wallet resets UI to "Connect Wallet" state without stale data (verified by checking header displays connect button and no address persists)
@@ -205,16 +205,16 @@ useDerivedDisconnect(): { disconnect, isDisconnecting, error }
 
 ### Gaps Requiring Role Manager Implementation
 
-| Gap                       | Requirement | Resolution                                                                                           |
-| ------------------------- | ----------- | ---------------------------------------------------------------------------------------------------- |
-| **Conditional rendering** | FR-001      | Role Manager must implement `WalletHeaderSection` to show/hide wallet UI based on contract selection |
-| **Contract→Network sync** | FR-002      | Role Manager must implement `WalletSyncProvider` to sync `ContractContext` → `WalletStateProvider`   |
+| Gap                       | Requirement | Resolution                                                                                          |
+| ------------------------- | ----------- | --------------------------------------------------------------------------------------------------- |
+| **Conditional rendering** | FR-001      | Role Manager must implement `WalletHeaderSection` to show/hide wallet UI based on network selection |
+| **Network→Adapter sync**  | FR-002      | Role Manager must implement `WalletSyncProvider` to sync `selectedNetwork` → `WalletStateProvider`  |
 
 ### Adapter Limitations (Accepted)
 
 | Limitation                    | Resolution                                                        |
 | ----------------------------- | ----------------------------------------------------------------- |
-| **No network switching**      | Not needed; network is determined by contract selection           |
+| **No network switching**      | Not needed; network is determined by ecosystem picker in sidebar  |
 | **Address truncation format** | Use adapter's `truncateMiddle(4, 4)` as-is                        |
 | **Error message format**      | Use raw wallet provider errors as-is                              |
 | **Accessibility (a11y)**      | Out of scope; would require adapter changes for full a11y support |
@@ -223,7 +223,7 @@ useDerivedDisconnect(): { disconnect, isDisconnecting, error }
 
 ## Out of Scope
 
-- **Network switching** — Role Manager does not need network switching; network is determined by contract selection
+- **Network switching from wallet** — Role Manager does not need network switching from wallet UI; network is determined by the ecosystem picker in the sidebar
 - **Accessibility (a11y) enhancements** — Custom aria-labels, aria-live regions, focus management (would require adapter changes)
 - **Custom error message formatting** — Use adapter-provided raw errors as-is
 - Custom wallet provider implementations beyond what the UI Builder adapters support

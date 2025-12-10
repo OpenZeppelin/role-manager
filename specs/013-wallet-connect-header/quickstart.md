@@ -140,8 +140,8 @@ interface WalletSyncProviderProps {
 }
 
 /**
- * Synchronizes contract selection with wallet state.
- * When a contract is selected, updates WalletStateProvider with the network.
+ * Synchronizes network selection with wallet state.
+ * When a network is selected, updates WalletStateProvider with the network ID.
  */
 export function WalletSyncProvider({ children }: WalletSyncProviderProps) {
   const { selectedNetwork } = useContractContext();
@@ -169,13 +169,13 @@ interface WalletHeaderSectionProps {
 
 /**
  * Conditional wallet UI for the header.
- * Only renders when a contract is selected.
+ * Only renders when a network is selected from the ecosystem picker.
  */
 export function WalletHeaderSection({ className }: WalletHeaderSectionProps) {
-  const { selectedContract } = useContractContext();
+  const { selectedNetwork } = useContractContext();
 
-  // Per spec: wallet UI only visible when contract selected
-  if (!selectedContract) {
+  // Per spec: wallet UI only visible when network selected
+  if (!selectedNetwork) {
     return null;
   }
 
@@ -281,13 +281,13 @@ function App() {
    pnpm dev
    ```
 
-2. **Verify no wallet UI initially**:
+2. **Verify no wallet UI initially** (only if no network auto-selected):
    - Open the app in browser
-   - Header should show only "Role Manager" title
-   - No "Connect Wallet" button visible
+   - If no network is selected, header shows only "Role Manager" title
+   - No "Connect Wallet" button visible until network selected
 
-3. **Select a Stellar contract (PRIMARY TEST)**:
-   - Use the sidebar to select a Stellar contract (or add one)
+3. **Select a Stellar network (PRIMARY TEST)**:
+   - Use the ecosystem picker (NetworkSelector) in sidebar to select a Stellar network
    - "Connect Wallet" button should appear in header
 
 4. **Connect Stellar wallet (PRIMARY)**:
@@ -303,7 +303,7 @@ function App() {
    - Verify connection updates
 
 6. **Test EVM wallet (future expansion)**:
-   - Select an EVM contract
+   - Select an EVM network from the ecosystem picker
    - RainbowKit modal should appear
    - Select MetaMask or other EVM provider
    - Complete connection
@@ -341,8 +341,8 @@ function App() {
 
 ### General
 
-| Issue                                  | Solution                                        |
-| -------------------------------------- | ----------------------------------------------- |
-| No wallet button after contract select | Check WalletSyncProvider is in provider tree    |
-| Adapter loading forever                | Verify tarball packages installed correctly     |
-| Wrong ecosystem wallet shown           | Contract selection determines ecosystem/adapter |
+| Issue                                 | Solution                                       |
+| ------------------------------------- | ---------------------------------------------- |
+| No wallet button after network select | Check WalletSyncProvider is in provider tree   |
+| Adapter loading forever               | Verify tarball packages installed correctly    |
+| Wrong ecosystem wallet shown          | Network selection determines ecosystem/adapter |

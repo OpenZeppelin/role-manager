@@ -41,11 +41,11 @@
 
 **Required Props**:
 
-| Prop                   | Type                                                 | Source in Role Manager                       |
-| ---------------------- | ---------------------------------------------------- | -------------------------------------------- |
-| `initialNetworkId`     | `string \| null`                                     | `null` (contract selection drives network)   |
-| `getNetworkConfigById` | `(id: string) => NetworkConfig \| null`              | New function in ecosystemManager             |
-| `loadConfigModule`     | `(path: string) => Promise<Record<string, unknown>>` | New function using Vite's `import.meta.glob` |
+| Prop                   | Type                                                 | Source in Role Manager                             |
+| ---------------------- | ---------------------------------------------------- | -------------------------------------------------- |
+| `initialNetworkId`     | `string \| null`                                     | `null` (ecosystem picker selection drives network) |
+| `getNetworkConfigById` | `(id: string) => NetworkConfig \| null`              | New function in ecosystemManager                   |
+| `loadConfigModule`     | `(path: string) => Promise<Record<string, unknown>>` | New function using Vite's `import.meta.glob`       |
 
 **Rationale**: These props allow `WalletStateProvider` to:
 
@@ -84,18 +84,18 @@ function WalletSyncProvider({ children }) {
 
 **Rationale**:
 
-- Encapsulates the contract-selection check logic
-- Returns `null` when no contract selected (per spec requirement)
-- Renders `WalletConnectionHeader` from react-core when contract available
+- Encapsulates the network-selection check logic
+- Returns `null` when no network selected (per spec requirement)
+- Renders `WalletConnectionHeader` from react-core when network available
 
 **Component Structure**:
 
 ```tsx
 function WalletHeaderSection() {
-  const { selectedContract } = useContractContext();
+  const { selectedNetwork } = useContractContext();
 
-  // Per spec: wallet UI only visible when contract selected
-  if (!selectedContract) {
+  // Per spec: wallet UI only visible when network selected
+  if (!selectedNetwork) {
     return null;
   }
 

@@ -97,7 +97,7 @@ interface WalletHeaderSectionProps {
 │  │  │  │  │  │  └── AppHeader                       │  │  │  │   │
 │  │  │  │  │  │      └── WalletHeaderSection        │  │  │  │   │
 │  │  │  │  │  │          └── WalletConnectionHeader │  │  │  │   │
-│  │  │  │  │  │              (only if contract set)  │  │  │  │   │
+│  │  │  │  │  │              (only if network set)   │  │  │  │   │
 │  │  │  │  │  └─────────────────────────────────────┘  │  │  │  │   │
 │  │  │  │  └───────────────────────────────────────────┘  │  │  │   │
 │  │  │  └─────────────────────────────────────────────────┘  │  │   │
@@ -113,15 +113,15 @@ interface WalletHeaderSectionProps {
 ```
                     ┌──────────────────┐
                     │   disconnected   │
-                    │  (no contract)   │
+                    │  (no network)    │
                     └────────┬─────────┘
                              │
-                    Contract Selected
+                    Network Selected
                              │
                              ▼
                     ┌──────────────────┐
                     │   disconnected   │◄──────────────────┐
-                    │  (contract set)  │                   │
+                    │  (network set)   │                   │
                     └────────┬─────────┘                   │
                              │                             │
                     User clicks Connect                    │
