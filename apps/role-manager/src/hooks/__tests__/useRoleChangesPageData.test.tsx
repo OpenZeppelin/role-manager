@@ -415,6 +415,7 @@ describe('useRoleChangesPageData', () => {
         result.current.setFilters({
           actionFilter: 'grant',
           roleFilter: 'ADMIN_ROLE',
+          searchQuery: '',
         });
       });
 
@@ -450,6 +451,7 @@ describe('useRoleChangesPageData', () => {
         result.current.setFilters({
           actionFilter: 'grant',
           roleFilter: 'ADMIN_ROLE',
+          searchQuery: '',
         });
       });
 

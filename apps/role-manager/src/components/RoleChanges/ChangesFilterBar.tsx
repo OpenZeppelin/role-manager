@@ -2,24 +2,31 @@
  * ChangesFilterBar Component
  * Feature: 012-role-changes-data
  *
- * Filter bar with dropdown filters for the Role Changes table.
+ * Filter bar with search input, date range picker, and dropdown filters for the Role Changes table.
  * Implements User Story 4: Filter Role Changes
  *
  * Visual Design Requirements:
- * - Horizontal layout with action type dropdown + role dropdown
+ * - Horizontal layout with search input (left) + date range + dropdowns (right)
+ * - Search input for account address or transaction ID
+ * - Date range picker for timestamp filtering
  * - Action type filter: All, Grant, Revoke, Ownership Transfer
  * - Role filter: All Roles + available roles from props
  *
  * Tasks: T024
  */
 
+import { Search } from 'lucide-react';
+
 import {
+  DateRangePicker,
+  Input,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@openzeppelin/ui-builder-ui';
+import type { DateRange } from '@openzeppelin/ui-builder-ui';
 import { cn } from '@openzeppelin/ui-builder-utils';
 
 import {
@@ -27,6 +34,7 @@ import {
   type HistoryFilterState,
   type RoleBadgeInfo,
 } from '../../types/role-changes';
+import { formatToISOLocalString, parseISOString } from '../../utils/date';
 import { SelectLoadingPlaceholder } from '../Shared';
 
 /**
@@ -48,7 +56,9 @@ export interface ChangesFilterBarProps {
 /**
  * ChangesFilterBar - Filter bar for Role Changes table
  *
- * Provides two filter dropdowns:
+ * Provides multiple filters:
+ * - Search: Filter by account address or transaction ID
+ * - Date Range: Filter by timestamp range
  * - Action Type: Filter by event type (grant, revoke, ownership-transfer)
  * - Role: Filter by role ID (server-side filter)
  *
@@ -63,6 +73,23 @@ export function ChangesFilterBar({
   onFiltersChange,
   className,
 }: ChangesFilterBarProps) {
+  const handleSearchChange = (value: string) => {
+    onFiltersChange({
+      ...filters,
+      searchQuery: value,
+    });
+  };
+
+  const handleDateRangeChange = (range: DateRange | undefined) => {
+    onFiltersChange({
+      ...filters,
+      // Start of day for "from" (00:00:00)
+      timestampFrom: range?.from ? formatToISOLocalString(range.from) : undefined,
+      // End of day for "to" (23:59:59) to include all events on that day
+      timestampTo: range?.to ? formatToISOLocalString(range.to, true) : undefined,
+    });
+  };
+
   const handleActionChange = (value: string) => {
     onFiltersChange({
       ...filters,
@@ -77,14 +104,47 @@ export function ChangesFilterBar({
     });
   };
 
+  // Convert ISO strings back to Date objects for the DateRangePicker
+  const dateRangeValue: DateRange | undefined =
+    filters.timestampFrom || filters.timestampTo
+      ? {
+          from: parseISOString(filters.timestampFrom),
+          to: parseISOString(filters.timestampTo),
+        }
+      : undefined;
+
   return (
     <div
       className={cn('flex flex-col sm:flex-row gap-4 p-4', className)}
       role="search"
       aria-label="Filter role changes"
     >
-      {/* Filter dropdowns */}
-      <div className="flex gap-2 sm:ml-auto">
+      {/* Search input with icon */}
+      <div className="relative flex-1 max-w-sm">
+        <Search
+          className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
+          aria-hidden="true"
+        />
+        <Input
+          type="text"
+          placeholder="Search by full address or transaction hash..."
+          value={filters.searchQuery}
+          onChange={(e) => handleSearchChange(e.target.value)}
+          className="pl-9"
+          aria-label="Search by full address or transaction hash"
+        />
+      </div>
+
+      {/* Filter controls */}
+      <div className="flex flex-wrap gap-2 sm:ml-auto">
+        {/* Date range picker */}
+        <DateRangePicker
+          value={dateRangeValue}
+          onChange={handleDateRangeChange}
+          placeholder="Filter by date"
+          align="end"
+        />
+
         {/* Action type filter */}
         <Select value={filters.actionFilter} onValueChange={handleActionChange}>
           <SelectTrigger className="w-48" aria-label="Filter by action type">

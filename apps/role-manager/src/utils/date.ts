@@ -36,3 +36,37 @@ export function formatDateTime(isoString: string): string {
 
   return `${dateStr}, ${timeStr}`;
 }
+
+/**
+ * Format a Date to ISO8601 string without timezone (YYYY-MM-DDTHH:mm:ss)
+ * Used for API query parameters that expect local datetime strings.
+ *
+ * @param date - The date to format
+ * @param endOfDay - If true, sets time to 23:59:59 (useful for "to" date filters)
+ * @returns ISO8601 formatted string without timezone (e.g., "2024-12-05T00:00:00")
+ */
+export function formatToISOLocalString(date: Date, endOfDay = false): string {
+  const pad = (n: number): string => String(n).padStart(2, '0');
+  const year = date.getFullYear();
+  const month = pad(date.getMonth() + 1);
+  const day = pad(date.getDate());
+
+  // For end of day, use 23:59:59 to include all events on that day
+  const hours = endOfDay ? '23' : pad(date.getHours());
+  const minutes = endOfDay ? '59' : pad(date.getMinutes());
+  const seconds = endOfDay ? '59' : pad(date.getSeconds());
+
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+}
+
+/**
+ * Parse ISO8601 string to Date object
+ *
+ * @param isoString - ISO8601 date string to parse
+ * @returns Date object or undefined if string is empty/invalid
+ */
+export function parseISOString(isoString?: string): Date | undefined {
+  if (!isoString) return undefined;
+  const date = new Date(isoString);
+  return isNaN(date.getTime()) ? undefined : date;
+}

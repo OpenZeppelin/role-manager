@@ -64,46 +64,6 @@ export function RoleChanges() {
   const { selectedContract } = useSelectedContract();
   const contractLabel = selectedContract?.label || 'Unknown Contract';
 
-  // Loading skeleton display during initial fetch
-  if (isLoading) {
-    return (
-      <div className="p-6 space-y-6">
-        <PageHeader
-          title="Role Changes"
-          subtitle={
-            <span>
-              Loading history for <span className="font-bold text-foreground">{contractLabel}</span>
-            </span>
-          }
-        />
-        <ChangesLoadingSkeleton />
-      </div>
-    );
-  }
-
-  // Error state with retry option (T015 - US6)
-  if (hasError) {
-    return (
-      <div className="p-6 space-y-6">
-        <PageHeader
-          title="Role Changes"
-          subtitle={
-            <span>
-              Error loading <span className="font-bold text-foreground">{contractLabel}</span>
-            </span>
-          }
-        />
-        <Card className="p-0 shadow-none overflow-hidden">
-          <ChangesErrorState
-            message={errorMessage || 'An unexpected error occurred while loading history.'}
-            canRetry={canRetry}
-            onRetry={refetch}
-          />
-        </Card>
-      </div>
-    );
-  }
-
   // Empty state when no contract is selected
   if (!hasContractSelected) {
     return (
@@ -161,7 +121,10 @@ export function RoleChanges() {
     );
   }
 
-  // Main content with real data
+  // Determine if we're in a loading/fetching state (for showing spinner on refresh button)
+  const isBusy = isLoading || isRefreshing;
+
+  // Main content with real data (filter bar always visible when contract supports history)
   return (
     <div className="p-6 space-y-6">
       {/* Page Header with Refresh button (T032 - US5) */}
@@ -178,30 +141,46 @@ export function RoleChanges() {
             variant="outline"
             size="sm"
             onClick={() => refetch()}
-            disabled={isRefreshing}
+            disabled={isBusy}
             className="gap-2"
           >
-            <RefreshCw className={cn('h-4 w-4', isRefreshing && 'animate-spin')} />
-            {isRefreshing ? 'Refreshing...' : 'Refresh'}
+            <RefreshCw className={cn('h-4 w-4', isBusy && 'animate-spin')} />
+            {isBusy ? 'Loading...' : 'Refresh'}
           </Button>
         }
       />
 
       {/* Main content card with filters and table */}
       <Card className="p-0 shadow-none overflow-hidden">
-        {/* Filter bar (T028 - US4) */}
+        {/* Filter bar - always visible to maintain search input focus */}
         <ChangesFilterBar
           filters={filters}
           availableRoles={availableRoles}
           availableRolesLoading={availableRolesLoading}
           onFiltersChange={setFilters}
         />
+
+        {/* Error state */}
+        {hasError ? (
+          <ChangesErrorState
+            message={errorMessage || 'An unexpected error occurred while loading history.'}
+            canRetry={canRetry}
+            onRetry={refetch}
+          />
+        ) : isLoading ? (
+          /* Loading skeleton - only for table area, filter bar stays visible */
+          <ChangesLoadingSkeleton withCard={false} />
+        ) : (
+          /* Table with data */
+          <>
         <ChangesTable
           events={events}
           emptyState={<ChangesEmptyState noEventsFound contractName={contractLabel} />}
         />
         {/* Cursor-based pagination (T022 - US3) */}
         <CursorPagination pagination={pagination} />
+          </>
+        )}
       </Card>
     </div>
   );

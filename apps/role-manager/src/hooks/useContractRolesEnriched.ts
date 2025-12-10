@@ -92,22 +92,9 @@ export function useContractRolesEnriched(
       }
 
       try {
-        // T028: Try enriched API first, fallback to regular API
-        if ('getCurrentRolesEnriched' in service) {
-          const enrichedRoles = await (
-            service as {
-              getCurrentRolesEnriched: (address: string) => Promise<EnrichedRoleAssignment[]>;
-            }
-          ).getCurrentRolesEnriched(contractAddress);
-          return enrichedRoles;
-        }
-
-        // Fallback: convert regular roles to enriched format (without timestamps)
-        const regularRoles = await service.getCurrentRoles(contractAddress);
-        return regularRoles.map((roleAssignment) => ({
-          role: roleAssignment.role,
-          members: roleAssignment.members.map((address) => ({ address })),
-        }));
+        // It returns enriched roles with timestamps when indexer is available,
+        // or gracefully degrades to basic member info without timestamps
+        return await service.getCurrentRolesEnriched(contractAddress);
       } catch (err) {
         throw wrapError(err, 'enriched-roles');
       }

@@ -19,6 +19,8 @@ import { Skeleton } from '../Shared/Skeleton';
 export interface ChangesLoadingSkeletonProps {
   /** Number of skeleton rows to show in the table */
   rowCount?: number;
+  /** Whether to wrap in a Card (default: true for standalone use) */
+  withCard?: boolean;
   /** Additional CSS classes */
   className?: string;
 }
@@ -58,14 +60,12 @@ function TableRowSkeleton() {
  *
  * Displays a table skeleton matching the ChangesTable structure.
  */
-export function ChangesLoadingSkeleton({ rowCount = 5, className }: ChangesLoadingSkeletonProps) {
-  return (
-    <Card
-      className={cn('p-0 shadow-none overflow-hidden', className)}
-      aria-busy="true"
-      aria-label="Loading role changes"
-    >
-      {/* Table skeleton */}
+export function ChangesLoadingSkeleton({
+  rowCount = 5,
+  withCard = true,
+  className,
+}: ChangesLoadingSkeletonProps) {
+  const tableContent = (
       <div className="overflow-x-auto">
         <table className="w-full">
           {/* Table header */}
@@ -96,6 +96,23 @@ export function ChangesLoadingSkeleton({ rowCount = 5, className }: ChangesLoadi
           </tbody>
         </table>
       </div>
+  );
+
+  if (!withCard) {
+    return (
+      <div className={className} aria-busy="true" aria-label="Loading role changes">
+        {tableContent}
+      </div>
+    );
+  }
+
+  return (
+    <Card
+      className={cn('p-0 shadow-none overflow-hidden', className)}
+      aria-busy="true"
+      aria-label="Loading role changes"
+    >
+      {tableContent}
     </Card>
   );
 }

@@ -36,8 +36,17 @@ const historyQueryKey = (
   cursor?: string,
   roleId?: string,
   changeType?: string,
-  limit?: number
-) => ['contract-history', address, { cursor, roleId, changeType, limit }] as const;
+  limit?: number,
+  account?: string,
+  txId?: string,
+  timestampFrom?: string,
+  timestampTo?: string
+) =>
+  [
+    'contract-history',
+    address,
+    { cursor, roleId, changeType, limit, account, txId, timestampFrom, timestampTo },
+  ] as const;
 
 /**
  * Empty page info for default/error states.
@@ -90,6 +99,9 @@ export function useContractHistory(
       roleId: options?.roleId,
       account: options?.account,
       changeType: options?.changeType,
+      txId: options?.txId,
+      timestampFrom: options?.timestampFrom,
+      timestampTo: options?.timestampTo,
     }),
     [options]
   );
@@ -106,7 +118,11 @@ export function useContractHistory(
       queryOptions.cursor,
       queryOptions.roleId,
       queryOptions.changeType,
-      queryOptions.limit
+      queryOptions.limit,
+      queryOptions.account,
+      queryOptions.txId,
+      queryOptions.timestampFrom,
+      queryOptions.timestampTo
     ),
     queryFn: async (): Promise<PaginatedHistoryResult> => {
       if (!service) {
