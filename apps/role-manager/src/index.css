@@ -6,10 +6,20 @@
   The `source()` function is a Tailwind v4 feature that sets the base path for
   automatic content detection. By setting it to the app source directory, Tailwind
   can discover all necessary files in the app.
+  
+  NOTE: Each UI Builder package that contains Tailwind classes must be listed here
+  so that Tailwind generates the necessary CSS for those classes.
+  - ui: Shared UI components (Header, Sidebar, etc.)
+  - react-core: Wallet connection components (WalletConnectionHeader, etc.)
+  - adapter-stellar: Stellar wallet UI components (AccountDisplay, etc.)
+  - adapter-evm: EVM wallet UI components (for future EVM support)
 */
 @import 'tailwindcss';
 @source "./";
 @source "../../../node_modules/@openzeppelin/ui-builder-ui";
+@source "../../../node_modules/@openzeppelin/ui-builder-react-core";
+@source "../../../node_modules/@openzeppelin/ui-builder-adapter-stellar";
+@source "../../../node_modules/@openzeppelin/ui-builder-adapter-evm";
 
 /*
   Import global theme variables and base styles from the UI Builder styles package.

@@ -53,6 +53,8 @@ const UI_BUILDER_PACKAGES = [
   '@openzeppelin/ui-builder-types',
   '@openzeppelin/ui-builder-ui',
   '@openzeppelin/ui-builder-utils',
+  // React integration (wallet state, adapter provider)
+  '@openzeppelin/ui-builder-react-core',
   // Adapter packages (needed for network/address validation)
   '@openzeppelin/ui-builder-adapter-evm',
   '@openzeppelin/ui-builder-adapter-stellar',
