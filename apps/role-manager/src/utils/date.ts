@@ -41,8 +41,11 @@ export function formatDateTime(isoString: string): string {
  * Format a Date to ISO8601 string without timezone (YYYY-MM-DDTHH:mm:ss)
  * Used for API query parameters that expect local datetime strings.
  *
+ * By default, sets time to start of day (00:00:00) for consistent filtering.
+ * When endOfDay is true, sets time to 23:59:59 to include all events on that day.
+ *
  * @param date - The date to format
- * @param endOfDay - If true, sets time to 23:59:59 (useful for "to" date filters)
+ * @param endOfDay - If true, sets time to 23:59:59; if false, sets to 00:00:00
  * @returns ISO8601 formatted string without timezone (e.g., "2024-12-05T00:00:00")
  */
 export function formatToISOLocalString(date: Date, endOfDay = false): string {
@@ -51,10 +54,11 @@ export function formatToISOLocalString(date: Date, endOfDay = false): string {
   const month = pad(date.getMonth() + 1);
   const day = pad(date.getDate());
 
-  // For end of day, use 23:59:59 to include all events on that day
-  const hours = endOfDay ? '23' : pad(date.getHours());
-  const minutes = endOfDay ? '59' : pad(date.getMinutes());
-  const seconds = endOfDay ? '59' : pad(date.getSeconds());
+  // Explicitly set start of day (00:00:00) or end of day (23:59:59)
+  // This ensures consistent behavior regardless of the input Date's time
+  const hours = endOfDay ? '23' : '00';
+  const minutes = endOfDay ? '59' : '00';
+  const seconds = endOfDay ? '59' : '00';
 
   return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
 }

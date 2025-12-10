@@ -200,71 +200,11 @@ describe('useContractRolesEnriched', () => {
   });
 
   // ===========================================================================
-  // T021: Test cases for fallback to regular API
+  // Note: Fallback tests removed (T021)
+  // getCurrentRolesEnriched is now a required method in the AccessControlService
+  // interface, so fallback behavior is no longer needed. The service itself
+  // handles graceful degradation when indexer data is unavailable.
   // ===========================================================================
-
-  describe('fallback to regular API (T021)', () => {
-    it('should fall back to getCurrentRoles when enriched API not available', async () => {
-      // Service without getCurrentRolesEnriched
-      const serviceWithoutEnriched = {
-        getCurrentRoles: vi.fn().mockResolvedValue(mockRegularRoles),
-      };
-
-      mockUseAccessControlService.mockReturnValue({
-        service: serviceWithoutEnriched,
-        isReady: true,
-      });
-
-      const { result } = renderHook(
-        () =>
-          useContractRolesEnriched(
-            { id: 'test' } as unknown as ContractAdapter,
-            '0xcontract',
-            true
-          ),
-        { wrapper: createWrapper() }
-      );
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      expect(serviceWithoutEnriched.getCurrentRoles).toHaveBeenCalled();
-      expect(result.current.hasError).toBe(false);
-    });
-
-    it('should convert regular roles to enriched format without timestamps', async () => {
-      const serviceWithoutEnriched = {
-        getCurrentRoles: vi.fn().mockResolvedValue(mockRegularRoles),
-      };
-
-      mockUseAccessControlService.mockReturnValue({
-        service: serviceWithoutEnriched,
-        isReady: true,
-      });
-
-      const { result } = renderHook(
-        () =>
-          useContractRolesEnriched(
-            { id: 'test' } as unknown as ContractAdapter,
-            '0xcontract',
-            true
-          ),
-        { wrapper: createWrapper() }
-      );
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      // Should have roles with members as objects
-      expect(result.current.roles[0].members[0]).toEqual({
-        address: '0x1234567890123456789012345678901234567890',
-      });
-      // No timestamp on fallback
-      expect(result.current.roles[0].members[0].grantedAt).toBeUndefined();
-    });
-  });
 
   // ===========================================================================
   // T022: Test cases for error handling

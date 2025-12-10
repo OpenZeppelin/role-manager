@@ -83,9 +83,9 @@ export function ChangesFilterBar({
   const handleDateRangeChange = (range: DateRange | undefined) => {
     onFiltersChange({
       ...filters,
-      // Start of day for "from" (00:00:00)
+      // formatToISOLocalString defaults to start of day (00:00:00)
       timestampFrom: range?.from ? formatToISOLocalString(range.from) : undefined,
-      // End of day for "to" (23:59:59) to include all events on that day
+      // End of day (23:59:59) to include all events on that day
       timestampTo: range?.to ? formatToISOLocalString(range.to, true) : undefined,
     });
   };
