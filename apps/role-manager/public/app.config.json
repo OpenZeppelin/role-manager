@@ -2,5 +2,23 @@
   "$comment": "Base configuration. For secrets (API keys), use .env.local with VITE_APP_CFG_* variables",
   "featureFlags": {},
   "rpcEndpoints": {},
-  "indexerEndpoints": {}
+  "indexerEndpoints": {},
+  "globalServiceConfigs": {
+    "walletui": {
+      "stellar": {
+        "kitName": "custom",
+        "kitConfig": {
+          "appName": "Role Manager"
+        }
+      },
+      "evm": {
+        "kitName": "rainbowkit",
+        "kitConfig": {}
+      },
+      "default": {
+        "kitName": "custom",
+        "kitConfig": {}
+      }
+    }
+  }
 }

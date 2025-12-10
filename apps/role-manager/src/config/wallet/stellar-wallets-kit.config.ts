@@ -1,11 +1,19 @@
 /**
- * Stellar Wallets Kit configuration for Stellar wallet connections
+ * Stellar Wallets Kit configuration placeholder
  *
- * This file is loaded dynamically by WalletStateProvider via loadAppConfigModule.
- * Supports: Freighter, Albedo, xBull, and other Stellar wallets.
+ * NOTE: The Stellar adapter does NOT use this TypeScript config file.
+ * Stellar wallet configuration is loaded from app.config.json via AppConfigService:
  *
- * Note: Stellar Wallets Kit doesn't require an external project ID like WalletConnect.
- * Wallet options are auto-detected based on installed browser extensions.
+ * {
+ *   "globalServiceConfigs": {
+ *     "walletui": {
+ *       "stellar": { "kitName": "custom", "kitConfig": { "appName": "..." } }
+ *     }
+ *   }
+ * }
+ *
+ * This file exists for potential future use if the Stellar adapter adds support
+ * for native TypeScript config loading (like the EVM adapter does for RainbowKit).
  *
  * Feature: 013-wallet-connect-header
  */
@@ -13,5 +21,5 @@
 export default {
   appName: 'Role Manager',
   // Stellar Wallets Kit auto-detects available wallet extensions
-  // No additional configuration required
+  // Actual config is in public/app.config.json
 };

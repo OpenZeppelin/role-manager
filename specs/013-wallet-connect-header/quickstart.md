@@ -51,34 +51,59 @@ Create/update `.env` in `apps/role-manager/`:
 VITE_WALLETCONNECT_PROJECT_ID=your_project_id_here
 ```
 
-### 3. Create wallet UI kit configurations
+### 3. Configure wallet UI kits
 
-**Stellar Wallets Kit (PRIMARY)** - Create `apps/role-manager/src/config/wallet/stellar-wallets-kit.config.ts`:
+The Stellar and EVM adapters use **different configuration mechanisms**:
 
-```typescript
-// Stellar Wallets Kit configuration for Stellar wallet connections
-// This file is loaded dynamically by WalletStateProvider
-// Supports: Freighter, Albedo, xBull, and other Stellar wallets
+**Stellar (PRIMARY)** - Configure in `apps/role-manager/public/app.config.json`:
 
-export default {
-  appName: 'Role Manager',
-  // Stellar Wallets Kit doesn't require an external project ID
-  // Wallet options are auto-detected based on installed browser extensions
-};
+```json
+{
+  "globalServiceConfigs": {
+    "walletui": {
+      "stellar": {
+        "kitName": "custom",
+        "kitConfig": {
+          "appName": "Role Manager"
+        }
+      }
+    }
+  }
+}
 ```
+
+> Note: The Stellar adapter reads config from `AppConfigService`, not from TypeScript config files.
 
 **RainbowKit (EVM, for future use)** - Create `apps/role-manager/src/config/wallet/rainbowkit.config.ts`:
 
 ```typescript
 // RainbowKit UI kit configuration for EVM wallet connection modals
-// This file is loaded dynamically by WalletStateProvider
+// This file is loaded dynamically by WalletStateProvider via loadAppConfigModule
 
-export default {
-  appName: 'Role Manager',
-  projectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID,
-  // Additional RainbowKit options can be added here
+const rainbowKitAppConfig = {
+  wagmiParams: {
+    appName: 'Role Manager',
+    projectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID,
+    ssr: false,
+  },
+  providerProps: {
+    showRecentTransactions: true,
+    appInfo: {
+      appName: 'Role Manager',
+      learnMoreUrl: 'https://openzeppelin.com',
+    },
+  },
+  customizations: {
+    connectButton: {
+      chainStatus: 'none', // Hide network switcher - we use ecosystem picker
+    },
+  },
 };
+
+export default rainbowKitAppConfig;
 ```
+
+> Note: The EVM adapter loads this TypeScript config via the `loadConfigModule` callback.
 
 ### 4. Port getNetworkById from UI Builder
 
