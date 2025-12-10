@@ -92,6 +92,12 @@ export interface HistoryFilterState {
   actionFilter: RoleChangeAction | 'all';
   /** Filter by role ID ('all' shows all) - server-side filter via roleId param */
   roleFilter: string;
+  /** Search query for account address or transaction ID - server-side filter */
+  searchQuery: string;
+  /** Filter events on or after this time (ISO8601 without timezone) */
+  timestampFrom?: string;
+  /** Filter events on or before this time (ISO8601 without timezone) */
+  timestampTo?: string;
 }
 
 /**
@@ -100,6 +106,9 @@ export interface HistoryFilterState {
 export const DEFAULT_HISTORY_FILTER_STATE: HistoryFilterState = {
   actionFilter: 'all',
   roleFilter: 'all',
+  searchQuery: '',
+  timestampFrom: undefined,
+  timestampTo: undefined,
 };
 
 // =============================================================================

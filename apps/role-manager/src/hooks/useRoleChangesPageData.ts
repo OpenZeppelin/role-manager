@@ -78,6 +78,17 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
   // Filter state
   const [filters, setFilters] = useState<HistoryFilterState>(DEFAULT_HISTORY_FILTER_STATE);
 
+  // Debounced search query to avoid triggering API on every keystroke
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(filters.searchQuery);
+
+  // Debounce search query changes (300ms delay)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(filters.searchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [filters.searchQuery]);
+
   // Cursor-based pagination state
   const [paginationState, setPaginationState] = useState<CursorPaginationState>(
     DEFAULT_CURSOR_PAGINATION_STATE
@@ -98,7 +109,7 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
   // Check if history is supported
   const supportsHistory = capabilities?.supportsHistory ?? false;
 
-  // Build query options with server-side filters (role and changeType)
+  // Build query options with server-side filters (role, changeType, search, timestamps)
   // Map UI action filter to API changeType for server-side filtering
   const queryOptions: HistoryQueryOptions = useMemo(() => {
     // Map UI action filter to API changeType
@@ -115,13 +126,36 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
       changeType = actionToChangeTypeMap[filters.actionFilter];
     }
 
+    // Determine if searchQuery is a valid address or should be treated as transaction ID
+    // Use adapter's isValidAddress for chain-agnostic address validation
+    // Note: Uses debounced search query to avoid API calls on every keystroke
+    const searchQuery = debouncedSearchQuery.trim();
+    const hasSearch = searchQuery.length > 0;
+
+    // Use adapter to validate if it's a valid address (chain-agnostic)
+    const isValidAddress = hasSearch && adapter?.isValidAddress(searchQuery);
+
     return {
       limit: DEFAULT_PAGE_SIZE,
       cursor: paginationState.currentCursor,
       roleId: filters.roleFilter !== 'all' ? filters.roleFilter : undefined,
       changeType,
+      // If it's a valid address, pass to account param
+      account: isValidAddress ? searchQuery : undefined,
+      // If it's not a valid address but has search input, try as txId
+      txId: hasSearch && !isValidAddress ? searchQuery : undefined,
+      timestampFrom: filters.timestampFrom,
+      timestampTo: filters.timestampTo,
     };
-  }, [paginationState.currentCursor, filters.roleFilter, filters.actionFilter]);
+  }, [
+    adapter,
+    paginationState.currentCursor,
+    filters.roleFilter,
+    filters.actionFilter,
+    debouncedSearchQuery,
+    filters.timestampFrom,
+    filters.timestampTo,
+  ]);
 
   // Determine if history fetch should be enabled
   const shouldFetchHistory = isContractRegistered && isSupported && supportsHistory;
@@ -181,23 +215,43 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
   // Effects - State Reset
   // =============================================================================
 
-  // Track previous filter values (skip initial mount)
-  const prevFiltersRef = useRef<HistoryFilterState>(filters);
+  // Track previous filter values for pagination reset (skip initial mount)
+  const prevFiltersRef = useRef({
+    actionFilter: filters.actionFilter,
+    roleFilter: filters.roleFilter,
+    searchQuery: debouncedSearchQuery,
+    timestampFrom: filters.timestampFrom,
+    timestampTo: filters.timestampTo,
+  });
 
   // Reset pagination when filters change (FR-026)
-  // Note: Resets for both server-side (roleFilter) and client-side (actionFilter) filters
-  // per spec requirement that pagination resets on any filter change
+  // Note: Uses debounced search query so pagination doesn't reset on every keystroke
   useEffect(() => {
     // Skip on mount - only reset when filters actually change
     const filtersChanged =
       prevFiltersRef.current.actionFilter !== filters.actionFilter ||
-      prevFiltersRef.current.roleFilter !== filters.roleFilter;
+      prevFiltersRef.current.roleFilter !== filters.roleFilter ||
+      prevFiltersRef.current.searchQuery !== debouncedSearchQuery ||
+      prevFiltersRef.current.timestampFrom !== filters.timestampFrom ||
+      prevFiltersRef.current.timestampTo !== filters.timestampTo;
 
     if (filtersChanged) {
-      prevFiltersRef.current = filters;
+      prevFiltersRef.current = {
+        actionFilter: filters.actionFilter,
+        roleFilter: filters.roleFilter,
+        searchQuery: debouncedSearchQuery,
+        timestampFrom: filters.timestampFrom,
+        timestampTo: filters.timestampTo,
+      };
       setPaginationState(DEFAULT_CURSOR_PAGINATION_STATE);
     }
-  }, [filters]);
+  }, [
+    filters.actionFilter,
+    filters.roleFilter,
+    debouncedSearchQuery,
+    filters.timestampFrom,
+    filters.timestampTo,
+  ]);
 
   // Reset state when contract changes (FR-008, FR-021)
   useEffect(() => {
