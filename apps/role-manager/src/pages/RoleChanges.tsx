@@ -173,12 +173,12 @@ export function RoleChanges() {
         ) : (
           /* Table with data */
           <>
-        <ChangesTable
-          events={events}
-          emptyState={<ChangesEmptyState noEventsFound contractName={contractLabel} />}
-        />
-        {/* Cursor-based pagination (T022 - US3) */}
-        <CursorPagination pagination={pagination} />
+            <ChangesTable
+              events={events}
+              emptyState={<ChangesEmptyState noEventsFound contractName={contractLabel} />}
+            />
+            {/* Cursor-based pagination (T022 - US3) */}
+            <CursorPagination pagination={pagination} />
           </>
         )}
       </Card>
