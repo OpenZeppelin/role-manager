@@ -6,12 +6,7 @@
 
 import { describe, expect, it } from 'vitest';
 
-import {
-  formatDate,
-  formatDateTime,
-  formatToISOLocalString,
-  parseISOString,
-} from '../date';
+import { formatDate, formatDateTime, formatToISOLocalString, parseISOString } from '../date';
 
 describe('formatDate', () => {
   it('should format ISO date string to M/D/YYYY format', () => {
