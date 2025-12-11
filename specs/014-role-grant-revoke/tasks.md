@@ -24,8 +24,8 @@
 
 **Purpose**: Create types and shared dialog utilities
 
-- [ ] T001 Create dialog state types in `apps/role-manager/src/types/role-dialogs.ts` (DialogTransactionStep, PendingRoleChange, RoleCheckboxItem, ManageRolesDialogState, AssignRoleDialogState, RevokeRoleDialogState)
-- [ ] T002 [P] Export types from `apps/role-manager/src/types/index.ts`
+- [x] T001 Create dialog state types in `apps/role-manager/src/types/role-dialogs.ts` (DialogTransactionStep, PendingRoleChange, RoleCheckboxItem, ManageRolesDialogState, AssignRoleDialogState, RevokeRoleDialogState)
+- [x] T002 [P] Export types from `apps/role-manager/src/types/index.ts`
 
 ---
 
@@ -35,12 +35,12 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T003 Create SelfRevokeWarning component in `apps/role-manager/src/components/Shared/SelfRevokeWarning.tsx` (warning variant alert, amber background, icon, dynamic role name)
-- [ ] T004 [P] Create RoleCheckboxList component in `apps/role-manager/src/components/Shared/RoleCheckboxList.tsx` (checkbox list with disabled state support)
-- [ ] T005 [P] Create DialogTransactionStates components in `apps/role-manager/src/components/Shared/DialogTransactionStates.tsx` (DialogPendingState, DialogSuccessState, DialogErrorState)
-- [ ] T006 Export shared components from `apps/role-manager/src/components/Shared/index.ts`
+- [x] T003 Create SelfRevokeWarning component in `apps/role-manager/src/components/Shared/SelfRevokeWarning.tsx` (warning variant alert, amber background, icon, dynamic role name)
+- [x] T004 [P] Create RoleCheckboxList component in `apps/role-manager/src/components/Shared/RoleCheckboxList.tsx` (checkbox list with disabled state support)
+- [x] T005 [P] Create DialogTransactionStates components in `apps/role-manager/src/components/Shared/DialogTransactionStates.tsx` (DialogPendingState, DialogSuccessState, DialogErrorState)
+- [x] T006 Export shared components from `apps/role-manager/src/components/Shared/index.ts`
 
-**Checkpoint**: Foundation ready - user story implementation can now begin
+**Checkpoint**: ✅ Foundation ready - user story implementation can now begin
 
 ---
 
