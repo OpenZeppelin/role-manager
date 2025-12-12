@@ -44,7 +44,7 @@
 
 ---
 
-## Phase 3: User Story 1 - Manage Roles Dialog (Priority: P1) 🎯 MVP
+## Phase 3: User Story 1 - Manage Roles Dialog (Priority: P1) 🎯 MVP ✅ COMPLETE
 
 **Goal**: Administrators can grant/revoke roles via checkbox list from Authorized Accounts page
 
@@ -56,33 +56,33 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T007 [US1] Create hook test file `apps/role-manager/src/hooks/__tests__/useManageRolesDialog.test.tsx` with test setup (mock adapter, QueryClient wrapper)
-- [ ] T008 [US1] Add test: initializes with correct role states from data
-- [ ] T009 [US1] Add test: enforces single-change constraint via auto-revert (toggle A, then toggle B → A reverts)
-- [ ] T010 [US1] Add test: detects self-revoke when connected wallet matches target account
-- [ ] T011 [US1] Add test: canSubmit is false when no changes, true when pendingChange exists
-- [ ] T012 [US1] Add test: submitLabel reflects pending action ("Grant {Role}" or "Revoke {Role}")
-- [ ] T013 [US1] Add test: executes grant transaction via useGrantRole when submitting grant
-- [ ] T014 [US1] Add test: executes revoke transaction via useRevokeRole when submitting revoke
-- [ ] T015 [US1] Add test: handles transaction rejection (returns to form state with preserved inputs)
-- [ ] T016 [US1] Add test: handles transaction error (shows error, enables retry)
-- [ ] T017 [US1] Add test: auto-closes dialog after 1.5s success display
+- [x] T007 [US1] Create hook test file `apps/role-manager/src/hooks/__tests__/useManageRolesDialog.test.tsx` with test setup (mock adapter, QueryClient wrapper)
+- [x] T008 [US1] Add test: initializes with correct role states from data
+- [x] T009 [US1] Add test: enforces single-change constraint via auto-revert (toggle A, then toggle B → A reverts)
+- [x] T010 [US1] Add test: detects self-revoke when connected wallet matches target account
+- [x] T011 [US1] Add test: canSubmit is false when no changes, true when pendingChange exists
+- [x] T012 [US1] Add test: submitLabel reflects pending action ("Grant {Role}" or "Revoke {Role}")
+- [x] T013 [US1] Add test: executes grant transaction via useGrantRole when submitting grant
+- [x] T014 [US1] Add test: executes revoke transaction via useRevokeRole when submitting revoke
+- [x] T015 [US1] Add test: handles transaction rejection (returns to form state with preserved inputs)
+- [x] T016 [US1] Add test: handles transaction error (shows error, enables retry)
+- [x] T017 [US1] Add test: auto-closes dialog after 1.5s success display
 
 ### Implementation for Manage Roles Dialog
 
-- [ ] T018 [US1] Implement useManageRolesDialog hook in `apps/role-manager/src/hooks/useManageRolesDialog.ts` (role state initialization, snapshot original state)
-- [ ] T019 [US1] Add toggleRole function with single-change constraint auto-revert logic
-- [ ] T020 [US1] Add transaction execution (submit, retry, reset) using useGrantRole/useRevokeRole
-- [ ] T021 [US1] Add derived state (canSubmit, submitLabel, showSelfRevokeWarning)
-- [ ] T022 [US1] Add success auto-close with 1.5s timeout
-- [ ] T023 [US1] Export hook from `apps/role-manager/src/hooks/index.ts`
-- [ ] T024 [P] [US1] Create ManageRolesDialog component in `apps/role-manager/src/components/AuthorizedAccounts/ManageRolesDialog.tsx` (Dialog shell, open/close handling)
-- [ ] T025 [US1] Add ManageRolesFormContent (account address display, RoleCheckboxList, SelfRevokeWarning, submit/cancel buttons)
-- [ ] T026 [US1] Add transaction state rendering (pending → confirming → success → error) using DialogTransactionStates
-- [ ] T027 [US1] Wire ManageRolesDialog to AuthorizedAccounts page in `apps/role-manager/src/pages/AuthorizedAccounts.tsx` (state for selected account, handleAction for 'edit-roles')
-- [ ] T028 [US1] Verify all hook tests pass
+- [x] T018 [US1] Implement useManageRolesDialog hook in `apps/role-manager/src/hooks/useManageRolesDialog.ts` (role state initialization, snapshot original state)
+- [x] T019 [US1] Add toggleRole function with single-change constraint auto-revert logic
+- [x] T020 [US1] Add transaction execution (submit, retry, reset) using useGrantRole/useRevokeRole
+- [x] T021 [US1] Add derived state (canSubmit, submitLabel, showSelfRevokeWarning)
+- [x] T022 [US1] Add success auto-close with 1.5s timeout
+- [x] T023 [US1] Export hook from `apps/role-manager/src/hooks/index.ts`
+- [x] T024 [P] [US1] Create ManageRolesDialog component in `apps/role-manager/src/components/AuthorizedAccounts/ManageRolesDialog.tsx` (Dialog shell, open/close handling)
+- [x] T025 [US1] Add ManageRolesFormContent (account address display, RoleCheckboxList, SelfRevokeWarning, submit/cancel buttons)
+- [x] T026 [US1] Add transaction state rendering (pending → confirming → success → error) using DialogTransactionStates
+- [x] T027 [US1] Wire ManageRolesDialog to AuthorizedAccounts page in `apps/role-manager/src/pages/AuthorizedAccounts.tsx` (state for selected account, handleAction for 'edit-roles')
+- [x] T028 [US1] Verify all hook tests pass
 
-**Checkpoint**: Manage Roles Dialog fully functional - can grant/revoke single role with auto-revert constraint and self-revoke warning
+**Checkpoint**: ✅ Manage Roles Dialog fully functional - can grant/revoke single role with auto-revert constraint and self-revoke warning
 
 ---
 

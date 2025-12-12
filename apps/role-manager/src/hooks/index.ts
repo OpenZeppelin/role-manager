@@ -74,5 +74,12 @@ export type { UseContractHistoryReturn } from '../types/role-changes';
 export { useRoleChangesPageData } from './useRoleChangesPageData';
 export type { UseRoleChangesPageDataReturn } from '../types/role-changes';
 
+// Role Dialog Hooks (Feature: 014-role-grant-revoke)
+export { useManageRolesDialog } from './useManageRolesDialog';
+export type {
+  UseManageRolesDialogOptions,
+  UseManageRolesDialogReturn,
+} from './useManageRolesDialog';
+
 // Utility hooks
 export { useDebounce } from './useDebounce';
