@@ -94,25 +94,25 @@
 
 ### Tests for Assign Role Dialog (TDD)
 
-- [ ] T029 [US5] Create hook test file `apps/role-manager/src/hooks/__tests__/useAssignRoleDialog.test.tsx` with test setup
-- [ ] T030 [US5] Add test: initializes with correct available roles (excludes Owner)
-- [ ] T031 [US5] Add test: submit calls useGrantRole with correct address and roleId
-- [ ] T032 [US5] Add test: handles transaction rejection
-- [ ] T033 [US5] Add test: handles transaction error with retry
-- [ ] T034 [US5] Add test: auto-closes after success
+- [x] T029 [US5] Create hook test file `apps/role-manager/src/hooks/__tests__/useAssignRoleDialog.test.tsx` with test setup
+- [x] T030 [US5] Add test: initializes with correct available roles (excludes Owner)
+- [x] T031 [US5] Add test: submit calls useGrantRole with correct address and roleId
+- [x] T032 [US5] Add test: handles transaction rejection
+- [x] T033 [US5] Add test: handles transaction error with retry
+- [x] T034 [US5] Add test: auto-closes after success
 
 ### Implementation for Assign Role Dialog
 
-- [ ] T035 [US5] Implement useAssignRoleDialog hook in `apps/role-manager/src/hooks/useAssignRoleDialog.ts` (available roles filter, transaction execution)
-- [ ] T036 [US5] Export hook from `apps/role-manager/src/hooks/index.ts`
-- [ ] T037 [P] [US5] Create AssignRoleDialog component in `apps/role-manager/src/components/Roles/AssignRoleDialog.tsx` (Dialog shell)
-- [ ] T038 [US5] Add AssignRoleFormContent with AddressField (from @openzeppelin/ui-builder-ui), role dropdown, submit/cancel buttons
-- [ ] T039 [US5] Add react-hook-form integration for address validation via AddressField
-- [ ] T040 [US5] Add transaction state rendering using DialogTransactionStates
-- [ ] T041 [US5] Wire AssignRoleDialog to Roles page in `apps/role-manager/src/pages/Roles.tsx` (state for assignRoleOpen, handleAssign callback)
-- [ ] T042 [US5] Verify all hook tests pass
+- [x] T035 [US5] Implement useAssignRoleDialog hook in `apps/role-manager/src/hooks/useAssignRoleDialog.ts` (available roles filter, transaction execution)
+- [x] T036 [US5] Export hook from `apps/role-manager/src/hooks/index.ts`
+- [x] T037 [P] [US5] Create AssignRoleDialog component in `apps/role-manager/src/components/Roles/AssignRoleDialog.tsx` (Dialog shell)
+- [x] T038 [US5] Add AssignRoleFormContent with AddressField (from @openzeppelin/ui-builder-ui), role dropdown, submit/cancel buttons
+- [x] T039 [US5] Add react-hook-form integration for address validation via AddressField
+- [x] T040 [US5] Add transaction state rendering using DialogTransactionStates
+- [x] T041 [US5] Wire AssignRoleDialog to Roles page in `apps/role-manager/src/pages/Roles.tsx` (state for assignRoleOpen, handleAssign callback)
+- [x] T042 [US5] Verify all hook tests pass
 
-**Checkpoint**: Assign Role Dialog fully functional - can grant role to new address with validation
+**Checkpoint**: ✅ Assign Role Dialog fully functional - can grant role to new address with validation
 
 ---
 

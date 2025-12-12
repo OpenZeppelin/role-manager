@@ -10,7 +10,7 @@
  * - Derived state for UI (canSubmit, submitLabel, showSelfRevokeWarning) (T021)
  * - Success auto-close with 1.5s timeout (T022)
  *
- * Conforms to contracts/hooks.ts UseManageRolesDialogReturn interface.
+ * Refactored to use useMultiMutationExecution for common transaction logic.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -30,13 +30,7 @@ import type {
 import { useGrantRole, useRevokeRole } from './useAccessControlMutations';
 import { useRolesPageData } from './useRolesPageData';
 import { useSelectedContract } from './useSelectedContract';
-
-// =============================================================================
-// Constants
-// =============================================================================
-
-/** Delay in milliseconds before auto-closing dialog after success */
-const SUCCESS_AUTO_CLOSE_DELAY = 1500;
+import { useMultiMutationExecution } from './useTransactionExecution';
 
 // =============================================================================
 // Types
@@ -148,16 +142,30 @@ export function useManageRolesDialog(
   const revokeRole = useRevokeRole(adapter, contractAddress);
 
   // =============================================================================
+  // Transaction Execution (using shared hook)
+  // =============================================================================
+
+  const {
+    step,
+    errorMessage,
+    execute,
+    retry,
+    reset: resetTransaction,
+  } = useMultiMutationExecution({
+    onClose,
+    onSuccess,
+    resetMutations: [grantRole.reset, revokeRole.reset],
+  });
+
+  // =============================================================================
   // Internal State
   // =============================================================================
 
-  const [step, setStep] = useState<DialogTransactionStep>('form');
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [pendingChange, setPendingChange] = useState<PendingRoleChange | null>(null);
 
   // Store original assignments snapshot (taken once when dialog opens)
   const [originalAssignments, setOriginalAssignments] = useState<Map<string, boolean>>(new Map());
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [initializedForAccount, setInitializedForAccount] = useState<string | null>(null);
 
   // =============================================================================
   // Role Items Initialization (T018)
@@ -168,9 +176,10 @@ export function useManageRolesDialog(
     return roles.filter((role) => !role.isOwnerRole);
   }, [roles]);
 
-  // Initialize original assignments when dialog opens (snapshot)
+  // Initialize original assignments when dialog opens or account changes (snapshot)
   useEffect(() => {
-    if (!isInitialized && availableRoles.length > 0 && accountAddress) {
+    // Re-initialize when account changes or when opening for the first time
+    if (accountAddress && availableRoles.length > 0 && initializedForAccount !== accountAddress) {
       const assignments = new Map<string, boolean>();
       availableRoles.forEach((role) => {
         const isAssigned = role.members.some(
@@ -179,9 +188,13 @@ export function useManageRolesDialog(
         assignments.set(role.roleId, isAssigned);
       });
       setOriginalAssignments(assignments);
-      setIsInitialized(true);
+      setInitializedForAccount(accountAddress);
+      // Also clear any pending change from a previous account
+      setPendingChange(null);
+      // Reset transaction state (clears any leftover success/error state)
+      resetTransaction();
     }
-  }, [availableRoles, accountAddress, isInitialized]);
+  }, [availableRoles, accountAddress, initializedForAccount, resetTransaction]);
 
   // Compute current checkbox states
   const roleItems = useMemo((): RoleCheckboxItem[] => {
@@ -260,101 +273,30 @@ export function useManageRolesDialog(
   const submit = useCallback(async () => {
     if (!pendingChange) return;
 
-    setStep('pending');
-    setErrorMessage(null);
-
-    const executionConfig = { method: 'eoa' } as ExecutionConfig;
     const mutationArgs = {
       roleId: pendingChange.roleId,
       account: accountAddress,
-      executionConfig,
+      executionConfig: { method: 'eoa' } as ExecutionConfig,
     };
 
-    try {
-      let result: OperationResult;
-      if (pendingChange.type === 'grant') {
-        result = await grantRole.mutateAsync(mutationArgs);
-      } else {
-        result = await revokeRole.mutateAsync(mutationArgs);
-      }
+    await execute(() =>
+      pendingChange.type === 'grant'
+        ? grantRole.mutateAsync(mutationArgs)
+        : revokeRole.mutateAsync(mutationArgs)
+    );
+  }, [pendingChange, accountAddress, grantRole, revokeRole, execute]);
 
-      setStep('success');
-      onSuccess?.(result);
-
-      // Auto-close after delay (T022)
-      setTimeout(() => {
-        onClose?.();
-      }, SUCCESS_AUTO_CLOSE_DELAY);
-    } catch (error) {
-      const err = error instanceof Error ? error : new Error(String(error));
-
-      // Check if user rejection
-      const isUserRejection =
-        err.message.toLowerCase().includes('rejected') ||
-        err.message.toLowerCase().includes('cancelled') ||
-        err.message.toLowerCase().includes('denied');
-
-      if (isUserRejection) {
-        setStep('cancelled');
-      } else {
-        setStep('error');
-        setErrorMessage(err.message);
-      }
-    }
-  }, [pendingChange, accountAddress, grantRole, revokeRole, onSuccess, onClose]);
-
-  const retry = useCallback(async () => {
-    if (!pendingChange) return;
-
-    // Reset error state and resubmit
-    setStep('pending');
-    setErrorMessage(null);
-
-    const executionConfig = { method: 'eoa' } as ExecutionConfig;
-    const mutationArgs = {
-      roleId: pendingChange.roleId,
-      account: accountAddress,
-      executionConfig,
-    };
-
-    try {
-      let result: OperationResult;
-      if (pendingChange.type === 'grant') {
-        result = await grantRole.mutateAsync(mutationArgs);
-      } else {
-        result = await revokeRole.mutateAsync(mutationArgs);
-      }
-
-      setStep('success');
-      onSuccess?.(result);
-
-      setTimeout(() => {
-        onClose?.();
-      }, SUCCESS_AUTO_CLOSE_DELAY);
-    } catch (error) {
-      const err = error instanceof Error ? error : new Error(String(error));
-
-      const isUserRejection =
-        err.message.toLowerCase().includes('rejected') ||
-        err.message.toLowerCase().includes('cancelled') ||
-        err.message.toLowerCase().includes('denied');
-
-      if (isUserRejection) {
-        setStep('cancelled');
-      } else {
-        setStep('error');
-        setErrorMessage(err.message);
-      }
-    }
-  }, [pendingChange, accountAddress, grantRole, revokeRole, onSuccess, onClose]);
+  // =============================================================================
+  // Reset (combines transaction reset with local state reset)
+  // =============================================================================
 
   const reset = useCallback(() => {
-    setStep('form');
-    setErrorMessage(null);
+    resetTransaction();
     setPendingChange(null);
-    grantRole.reset();
-    revokeRole.reset();
-  }, [grantRole, revokeRole]);
+    // Reset initialization so fresh data is loaded next time
+    setInitializedForAccount(null);
+    setOriginalAssignments(new Map());
+  }, [resetTransaction]);
 
   // =============================================================================
   // Derived State (T021)

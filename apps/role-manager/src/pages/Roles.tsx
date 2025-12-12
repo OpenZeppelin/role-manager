@@ -1,6 +1,6 @@
 /**
  * Roles Page
- * Feature: 008-roles-page-layout, 009-roles-page-data
+ * Feature: 008-roles-page-layout, 009-roles-page-data, 014-role-grant-revoke
  *
  * Single Card with grid layout: left panel (roles list) + right panel (details)
  *
@@ -15,6 +15,9 @@
  * - Contract switching handled via react-query key changes
  *
  * Phase 6: Edit role dialog for description editing
+ *
+ * Spec 014 (T041):
+ * - Added AssignRoleDialog for granting roles to new addresses
  */
 
 import { FileSearch, RefreshCw } from 'lucide-react';
@@ -25,6 +28,7 @@ import { Button, Card } from '@openzeppelin/ui-builder-ui';
 import { cn } from '@openzeppelin/ui-builder-utils';
 
 import {
+  AssignRoleDialog,
   EditRoleDialog,
   RoleDetails,
   RoleIdentifiersTable,
@@ -64,6 +68,9 @@ export function Roles() {
   // Phase 6: Edit dialog state
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
+  // Spec 014: Assign Role dialog state (T041)
+  const [isAssignRoleDialogOpen, setIsAssignRoleDialogOpen] = useState(false);
+
   // Get contract info for display
   const { selectedContract } = useSelectedContract();
   const contractLabel = selectedContract?.label || selectedContract?.address || 'Unknown Contract';
@@ -99,6 +106,11 @@ export function Roles() {
   // Phase 6: Open edit dialog
   const handleOpenEditDialog = useCallback(() => {
     setIsEditDialogOpen(true);
+  }, []);
+
+  // Spec 014 (T041): Open assign role dialog
+  const handleAssignRole = useCallback(() => {
+    setIsAssignRoleDialogOpen(true);
   }, []);
 
   // Phase 6: Handle description save from dialog
@@ -210,11 +222,9 @@ export function Roles() {
                 accounts={selectedRoleAccounts}
                 isConnected={connectedRoleIds.includes(selectedRole.roleId)}
                 onEdit={handleOpenEditDialog}
-                onAssign={() => {
-                  // Action placeholder for future mutations (spec 010)
-                }}
+                onAssign={handleAssignRole}
                 onRevoke={() => {
-                  // Action placeholder for future mutations (spec 010)
+                  // Action placeholder for future mutations (spec 014 Phase 5)
                 }}
                 onTransferOwnership={() => {
                   // Action placeholder for future mutations (spec 010)
@@ -242,6 +252,17 @@ export function Roles() {
         role={selectedRole}
         onSaveDescription={handleSaveDescription}
       />
+
+      {/* Spec 014 (T041): Assign Role Dialog */}
+      {selectedRole && (
+        <AssignRoleDialog
+          open={isAssignRoleDialogOpen}
+          onOpenChange={setIsAssignRoleDialogOpen}
+          initialRoleId={selectedRole.roleId}
+          initialRoleName={selectedRole.roleName}
+          onSuccess={() => refetch()}
+        />
+      )}
     </div>
   );
 }
