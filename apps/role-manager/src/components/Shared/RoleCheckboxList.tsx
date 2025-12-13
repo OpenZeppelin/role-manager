@@ -75,7 +75,8 @@ export function RoleCheckboxList({
             checked={item.isChecked}
             onCheckedChange={() => onToggle(item.roleId)}
             disabled={disabled}
-            aria-describedby={`role-desc-${item.roleId}`}
+            aria-label={`${item.isChecked ? 'Revoke' : 'Grant'} ${item.roleName} role`}
+            aria-describedby={item.isPendingChange ? `role-desc-${item.roleId}` : undefined}
           />
           <div className="flex-1">
             <Label

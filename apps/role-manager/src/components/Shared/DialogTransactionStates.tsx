@@ -196,10 +196,14 @@ export function DialogErrorState({
       </Alert>
 
       <div className="flex justify-end gap-2">
-        <Button variant="ghost" onClick={onCancel}>
+        <Button variant="ghost" onClick={onCancel} aria-label="Cancel and close dialog">
           Cancel
         </Button>
-        {canRetry && onRetry && <Button onClick={onRetry}>Try Again</Button>}
+        {canRetry && onRetry && (
+          <Button onClick={onRetry} aria-label="Retry the transaction">
+            Try Again
+          </Button>
+        )}
       </div>
     </div>
   );
@@ -249,10 +253,12 @@ export function DialogCancelledState({
       </Alert>
 
       <div className="flex justify-end gap-2">
-        <Button variant="ghost" onClick={onClose}>
+        <Button variant="ghost" onClick={onClose} aria-label="Close dialog">
           Close
         </Button>
-        <Button onClick={onBack}>Try Again</Button>
+        <Button onClick={onBack} aria-label="Return to form and try again">
+          Try Again
+        </Button>
       </div>
     </div>
   );

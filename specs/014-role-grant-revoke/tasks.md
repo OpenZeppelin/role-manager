@@ -170,15 +170,15 @@
 
 **Purpose**: Accessibility compliance and final polish
 
-- [ ] T062 [P] Add aria-labels to all buttons and checkboxes in ManageRolesDialog (FR-048)
-- [ ] T063 [P] Add aria-labels to all buttons and inputs in AssignRoleDialog (FR-048)
-- [ ] T064 [P] Add aria-labels to all buttons in RevokeRoleDialog (FR-048)
-- [ ] T065 Verify focus management: focus to first element on open, return on close (FR-044, FR-045)
-- [ ] T066 Verify Escape key closes dialogs except during pending/confirming (FR-046)
-- [ ] T067 Verify Tab navigation through all interactive elements (FR-047)
-- [ ] T068 Run quickstart.md validation - verify all integration points work
-- [ ] T069 Update hooks/index.ts exports for all new hooks
-- [ ] T070 Code cleanup: remove unused imports, ensure consistent formatting
+- [x] T062 [P] Add aria-labels to all buttons and checkboxes in ManageRolesDialog (FR-048)
+- [x] T063 [P] Add aria-labels to all buttons and inputs in AssignRoleDialog (FR-048)
+- [x] T064 [P] Add aria-labels to all buttons in RevokeRoleDialog (FR-048)
+- [x] T065 Verify focus management: focus to first element on open, return on close (FR-044, FR-045)
+- [x] T066 Verify Escape key closes dialogs except during pending/confirming (FR-046)
+- [x] T067 Verify Tab navigation through all interactive elements (FR-047)
+- [x] T068 Run quickstart.md validation - verify all integration points work
+- [x] T069 Update hooks/index.ts exports for all new hooks
+- [x] T070 Code cleanup: remove unused imports, ensure consistent formatting
 
 ---
 
