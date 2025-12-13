@@ -151,16 +151,22 @@ export function AssignRoleDialog({
   }, [open, reset, form, initialRoleId]);
 
   // Handle dialog close with confirmation during transaction (T057 - FR-041)
-  const handleClose = useCallback(() => {
-    // Show confirmation prompt during pending/confirming states
-    if (step === 'pending' || step === 'confirming') {
-      setShowConfirmClose(true);
-      return;
-    }
-    reset();
-    form.reset();
-    onOpenChange(false);
-  }, [step, reset, form, onOpenChange]);
+  const handleClose = useCallback(
+    (open: boolean) => {
+      // Only handle close events (Dialog calls onOpenChange(false) when closing)
+      if (open) return;
+
+      // Show confirmation prompt during pending/confirming states
+      if (step === 'pending' || step === 'confirming') {
+        setShowConfirmClose(true);
+        return;
+      }
+      reset();
+      form.reset();
+      onOpenChange(false);
+    },
+    [step, reset, form, onOpenChange]
+  );
 
   // Confirm close during transaction (T057 - FR-041)
   const handleConfirmClose = useCallback(() => {
@@ -177,7 +183,7 @@ export function AssignRoleDialog({
 
   // Handle cancel button
   const handleCancel = useCallback(() => {
-    handleClose();
+    handleClose(false);
   }, [handleClose]);
 
   // Handle back from cancelled state
@@ -240,7 +246,7 @@ export function AssignRoleDialog({
           <DialogCancelledState
             message="The transaction was cancelled. You can try again or close the dialog."
             onBack={handleBackFromCancelled}
-            onClose={handleClose}
+            onClose={() => handleClose(false)}
           />
         );
 
