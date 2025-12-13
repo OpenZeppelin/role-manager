@@ -182,8 +182,9 @@ export function AssignRoleDialog({
 
   // Handle back from cancelled state
   const handleBackFromCancelled = useCallback(() => {
-    reset();
-  }, [reset]);
+    // Use retry() instead of reset() to preserve form inputs for retry
+    retry();
+  }, [retry]);
 
   // Handle form submission
   const handleSubmit = useCallback(

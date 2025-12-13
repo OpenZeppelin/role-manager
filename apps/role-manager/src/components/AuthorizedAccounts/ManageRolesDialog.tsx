@@ -160,8 +160,9 @@ export function ManageRolesDialog({
   // Handle back from cancelled state
   const handleBackFromCancelled = useCallback(() => {
     // Return to form state with preserved pending change
-    reset();
-  }, [reset]);
+    // Use retry() instead of reset() to preserve the user's selection
+    retry();
+  }, [retry]);
 
   // =============================================================================
   // Render Content Based on Step

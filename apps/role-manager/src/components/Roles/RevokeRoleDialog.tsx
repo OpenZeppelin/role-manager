@@ -157,8 +157,9 @@ export function RevokeRoleDialog({
 
   // Handle back from cancelled state
   const handleBackFromCancelled = useCallback(() => {
-    reset();
-  }, [reset]);
+    // Use retry() instead of reset() to preserve state for retry
+    retry();
+  }, [retry]);
 
   // Handle form submission
   const handleSubmit = useCallback(async () => {
