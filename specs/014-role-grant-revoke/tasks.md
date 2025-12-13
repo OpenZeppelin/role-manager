@@ -116,7 +116,7 @@
 
 ---
 
-## Phase 5: User Story 6 - Revoke Role Dialog (Priority: P1)
+## Phase 5: User Story 6 - Revoke Role Dialog (Priority: P1) ✅ COMPLETE
 
 **Goal**: Administrators can revoke a role from an account with confirmation from the Roles page
 
@@ -126,24 +126,24 @@
 
 ### Tests for Revoke Role Dialog (TDD)
 
-- [ ] T043 [US6] Create hook test file `apps/role-manager/src/hooks/__tests__/useRevokeRoleDialog.test.tsx` with test setup
-- [ ] T044 [US6] Add test: detects self-revoke when connected wallet matches target
-- [ ] T045 [US6] Add test: submit calls useRevokeRole with correct address and roleId
-- [ ] T046 [US6] Add test: handles transaction rejection
-- [ ] T047 [US6] Add test: handles transaction error with retry
-- [ ] T048 [US6] Add test: auto-closes after success
+- [x] T043 [US6] Create hook test file `apps/role-manager/src/hooks/__tests__/useRevokeRoleDialog.test.tsx` with test setup
+- [x] T044 [US6] Add test: detects self-revoke when connected wallet matches target
+- [x] T045 [US6] Add test: submit calls useRevokeRole with correct address and roleId
+- [x] T046 [US6] Add test: handles transaction rejection
+- [x] T047 [US6] Add test: handles transaction error with retry
+- [x] T048 [US6] Add test: auto-closes after success
 
 ### Implementation for Revoke Role Dialog
 
-- [ ] T049 [US6] Implement useRevokeRoleDialog hook in `apps/role-manager/src/hooks/useRevokeRoleDialog.ts` (self-revoke detection, transaction execution)
-- [ ] T050 [US6] Export hook from `apps/role-manager/src/hooks/index.ts`
-- [ ] T051 [P] [US6] Create RevokeRoleDialog component in `apps/role-manager/src/components/Roles/RevokeRoleDialog.tsx` (Dialog shell)
-- [ ] T052 [US6] Add RevokeRoleConfirmContent with read-only account/role display, SelfRevokeWarning, destructive revoke button
-- [ ] T053 [US6] Add transaction state rendering using DialogTransactionStates
-- [ ] T054 [US6] Wire RevokeRoleDialog to Roles page in `apps/role-manager/src/pages/Roles.tsx` (state for revokeTarget, handleRevoke callback)
-- [ ] T055 [US6] Verify all hook tests pass
+- [x] T049 [US6] Implement useRevokeRoleDialog hook in `apps/role-manager/src/hooks/useRevokeRoleDialog.ts` (self-revoke detection, transaction execution)
+- [x] T050 [US6] Export hook from `apps/role-manager/src/hooks/index.ts`
+- [x] T051 [P] [US6] Create RevokeRoleDialog component in `apps/role-manager/src/components/Roles/RevokeRoleDialog.tsx` (Dialog shell)
+- [x] T052 [US6] Add RevokeRoleConfirmContent with read-only account/role display, SelfRevokeWarning, destructive revoke button
+- [x] T053 [US6] Add transaction state rendering using DialogTransactionStates
+- [x] T054 [US6] Wire RevokeRoleDialog to Roles page in `apps/role-manager/src/pages/Roles.tsx` (state for revokeTarget, handleRevoke callback)
+- [x] T055 [US6] Verify all hook tests pass
 
-**Checkpoint**: Revoke Role Dialog fully functional - can revoke role with confirmation and self-revoke warning
+**Checkpoint**: ✅ Revoke Role Dialog fully functional - can revoke role with confirmation and self-revoke warning
 
 ---
 

@@ -30,6 +30,7 @@ import { cn } from '@openzeppelin/ui-builder-utils';
 import {
   AssignRoleDialog,
   EditRoleDialog,
+  RevokeRoleDialog,
   RoleDetails,
   RoleIdentifiersTable,
   RolesEmptyState,
@@ -70,6 +71,13 @@ export function Roles() {
 
   // Spec 014: Assign Role dialog state (T041)
   const [isAssignRoleDialogOpen, setIsAssignRoleDialogOpen] = useState(false);
+
+  // Spec 014: Revoke Role dialog state (T054)
+  const [revokeTarget, setRevokeTarget] = useState<{
+    address: string;
+    roleId: string;
+    roleName: string;
+  } | null>(null);
 
   // Get contract info for display
   const { selectedContract } = useSelectedContract();
@@ -112,6 +120,20 @@ export function Roles() {
   const handleAssignRole = useCallback(() => {
     setIsAssignRoleDialogOpen(true);
   }, []);
+
+  // Spec 014 (T054): Open revoke role dialog
+  const handleRevokeRole = useCallback(
+    (address: string) => {
+      if (selectedRole) {
+        setRevokeTarget({
+          address,
+          roleId: selectedRole.roleId,
+          roleName: selectedRole.roleName,
+        });
+      }
+    },
+    [selectedRole]
+  );
 
   // Phase 6: Handle description save from dialog
   const handleSaveDescription = useCallback(
@@ -223,9 +245,7 @@ export function Roles() {
                 isConnected={connectedRoleIds.includes(selectedRole.roleId)}
                 onEdit={handleOpenEditDialog}
                 onAssign={handleAssignRole}
-                onRevoke={() => {
-                  // Action placeholder for future mutations (spec 014 Phase 5)
-                }}
+                onRevoke={handleRevokeRole}
                 onTransferOwnership={() => {
                   // Action placeholder for future mutations (spec 010)
                 }}
@@ -260,6 +280,18 @@ export function Roles() {
           onOpenChange={setIsAssignRoleDialogOpen}
           initialRoleId={selectedRole.roleId}
           initialRoleName={selectedRole.roleName}
+          onSuccess={() => refetch()}
+        />
+      )}
+
+      {/* Spec 014 (T054): Revoke Role Dialog */}
+      {revokeTarget && (
+        <RevokeRoleDialog
+          open={!!revokeTarget}
+          onOpenChange={(open) => !open && setRevokeTarget(null)}
+          accountAddress={revokeTarget.address}
+          roleId={revokeTarget.roleId}
+          roleName={revokeTarget.roleName}
           onSuccess={() => refetch()}
         />
       )}

@@ -34,6 +34,7 @@ export { RolesLoadingSkeleton } from './RolesLoadingSkeleton';
 
 export { EditRoleDialog } from './EditRoleDialog';
 export { AssignRoleDialog } from './AssignRoleDialog';
+export { RevokeRoleDialog } from './RevokeRoleDialog';
 
 // =============================================================================
 // Component Props Types
@@ -49,6 +50,7 @@ export type { RolesListProps } from './RolesList';
 export type { RolesLoadingSkeletonProps } from './RolesLoadingSkeleton';
 export type { EditRoleDialogProps } from './EditRoleDialog';
 export type { AssignRoleDialogProps } from './AssignRoleDialog';
+export type { RevokeRoleDialogProps } from './RevokeRoleDialog';
 
 // =============================================================================
 // Domain Types (re-exported from types/roles.ts)

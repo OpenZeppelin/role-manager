@@ -70,21 +70,30 @@ export function DialogPendingState({
 
 /**
  * Format transaction status for display
+ * Maps TxStatus values to human-readable messages
+ *
+ * TxStatus = 'idle' | 'pendingSignature' | 'pendingConfirmation' | 'pendingRelayer' | 'success' | 'error'
  */
 function formatTxStatus(status: string): string {
   switch (status) {
     case 'idle':
-      return 'Preparing...';
-    case 'awaiting_signature':
-      return 'Awaiting wallet signature...';
-    case 'pending':
-      return 'Transaction submitted...';
-    case 'confirming':
-      return 'Confirming transaction...';
-    case 'confirmed':
-      return 'Transaction confirmed!';
+      return 'Preparing transaction...';
+    case 'pendingSignature':
+      return 'Waiting for wallet signature...';
+    case 'pendingConfirmation':
+      return 'Confirming on blockchain...';
+    case 'pendingRelayer':
+      return 'Processing via relayer...';
+    case 'success':
+      return 'Transaction successful!';
+    case 'error':
+      return 'Transaction failed';
     default:
-      return status;
+      // Fallback for any unexpected status - convert camelCase to readable format
+      return status
+        .replace(/([A-Z])/g, ' $1')
+        .replace(/^./, (str) => str.toUpperCase())
+        .trim();
   }
 }
 

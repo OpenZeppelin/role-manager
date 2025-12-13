@@ -86,6 +86,8 @@ export type {
   UseAssignRoleDialogReturn,
   AssignRoleFormData,
 } from './useAssignRoleDialog';
+export { useRevokeRoleDialog } from './useRevokeRoleDialog';
+export type { UseRevokeRoleDialogOptions, UseRevokeRoleDialogReturn } from './useRevokeRoleDialog';
 export {
   useTransactionExecution,
   useMultiMutationExecution,
