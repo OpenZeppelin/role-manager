@@ -9,6 +9,8 @@
  * - T051: Dialog shell with open/close handling
  * - T052: Read-only account/role display, SelfRevokeWarning, destructive revoke button
  * - T053: Transaction state rendering using DialogTransactionStates
+ * - T058: Close-during-transaction confirmation prompt (FR-041)
+ * - T059: Wallet disconnection handling (FR-039)
  *
  * Key behaviors:
  * - Pre-filled account and role from context (read-only)
@@ -16,9 +18,11 @@
  * - Destructive button styling for revoke action
  * - Transaction state feedback (pending, success, error, cancelled)
  * - Auto-close after 1.5s success display
+ * - Confirmation prompt when closing during transaction
+ * - Wallet disconnection alert with disabled submit
  */
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
   AddressDisplay,
@@ -34,11 +38,13 @@ import {
 
 import { useRevokeRoleDialog } from '../../hooks/useRevokeRoleDialog';
 import {
+  ConfirmCloseDialog,
   DialogCancelledState,
   DialogErrorState,
   DialogPendingState,
   DialogSuccessState,
   SelfRevokeWarning,
+  WalletDisconnectedAlert,
 } from '../Shared';
 
 // =============================================================================
@@ -90,6 +96,9 @@ export function RevokeRoleDialog({
   roleName,
   onSuccess,
 }: RevokeRoleDialogProps) {
+  // Track confirmation dialog state (T058 - FR-041)
+  const [showConfirmClose, setShowConfirmClose] = useState(false);
+
   // Dialog state and logic
   const {
     step,
@@ -118,15 +127,28 @@ export function RevokeRoleDialog({
     wasOpenRef.current = open;
   }, [open, reset]);
 
-  // Handle dialog close
+  // Handle dialog close with confirmation during transaction (T058 - FR-041)
   const handleClose = useCallback(() => {
-    // Don't allow closing during pending/confirming states
+    // Show confirmation prompt during pending/confirming states
     if (step === 'pending' || step === 'confirming') {
+      setShowConfirmClose(true);
       return;
     }
     reset();
     onOpenChange(false);
   }, [step, reset, onOpenChange]);
+
+  // Confirm close during transaction (T058 - FR-041)
+  const handleConfirmClose = useCallback(() => {
+    setShowConfirmClose(false);
+    reset();
+    onOpenChange(false);
+  }, [reset, onOpenChange]);
+
+  // Cancel confirmation and return to transaction
+  const handleCancelConfirmClose = useCallback(() => {
+    setShowConfirmClose(false);
+  }, []);
 
   // Handle cancel button
   const handleCancel = useCallback(() => {
@@ -203,19 +225,28 @@ export function RevokeRoleDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[480px]">
-        <DialogHeader>
-          <DialogTitle>Revoke Role</DialogTitle>
-          <DialogDescription>
-            Are you sure you want to revoke this role? This action will remove the account&apos;s
-            access permissions.
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Dialog open={open} onOpenChange={handleClose}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle>Revoke Role</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to revoke this role? This action will remove the account&apos;s
+              access permissions.
+            </DialogDescription>
+          </DialogHeader>
 
-        {renderContent()}
-      </DialogContent>
-    </Dialog>
+          {renderContent()}
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirmation dialog when closing during transaction (T058 - FR-041) */}
+      <ConfirmCloseDialog
+        open={showConfirmClose}
+        onCancel={handleCancelConfirmClose}
+        onConfirm={handleConfirmClose}
+      />
+    </>
   );
 }
 
@@ -245,6 +276,9 @@ function RevokeRoleConfirmContent({
 
   return (
     <div className="space-y-4 py-4">
+      {/* Wallet Disconnection Alert (T059 - FR-039) */}
+      {!isWalletConnected && <WalletDisconnectedAlert />}
+
       {/* Account Display (Read-only) */}
       <div className="space-y-1.5">
         <Label className="text-sm font-medium">Account</Label>

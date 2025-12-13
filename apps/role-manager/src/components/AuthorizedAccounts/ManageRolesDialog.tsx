@@ -11,16 +11,25 @@
  * - T024: Dialog shell with open/close handling
  * - T025: Form content with RoleCheckboxList, SelfRevokeWarning
  * - T026: Transaction state rendering using DialogTransactionStates
+ * - T056: Close-during-transaction confirmation prompt (FR-041)
+ * - T059: Wallet disconnection handling (FR-039)
+ * - T060: Loading skeleton states (FR-034)
+ * - T061: Empty state handling (FR-037)
  *
  * Key behaviors:
  * - Single change per transaction (auto-revert constraint)
  * - Self-revoke warning when revoking own role
  * - Transaction state feedback (pending, success, error, cancelled)
  * - Auto-close after 1.5s success display
+ * - Confirmation prompt when closing during transaction
+ * - Wallet disconnection alert with disabled submit
+ * - Loading skeletons during data fetch
+ * - Empty state when no roles defined
  */
 
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 
+import { useDerivedAccountStatus } from '@openzeppelin/ui-builder-react-core';
 import {
   AddressDisplay,
   Button,
@@ -34,13 +43,18 @@ import {
 } from '@openzeppelin/ui-builder-ui';
 
 import { useManageRolesDialog } from '../../hooks/useManageRolesDialog';
+import { useRolesPageData } from '../../hooks/useRolesPageData';
 import {
+  ConfirmCloseDialog,
   DialogCancelledState,
   DialogErrorState,
   DialogPendingState,
   DialogSuccessState,
+  NoRolesEmptyState,
   RoleCheckboxList,
+  RoleListSkeleton,
   SelfRevokeWarning,
+  WalletDisconnectedAlert,
 } from '../Shared';
 
 // =============================================================================
@@ -84,6 +98,17 @@ export function ManageRolesDialog({
   accountAddress,
   onSuccess,
 }: ManageRolesDialogProps) {
+  // Track confirmation dialog state (T056 - FR-041)
+  const [showConfirmClose, setShowConfirmClose] = useState(false);
+
+  // Get loading state and available roles count for T060/T061
+  const { isRolesLoading, roles } = useRolesPageData();
+  const availableRolesCount = roles.filter((r) => !r.isOwnerRole).length;
+
+  // Get wallet connection status (T059 - FR-039)
+  const { address: connectedAddress } = useDerivedAccountStatus();
+  const isWalletConnected = !!connectedAddress;
+
   // Dialog state and logic
   const {
     roleItems,
@@ -104,16 +129,28 @@ export function ManageRolesDialog({
     onSuccess,
   });
 
-  // Handle dialog close
+  // Handle dialog close with confirmation during transaction (T056 - FR-041)
   const handleClose = useCallback(() => {
-    // Don't allow closing during pending/confirming states
+    // Show confirmation prompt during pending/confirming states
     if (step === 'pending' || step === 'confirming') {
-      // Could show confirmation prompt here per FR-041
+      setShowConfirmClose(true);
       return;
     }
     reset();
     onOpenChange(false);
   }, [step, reset, onOpenChange]);
+
+  // Confirm close during transaction (T056 - FR-041)
+  const handleConfirmClose = useCallback(() => {
+    setShowConfirmClose(false);
+    reset();
+    onOpenChange(false);
+  }, [reset, onOpenChange]);
+
+  // Cancel confirmation and return to transaction
+  const handleCancelConfirmClose = useCallback(() => {
+    setShowConfirmClose(false);
+  }, []);
 
   // Handle cancel button
   const handleCancel = useCallback(() => {
@@ -180,28 +217,40 @@ export function ManageRolesDialog({
             onToggleRole={toggleRole}
             onCancel={handleCancel}
             onSubmit={submit}
-            canSubmit={canSubmit}
+            canSubmit={canSubmit && isWalletConnected}
             submitLabel={submitLabel}
             showSelfRevokeWarning={showSelfRevokeWarning}
+            isLoading={isRolesLoading}
+            isWalletConnected={isWalletConnected}
+            hasNoRoles={availableRolesCount === 0}
           />
         );
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[480px]">
-        <DialogHeader>
-          <DialogTitle>Manage Roles</DialogTitle>
-          <DialogDescription>
-            Grant or revoke roles for this account. Only one role change can be made per
-            transaction.
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Dialog open={open} onOpenChange={handleClose}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle>Manage Roles</DialogTitle>
+            <DialogDescription>
+              Grant or revoke roles for this account. Only one role change can be made per
+              transaction.
+            </DialogDescription>
+          </DialogHeader>
 
-        {renderContent()}
-      </DialogContent>
-    </Dialog>
+          {renderContent()}
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirmation dialog when closing during transaction (T056 - FR-041) */}
+      <ConfirmCloseDialog
+        open={showConfirmClose}
+        onCancel={handleCancelConfirmClose}
+        onConfirm={handleConfirmClose}
+      />
+    </>
   );
 }
 
@@ -219,6 +268,12 @@ interface ManageRolesFormContentProps {
   canSubmit: boolean;
   submitLabel: string;
   showSelfRevokeWarning: boolean;
+  /** Whether role data is loading (T060 - FR-034) */
+  isLoading: boolean;
+  /** Whether wallet is connected (T059 - FR-039) */
+  isWalletConnected: boolean;
+  /** Whether contract has no roles defined (T061 - FR-037) */
+  hasNoRoles: boolean;
 }
 
 function ManageRolesFormContent({
@@ -231,9 +286,15 @@ function ManageRolesFormContent({
   canSubmit,
   submitLabel,
   showSelfRevokeWarning,
+  isLoading,
+  isWalletConnected,
+  hasNoRoles,
 }: ManageRolesFormContentProps) {
   return (
     <div className="space-y-4 py-4">
+      {/* Wallet Disconnection Alert (T059 - FR-039) */}
+      {!isWalletConnected && <WalletDisconnectedAlert />}
+
       {/* Account Address Display */}
       <div className="space-y-1.5">
         <Label className="text-sm text-muted-foreground">Account</Label>
@@ -242,10 +303,19 @@ function ManageRolesFormContent({
         </div>
       </div>
 
-      {/* Role Checkbox List */}
+      {/* Role List - with loading and empty states */}
       <div className="space-y-1.5">
         <Label className="text-sm text-muted-foreground">Roles</Label>
-        <RoleCheckboxList items={roleItems} onToggle={onToggleRole} />
+        {isLoading ? (
+          // Loading skeleton (T060 - FR-034)
+          <RoleListSkeleton count={3} />
+        ) : hasNoRoles ? (
+          // Empty state when no roles defined (T061 - FR-037)
+          <NoRolesEmptyState />
+        ) : (
+          // Role checkbox list
+          <RoleCheckboxList items={roleItems} onToggle={onToggleRole} />
+        )}
       </div>
 
       {/* Self-Revoke Warning */}
@@ -267,7 +337,7 @@ function ManageRolesFormContent({
           <Button
             type="button"
             onClick={onSubmit}
-            disabled={!canSubmit}
+            disabled={!canSubmit || isLoading}
             variant={pendingChange.type === 'revoke' ? 'destructive' : 'default'}
             aria-label={submitLabel}
           >

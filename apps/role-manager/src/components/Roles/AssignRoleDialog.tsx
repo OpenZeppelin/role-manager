@@ -10,15 +10,23 @@
  * - T038: Form content with AddressField, role dropdown
  * - T039: react-hook-form integration for address validation
  * - T040: Transaction state rendering using DialogTransactionStates
+ * - T057: Close-during-transaction confirmation prompt (FR-041)
+ * - T059: Wallet disconnection handling (FR-039)
+ * - T060: Loading skeleton states (FR-034)
+ * - T061: Empty state handling (FR-037)
  *
  * Key behaviors:
  * - Address validation via adapter.isValidAddress()
  * - Role dropdown with pre-selected initial role
  * - Transaction state feedback (pending, success, error, cancelled)
  * - Auto-close after 1.5s success display
+ * - Confirmation prompt when closing during transaction
+ * - Wallet disconnection alert with disabled submit
+ * - Loading skeletons during data fetch
+ * - Empty state when no roles defined
  */
 
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import {
@@ -37,13 +45,18 @@ import { getEcosystemAddressExample } from '@/core/ecosystems/registry';
 
 import { useAssignRoleDialog } from '../../hooks/useAssignRoleDialog';
 import type { AssignRoleFormData } from '../../hooks/useAssignRoleDialog';
+import { useRolesPageData } from '../../hooks/useRolesPageData';
 import { useSelectedContract } from '../../hooks/useSelectedContract';
 import {
+  ConfirmCloseDialog,
   DialogCancelledState,
   DialogErrorState,
   DialogPendingState,
   DialogSuccessState,
+  NoRolesEmptyState,
+  WalletDisconnectedAlert,
 } from '../Shared';
+import { Skeleton } from '../Shared/Skeleton';
 
 // =============================================================================
 // Types
@@ -90,6 +103,14 @@ export function AssignRoleDialog({
   initialRoleName,
   onSuccess,
 }: AssignRoleDialogProps) {
+  // Track confirmation dialog state (T057 - FR-041)
+  const [showConfirmClose, setShowConfirmClose] = useState(false);
+
+  // Get loading state (T060 - FR-034)
+  const { isRolesLoading, roles } = useRolesPageData();
+  const availableRolesCount = roles.filter((r) => !r.isOwnerRole).length;
+  const hasNoRoles = availableRolesCount === 0;
+
   // Dialog state and logic
   const { availableRoles, step, errorMessage, txStatus, isWalletConnected, submit, retry, reset } =
     useAssignRoleDialog({
@@ -129,16 +150,30 @@ export function AssignRoleDialog({
     wasOpenRef.current = open;
   }, [open, reset, form, initialRoleId]);
 
-  // Handle dialog close
+  // Handle dialog close with confirmation during transaction (T057 - FR-041)
   const handleClose = useCallback(() => {
-    // Don't allow closing during pending/confirming states
+    // Show confirmation prompt during pending/confirming states
     if (step === 'pending' || step === 'confirming') {
+      setShowConfirmClose(true);
       return;
     }
     reset();
     form.reset();
     onOpenChange(false);
   }, [step, reset, form, onOpenChange]);
+
+  // Confirm close during transaction (T057 - FR-041)
+  const handleConfirmClose = useCallback(() => {
+    setShowConfirmClose(false);
+    reset();
+    form.reset();
+    onOpenChange(false);
+  }, [reset, form, onOpenChange]);
+
+  // Cancel confirmation and return to transaction
+  const handleCancelConfirmClose = useCallback(() => {
+    setShowConfirmClose(false);
+  }, []);
 
   // Handle cancel button
   const handleCancel = useCallback(() => {
@@ -221,24 +256,35 @@ export function AssignRoleDialog({
             roleOptions={roleOptions}
             onCancel={handleCancel}
             onSubmit={handleSubmit}
+            isRolesLoading={isRolesLoading}
+            hasNoRoles={hasNoRoles}
           />
         );
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[480px]">
-        <DialogHeader>
-          <DialogTitle>Assign Role</DialogTitle>
-          <DialogDescription>
-            Grant a role to a new address. Enter the address and select the role to assign.
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Dialog open={open} onOpenChange={handleClose}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle>Assign Role</DialogTitle>
+            <DialogDescription>
+              Grant a role to a new address. Enter the address and select the role to assign.
+            </DialogDescription>
+          </DialogHeader>
 
-        {renderContent()}
-      </DialogContent>
-    </Dialog>
+          {renderContent()}
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirmation dialog when closing during transaction (T057 - FR-041) */}
+      <ConfirmCloseDialog
+        open={showConfirmClose}
+        onCancel={handleCancelConfirmClose}
+        onConfirm={handleConfirmClose}
+      />
+    </>
   );
 }
 
@@ -254,6 +300,10 @@ interface AssignRoleFormContentProps {
   roleOptions: Array<{ value: string; label: string }>;
   onCancel: () => void;
   onSubmit: (data: AssignRoleFormData) => Promise<void>;
+  /** Whether role data is loading (T060 - FR-034) */
+  isRolesLoading: boolean;
+  /** Whether contract has no roles defined (T061 - FR-037) */
+  hasNoRoles: boolean;
 }
 
 function AssignRoleFormContent({
@@ -264,6 +314,8 @@ function AssignRoleFormContent({
   roleOptions,
   onCancel,
   onSubmit,
+  isRolesLoading,
+  hasNoRoles,
 }: AssignRoleFormContentProps) {
   const {
     control,
@@ -271,12 +323,40 @@ function AssignRoleFormContent({
     formState: { isValid, isSubmitting },
   } = form;
 
-  // Disable submit if adapter is not loaded, wallet not connected, or form invalid
+  // Disable submit if adapter is not loaded, wallet not connected, form invalid, or no roles
   const canSubmit =
-    isValid && !isSubmitting && !isAdapterLoading && adapter !== null && isWalletConnected;
+    isValid &&
+    !isSubmitting &&
+    !isAdapterLoading &&
+    adapter !== null &&
+    isWalletConnected &&
+    !isRolesLoading &&
+    !hasNoRoles;
+
+  // Show empty state if no roles (T061 - FR-037)
+  if (!isRolesLoading && hasNoRoles) {
+    return (
+      <div className="space-y-4 py-4">
+        <NoRolesEmptyState />
+        <DialogFooter className="gap-2 sm:gap-0 pt-2">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={onCancel}
+            aria-label="Cancel and close dialog"
+          >
+            Close
+          </Button>
+        </DialogFooter>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-4">
+      {/* Wallet Disconnection Alert (T059 - FR-039) */}
+      {!isWalletConnected && <WalletDisconnectedAlert />}
+
       {/* Address Field */}
       <div className="space-y-1.5">
         <AddressField
@@ -295,16 +375,25 @@ function AssignRoleFormContent({
 
       {/* Role Selection */}
       <div className="space-y-1.5">
-        <SelectField
-          id="assign-role-role"
-          name="roleId"
-          label="Role"
-          placeholder="Select a role"
-          helperText="The role to grant to this account."
-          control={control}
-          options={roleOptions}
-          validation={{ required: true }}
-        />
+        {isRolesLoading ? (
+          // Loading skeleton (T060 - FR-034)
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-12" />
+            <Skeleton className="h-10 w-full rounded-md" />
+            <Skeleton className="h-3 w-48" />
+          </div>
+        ) : (
+          <SelectField
+            id="assign-role-role"
+            name="roleId"
+            label="Role"
+            placeholder="Select a role"
+            helperText="The role to grant to this account."
+            control={control}
+            options={roleOptions}
+            validation={{ required: true }}
+          />
+        )}
       </div>
 
       {/* Action Buttons */}
@@ -318,7 +407,7 @@ function AssignRoleFormContent({
           Cancel
         </Button>
         <Button type="submit" disabled={!canSubmit} aria-label="Assign role to address">
-          {isAdapterLoading ? 'Loading...' : 'Assign Role'}
+          {isAdapterLoading || isRolesLoading ? 'Loading...' : 'Assign Role'}
         </Button>
       </DialogFooter>
     </form>

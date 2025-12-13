@@ -25,6 +25,12 @@ export {
   DialogCancelledState,
 } from './DialogTransactionStates';
 
+// Phase 6: Error Handling Components (Feature: 014-role-grant-revoke)
+export { ConfirmCloseDialog } from './ConfirmCloseDialog';
+export { WalletDisconnectedAlert } from './WalletDisconnectedAlert';
+export { RoleListSkeleton } from './RoleListSkeleton';
+export { NoRolesEmptyState } from './NoRolesEmptyState';
+
 // Types
 export type { OutlineBadgeProps } from './OutlineBadge';
 export type { PaginationProps, PaginationState } from './Pagination';
@@ -42,3 +48,9 @@ export type {
   DialogErrorStateProps,
   DialogCancelledStateProps,
 } from './DialogTransactionStates';
+
+// Phase 6: Error Handling Component Types (Feature: 014-role-grant-revoke)
+export type { ConfirmCloseDialogProps } from './ConfirmCloseDialog';
+export type { WalletDisconnectedAlertProps } from './WalletDisconnectedAlert';
+export type { RoleListSkeletonProps } from './RoleListSkeleton';
+export type { NoRolesEmptyStateProps } from './NoRolesEmptyState';
