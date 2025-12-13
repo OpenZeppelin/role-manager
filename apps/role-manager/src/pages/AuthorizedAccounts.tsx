@@ -2,6 +2,7 @@
  * Authorized Accounts Page
  * Feature: 010-authorized-accounts-page
  * Updated by: 011-accounts-real-data
+ * Updated by: 014-role-grant-revoke (ManageRolesDialog integration)
  *
  * Displays authorized accounts with real blockchain data.
  * Implements User Stories 1, 2, 6 from spec 011:
@@ -9,7 +10,7 @@
  * - US2: Auto-load on contract selection
  * - US6: Error/empty states for unsupported contracts
  *
- * Tasks: T040-T045
+ * Tasks: T040-T045, T027
  */
 
 import { FileSearch, RefreshCw, Users } from 'lucide-react';
@@ -25,6 +26,7 @@ import {
   AccountsLoadingSkeleton,
   AccountsPagination,
   AccountsTable,
+  ManageRolesDialog,
   type AccountAction,
 } from '../components/AuthorizedAccounts';
 import { PageEmptyState } from '../components/Shared/PageEmptyState';
@@ -71,6 +73,9 @@ export function AuthorizedAccounts() {
   // Selection state for table rows (placeholder behavior - T069)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
+  // T027: State for ManageRolesDialog (Feature 014)
+  const [manageRolesAccount, setManageRolesAccount] = useState<string | null>(null);
+
   // Selection change handler (logs to console per T069)
   const handleSelectionChange = (newSelectedIds: Set<string>) => {
     setSelectedIds(newSelectedIds);
@@ -79,7 +84,7 @@ export function AuthorizedAccounts() {
     });
   };
 
-  // Action handler for table row actions (logs to console per T070)
+  // Action handler for table row actions (T027: handle 'edit-roles' action)
   const handleAction = (accountId: string, action: AccountAction) => {
     const account = paginatedAccounts.find((a) => a.id === accountId);
     logger.info('AuthorizedAccounts', `Action "${action}" triggered for account`, {
@@ -87,6 +92,11 @@ export function AuthorizedAccounts() {
       address: account?.address,
       action,
     });
+
+    // T027: Open ManageRolesDialog when 'edit-roles' action is triggered
+    if (action === 'edit-roles' && account) {
+      setManageRolesAccount(account.address);
+    }
   };
 
   // Filter change handler
@@ -232,6 +242,14 @@ export function AuthorizedAccounts() {
         {/* T059/T060: Pagination controls (only shown when totalItems > pageSize) */}
         {showPagination && <AccountsPagination pagination={pagination} />}
       </Card>
+
+      {/* T027: ManageRolesDialog (Feature 014) */}
+      <ManageRolesDialog
+        open={!!manageRolesAccount}
+        onOpenChange={(open) => !open && setManageRolesAccount(null)}
+        accountAddress={manageRolesAccount ?? ''}
+        onSuccess={() => refetch()}
+      />
     </div>
   );
 }

@@ -35,6 +35,12 @@ export { AccountActionsMenu } from './AccountActionsMenu';
 export { AccountRow } from './AccountRow';
 export { AccountsTable } from './AccountsTable';
 
+// =============================================================================
+// Components (Feature 014 - Role Grant/Revoke)
+// =============================================================================
+
+export { ManageRolesDialog } from './ManageRolesDialog';
+
 // Re-export shared components for convenience
 export { OutlineBadge } from '../Shared/OutlineBadge';
 export { Pagination } from '../Shared/Pagination';
@@ -59,6 +65,7 @@ export type { AccountsPaginationProps } from './AccountsPagination';
 export type { AccountsTableProps } from './AccountsTable';
 export type { AccountsEmptyStateProps } from './AccountsEmptyState';
 export type { AccountsErrorStateProps } from './AccountsErrorState';
+export type { ManageRolesDialogProps } from './ManageRolesDialog';
 
 // Domain types from types file
 export type {

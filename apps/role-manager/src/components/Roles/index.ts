@@ -29,10 +29,12 @@ export { RolesErrorState } from './RolesErrorState';
 export { RolesLoadingSkeleton } from './RolesLoadingSkeleton';
 
 // =============================================================================
-// Dialog Components (spec 009 - Phase 6)
+// Dialog Components (spec 009 - Phase 6, spec 014)
 // =============================================================================
 
 export { EditRoleDialog } from './EditRoleDialog';
+export { AssignRoleDialog } from './AssignRoleDialog';
+export { RevokeRoleDialog } from './RevokeRoleDialog';
 
 // =============================================================================
 // Component Props Types
@@ -47,6 +49,8 @@ export type { RolesErrorStateProps } from './RolesErrorState';
 export type { RolesListProps } from './RolesList';
 export type { RolesLoadingSkeletonProps } from './RolesLoadingSkeleton';
 export type { EditRoleDialogProps } from './EditRoleDialog';
+export type { AssignRoleDialogProps } from './AssignRoleDialog';
+export type { RevokeRoleDialogProps } from './RevokeRoleDialog';
 
 // =============================================================================
 // Domain Types (re-exported from types/roles.ts)

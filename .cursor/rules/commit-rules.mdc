@@ -1,6 +1,6 @@
 ---
-alwaysApply: true
 description: Git commit rules and conventions for Role Manager repository
+alwaysApply: true
 ---
 
 # Commit Rules & Conventions

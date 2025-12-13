@@ -20,6 +20,16 @@ export * from './schema';
 // Storage types
 export * from './storage';
 
+// Role Dialogs types (Feature: 014-role-grant-revoke)
+export type {
+  DialogTransactionStep,
+  PendingRoleChange,
+  RoleCheckboxItem,
+  ManageRolesDialogState,
+  AssignRoleDialogState,
+  RevokeRoleDialogState,
+} from './role-dialogs';
+
 // Role Changes types (Feature: 012-role-changes-data)
 export {
   // Domain types

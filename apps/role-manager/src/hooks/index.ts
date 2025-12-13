@@ -74,5 +74,33 @@ export type { UseContractHistoryReturn } from '../types/role-changes';
 export { useRoleChangesPageData } from './useRoleChangesPageData';
 export type { UseRoleChangesPageDataReturn } from '../types/role-changes';
 
+// Role Dialog Hooks (Feature: 014-role-grant-revoke)
+export { useManageRolesDialog } from './useManageRolesDialog';
+export type {
+  UseManageRolesDialogOptions,
+  UseManageRolesDialogReturn,
+} from './useManageRolesDialog';
+export { useAssignRoleDialog } from './useAssignRoleDialog';
+export type {
+  UseAssignRoleDialogOptions,
+  UseAssignRoleDialogReturn,
+  AssignRoleFormData,
+} from './useAssignRoleDialog';
+export { useRevokeRoleDialog } from './useRevokeRoleDialog';
+export type { UseRevokeRoleDialogOptions, UseRevokeRoleDialogReturn } from './useRevokeRoleDialog';
+export {
+  useTransactionExecution,
+  useMultiMutationExecution,
+  isUserRejectionError,
+  SUCCESS_AUTO_CLOSE_DELAY,
+} from './useTransactionExecution';
+export type {
+  MutationHook,
+  UseTransactionExecutionOptions,
+  UseTransactionExecutionReturn,
+  UseMultiMutationExecutionOptions,
+  UseMultiMutationExecutionReturn,
+} from './useTransactionExecution';
+
 // Utility hooks
 export { useDebounce } from './useDebounce';

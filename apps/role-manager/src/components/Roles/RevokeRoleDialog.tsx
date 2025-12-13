@@ -1,0 +1,328 @@
+/**
+ * RevokeRoleDialog Component
+ * Feature: 014-role-grant-revoke
+ *
+ * Dialog for revoking a role from an account with confirmation.
+ * Accessible from the Roles page via the "Revoke" button on account rows.
+ *
+ * Implements:
+ * - T051: Dialog shell with open/close handling
+ * - T052: Read-only account/role display, SelfRevokeWarning, destructive revoke button
+ * - T053: Transaction state rendering using DialogTransactionStates
+ * - T058: Close-during-transaction confirmation prompt (FR-041)
+ * - T059: Wallet disconnection handling (FR-039)
+ *
+ * Key behaviors:
+ * - Pre-filled account and role from context (read-only)
+ * - Self-revoke warning when connected wallet matches target account
+ * - Destructive button styling for revoke action
+ * - Transaction state feedback (pending, success, error, cancelled)
+ * - Auto-close after 1.5s success display
+ * - Confirmation prompt when closing during transaction
+ * - Wallet disconnection alert with disabled submit
+ */
+
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+import {
+  AddressDisplay,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Label,
+} from '@openzeppelin/ui-builder-ui';
+
+import { useRevokeRoleDialog } from '../../hooks/useRevokeRoleDialog';
+import {
+  ConfirmCloseDialog,
+  DialogCancelledState,
+  DialogErrorState,
+  DialogPendingState,
+  DialogSuccessState,
+  SelfRevokeWarning,
+  WalletDisconnectedAlert,
+} from '../Shared';
+
+// =============================================================================
+// Types
+// =============================================================================
+
+/**
+ * Props for RevokeRoleDialog component
+ */
+export interface RevokeRoleDialogProps {
+  /** Whether dialog is open */
+  open: boolean;
+  /** Callback when open state changes */
+  onOpenChange: (open: boolean) => void;
+  /** Account address to revoke from (pre-filled) */
+  accountAddress: string;
+  /** Role ID to revoke */
+  roleId: string;
+  /** Role name for display */
+  roleName: string;
+  /** Callback when transaction succeeds (for parent to refresh data) */
+  onSuccess?: () => void;
+}
+
+// =============================================================================
+// Component
+// =============================================================================
+
+/**
+ * RevokeRoleDialog - Dialog for revoking a role from an account with confirmation
+ *
+ * @example
+ * ```tsx
+ * <RevokeRoleDialog
+ *   open={revokeDialogOpen}
+ *   onOpenChange={setRevokeDialogOpen}
+ *   accountAddress={targetAccount.address}
+ *   roleId={selectedRole.roleId}
+ *   roleName={selectedRole.roleName}
+ *   onSuccess={() => refetch()}
+ * />
+ * ```
+ */
+export function RevokeRoleDialog({
+  open,
+  onOpenChange,
+  accountAddress,
+  roleId,
+  roleName,
+  onSuccess,
+}: RevokeRoleDialogProps) {
+  // Track confirmation dialog state (T058 - FR-041)
+  const [showConfirmClose, setShowConfirmClose] = useState(false);
+
+  // Dialog state and logic
+  const {
+    step,
+    errorMessage,
+    txStatus,
+    isWalletConnected,
+    showSelfRevokeWarning,
+    submit,
+    retry,
+    reset,
+  } = useRevokeRoleDialog({
+    accountAddress,
+    roleId,
+    roleName,
+    onClose: () => onOpenChange(false),
+    onSuccess,
+  });
+
+  // Reset state when dialog opens (to clear any stale success/error state)
+  const wasOpenRef = useRef(open);
+  useEffect(() => {
+    if (open && !wasOpenRef.current) {
+      // Dialog just opened - reset to fresh state
+      reset();
+    }
+    wasOpenRef.current = open;
+  }, [open, reset]);
+
+  // Handle dialog close with confirmation during transaction (T058 - FR-041)
+  const handleClose = useCallback(
+    (open: boolean) => {
+      // Only handle close events (Dialog calls onOpenChange(false) when closing)
+      if (open) return;
+
+      // Show confirmation prompt during pending/confirming states
+      if (step === 'pending' || step === 'confirming') {
+        setShowConfirmClose(true);
+        return;
+      }
+      reset();
+      onOpenChange(false);
+    },
+    [step, reset, onOpenChange]
+  );
+
+  // Confirm close during transaction (T058 - FR-041)
+  const handleConfirmClose = useCallback(() => {
+    setShowConfirmClose(false);
+    reset();
+    onOpenChange(false);
+  }, [reset, onOpenChange]);
+
+  // Cancel confirmation and return to transaction
+  const handleCancelConfirmClose = useCallback(() => {
+    setShowConfirmClose(false);
+  }, []);
+
+  // Handle cancel button
+  const handleCancel = useCallback(() => {
+    handleClose(false);
+  }, [handleClose]);
+
+  // Handle back from cancelled state
+  const handleBackFromCancelled = useCallback(() => {
+    // Use retry() instead of reset() to preserve state for retry
+    retry();
+  }, [retry]);
+
+  // Handle form submission
+  const handleSubmit = useCallback(async () => {
+    await submit();
+  }, [submit]);
+
+  // =============================================================================
+  // Render Content Based on Step
+  // =============================================================================
+
+  const renderContent = () => {
+    switch (step) {
+      case 'pending':
+      case 'confirming':
+        return (
+          <DialogPendingState
+            title="Revoking Role..."
+            description="Please confirm the transaction in your wallet"
+            txStatus={txStatus}
+          />
+        );
+
+      case 'success':
+        return (
+          <DialogSuccessState
+            title="Role Revoked!"
+            description={`${roleName} role has been revoked from the account.`}
+          />
+        );
+
+      case 'error':
+        return (
+          <DialogErrorState
+            title="Transaction Failed"
+            message={errorMessage || 'An error occurred while processing the transaction.'}
+            canRetry={true}
+            onRetry={retry}
+            onCancel={handleCancel}
+          />
+        );
+
+      case 'cancelled':
+        return (
+          <DialogCancelledState
+            message="The transaction was cancelled. You can try again or close the dialog."
+            onBack={handleBackFromCancelled}
+            onClose={() => handleClose(false)}
+          />
+        );
+
+      case 'form':
+      default:
+        return (
+          <RevokeRoleConfirmContent
+            accountAddress={accountAddress}
+            roleName={roleName}
+            isWalletConnected={isWalletConnected}
+            showSelfRevokeWarning={showSelfRevokeWarning}
+            onCancel={handleCancel}
+            onSubmit={handleSubmit}
+          />
+        );
+    }
+  };
+
+  return (
+    <>
+      <Dialog open={open} onOpenChange={handleClose}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle>Revoke Role</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to revoke this role? This action will remove the account&apos;s
+              access permissions.
+            </DialogDescription>
+          </DialogHeader>
+
+          {renderContent()}
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirmation dialog when closing during transaction (T058 - FR-041) */}
+      <ConfirmCloseDialog
+        open={showConfirmClose}
+        onCancel={handleCancelConfirmClose}
+        onConfirm={handleConfirmClose}
+      />
+    </>
+  );
+}
+
+// =============================================================================
+// RevokeRoleConfirmContent (Internal)
+// =============================================================================
+
+interface RevokeRoleConfirmContentProps {
+  accountAddress: string;
+  roleName: string;
+  isWalletConnected: boolean;
+  showSelfRevokeWarning: boolean;
+  onCancel: () => void;
+  onSubmit: () => Promise<void>;
+}
+
+function RevokeRoleConfirmContent({
+  accountAddress,
+  roleName,
+  isWalletConnected,
+  showSelfRevokeWarning,
+  onCancel,
+  onSubmit,
+}: RevokeRoleConfirmContentProps) {
+  // Disable submit if wallet not connected
+  const canSubmit = isWalletConnected;
+
+  return (
+    <div className="space-y-4 py-4">
+      {/* Wallet Disconnection Alert (T059 - FR-039) */}
+      {!isWalletConnected && <WalletDisconnectedAlert />}
+
+      {/* Account Display (Read-only) */}
+      <div className="space-y-1.5">
+        <Label className="text-sm font-medium">Account</Label>
+        <div className="rounded-md border bg-muted/50 px-3 py-2">
+          <AddressDisplay address={accountAddress} showCopyButton={true} />
+        </div>
+      </div>
+
+      {/* Role Display (Read-only) */}
+      <div className="space-y-1.5">
+        <Label className="text-sm font-medium">Role</Label>
+        <div className="rounded-md border bg-muted/50 px-3 py-2 text-sm">{roleName}</div>
+      </div>
+
+      {/* Self-Revoke Warning */}
+      {showSelfRevokeWarning && <SelfRevokeWarning roleName={roleName} />}
+
+      {/* Action Buttons */}
+      <DialogFooter className="gap-2 sm:gap-0 pt-2">
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={onCancel}
+          aria-label="Cancel and close dialog"
+        >
+          Cancel
+        </Button>
+        <Button
+          type="button"
+          variant="destructive"
+          disabled={!canSubmit}
+          onClick={onSubmit}
+          aria-label="Revoke role from account"
+        >
+          Revoke Role
+        </Button>
+      </DialogFooter>
+    </div>
+  );
+}

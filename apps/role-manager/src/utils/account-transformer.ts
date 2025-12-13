@@ -26,6 +26,8 @@ import { getRoleName } from './role-name';
  * Internal type for building account data
  */
 interface AccountBuildData {
+  /** Original address (preserving case) */
+  originalAddress: string;
   roles: RoleBadgeInfo[];
   earliestDate: string | null;
 }
@@ -35,6 +37,10 @@ interface AccountBuildData {
  *
  * This function aggregates role assignments from the AccessControlService into
  * an account-centric view where each unique address has all its roles collected.
+ *
+ * NOTE: Address case is preserved (not lowercased) to support case-sensitive
+ * chains where addresses must maintain their original format.
+ * Lowercase is only used for map key lookups to deduplicate entries.
  *
  * @param enrichedRoles - Role assignments from getCurrentRolesEnriched() or getCurrentRoles()
  * @param ownership - Ownership info from getOwnership(), or null if not available
@@ -50,7 +56,7 @@ export function transformRolesToAccounts(
   enrichedRoles: EnrichedRoleAssignment[],
   ownership: OwnershipInfo | null
 ): AuthorizedAccountView[] {
-  // Map: normalized address -> account build data
+  // Map: normalized (lowercase) address -> account build data (preserves original case)
   const accountMap = new Map<string, AccountBuildData>();
 
   // Process each role assignment
@@ -61,8 +67,9 @@ export function transformRolesToAccounts(
     };
 
     for (const member of roleAssignment.members) {
-      const normalizedAddress = member.address.toLowerCase();
-      const existing = accountMap.get(normalizedAddress);
+      // Use lowercase key for deduplication, but preserve original address case
+      const normalizedKey = member.address.toLowerCase();
+      const existing = accountMap.get(normalizedKey);
 
       if (existing) {
         // Add role to existing account
@@ -78,8 +85,9 @@ export function transformRolesToAccounts(
           }
         }
       } else {
-        // Create new account entry
-        accountMap.set(normalizedAddress, {
+        // Create new account entry - store original address case
+        accountMap.set(normalizedKey, {
+          originalAddress: member.address,
           roles: [roleInfo],
           earliestDate: member.grantedAt || null,
         });
@@ -89,16 +97,18 @@ export function transformRolesToAccounts(
 
   // Add owner if present and handle case where owner may already be in map
   if (ownership?.owner) {
-    const ownerAddress = ownership.owner.toLowerCase();
+    // Use lowercase key for lookup, preserve original case
+    const ownerKey = ownership.owner.toLowerCase();
     const ownerRole: RoleBadgeInfo = { id: OWNER_ROLE_ID, name: OWNER_ROLE_NAME };
-    const existing = accountMap.get(ownerAddress);
+    const existing = accountMap.get(ownerKey);
 
     if (existing) {
       // Add Owner role to existing account
       existing.roles.push(ownerRole);
     } else {
       // Create new account for owner (no grant timestamp for ownership)
-      accountMap.set(ownerAddress, {
+      accountMap.set(ownerKey, {
+        originalAddress: ownership.owner, // Preserve original case
         roles: [ownerRole],
         earliestDate: null,
       });
@@ -106,10 +116,11 @@ export function transformRolesToAccounts(
   }
 
   // Convert map to array of AuthorizedAccountView
+  // Use originalAddress (not the lowercase key) to preserve case
   const accounts: AuthorizedAccountView[] = Array.from(accountMap.entries()).map(
-    ([address, data]) => ({
-      id: address,
-      address,
+    ([_key, data]) => ({
+      id: data.originalAddress,
+      address: data.originalAddress,
       status: 'active' as const,
       dateAdded: data.earliestDate,
       roles: data.roles,

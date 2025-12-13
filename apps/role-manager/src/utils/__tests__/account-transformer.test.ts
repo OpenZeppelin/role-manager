@@ -40,8 +40,8 @@ const createAccount = (
   dateAdded: string | null,
   roles: Array<{ id: string; name: string }>
 ): AuthorizedAccountView => ({
-  id: address.toLowerCase(),
-  address: address.toLowerCase(),
+  id: address,
+  address: address,
   status: 'active',
   dateAdded,
   roles,
@@ -82,15 +82,16 @@ describe('transformRolesToAccounts', () => {
     expect(result[0].roles[0].name).toBe('Minter Role');
   });
 
-  it('should normalize addresses to lowercase', () => {
+  it('should preserve original address case (important for Stellar)', () => {
     const roles: EnrichedRoleAssignment[] = [
       createEnrichedRole('ADMIN_ROLE', 'Admin', [{ address: '0xABCD1234' }]),
     ];
 
     const result = transformRolesToAccounts(roles, null);
 
-    expect(result[0].address).toBe('0xabcd1234');
-    expect(result[0].id).toBe('0xabcd1234');
+    // Case is preserved for compatibility with case-sensitive chains (e.g., Stellar)
+    expect(result[0].address).toBe('0xABCD1234');
+    expect(result[0].id).toBe('0xABCD1234');
   });
 
   // ===========================================================================
@@ -201,7 +202,8 @@ describe('transformRolesToAccounts', () => {
     const result = transformRolesToAccounts([], ownership);
 
     expect(result).toHaveLength(1);
-    expect(result[0].address).toBe('0xowneraddress');
+    // Case is preserved for compatibility with case-sensitive chains (e.g., Stellar)
+    expect(result[0].address).toBe('0xOwnerAddress');
     expect(result[0].roles).toHaveLength(1);
     expect(result[0].roles[0]).toEqual({ id: 'OWNER_ROLE', name: 'Owner' });
   });
