@@ -57,6 +57,14 @@ export type {
 export { useCurrentLedger, DEFAULT_POLL_INTERVAL_MS } from './useCurrentLedger';
 export type { UseCurrentLedgerOptions, UseCurrentLedgerReturn } from './useCurrentLedger';
 
+// Ownership Transfer Dialog Hook (Feature: 015-ownership-transfer)
+export { useOwnershipTransferDialog } from './useOwnershipTransferDialog';
+export type {
+  TransferOwnershipFormData,
+  UseOwnershipTransferDialogOptions,
+  UseOwnershipTransferDialogReturn,
+} from './useOwnershipTransferDialog';
+
 // Custom Role Descriptions (Feature: 009-roles-page-data)
 export { useCustomRoleDescriptions } from './useCustomRoleDescriptions';
 export type { UseCustomRoleDescriptionsReturn } from './useCustomRoleDescriptions';

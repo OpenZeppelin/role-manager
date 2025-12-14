@@ -7,6 +7,9 @@
  * - AcceptOwnershipDialog: Dialog for accepting pending ownership transfers
  */
 
-// Export ownership dialog components (to be implemented in Phase 3/4)
-// export { TransferOwnershipDialog } from './TransferOwnershipDialog';
+// Export ownership dialog components
+export { TransferOwnershipDialog } from './TransferOwnershipDialog';
+export type { TransferOwnershipDialogProps } from './TransferOwnershipDialog';
+
+// AcceptOwnershipDialog to be implemented in Phase 4
 // export { AcceptOwnershipDialog } from './AcceptOwnershipDialog';

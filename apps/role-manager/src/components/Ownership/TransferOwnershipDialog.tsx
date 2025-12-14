@@ -1,0 +1,405 @@
+/**
+ * TransferOwnershipDialog Component
+ * Feature: 015-ownership-transfer
+ *
+ * Dialog for initiating ownership transfers.
+ * Accessible from the Roles page via the "Transfer Ownership" button.
+ *
+ * Implements:
+ * - T011: Dialog with address input, expiration input (two-step only)
+ * - Current ledger display for expiration validation
+ * - Transaction state rendering using DialogTransactionStates
+ * - Close-during-transaction confirmation prompt
+ * - Wallet disconnection handling
+ *
+ * Key behaviors:
+ * - Address validation via adapter.isValidAddress()
+ * - Self-transfer prevention
+ * - Expiration validation (must be greater than current ledger)
+ * - Transaction state feedback (pending, success, error, cancelled)
+ * - Auto-close after 1.5s success display
+ */
+
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useForm } from 'react-hook-form';
+
+import {
+  AddressField,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Input,
+  Label,
+} from '@openzeppelin/ui-builder-ui';
+import { cn } from '@openzeppelin/ui-builder-utils';
+
+import { getEcosystemAddressExample } from '@/core/ecosystems/registry';
+
+import { useOwnershipTransferDialog } from '../../hooks/useOwnershipTransferDialog';
+import type { TransferOwnershipFormData } from '../../hooks/useOwnershipTransferDialog';
+import { useSelectedContract } from '../../hooks/useSelectedContract';
+import {
+  ConfirmCloseDialog,
+  DialogCancelledState,
+  DialogErrorState,
+  DialogPendingState,
+  DialogSuccessState,
+  WalletDisconnectedAlert,
+} from '../Shared';
+
+// =============================================================================
+// Types
+// =============================================================================
+
+/**
+ * Props for TransferOwnershipDialog component
+ */
+export interface TransferOwnershipDialogProps {
+  /** Whether dialog is open */
+  open: boolean;
+  /** Callback when open state changes */
+  onOpenChange: (open: boolean) => void;
+  /** Current owner address (for self-transfer validation) */
+  currentOwner: string;
+  /** Whether contract supports two-step transfer */
+  hasTwoStepOwnable: boolean;
+  /** Callback when transaction succeeds (for parent to refresh data) */
+  onSuccess?: () => void;
+}
+
+// =============================================================================
+// Component
+// =============================================================================
+
+/**
+ * TransferOwnershipDialog - Dialog for initiating ownership transfers
+ *
+ * @example
+ * ```tsx
+ * <TransferOwnershipDialog
+ *   open={transferDialogOpen}
+ *   onOpenChange={setTransferDialogOpen}
+ *   currentOwner={ownership.owner}
+ *   hasTwoStepOwnable={capabilities.hasTwoStepOwnable}
+ *   onSuccess={() => refetch()}
+ * />
+ * ```
+ */
+export function TransferOwnershipDialog({
+  open,
+  onOpenChange,
+  currentOwner,
+  hasTwoStepOwnable,
+  onSuccess,
+}: TransferOwnershipDialogProps) {
+  // Track confirmation dialog state
+  const [showConfirmClose, setShowConfirmClose] = useState(false);
+
+  // Dialog state and logic
+  const {
+    step,
+    errorMessage,
+    txStatus,
+    isWalletConnected,
+    requiresExpiration,
+    currentLedger,
+    submit,
+    retry,
+    reset,
+  } = useOwnershipTransferDialog({
+    currentOwner,
+    hasTwoStepOwnable,
+    onClose: () => onOpenChange(false),
+    onSuccess,
+  });
+
+  // Get adapter for address validation
+  const { adapter, isAdapterLoading } = useSelectedContract();
+
+  // React Hook Form setup
+  const form = useForm<TransferOwnershipFormData>({
+    defaultValues: {
+      newOwnerAddress: '',
+      expirationLedger: '',
+    },
+    mode: 'onChange',
+  });
+
+  // Reset state when dialog opens
+  const wasOpenRef = useRef(open);
+  useEffect(() => {
+    if (open && !wasOpenRef.current) {
+      // Dialog just opened - reset to fresh state
+      reset();
+      form.reset({ newOwnerAddress: '', expirationLedger: '' });
+    }
+    wasOpenRef.current = open;
+  }, [open, reset, form]);
+
+  // Handle dialog close with confirmation during transaction
+  const handleClose = useCallback(
+    (open: boolean) => {
+      if (open) return;
+
+      // Show confirmation prompt during pending/confirming states
+      if (step === 'pending' || step === 'confirming') {
+        setShowConfirmClose(true);
+        return;
+      }
+      reset();
+      form.reset();
+      onOpenChange(false);
+    },
+    [step, reset, form, onOpenChange]
+  );
+
+  // Confirm close during transaction
+  const handleConfirmClose = useCallback(() => {
+    setShowConfirmClose(false);
+    reset();
+    form.reset();
+    onOpenChange(false);
+  }, [reset, form, onOpenChange]);
+
+  // Cancel confirmation and return to transaction
+  const handleCancelConfirmClose = useCallback(() => {
+    setShowConfirmClose(false);
+  }, []);
+
+  // Handle cancel button
+  const handleCancel = useCallback(() => {
+    handleClose(false);
+  }, [handleClose]);
+
+  // Handle back from cancelled state
+  const handleBackFromCancelled = useCallback(() => {
+    // Use retry() instead of reset() to preserve form inputs for retry
+    retry();
+  }, [retry]);
+
+  // Handle form submission
+  const handleSubmit = useCallback(
+    async (data: TransferOwnershipFormData) => {
+      await submit(data);
+    },
+    [submit]
+  );
+
+  // Dialog title and description
+  const dialogTitle = hasTwoStepOwnable ? 'Transfer Ownership' : 'Transfer Ownership';
+  const dialogDescription = hasTwoStepOwnable
+    ? 'Initiate a two-step ownership transfer. The new owner must accept before the expiration.'
+    : 'Transfer contract ownership to a new address. This action is immediate and irreversible.';
+
+  // =============================================================================
+  // Render Content Based on Step
+  // =============================================================================
+
+  const renderContent = () => {
+    switch (step) {
+      case 'pending':
+      case 'confirming':
+        return (
+          <DialogPendingState
+            title="Transferring Ownership..."
+            description="Please confirm the transaction in your wallet"
+            txStatus={txStatus}
+          />
+        );
+
+      case 'success':
+        return (
+          <DialogSuccessState
+            title={hasTwoStepOwnable ? 'Transfer Initiated!' : 'Ownership Transferred!'}
+            description={
+              hasTwoStepOwnable
+                ? 'The new owner must accept the transfer before expiration.'
+                : 'Ownership has been successfully transferred to the new address.'
+            }
+          />
+        );
+
+      case 'error':
+        return (
+          <DialogErrorState
+            title="Transfer Failed"
+            message={errorMessage || 'An error occurred while processing the transaction.'}
+            canRetry={true}
+            onRetry={retry}
+            onCancel={handleCancel}
+          />
+        );
+
+      case 'cancelled':
+        return (
+          <DialogCancelledState
+            message="The transaction was cancelled. You can try again or close the dialog."
+            onBack={handleBackFromCancelled}
+            onClose={() => handleClose(false)}
+          />
+        );
+
+      case 'form':
+      default:
+        return (
+          <TransferOwnershipFormContent
+            key={adapter ? 'with-adapter' : 'no-adapter'}
+            form={form}
+            adapter={adapter}
+            isAdapterLoading={isAdapterLoading}
+            isWalletConnected={isWalletConnected}
+            requiresExpiration={requiresExpiration}
+            currentLedger={currentLedger}
+            onCancel={handleCancel}
+            onSubmit={handleSubmit}
+          />
+        );
+    }
+  };
+
+  return (
+    <>
+      <Dialog open={open} onOpenChange={handleClose}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle>{dialogTitle}</DialogTitle>
+            <DialogDescription>{dialogDescription}</DialogDescription>
+          </DialogHeader>
+
+          {renderContent()}
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirmation dialog when closing during transaction */}
+      <ConfirmCloseDialog
+        open={showConfirmClose}
+        onCancel={handleCancelConfirmClose}
+        onConfirm={handleConfirmClose}
+      />
+    </>
+  );
+}
+
+// =============================================================================
+// TransferOwnershipFormContent (Internal)
+// =============================================================================
+
+interface TransferOwnershipFormContentProps {
+  form: ReturnType<typeof useForm<TransferOwnershipFormData>>;
+  adapter: ReturnType<typeof useSelectedContract>['adapter'];
+  isAdapterLoading: boolean;
+  isWalletConnected: boolean;
+  requiresExpiration: boolean;
+  currentLedger: number | null;
+  onCancel: () => void;
+  onSubmit: (data: TransferOwnershipFormData) => Promise<void>;
+}
+
+function TransferOwnershipFormContent({
+  form,
+  adapter,
+  isAdapterLoading,
+  isWalletConnected,
+  requiresExpiration,
+  currentLedger,
+  onCancel,
+  onSubmit,
+}: TransferOwnershipFormContentProps) {
+  const {
+    control,
+    handleSubmit,
+    register,
+    watch,
+    formState: { isValid, isSubmitting },
+  } = form;
+
+  const expirationValue = watch('expirationLedger');
+
+  // Validate expiration is greater than current ledger
+  const expirationError = useMemo(() => {
+    if (!requiresExpiration || !expirationValue || currentLedger === null) {
+      return null;
+    }
+    const expNum = parseInt(expirationValue, 10);
+    if (isNaN(expNum) || expNum <= currentLedger) {
+      return `Must be greater than current ledger (${currentLedger})`;
+    }
+    return null;
+  }, [requiresExpiration, expirationValue, currentLedger]);
+
+  // Disable submit if adapter is not loaded, wallet not connected, or form invalid
+  const canSubmit =
+    isValid &&
+    !isSubmitting &&
+    !isAdapterLoading &&
+    adapter !== null &&
+    isWalletConnected &&
+    !expirationError;
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-4">
+      {/* Wallet Disconnection Alert */}
+      {!isWalletConnected && <WalletDisconnectedAlert />}
+
+      {/* New Owner Address Field */}
+      <div className="space-y-1.5">
+        <AddressField
+          id="transfer-ownership-address"
+          name="newOwnerAddress"
+          label="New Owner Address"
+          placeholder={
+            adapter ? getEcosystemAddressExample(adapter.networkConfig.ecosystem) : '0x...'
+          }
+          helperText="The address that will become the new owner of this contract."
+          control={control}
+          adapter={adapter ?? undefined}
+          validation={{ required: true }}
+        />
+      </div>
+
+      {/* Expiration Ledger Field (Two-Step Only) */}
+      {requiresExpiration && (
+        <div className="space-y-1.5">
+          <Label htmlFor="transfer-ownership-expiration">Expiration Ledger</Label>
+          <Input
+            id="transfer-ownership-expiration"
+            type="number"
+            placeholder="Enter ledger number"
+            {...register('expirationLedger', { required: requiresExpiration })}
+            className={cn(expirationError && 'border-destructive')}
+          />
+          <div className="flex justify-between items-start">
+            <p className="text-xs text-muted-foreground">
+              The transfer must be accepted before this ledger number.
+            </p>
+            {currentLedger !== null && (
+              <p className="text-xs text-muted-foreground whitespace-nowrap ml-2">
+                Current: {currentLedger.toLocaleString()}
+              </p>
+            )}
+          </div>
+          {expirationError && <p className="text-xs text-destructive">{expirationError}</p>}
+        </div>
+      )}
+
+      {/* Action Buttons */}
+      <DialogFooter className="gap-2 sm:gap-0 pt-2">
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={onCancel}
+          aria-label="Cancel and close dialog"
+        >
+          Cancel
+        </Button>
+        <Button type="submit" disabled={!canSubmit} aria-label="Transfer ownership to new address">
+          {isAdapterLoading ? 'Loading...' : 'Transfer Ownership'}
+        </Button>
+      </DialogFooter>
+    </form>
+  );
+}

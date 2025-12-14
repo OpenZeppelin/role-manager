@@ -27,6 +27,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { Button, Card } from '@openzeppelin/ui-builder-ui';
 import { cn } from '@openzeppelin/ui-builder-utils';
 
+import { TransferOwnershipDialog } from '../components/Ownership';
 import {
   AssignRoleDialog,
   EditRoleDialog,
@@ -53,6 +54,7 @@ export function Roles() {
     setSelectedRoleId,
     selectedRole,
     hasContractSelected,
+    capabilities, // Feature 015: for hasTwoStepOwnable
     isLoading,
     isRefreshing, // T051: Subtle refresh loading state
     isSupported,
@@ -78,6 +80,9 @@ export function Roles() {
     roleId: string;
     roleName: string;
   } | null>(null);
+
+  // Spec 015 (T014): Transfer Ownership dialog state
+  const [isTransferOwnershipDialogOpen, setIsTransferOwnershipDialogOpen] = useState(false);
 
   // Get contract info for display
   const { selectedContract } = useSelectedContract();
@@ -134,6 +139,11 @@ export function Roles() {
     },
     [selectedRole]
   );
+
+  // Spec 015 (T014): Open transfer ownership dialog
+  const handleTransferOwnership = useCallback(() => {
+    setIsTransferOwnershipDialogOpen(true);
+  }, []);
 
   // Phase 6: Handle description save from dialog
   const handleSaveDescription = useCallback(
@@ -246,9 +256,7 @@ export function Roles() {
                 onEdit={handleOpenEditDialog}
                 onAssign={handleAssignRole}
                 onRevoke={handleRevokeRole}
-                onTransferOwnership={() => {
-                  // Action placeholder for future mutations (spec 010)
-                }}
+                onTransferOwnership={handleTransferOwnership}
               />
             ) : (
               <div className="flex items-center justify-center h-full p-6 text-muted-foreground">
@@ -295,6 +303,21 @@ export function Roles() {
           roleName={revokeTarget.roleName}
         />
       )}
+
+      {/* Spec 015 (T014): Transfer Ownership Dialog */}
+      {/* Get current owner from the Owner role (first member of owner role) */}
+      {(() => {
+        const ownerRole = roles.find((r) => r.isOwnerRole);
+        const currentOwner = ownerRole?.members[0] ?? '';
+        return (
+          <TransferOwnershipDialog
+            open={isTransferOwnershipDialogOpen}
+            onOpenChange={setIsTransferOwnershipDialogOpen}
+            currentOwner={currentOwner}
+            hasTwoStepOwnable={capabilities?.hasTwoStepOwnable ?? false}
+          />
+        );
+      })()}
     </div>
   );
 }

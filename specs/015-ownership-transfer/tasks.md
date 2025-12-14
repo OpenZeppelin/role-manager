@@ -44,19 +44,19 @@
 
 ### Hooks
 
-- [ ] T008 [P] [US1] Create test file `apps/role-manager/src/hooks/__tests__/useOwnershipTransferDialog.test.tsx` with tests for: step transitions, form validation (address, self-transfer, expiration), submit flow, retry, reset
-- [ ] T009 [US1] Create `apps/role-manager/src/hooks/useOwnershipTransferDialog.ts` implementing `UseOwnershipTransferDialogReturn` interface
-- [ ] T010 [US1] Add `useOwnershipTransferDialog` export to `apps/role-manager/src/hooks/index.ts`
+- [x] T008 [P] [US1] Create test file `apps/role-manager/src/hooks/__tests__/useOwnershipTransferDialog.test.tsx` with tests for: step transitions, form validation (address, self-transfer, expiration), submit flow, retry, reset
+- [x] T009 [US1] Create `apps/role-manager/src/hooks/useOwnershipTransferDialog.ts` implementing `UseOwnershipTransferDialogReturn` interface
+- [x] T010 [US1] Add `useOwnershipTransferDialog` export to `apps/role-manager/src/hooks/index.ts`
 
 ### Components
 
-- [ ] T011 [US1] Create `apps/role-manager/src/components/Ownership/TransferOwnershipDialog.tsx` with: address input, expiration input (two-step only), current ledger display, validation messages, transaction states
-- [ ] T012 [US1] Add `TransferOwnershipDialog` export to `apps/role-manager/src/components/Ownership/index.ts`
+- [x] T011 [US1] Create `apps/role-manager/src/components/Ownership/TransferOwnershipDialog.tsx` with: address input, expiration input (two-step only), current ledger display, validation messages, transaction states
+- [x] T012 [US1] Add `TransferOwnershipDialog` export to `apps/role-manager/src/components/Ownership/index.ts`
 
 ### Integration
 
-- [ ] T013 [US1] Modify `apps/role-manager/src/components/Roles/OwnerAccountRow.tsx` (or equivalent) to add "Transfer Ownership" button visible only when connected wallet is current owner
-- [ ] T014 [US1] Add dialog state and `TransferOwnershipDialog` to `apps/role-manager/src/pages/Roles.tsx`
+- [x] T013 [US1] Modify `apps/role-manager/src/components/Roles/OwnerAccountRow.tsx` (or equivalent) to add "Transfer Ownership" button visible only when connected wallet is current owner
+- [x] T014 [US1] Add dialog state and `TransferOwnershipDialog` to `apps/role-manager/src/pages/Roles.tsx`
 
 ---
 

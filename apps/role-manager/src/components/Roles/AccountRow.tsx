@@ -88,16 +88,19 @@ export function AccountRow({
             </Button>
           </>
         ) : (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={onTransferOwnership}
-            className="h-7 px-3 text-xs border-blue-600 text-blue-700 hover:bg-blue-50"
-            disabled={!onTransferOwnership}
-          >
-            <Crown className="h-3 w-3 mr-1" />
-            Transfer Ownership
-          </Button>
+          // FR-006: Transfer Ownership button only visible when connected wallet is current owner
+          isCurrentUser &&
+          onTransferOwnership && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={onTransferOwnership}
+              className="h-7 px-3 text-xs border-blue-600 text-blue-700 hover:bg-blue-50"
+            >
+              <Crown className="h-3 w-3 mr-1" />
+              Transfer Ownership
+            </Button>
+          )
         )}
       </div>
     </div>
