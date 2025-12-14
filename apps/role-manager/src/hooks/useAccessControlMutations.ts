@@ -29,10 +29,10 @@ import type {
 import { useAccessControlService } from './useAccessControlService';
 
 // ============================================================================
-// Query Keys (must match useContractData.ts)
+// Query Keys (must match useContractRolesEnriched.ts and useContractData.ts)
 // ============================================================================
 
-const rolesQueryKey = (address: string) => ['contractRoles', address] as const;
+const enrichedRolesQueryKey = (address: string) => ['contractRolesEnriched', address] as const;
 const ownershipQueryKey = (address: string) => ['contractOwnership', address] as const;
 
 // ============================================================================
@@ -259,9 +259,11 @@ export function useGrantRole(
       );
     },
     onSuccess: (result) => {
-      // Invalidate roles query to refetch updated data (FR-014)
+      // Only invalidate enrichedRoles - when it refetches, it populates the basic
+      // roles cache via setQueryData in useContractRolesEnriched.
+      // This prevents double-fetching that would occur if we invalidated both.
       queryClient.invalidateQueries({
-        queryKey: rolesQueryKey(contractAddress),
+        queryKey: enrichedRolesQueryKey(contractAddress),
       });
       options?.onSuccess?.(result);
     },
@@ -374,9 +376,11 @@ export function useRevokeRole(
       );
     },
     onSuccess: (result) => {
-      // Invalidate roles query to refetch updated data (FR-014)
+      // Only invalidate enrichedRoles - when it refetches, it populates the basic
+      // roles cache via setQueryData in useContractRolesEnriched.
+      // This prevents double-fetching that would occur if we invalidated both.
       queryClient.invalidateQueries({
-        queryKey: rolesQueryKey(contractAddress),
+        queryKey: enrichedRolesQueryKey(contractAddress),
       });
       options?.onSuccess?.(result);
     },

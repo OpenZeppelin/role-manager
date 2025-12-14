@@ -274,17 +274,18 @@ export function Roles() {
       />
 
       {/* Spec 014 (T041): Assign Role Dialog */}
+      {/* Note: onSuccess callback removed - query invalidation in mutations handles data refresh */}
       {selectedRole && (
         <AssignRoleDialog
           open={isAssignRoleDialogOpen}
           onOpenChange={setIsAssignRoleDialogOpen}
           initialRoleId={selectedRole.roleId}
           initialRoleName={selectedRole.roleName}
-          onSuccess={() => refetch()}
         />
       )}
 
       {/* Spec 014 (T054): Revoke Role Dialog */}
+      {/* Note: onSuccess callback removed - query invalidation in mutations handles data refresh */}
       {revokeTarget && (
         <RevokeRoleDialog
           open={!!revokeTarget}
@@ -292,7 +293,6 @@ export function Roles() {
           accountAddress={revokeTarget.address}
           roleId={revokeTarget.roleId}
           roleName={revokeTarget.roleName}
-          onSuccess={() => refetch()}
         />
       )}
     </div>

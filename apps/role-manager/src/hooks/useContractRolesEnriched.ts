@@ -102,14 +102,18 @@ export function useContractRolesEnriched(
       }
 
       try {
-        // Check if we have cached roles data from useContractRoles to avoid duplicate RPC calls
-        const cachedRoles = queryClient.getQueryData<RoleAssignment[]>(
-          rolesQueryKey(contractAddress)
-        );
+        const enrichedRoles = await service.getCurrentRolesEnriched(contractAddress);
 
-        // Pass cached roles if available and fresh (within stale time)
-        // The service will skip redundant on-chain calls when prefetchedRoles is provided
-        return await service.getCurrentRolesEnriched(contractAddress, cachedRoles);
+        // Also populate the basic roles cache to prevent redundant fetches
+        // when other components (like ManageRolesDialog via useRolesPageData) need role data.
+        // This converts enriched roles back to basic RoleAssignment format.
+        const basicRoles: RoleAssignment[] = enrichedRoles.map((er) => ({
+          role: er.role,
+          members: er.members.map((m) => m.address),
+        }));
+        queryClient.setQueryData(rolesQueryKey(contractAddress), basicRoles);
+
+        return enrichedRoles;
       } catch (err) {
         throw wrapError(err, 'enriched-roles');
       }
