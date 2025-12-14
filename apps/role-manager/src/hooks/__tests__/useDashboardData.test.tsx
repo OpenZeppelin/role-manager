@@ -2,7 +2,7 @@
  * Unit tests for useDashboardData hook
  * Feature: 007-dashboard-real-data
  *
- * Tests the data aggregation hook that combines useContractRoles
+ * Tests the data aggregation hook that combines useContractRolesEnriched
  * and useContractOwnership for Dashboard display.
  */
 
@@ -11,20 +11,21 @@ import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { type ReactNode } from 'react';
 
-import type {
-  ContractAdapter,
-  OwnershipInfo,
-  RoleAssignment,
-} from '@openzeppelin/ui-builder-types';
+import type { ContractAdapter, OwnershipInfo } from '@openzeppelin/ui-builder-types';
 
+import type { EnrichedRoleAssignment } from '../../types/authorized-accounts';
 import { DataError, ErrorCategory } from '../../utils/errors';
 import * as useContractDataModule from '../useContractData';
+import * as useContractRolesEnrichedModule from '../useContractRolesEnriched';
 import { useDashboardData } from '../useDashboardData';
 
-// Mock the useContractData hooks
+// Mock the hooks
 vi.mock('../useContractData', () => ({
-  useContractRoles: vi.fn(),
   useContractOwnership: vi.fn(),
+}));
+
+vi.mock('../useContractRolesEnriched', () => ({
+  useContractRolesEnriched: vi.fn(),
 }));
 
 describe('useDashboardData', () => {
@@ -62,7 +63,7 @@ describe('useDashboardData', () => {
 
   describe('initial state', () => {
     it('returns loading state when data is being fetched', () => {
-      vi.mocked(useContractDataModule.useContractRoles).mockReturnValue({
+      vi.mocked(useContractRolesEnrichedModule.useContractRolesEnriched).mockReturnValue({
         roles: [],
         isLoading: true,
         isFetching: true,
@@ -99,9 +100,16 @@ describe('useDashboardData', () => {
   });
 
   describe('with loaded data', () => {
-    const mockRoles: RoleAssignment[] = [
-      { role: { id: '0x1', label: 'ADMIN' }, members: ['0xabc', '0xdef'] },
-      { role: { id: '0x2', label: 'MINTER' }, members: ['0xdef', '0x123'] },
+    // Enriched roles have members as objects with address and optional grantedAt
+    const mockEnrichedRoles: EnrichedRoleAssignment[] = [
+      {
+        role: { id: '0x1', label: 'ADMIN' },
+        members: [{ address: '0xabc' }, { address: '0xdef' }],
+      },
+      {
+        role: { id: '0x2', label: 'MINTER' },
+        members: [{ address: '0xdef' }, { address: '0x123' }],
+      },
     ];
 
     const mockOwnership: OwnershipInfo = {
@@ -109,8 +117,8 @@ describe('useDashboardData', () => {
     };
 
     beforeEach(() => {
-      vi.mocked(useContractDataModule.useContractRoles).mockReturnValue({
-        roles: mockRoles,
+      vi.mocked(useContractRolesEnrichedModule.useContractRolesEnriched).mockReturnValue({
+        roles: mockEnrichedRoles,
         isLoading: false,
         isFetching: false,
         error: null,
@@ -180,7 +188,7 @@ describe('useDashboardData', () => {
         canRetry: true,
       });
 
-      vi.mocked(useContractDataModule.useContractRoles).mockReturnValue({
+      vi.mocked(useContractRolesEnrichedModule.useContractRolesEnriched).mockReturnValue({
         roles: [],
         isLoading: false,
         isFetching: false,
@@ -220,7 +228,7 @@ describe('useDashboardData', () => {
         canRetry: true,
       });
 
-      vi.mocked(useContractDataModule.useContractRoles).mockReturnValue({
+      vi.mocked(useContractRolesEnrichedModule.useContractRolesEnriched).mockReturnValue({
         roles: [],
         isLoading: false,
         isFetching: false,
@@ -266,7 +274,7 @@ describe('useDashboardData', () => {
         }
       );
 
-      vi.mocked(useContractDataModule.useContractRoles).mockReturnValue({
+      vi.mocked(useContractRolesEnrichedModule.useContractRolesEnriched).mockReturnValue({
         roles: [],
         isLoading: false,
         isFetching: false,
@@ -307,7 +315,7 @@ describe('useDashboardData', () => {
       const mockRolesRefetch = vi.fn().mockResolvedValue(undefined);
       const mockOwnershipRefetch = vi.fn().mockResolvedValue(undefined);
 
-      vi.mocked(useContractDataModule.useContractRoles).mockReturnValue({
+      vi.mocked(useContractRolesEnrichedModule.useContractRolesEnriched).mockReturnValue({
         roles: [],
         isLoading: false,
         isFetching: false,
@@ -347,7 +355,7 @@ describe('useDashboardData', () => {
       const mockRolesRefetch = vi.fn().mockRejectedValue(new Error('Network error'));
       const mockOwnershipRefetch = vi.fn().mockResolvedValue(undefined);
 
-      vi.mocked(useContractDataModule.useContractRoles).mockReturnValue({
+      vi.mocked(useContractRolesEnrichedModule.useContractRolesEnriched).mockReturnValue({
         roles: [],
         isLoading: false,
         isFetching: false,
@@ -384,7 +392,7 @@ describe('useDashboardData', () => {
       const mockRolesRefetch = vi.fn().mockResolvedValue(undefined);
       const mockOwnershipRefetch = vi.fn().mockRejectedValue(new Error('Failed to load ownership'));
 
-      vi.mocked(useContractDataModule.useContractRoles).mockReturnValue({
+      vi.mocked(useContractRolesEnrichedModule.useContractRolesEnriched).mockReturnValue({
         roles: [],
         isLoading: false,
         isFetching: false,
@@ -421,7 +429,7 @@ describe('useDashboardData', () => {
       const mockRolesRefetch = vi.fn().mockRejectedValue('string error');
       const mockOwnershipRefetch = vi.fn().mockResolvedValue(undefined);
 
-      vi.mocked(useContractDataModule.useContractRoles).mockReturnValue({
+      vi.mocked(useContractRolesEnrichedModule.useContractRolesEnriched).mockReturnValue({
         roles: [],
         isLoading: false,
         isFetching: false,
@@ -457,8 +465,8 @@ describe('useDashboardData', () => {
 
   describe('capability detection', () => {
     it('detects AccessControl capability from roles', () => {
-      vi.mocked(useContractDataModule.useContractRoles).mockReturnValue({
-        roles: [{ role: { id: '0x1', label: 'ADMIN' }, members: ['0xabc'] }],
+      vi.mocked(useContractRolesEnrichedModule.useContractRolesEnriched).mockReturnValue({
+        roles: [{ role: { id: '0x1', label: 'ADMIN' }, members: [{ address: '0xabc' }] }],
         isLoading: false,
         isFetching: false,
         error: null,
@@ -491,7 +499,7 @@ describe('useDashboardData', () => {
     });
 
     it('detects Ownable capability from ownership', () => {
-      vi.mocked(useContractDataModule.useContractRoles).mockReturnValue({
+      vi.mocked(useContractRolesEnrichedModule.useContractRolesEnriched).mockReturnValue({
         roles: [],
         isLoading: false,
         isFetching: false,
@@ -527,7 +535,7 @@ describe('useDashboardData', () => {
 
   describe('with null adapter', () => {
     it('handles null adapter gracefully', () => {
-      vi.mocked(useContractDataModule.useContractRoles).mockReturnValue({
+      vi.mocked(useContractRolesEnrichedModule.useContractRolesEnriched).mockReturnValue({
         roles: [],
         isLoading: false,
         isFetching: false,
@@ -563,7 +571,7 @@ describe('useDashboardData', () => {
 
   describe('with empty contract address', () => {
     it('handles empty contract address', () => {
-      vi.mocked(useContractDataModule.useContractRoles).mockReturnValue({
+      vi.mocked(useContractRolesEnrichedModule.useContractRolesEnriched).mockReturnValue({
         roles: [],
         isLoading: false,
         isFetching: false,

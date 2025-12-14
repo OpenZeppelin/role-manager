@@ -3,15 +3,16 @@
  * Feature: 011-accounts-real-data
  *
  * Provides enriched role assignments with member timestamps from the
- * AccessControlService. Falls back to regular getCurrentRoles() when
- * enriched API is unavailable.
+ * AccessControlService. After fetching enriched data, this hook also
+ * populates the basic roles cache (useContractRoles query key) so that
+ * other components can reuse the data without making additional RPC calls.
  *
  * Tasks: T027, T028
  */
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
-import type { ContractAdapter } from '@openzeppelin/ui-builder-types';
+import type { ContractAdapter, RoleAssignment } from '@openzeppelin/ui-builder-types';
 
 import type { EnrichedRoleAssignment } from '../types/authorized-accounts';
 import { DataError, ErrorCategory, wrapError } from '../utils/errors';
@@ -47,10 +48,20 @@ export interface UseContractRolesEnrichedReturn {
 const enrichedRolesQueryKey = (address: string) => ['contractRolesEnriched', address] as const;
 
 /**
+ * Query key factory for contract roles (matches useContractData.ts)
+ */
+const rolesQueryKey = (address: string) => ['contractRoles', address] as const;
+
+/**
  * Hook that fetches enriched role assignments with timestamps.
  *
  * Uses the AccessControlService's getCurrentRolesEnriched() API when available,
  * falling back to getCurrentRoles() and converting to enriched format.
+ *
+ * Performance optimization: After fetching enriched roles, this hook also populates
+ * the basic roles cache (used by useContractRoles). This enables cache sharing across
+ * pages - when Dashboard or Authorized Accounts loads first, the Roles page benefits
+ * from the already-cached basic roles data.
  *
  * @param adapter - Contract adapter instance
  * @param contractAddress - Contract address to fetch roles for
@@ -73,6 +84,7 @@ export function useContractRolesEnriched(
   isContractRegistered: boolean = true
 ): UseContractRolesEnrichedReturn {
   const { service, isReady } = useAccessControlService(adapter);
+  const queryClient = useQueryClient();
 
   const {
     data: roles,
@@ -92,9 +104,18 @@ export function useContractRolesEnriched(
       }
 
       try {
-        // It returns enriched roles with timestamps when indexer is available,
-        // or gracefully degrades to basic member info without timestamps
-        return await service.getCurrentRolesEnriched(contractAddress);
+        const enrichedRoles = await service.getCurrentRolesEnriched(contractAddress);
+
+        // Also populate the basic roles cache to prevent redundant fetches
+        // when other components (like ManageRolesDialog via useRolesPageData) need role data.
+        // This converts enriched roles back to basic RoleAssignment format.
+        const basicRoles: RoleAssignment[] = enrichedRoles.map((er) => ({
+          role: er.role,
+          members: er.members.map((m) => m.address),
+        }));
+        queryClient.setQueryData(rolesQueryKey(contractAddress), basicRoles);
+
+        return enrichedRoles;
       } catch (err) {
         throw wrapError(err, 'enriched-roles');
       }

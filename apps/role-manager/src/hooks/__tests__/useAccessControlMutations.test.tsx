@@ -422,8 +422,13 @@ describe('useGrantRole', () => {
         });
       });
 
+      // In test environment without active observers, both query keys are invalidated.
+      // In production, smart invalidation may behave differently based on active observers.
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
         queryKey: ['contractRoles', 'CONTRACT_ADDRESS'],
+      });
+      expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+        queryKey: ['contractRolesEnriched', 'CONTRACT_ADDRESS'],
       });
     });
 
@@ -459,6 +464,84 @@ describe('useGrantRole', () => {
       });
 
       expect(invalidateQueriesSpy).not.toHaveBeenCalled();
+    });
+
+    it('should cancel and invalidate basic query when enriched has observers', async () => {
+      const queryClient = new QueryClient({
+        defaultOptions: {
+          queries: { retry: false, gcTime: 0 },
+          mutations: { retry: false },
+        },
+      });
+
+      // Set up an enriched roles query with an observer count > 0
+      // We mock the getQueryCache().find() to return a query with observers
+      const cancelQueriesSpy = vi.spyOn(queryClient, 'cancelQueries');
+      const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
+
+      // Mock the query cache to simulate having active observers on enriched query
+      const mockQuery = { getObserversCount: () => 1 };
+      vi.spyOn(queryClient.getQueryCache(), 'find').mockReturnValue(mockQuery as never);
+
+      const { result } = renderHook(() => useGrantRole(mockAdapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(queryClient),
+      });
+
+      await act(async () => {
+        await result.current.mutateAsync({
+          roleId: 'MINTER_ROLE',
+          account: '0x2222222222222222222222222222222222222222',
+          executionConfig: mockExecutionConfig,
+        });
+      });
+
+      // When enriched has observers, basic query is cancelled then invalidated
+      expect(cancelQueriesSpy).toHaveBeenCalledWith({
+        queryKey: ['contractRoles', 'CONTRACT_ADDRESS'],
+      });
+      expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+        queryKey: ['contractRoles', 'CONTRACT_ADDRESS'],
+      });
+      expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+        queryKey: ['contractRolesEnriched', 'CONTRACT_ADDRESS'],
+      });
+    });
+
+    it('should invalidate both queries without cancel when no enriched observers', async () => {
+      const queryClient = new QueryClient({
+        defaultOptions: {
+          queries: { retry: false, gcTime: 0 },
+          mutations: { retry: false },
+        },
+      });
+
+      const cancelQueriesSpy = vi.spyOn(queryClient, 'cancelQueries');
+      const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
+
+      // Mock the query cache to simulate NO active observers on enriched query
+      const mockQuery = { getObserversCount: () => 0 };
+      vi.spyOn(queryClient.getQueryCache(), 'find').mockReturnValue(mockQuery as never);
+
+      const { result } = renderHook(() => useGrantRole(mockAdapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(queryClient),
+      });
+
+      await act(async () => {
+        await result.current.mutateAsync({
+          roleId: 'MINTER_ROLE',
+          account: '0x2222222222222222222222222222222222222222',
+          executionConfig: mockExecutionConfig,
+        });
+      });
+
+      // When no enriched observers, both queries are invalidated without cancel
+      expect(cancelQueriesSpy).not.toHaveBeenCalled();
+      expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+        queryKey: ['contractRoles', 'CONTRACT_ADDRESS'],
+      });
+      expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+        queryKey: ['contractRolesEnriched', 'CONTRACT_ADDRESS'],
+      });
     });
   });
 
@@ -648,8 +731,13 @@ describe('useRevokeRole', () => {
         });
       });
 
+      // In test environment without active observers, both query keys are invalidated.
+      // In production, smart invalidation may behave differently based on active observers.
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
         queryKey: ['contractRoles', 'CONTRACT_ADDRESS'],
+      });
+      expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+        queryKey: ['contractRolesEnriched', 'CONTRACT_ADDRESS'],
       });
     });
   });
@@ -698,6 +786,7 @@ describe('useTransferOwnership', () => {
       await act(async () => {
         await result.current.mutateAsync({
           newOwner: '0x3333333333333333333333333333333333333333',
+          expirationLedger: 12345,
           executionConfig: mockExecutionConfig,
         });
       });
@@ -705,6 +794,7 @@ describe('useTransferOwnership', () => {
       expect(mockService.transferOwnership).toHaveBeenCalledWith(
         'CONTRACT_ADDRESS',
         '0x3333333333333333333333333333333333333333',
+        12345,
         mockExecutionConfig,
         expect.any(Function),
         undefined
@@ -720,6 +810,7 @@ describe('useTransferOwnership', () => {
       await act(async () => {
         operationResult = await result.current.mutateAsync({
           newOwner: '0x3333333333333333333333333333333333333333',
+          expirationLedger: 12345,
           executionConfig: mockExecutionConfig,
         });
       });
@@ -737,6 +828,7 @@ describe('useTransferOwnership', () => {
             async (
               _addr: string,
               _newOwner: string,
+              _expirationLedger: number,
               _config: ExecutionConfig,
               onStatusChange?: (status: TxStatus, details: TransactionStatusUpdate) => void
             ) => {
@@ -765,6 +857,7 @@ describe('useTransferOwnership', () => {
       await act(async () => {
         await result.current.mutateAsync({
           newOwner: '0x3333333333333333333333333333333333333333',
+          expirationLedger: 12345,
           executionConfig: mockExecutionConfig,
         });
       });
@@ -790,6 +883,7 @@ describe('useTransferOwnership', () => {
         try {
           await result.current.mutateAsync({
             newOwner: '0x3333333333333333333333333333333333333333',
+            expirationLedger: 12345,
             executionConfig: mockExecutionConfig,
           });
         } catch {
@@ -814,6 +908,7 @@ describe('useTransferOwnership', () => {
         try {
           await result.current.mutateAsync({
             newOwner: '0x3333333333333333333333333333333333333333',
+            expirationLedger: 12345,
             executionConfig: mockExecutionConfig,
           });
         } catch {
@@ -843,6 +938,7 @@ describe('useTransferOwnership', () => {
       await act(async () => {
         await result.current.mutateAsync({
           newOwner: '0x3333333333333333333333333333333333333333',
+          expirationLedger: 12345,
           executionConfig: mockExecutionConfig,
         });
       });

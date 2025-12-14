@@ -244,11 +244,11 @@ export function AuthorizedAccounts() {
       </Card>
 
       {/* T027: ManageRolesDialog (Feature 014) */}
+      {/* Note: onSuccess callback removed - query invalidation in mutations handles data refresh */}
       <ManageRolesDialog
         open={!!manageRolesAccount}
         onOpenChange={(open) => !open && setManageRolesAccount(null)}
         accountAddress={manageRolesAccount ?? ''}
-        onSuccess={() => refetch()}
       />
     </div>
   );

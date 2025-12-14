@@ -78,7 +78,7 @@ export function RoleDetails({
 
   return (
     <div className={cn(className)}>
-      <CardHeader className="pb-6">
+      <CardHeader className="shrink-0 pt-6 pb-4">
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-2">
@@ -112,10 +112,10 @@ export function RoleDetails({
           )}
         </div>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="pb-6">
         {/* Assigned Accounts */}
         <div>
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-3 shrink-0">
             <h3 className="text-sm font-medium">Assigned Accounts ({accounts.length})</h3>
             {!role.isOwnerRole && (
               <Button size="sm" onClick={onAssign} disabled={!onAssign}>
@@ -124,7 +124,7 @@ export function RoleDetails({
               </Button>
             )}
           </div>
-          <div className="border rounded-lg divide-y max-h-[300px] overflow-y-auto">
+          <div className="border rounded-lg divide-y max-h-[460px] overflow-y-auto">
             {hasAccounts ? (
               accounts.map((account) => (
                 <AccountRow

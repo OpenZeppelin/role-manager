@@ -29,10 +29,11 @@ import type {
 import { useAccessControlService } from './useAccessControlService';
 
 // ============================================================================
-// Query Keys (must match useContractData.ts)
+// Query Keys (must match useContractRolesEnriched.ts and useContractData.ts)
 // ============================================================================
 
 const rolesQueryKey = (address: string) => ['contractRoles', address] as const;
+const enrichedRolesQueryKey = (address: string) => ['contractRolesEnriched', address] as const;
 const ownershipQueryKey = (address: string) => ['contractOwnership', address] as const;
 
 // ============================================================================
@@ -109,12 +110,13 @@ function isUserRejectionError(error: unknown): boolean {
 // ============================================================================
 
 /**
- * Arguments for useGrantRole mutation
+ * Common arguments for role mutation operations (grant/revoke).
+ * Both operations share the same argument structure.
  */
-export interface GrantRoleArgs {
-  /** The role identifier to grant */
+export interface RoleMutationArgs {
+  /** The role identifier */
   roleId: string;
-  /** The account address to grant the role to */
+  /** The account address */
   account: string;
   /** Execution configuration (EOA, relayer, etc.) */
   executionConfig: ExecutionConfig;
@@ -123,18 +125,16 @@ export interface GrantRoleArgs {
 }
 
 /**
- * Arguments for useRevokeRole mutation
+ * Arguments for useGrantRole mutation.
+ * Type alias for RoleMutationArgs since grant and revoke share the same structure.
  */
-export interface RevokeRoleArgs {
-  /** The role identifier to revoke */
-  roleId: string;
-  /** The account address to revoke the role from */
-  account: string;
-  /** Execution configuration (EOA, relayer, etc.) */
-  executionConfig: ExecutionConfig;
-  /** Optional runtime API key for relayer */
-  runtimeApiKey?: string;
-}
+export type GrantRoleArgs = RoleMutationArgs;
+
+/**
+ * Arguments for useRevokeRole mutation.
+ * Type alias for RoleMutationArgs since grant and revoke share the same structure.
+ */
+export type RevokeRoleArgs = RoleMutationArgs;
 
 /**
  * Arguments for useTransferOwnership mutation
@@ -142,6 +142,12 @@ export interface RevokeRoleArgs {
 export interface TransferOwnershipArgs {
   /** The new owner address */
   newOwner: string;
+  /**
+   * The block or ledger number at which the ownership transfer will expire if not accepted.
+   * Used for two-step ownership transfers to set a deadline for the new owner to accept.
+   * After this block/ledger, the transfer becomes invalid and must be re-initiated.
+   */
+  expirationLedger: number;
   /** Execution configuration (EOA, relayer, etc.) */
   executionConfig: ExecutionConfig;
   /** Optional runtime API key for relayer */
@@ -187,41 +193,24 @@ export interface UseAccessControlMutationReturn<TArgs> {
 }
 
 // ============================================================================
-// useGrantRole Hook
+// useRoleMutation (Internal Factory Hook)
 // ============================================================================
 
 /**
- * Hook for granting a role to an account.
+ * Internal factory hook for role mutations (grant/revoke).
+ * Extracts common logic to avoid duplication between useGrantRole and useRevokeRole.
  *
- * Provides mutation functionality with:
- * - Transaction status tracking
- * - Network disconnection detection (FR-010)
- * - User rejection detection (FR-011)
- * - Automatic query invalidation on success (FR-014)
- *
- * @param adapter - The contract adapter instance, or null if not loaded
+ * @param adapter - The contract adapter instance
  * @param contractAddress - The contract address to operate on
- * @param options - Optional callbacks for status changes and completion
- * @returns Mutation controls and state
- *
- * @example
- * ```tsx
- * const { mutate, isPending, error } = useGrantRole(adapter, contractAddress);
- *
- * const handleGrant = () => {
- *   mutate({
- *     roleId: 'MINTER_ROLE',
- *     account: '0x...',
- *     executionConfig: { method: 'eoa' },
- *   });
- * };
- * ```
+ * @param operation - 'grant' or 'revoke'
+ * @param options - Optional callbacks
  */
-export function useGrantRole(
+function useRoleMutation(
   adapter: ContractAdapter | null,
   contractAddress: string,
+  operation: 'grant' | 'revoke',
   options?: MutationHookOptions
-): UseAccessControlMutationReturn<GrantRoleArgs> {
+): UseAccessControlMutationReturn<RoleMutationArgs> {
   const { service, isReady } = useAccessControlService(adapter);
   const queryClient = useQueryClient();
 
@@ -236,11 +225,39 @@ export function useGrantRole(
       setStatusDetails(details);
       options?.onStatusChange?.(newStatus, details);
     },
-    [options]
+    [options?.onStatusChange]
   );
 
+  // Smart invalidation logic shared by both grant and revoke
+  const invalidateRolesQueries = useCallback(() => {
+    // Smart invalidation to prevent double-fetching while ensuring both caches update:
+    // - If enrichedRoles has active observers (Authorized Accounts page), cancel basic
+    //   query to prevent double-fetch - enriched will populate basic via setQueryData
+    // - Otherwise, invalidate both - only the one with observers will refetch,
+    //   the other is just marked stale for when user navigates there
+    const enrichedQuery = queryClient
+      .getQueryCache()
+      .find({ queryKey: enrichedRolesQueryKey(contractAddress), exact: true });
+
+    const hasEnrichedObservers = (enrichedQuery?.getObserversCount() ?? 0) > 0;
+
+    if (hasEnrichedObservers) {
+      // Authorized Accounts page - enriched query will populate basic via setQueryData.
+      // Cancel any in-flight basic query to prevent race conditions, then invalidate
+      // to mark it stale (won't refetch since basic has no active observers here).
+      queryClient.cancelQueries({ queryKey: rolesQueryKey(contractAddress) });
+      queryClient.invalidateQueries({ queryKey: rolesQueryKey(contractAddress) });
+      queryClient.invalidateQueries({ queryKey: enrichedRolesQueryKey(contractAddress) });
+    } else {
+      // Roles page or no observers - invalidate both
+      // Only the one with active observers will refetch; the other is marked stale
+      queryClient.invalidateQueries({ queryKey: rolesQueryKey(contractAddress) });
+      queryClient.invalidateQueries({ queryKey: enrichedRolesQueryKey(contractAddress) });
+    }
+  }, [queryClient, contractAddress]);
+
   const mutation = useMutation({
-    mutationFn: async (args: GrantRoleArgs): Promise<OperationResult> => {
+    mutationFn: async (args: RoleMutationArgs): Promise<OperationResult> => {
       if (!service) {
         throw new Error('Access control service not available');
       }
@@ -249,7 +266,10 @@ export function useGrantRole(
       setStatus('idle');
       setStatusDetails(null);
 
-      return service.grantRole(
+      // Call the appropriate service method based on operation type
+      const serviceMethod = operation === 'grant' ? service.grantRole : service.revokeRole;
+      return serviceMethod.call(
+        service,
         contractAddress,
         args.roleId,
         args.account,
@@ -259,10 +279,7 @@ export function useGrantRole(
       );
     },
     onSuccess: (result) => {
-      // Invalidate roles query to refetch updated data (FR-014)
-      queryClient.invalidateQueries({
-        queryKey: rolesQueryKey(contractAddress),
-      });
+      invalidateRolesQueries();
       options?.onSuccess?.(result);
     },
     onError: (error: Error) => {
@@ -302,6 +319,45 @@ export function useGrantRole(
 }
 
 // ============================================================================
+// useGrantRole Hook
+// ============================================================================
+
+/**
+ * Hook for granting a role to an account.
+ *
+ * Provides mutation functionality with:
+ * - Transaction status tracking
+ * - Network disconnection detection (FR-010)
+ * - User rejection detection (FR-011)
+ * - Automatic query invalidation on success (FR-014)
+ *
+ * @param adapter - The contract adapter instance, or null if not loaded
+ * @param contractAddress - The contract address to operate on
+ * @param options - Optional callbacks for status changes and completion
+ * @returns Mutation controls and state
+ *
+ * @example
+ * ```tsx
+ * const { mutate, isPending, error } = useGrantRole(adapter, contractAddress);
+ *
+ * const handleGrant = () => {
+ *   mutate({
+ *     roleId: 'MINTER_ROLE',
+ *     account: '0x...',
+ *     executionConfig: { method: 'eoa' },
+ *   });
+ * };
+ * ```
+ */
+export function useGrantRole(
+  adapter: ContractAdapter | null,
+  contractAddress: string,
+  options?: MutationHookOptions
+): UseAccessControlMutationReturn<GrantRoleArgs> {
+  return useRoleMutation(adapter, contractAddress, 'grant', options);
+}
+
+// ============================================================================
 // useRevokeRole Hook
 // ============================================================================
 
@@ -337,83 +393,7 @@ export function useRevokeRole(
   contractAddress: string,
   options?: MutationHookOptions
 ): UseAccessControlMutationReturn<RevokeRoleArgs> {
-  const { service, isReady } = useAccessControlService(adapter);
-  const queryClient = useQueryClient();
-
-  // Track transaction status internally
-  const [status, setStatus] = useState<TxStatus>('idle');
-  const [statusDetails, setStatusDetails] = useState<TransactionStatusUpdate | null>(null);
-
-  // Status change handler that updates internal state and calls external callback
-  const handleStatusChange = useCallback(
-    (newStatus: TxStatus, details: TransactionStatusUpdate) => {
-      setStatus(newStatus);
-      setStatusDetails(details);
-      options?.onStatusChange?.(newStatus, details);
-    },
-    [options]
-  );
-
-  const mutation = useMutation({
-    mutationFn: async (args: RevokeRoleArgs): Promise<OperationResult> => {
-      if (!service) {
-        throw new Error('Access control service not available');
-      }
-
-      // Reset status at start
-      setStatus('idle');
-      setStatusDetails(null);
-
-      return service.revokeRole(
-        contractAddress,
-        args.roleId,
-        args.account,
-        args.executionConfig,
-        handleStatusChange,
-        args.runtimeApiKey
-      );
-    },
-    onSuccess: (result) => {
-      // Invalidate roles query to refetch updated data (FR-014)
-      queryClient.invalidateQueries({
-        queryKey: rolesQueryKey(contractAddress),
-      });
-      options?.onSuccess?.(result);
-    },
-    onError: (error: Error) => {
-      setStatus('error');
-      options?.onError?.(error);
-    },
-  });
-
-  // Compute error classification
-  const errorClassification = useMemo(() => {
-    const error = mutation.error;
-    return {
-      isNetworkError: isNetworkDisconnectionError(error),
-      isUserRejection: isUserRejectionError(error),
-    };
-  }, [mutation.error]);
-
-  // Reset function
-  const reset = useCallback(() => {
-    mutation.reset();
-    setStatus('idle');
-    setStatusDetails(null);
-  }, [mutation]);
-
-  return {
-    mutate: mutation.mutate,
-    mutateAsync: mutation.mutateAsync,
-    isPending: mutation.isPending,
-    error: mutation.error as Error | null,
-    status,
-    statusDetails,
-    isReady,
-    isNetworkError: errorClassification.isNetworkError,
-    isUserRejection: errorClassification.isUserRejection,
-    reset,
-  };
+  return useRoleMutation(adapter, contractAddress, 'revoke', options);
 }
 
 // ============================================================================
@@ -481,6 +461,7 @@ export function useTransferOwnership(
       return service.transferOwnership(
         contractAddress,
         args.newOwner,
+        args.expirationLedger,
         args.executionConfig,
         handleStatusChange,
         args.runtimeApiKey

@@ -224,9 +224,9 @@ export function Roles() {
 
       {/* Main Layout: Single Card with List-Detail View */}
       <Card className="py-0 overflow-hidden shadow-none">
-        <div className="flex flex-col lg:flex-row">
-          {/* Left: Roles List (~40% width) */}
-          <div className="lg:w-2/5 p-6 border-r">
+        <div className="flex flex-col lg:flex-row h-[600px]">
+          {/* Left: Roles List (1/3 width) */}
+          <div className="lg:w-1/3 p-6 border-r overflow-y-auto">
             {/* T040: Wire role selection to hook */}
             <RolesList
               roles={roles}
@@ -236,8 +236,8 @@ export function Roles() {
             />
           </div>
 
-          {/* Right: Role Details (~60% width) */}
-          <div className="lg:flex-1 py-6">
+          {/* Right: Role Details (2/3 width) */}
+          <div className="lg:w-2/3 overflow-y-auto">
             {selectedRole ? (
               <RoleDetails
                 role={selectedRole}
@@ -251,7 +251,7 @@ export function Roles() {
                 }}
               />
             ) : (
-              <div className="flex items-center justify-center h-full py-16 text-muted-foreground">
+              <div className="flex items-center justify-center h-full p-6 text-muted-foreground">
                 Select a role to view details
               </div>
             )}
@@ -274,17 +274,18 @@ export function Roles() {
       />
 
       {/* Spec 014 (T041): Assign Role Dialog */}
+      {/* Note: onSuccess callback removed - query invalidation in mutations handles data refresh */}
       {selectedRole && (
         <AssignRoleDialog
           open={isAssignRoleDialogOpen}
           onOpenChange={setIsAssignRoleDialogOpen}
           initialRoleId={selectedRole.roleId}
           initialRoleName={selectedRole.roleName}
-          onSuccess={() => refetch()}
         />
       )}
 
       {/* Spec 014 (T054): Revoke Role Dialog */}
+      {/* Note: onSuccess callback removed - query invalidation in mutations handles data refresh */}
       {revokeTarget && (
         <RevokeRoleDialog
           open={!!revokeTarget}
@@ -292,7 +293,6 @@ export function Roles() {
           accountAddress={revokeTarget.address}
           roleId={revokeTarget.roleId}
           roleName={revokeTarget.roleName}
-          onSuccess={() => refetch()}
         />
       )}
     </div>
