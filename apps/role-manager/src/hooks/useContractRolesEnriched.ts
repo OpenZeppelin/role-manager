@@ -3,15 +3,15 @@
  * Feature: 011-accounts-real-data
  *
  * Provides enriched role assignments with member timestamps from the
- * AccessControlService. Falls back to regular getCurrentRoles() when
- * enriched API is unavailable.
+ * AccessControlService. Reuses cached role data from useContractRoles when
+ * available to avoid duplicate RPC calls.
  *
  * Tasks: T027, T028
  */
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
-import type { ContractAdapter } from '@openzeppelin/ui-builder-types';
+import type { ContractAdapter, RoleAssignment } from '@openzeppelin/ui-builder-types';
 
 import type { EnrichedRoleAssignment } from '../types/authorized-accounts';
 import { DataError, ErrorCategory, wrapError } from '../utils/errors';
@@ -47,10 +47,19 @@ export interface UseContractRolesEnrichedReturn {
 const enrichedRolesQueryKey = (address: string) => ['contractRolesEnriched', address] as const;
 
 /**
+ * Query key factory for contract roles (matches useContractData.ts)
+ */
+const rolesQueryKey = (address: string) => ['contractRoles', address] as const;
+
+/**
  * Hook that fetches enriched role assignments with timestamps.
  *
  * Uses the AccessControlService's getCurrentRolesEnriched() API when available,
  * falling back to getCurrentRoles() and converting to enriched format.
+ *
+ * Performance optimization: This hook checks the React Query cache for existing
+ * role data from useContractRoles. If found, it passes the cached roles to
+ * getCurrentRolesEnriched() to avoid duplicate on-chain RPC calls.
  *
  * @param adapter - Contract adapter instance
  * @param contractAddress - Contract address to fetch roles for
@@ -73,6 +82,7 @@ export function useContractRolesEnriched(
   isContractRegistered: boolean = true
 ): UseContractRolesEnrichedReturn {
   const { service, isReady } = useAccessControlService(adapter);
+  const queryClient = useQueryClient();
 
   const {
     data: roles,
@@ -92,9 +102,14 @@ export function useContractRolesEnriched(
       }
 
       try {
-        // It returns enriched roles with timestamps when indexer is available,
-        // or gracefully degrades to basic member info without timestamps
-        return await service.getCurrentRolesEnriched(contractAddress);
+        // Check if we have cached roles data from useContractRoles to avoid duplicate RPC calls
+        const cachedRoles = queryClient.getQueryData<RoleAssignment[]>(
+          rolesQueryKey(contractAddress)
+        );
+
+        // Pass cached roles if available and fresh (within stale time)
+        // The service will skip redundant on-chain calls when prefetchedRoles is provided
+        return await service.getCurrentRolesEnriched(contractAddress, cachedRoles);
       } catch (err) {
         throw wrapError(err, 'enriched-roles');
       }
