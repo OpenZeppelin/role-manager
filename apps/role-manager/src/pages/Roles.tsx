@@ -237,7 +237,7 @@ export function Roles() {
           </div>
 
           {/* Right: Role Details (2/3 width) */}
-          <div className="lg:w-2/3">
+          <div className="lg:w-2/3 overflow-y-auto">
             {selectedRole ? (
               <RoleDetails
                 role={selectedRole}
