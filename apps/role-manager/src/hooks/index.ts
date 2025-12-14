@@ -38,18 +38,24 @@ export {
   useGrantRole,
   useRevokeRole,
   useTransferOwnership,
+  useAcceptOwnership,
   useExportSnapshot,
 } from './useAccessControlMutations';
 export type {
   GrantRoleArgs,
   RevokeRoleArgs,
   TransferOwnershipArgs,
+  AcceptOwnershipArgs,
   MutationHookOptions,
   UseAccessControlMutationReturn,
   AccessSnapshot,
   UseExportSnapshotReturn,
   ExportSnapshotOptions,
 } from './useAccessControlMutations';
+
+// Current Ledger Hook (Feature: 015-ownership-transfer)
+export { useCurrentLedger, DEFAULT_POLL_INTERVAL_MS } from './useCurrentLedger';
+export type { UseCurrentLedgerOptions, UseCurrentLedgerReturn } from './useCurrentLedger';
 
 // Custom Role Descriptions (Feature: 009-roles-page-data)
 export { useCustomRoleDescriptions } from './useCustomRoleDescriptions';

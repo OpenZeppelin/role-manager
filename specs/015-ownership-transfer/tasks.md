@@ -10,8 +10,8 @@
 
 **Goal**: Prepare project structure for ownership transfer feature.
 
-- [ ] T001 Create `apps/role-manager/src/components/Ownership/` directory
-- [ ] T002 Create barrel export file `apps/role-manager/src/components/Ownership/index.ts`
+- [x] T001 Create `apps/role-manager/src/components/Ownership/` directory
+- [x] T002 Create barrel export file `apps/role-manager/src/components/Ownership/index.ts`
 
 ---
 
@@ -23,14 +23,14 @@
 
 ### useCurrentLedger Hook
 
-- [ ] T003 [P] Create test file `apps/role-manager/src/hooks/__tests__/useCurrentLedger.test.tsx` with tests for: initial fetch, polling, error handling, manual refetch, enabled toggle
-- [ ] T004 Create `apps/role-manager/src/hooks/useCurrentLedger.ts` implementing `UseCurrentLedgerReturn` interface from contracts/hooks.ts
-- [ ] T005 Add `useCurrentLedger` export to `apps/role-manager/src/hooks/index.ts`
+- [x] T003 [P] Create test file `apps/role-manager/src/hooks/__tests__/useCurrentLedger.test.tsx` with tests for: initial fetch, polling, error handling, manual refetch, enabled toggle
+- [x] T004 Create `apps/role-manager/src/hooks/useCurrentLedger.ts` implementing `UseCurrentLedgerReturn` interface from contracts/hooks.ts
+- [x] T005 Add `useCurrentLedger` export to `apps/role-manager/src/hooks/index.ts`
 
 ### useAcceptOwnership Hook
 
-- [ ] T006 [P] Add tests for `useAcceptOwnership` to `apps/role-manager/src/hooks/__tests__/useAccessControlMutations.test.tsx`: success flow, error handling, status tracking, query invalidation, user rejection
-- [ ] T007 Add `useAcceptOwnership` hook to `apps/role-manager/src/hooks/useAccessControlMutations.ts` implementing `UseAcceptOwnershipReturn` interface
+- [x] T006 [P] Add tests for `useAcceptOwnership` to `apps/role-manager/src/hooks/__tests__/useAccessControlMutations.test.tsx`: success flow, error handling, status tracking, query invalidation, user rejection
+- [x] T007 Add `useAcceptOwnership` hook to `apps/role-manager/src/hooks/useAccessControlMutations.ts` implementing `UseAcceptOwnershipReturn` interface
 
 ---
 
