@@ -94,10 +94,10 @@
 
 **Dependencies**: None (can run in parallel with Phase 3-4)
 
-- [ ] T022 [P] [US3] Modify `apps/role-manager/src/pages/Roles.tsx` to sort Owner role to top of role list (before other roles)
-- [ ] T023 [US3] Ensure Owner role details panel shows current owner address with consistent formatting (FR-002, FR-005)
-- [ ] T024 [US3] Add loading/skeleton state for ownership data in Owner role panel (FR-005c)
-- [ ] T025 [US3] Add conditional rendering to hide Owner role when `hasOwnable` is false (FR-004)
+- [x] T022 [P] [US3] Modify `apps/role-manager/src/pages/Roles.tsx` to sort Owner role to top of role list (before other roles)
+- [x] T023 [US3] Ensure Owner role details panel shows current owner address with consistent formatting (FR-002, FR-005)
+- [x] T024 [US3] Add loading/skeleton state for ownership data in Owner role panel (FR-005c)
+- [x] T025 [US3] Add conditional rendering to hide Owner role when `hasOwnable` is false (FR-004)
 
 ---
 
