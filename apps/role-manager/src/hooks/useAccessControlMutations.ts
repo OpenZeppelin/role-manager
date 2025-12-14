@@ -142,7 +142,11 @@ export type RevokeRoleArgs = RoleMutationArgs;
 export interface TransferOwnershipArgs {
   /** The new owner address */
   newOwner: string;
-  /** Expiration block/ledger for two-step ownership transfer */
+  /**
+   * The block or ledger number at which the ownership transfer will expire if not accepted.
+   * Used for two-step ownership transfers to set a deadline for the new owner to accept.
+   * After this block/ledger, the transfer becomes invalid and must be re-initiated.
+   */
   expirationLedger: number;
   /** Execution configuration (EOA, relayer, etc.) */
   executionConfig: ExecutionConfig;

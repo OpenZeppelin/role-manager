@@ -3,8 +3,9 @@
  * Feature: 011-accounts-real-data
  *
  * Provides enriched role assignments with member timestamps from the
- * AccessControlService. Reuses cached role data from useContractRoles when
- * available to avoid duplicate RPC calls.
+ * AccessControlService. After fetching enriched data, this hook also
+ * populates the basic roles cache (useContractRoles query key) so that
+ * other components can reuse the data without making additional RPC calls.
  *
  * Tasks: T027, T028
  */
