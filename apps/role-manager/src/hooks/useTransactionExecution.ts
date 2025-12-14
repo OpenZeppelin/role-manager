@@ -342,6 +342,17 @@ export function useMultiMutationExecution(
   const lastExecutionRef = useRef<(() => Promise<OperationResult>) | null>(null);
 
   // =============================================================================
+  // Reset (defined first as execute and retry depend on it)
+  // =============================================================================
+
+  const reset = useCallback(() => {
+    setStep('form');
+    setErrorMessage(null);
+    lastExecutionRef.current = null;
+    resetMutations.forEach((resetFn) => resetFn());
+  }, [resetMutations]);
+
+  // =============================================================================
   // Execute Transaction
   // =============================================================================
 
@@ -359,8 +370,9 @@ export function useMultiMutationExecution(
         setStep('success');
         onSuccess?.(result);
 
-        // Auto-close after delay
+        // Auto-close after delay, resetting state before closing
         setTimeout(() => {
+          reset();
           onClose?.();
         }, autoCloseDelay);
       } catch (error) {
@@ -374,7 +386,7 @@ export function useMultiMutationExecution(
         }
       }
     },
-    [onSuccess, onClose, autoCloseDelay]
+    [onSuccess, onClose, autoCloseDelay, reset]
   );
 
   // =============================================================================
@@ -394,7 +406,9 @@ export function useMultiMutationExecution(
       setStep('success');
       onSuccess?.(result);
 
+      // Auto-close after delay, resetting state before closing
       setTimeout(() => {
+        reset();
         onClose?.();
       }, autoCloseDelay);
     } catch (error) {
@@ -407,18 +421,7 @@ export function useMultiMutationExecution(
         setErrorMessage(err.message);
       }
     }
-  }, [onSuccess, onClose, autoCloseDelay]);
-
-  // =============================================================================
-  // Reset
-  // =============================================================================
-
-  const reset = useCallback(() => {
-    setStep('form');
-    setErrorMessage(null);
-    lastExecutionRef.current = null;
-    resetMutations.forEach((resetFn) => resetFn());
-  }, [resetMutations]);
+  }, [onSuccess, onClose, autoCloseDelay, reset]);
 
   // =============================================================================
   // Derived State
