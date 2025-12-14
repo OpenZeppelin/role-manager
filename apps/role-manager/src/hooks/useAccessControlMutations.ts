@@ -258,8 +258,11 @@ function useRoleMutation(
     const hasEnrichedObservers = (enrichedQuery?.getObserversCount() ?? 0) > 0;
 
     if (hasEnrichedObservers) {
-      // Authorized Accounts page - enriched query will populate basic via setQueryData
+      // Authorized Accounts page - enriched query will populate basic via setQueryData.
+      // Cancel any in-flight basic query to prevent race conditions, then invalidate
+      // to mark it stale (won't refetch since basic has no active observers here).
       queryClient.cancelQueries({ queryKey: rolesQueryKey(contractAddress) });
+      queryClient.invalidateQueries({ queryKey: rolesQueryKey(contractAddress) });
       queryClient.invalidateQueries({ queryKey: enrichedRolesQueryKey(contractAddress) });
     } else {
       // Roles page or no observers - invalidate both

@@ -57,9 +57,10 @@ const rolesQueryKey = (address: string) => ['contractRoles', address] as const;
  * Uses the AccessControlService's getCurrentRolesEnriched() API when available,
  * falling back to getCurrentRoles() and converting to enriched format.
  *
- * Performance optimization: This hook checks the React Query cache for existing
- * role data from useContractRoles. If found, it passes the cached roles to
- * getCurrentRolesEnriched() to avoid duplicate on-chain RPC calls.
+ * Performance optimization: After fetching enriched roles, this hook also populates
+ * the basic roles cache (used by useContractRoles). This enables cache sharing across
+ * pages - when Dashboard or Authorized Accounts loads first, the Roles page benefits
+ * from the already-cached basic roles data.
  *
  * @param adapter - Contract adapter instance
  * @param contractAddress - Contract address to fetch roles for

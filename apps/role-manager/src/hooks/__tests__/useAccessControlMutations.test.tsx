@@ -422,7 +422,8 @@ describe('useGrantRole', () => {
         });
       });
 
-      // Both query keys are invalidated to ensure all pages refresh
+      // In test environment without active observers, both query keys are invalidated.
+      // In production, smart invalidation may behave differently based on active observers.
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
         queryKey: ['contractRoles', 'CONTRACT_ADDRESS'],
       });
@@ -652,7 +653,8 @@ describe('useRevokeRole', () => {
         });
       });
 
-      // Both query keys are invalidated to ensure all pages refresh
+      // In test environment without active observers, both query keys are invalidated.
+      // In production, smart invalidation may behave differently based on active observers.
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
         queryKey: ['contractRoles', 'CONTRACT_ADDRESS'],
       });
