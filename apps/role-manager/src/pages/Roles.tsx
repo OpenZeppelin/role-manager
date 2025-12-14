@@ -27,7 +27,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { Button, Card } from '@openzeppelin/ui-builder-ui';
 import { cn } from '@openzeppelin/ui-builder-utils';
 
-import { TransferOwnershipDialog } from '../components/Ownership';
+import { AcceptOwnershipDialog, TransferOwnershipDialog } from '../components/Ownership';
 import {
   AssignRoleDialog,
   EditRoleDialog,
@@ -66,6 +66,7 @@ export function Roles() {
     connectedAddress,
     connectedRoleIds,
     roleIdentifiers,
+    pendingOwner, // Feature 015 (T021): for Accept Ownership button
   } = useRolesPageData();
 
   // Phase 6: Edit dialog state
@@ -83,6 +84,9 @@ export function Roles() {
 
   // Spec 015 (T014): Transfer Ownership dialog state
   const [isTransferOwnershipDialogOpen, setIsTransferOwnershipDialogOpen] = useState(false);
+
+  // Spec 015 (T021): Accept Ownership dialog state
+  const [isAcceptOwnershipDialogOpen, setIsAcceptOwnershipDialogOpen] = useState(false);
 
   // Get contract info for display
   const { selectedContract } = useSelectedContract();
@@ -144,6 +148,17 @@ export function Roles() {
   const handleTransferOwnership = useCallback(() => {
     setIsTransferOwnershipDialogOpen(true);
   }, []);
+
+  // Spec 015 (T021): Open accept ownership dialog
+  const handleAcceptOwnership = useCallback(() => {
+    setIsAcceptOwnershipDialogOpen(true);
+  }, []);
+
+  // Spec 015 (T021): Check if connected wallet can accept ownership (is the pending owner)
+  const canAcceptOwnership = useMemo(() => {
+    if (!pendingOwner || !connectedAddress) return false;
+    return pendingOwner.toLowerCase() === connectedAddress.toLowerCase();
+  }, [pendingOwner, connectedAddress]);
 
   // Phase 6: Handle description save from dialog
   const handleSaveDescription = useCallback(
@@ -257,6 +272,8 @@ export function Roles() {
                 onAssign={handleAssignRole}
                 onRevoke={handleRevokeRole}
                 onTransferOwnership={handleTransferOwnership}
+                onAcceptOwnership={handleAcceptOwnership}
+                canAcceptOwnership={canAcceptOwnership}
               />
             ) : (
               <div className="flex items-center justify-center h-full p-6 text-muted-foreground">
@@ -318,6 +335,12 @@ export function Roles() {
           />
         );
       })()}
+
+      {/* Spec 015 (T021): Accept Ownership Dialog */}
+      <AcceptOwnershipDialog
+        open={isAcceptOwnershipDialogOpen}
+        onOpenChange={setIsAcceptOwnershipDialogOpen}
+      />
     </div>
   );
 }

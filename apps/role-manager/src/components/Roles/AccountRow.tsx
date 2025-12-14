@@ -10,7 +10,7 @@
  * - Assignment date display/hide logic (hide when unavailable)
  */
 
-import { Crown, Trash2 } from 'lucide-react';
+import { CheckCircle, Crown, Trash2 } from 'lucide-react';
 
 import { AddressDisplay, Button } from '@openzeppelin/ui-builder-ui';
 import { cn } from '@openzeppelin/ui-builder-utils';
@@ -34,6 +34,10 @@ export interface AccountRowProps {
   onRevoke?: () => void;
   /** Transfer ownership handler (owner role only) */
   onTransferOwnership?: () => void;
+  /** Feature 015 (T020): Accept ownership handler (visible when connected wallet is pending owner) */
+  onAcceptOwnership?: () => void;
+  /** Feature 015 (T020): Whether connected wallet can accept ownership */
+  canAcceptOwnership?: boolean;
   /** Additional CSS classes */
   className?: string;
 }
@@ -52,6 +56,8 @@ export function AccountRow({
   isOwnerRole,
   onRevoke,
   onTransferOwnership,
+  onAcceptOwnership,
+  canAcceptOwnership,
   className,
 }: AccountRowProps) {
   return (
@@ -88,19 +94,32 @@ export function AccountRow({
             </Button>
           </>
         ) : (
-          // FR-006: Transfer Ownership button only visible when connected wallet is current owner
-          isCurrentUser &&
-          onTransferOwnership && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={onTransferOwnership}
-              className="h-7 px-3 text-xs border-blue-600 text-blue-700 hover:bg-blue-50"
-            >
-              <Crown className="h-3 w-3 mr-1" />
-              Transfer Ownership
-            </Button>
-          )
+          <>
+            {/* FR-006: Transfer Ownership button only visible when connected wallet is current owner */}
+            {isCurrentUser && onTransferOwnership && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={onTransferOwnership}
+                className="h-7 px-3 text-xs border-blue-600 text-blue-700 hover:bg-blue-50"
+              >
+                <Crown className="h-3 w-3 mr-1" />
+                Transfer Ownership
+              </Button>
+            )}
+            {/* Feature 015 (T020): Accept Ownership button visible when connected wallet is pending owner */}
+            {canAcceptOwnership && onAcceptOwnership && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={onAcceptOwnership}
+                className="h-7 px-3 text-xs border-green-600 text-green-700 hover:bg-green-50"
+              >
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Accept Ownership
+              </Button>
+            )}
+          </>
         )}
       </div>
     </div>

@@ -70,19 +70,19 @@
 
 ### Hooks
 
-- [ ] T015 [P] [US2] Create test file `apps/role-manager/src/hooks/__tests__/useAcceptOwnershipDialog.test.tsx` with tests for: step transitions, submit flow, error handling, retry, reset
-- [ ] T016 [US2] Create `apps/role-manager/src/hooks/useAcceptOwnershipDialog.ts` implementing `UseAcceptOwnershipDialogReturn` interface
-- [ ] T017 [US2] Add `useAcceptOwnershipDialog` export to `apps/role-manager/src/hooks/index.ts`
+- [x] T015 [P] [US2] Create test file `apps/role-manager/src/hooks/__tests__/useAcceptOwnershipDialog.test.tsx` with tests for: step transitions, submit flow, error handling, retry, reset
+- [x] T016 [US2] Create `apps/role-manager/src/hooks/useAcceptOwnershipDialog.ts` implementing `UseAcceptOwnershipDialogReturn` interface
+- [x] T017 [US2] Add `useAcceptOwnershipDialog` export to `apps/role-manager/src/hooks/index.ts`
 
 ### Components
 
-- [ ] T018 [US2] Create `apps/role-manager/src/components/Ownership/AcceptOwnershipDialog.tsx` with: confirmation content, contract address display, transaction states
-- [ ] T019 [US2] Add `AcceptOwnershipDialog` export to `apps/role-manager/src/components/Ownership/index.ts`
+- [x] T018 [US2] Create `apps/role-manager/src/components/Ownership/AcceptOwnershipDialog.tsx` with: confirmation content, contract address display, transaction states
+- [x] T019 [US2] Add `AcceptOwnershipDialog` export to `apps/role-manager/src/components/Ownership/index.ts`
 
 ### Integration
 
-- [ ] T020 [US2] Add "Accept Ownership" button visibility logic to Owner role panel (visible when connected wallet is pending owner)
-- [ ] T021 [US2] Add dialog state and `AcceptOwnershipDialog` to `apps/role-manager/src/pages/Roles.tsx`
+- [x] T020 [US2] Add "Accept Ownership" button visibility logic to Owner role panel (visible when connected wallet is pending owner)
+- [x] T021 [US2] Add dialog state and `AcceptOwnershipDialog` to `apps/role-manager/src/pages/Roles.tsx`
 
 ---
 

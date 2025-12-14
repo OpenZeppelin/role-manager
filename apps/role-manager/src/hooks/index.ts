@@ -65,6 +65,13 @@ export type {
   UseOwnershipTransferDialogReturn,
 } from './useOwnershipTransferDialog';
 
+// Accept Ownership Dialog Hook (Feature: 015-ownership-transfer)
+export { useAcceptOwnershipDialog } from './useAcceptOwnershipDialog';
+export type {
+  UseAcceptOwnershipDialogOptions,
+  UseAcceptOwnershipDialogReturn,
+} from './useAcceptOwnershipDialog';
+
 // Custom Role Descriptions (Feature: 009-roles-page-data)
 export { useCustomRoleDescriptions } from './useCustomRoleDescriptions';
 export type { UseCustomRoleDescriptionsReturn } from './useCustomRoleDescriptions';

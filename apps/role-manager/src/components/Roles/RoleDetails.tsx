@@ -57,6 +57,10 @@ export interface RoleDetailsProps {
   onRevoke?: (address: string) => void;
   /** Transfer ownership action (placeholder for future) */
   onTransferOwnership?: () => void;
+  /** Feature 015 (T020): Accept ownership action (two-step transfer) */
+  onAcceptOwnership?: () => void;
+  /** Feature 015 (T020): Whether connected wallet can accept ownership */
+  canAcceptOwnership?: boolean;
   /** Additional CSS classes */
   className?: string;
 }
@@ -72,6 +76,8 @@ export function RoleDetails({
   onAssign,
   onRevoke,
   onTransferOwnership,
+  onAcceptOwnership,
+  canAcceptOwnership,
   className,
 }: RoleDetailsProps) {
   const hasAccounts = accounts.length > 0;
@@ -135,6 +141,8 @@ export function RoleDetails({
                   isOwnerRole={role.isOwnerRole}
                   onRevoke={onRevoke ? () => onRevoke(account.address) : undefined}
                   onTransferOwnership={onTransferOwnership}
+                  onAcceptOwnership={onAcceptOwnership}
+                  canAcceptOwnership={canAcceptOwnership}
                 />
               ))
             ) : (

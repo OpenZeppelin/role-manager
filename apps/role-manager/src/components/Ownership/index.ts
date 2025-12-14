@@ -11,5 +11,5 @@
 export { TransferOwnershipDialog } from './TransferOwnershipDialog';
 export type { TransferOwnershipDialogProps } from './TransferOwnershipDialog';
 
-// AcceptOwnershipDialog to be implemented in Phase 4
-// export { AcceptOwnershipDialog } from './AcceptOwnershipDialog';
+export { AcceptOwnershipDialog } from './AcceptOwnershipDialog';
+export type { AcceptOwnershipDialogProps } from './AcceptOwnershipDialog';

@@ -78,6 +78,9 @@ export interface UseRolesPageDataReturn {
 
   /** Role identifiers for reference table */
   roleIdentifiers: RoleIdentifier[];
+
+  /** Feature 015: Pending owner address (for Accept Ownership button visibility) */
+  pendingOwner: string | null;
 }
 
 // =============================================================================
@@ -296,6 +299,10 @@ export function useRolesPageData(): UseRolesPageDataReturn {
   // Return
   // =============================================================================
 
+  // Feature 015: Extract pending owner from ownership data (for Accept Ownership button)
+  // Note: pendingOwner may not be available in all adapter implementations
+  const pendingOwner = (ownership as { pendingOwner?: string })?.pendingOwner ?? null;
+
   // Handle no contract selected
   if (!selectedContract) {
     return {
@@ -319,6 +326,7 @@ export function useRolesPageData(): UseRolesPageDataReturn {
       connectedAddress: null,
       connectedRoleIds: [],
       roleIdentifiers: [],
+      pendingOwner: null,
     };
   }
 
@@ -343,5 +351,6 @@ export function useRolesPageData(): UseRolesPageDataReturn {
     connectedAddress: connectedAddress ?? null,
     connectedRoleIds,
     roleIdentifiers,
+    pendingOwner,
   };
 }
