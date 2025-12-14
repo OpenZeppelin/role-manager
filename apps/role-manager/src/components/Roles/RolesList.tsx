@@ -40,11 +40,7 @@ export function RolesList({
   }
 
   return (
-    <div
-      className={cn('space-y-2 max-h-[600px] overflow-y-auto', className)}
-      role="listbox"
-      aria-label="Roles"
-    >
+    <div className={cn('space-y-2', className)} role="listbox" aria-label="Roles">
       {roles.map((role) => (
         <RoleCard
           key={role.roleId}
