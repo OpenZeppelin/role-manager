@@ -110,12 +110,13 @@ function isUserRejectionError(error: unknown): boolean {
 // ============================================================================
 
 /**
- * Arguments for useGrantRole mutation
+ * Common arguments for role mutation operations (grant/revoke).
+ * Both operations share the same argument structure.
  */
-export interface GrantRoleArgs {
-  /** The role identifier to grant */
+export interface RoleMutationArgs {
+  /** The role identifier */
   roleId: string;
-  /** The account address to grant the role to */
+  /** The account address */
   account: string;
   /** Execution configuration (EOA, relayer, etc.) */
   executionConfig: ExecutionConfig;
@@ -124,18 +125,16 @@ export interface GrantRoleArgs {
 }
 
 /**
- * Arguments for useRevokeRole mutation
+ * Arguments for useGrantRole mutation.
+ * Type alias for RoleMutationArgs since grant and revoke share the same structure.
  */
-export interface RevokeRoleArgs {
-  /** The role identifier to revoke */
-  roleId: string;
-  /** The account address to revoke the role from */
-  account: string;
-  /** Execution configuration (EOA, relayer, etc.) */
-  executionConfig: ExecutionConfig;
-  /** Optional runtime API key for relayer */
-  runtimeApiKey?: string;
-}
+export type GrantRoleArgs = RoleMutationArgs;
+
+/**
+ * Arguments for useRevokeRole mutation.
+ * Type alias for RoleMutationArgs since grant and revoke share the same structure.
+ */
+export type RevokeRoleArgs = RoleMutationArgs;
 
 /**
  * Arguments for useTransferOwnership mutation
@@ -187,25 +186,6 @@ export interface UseAccessControlMutationReturn<TArgs> {
   isUserRejection: boolean;
   /** Reset the mutation state */
   reset: () => void;
-}
-
-// ============================================================================
-// Role Mutation Args (shared between grant and revoke)
-// ============================================================================
-
-/**
- * Common arguments for role mutation operations (grant/revoke).
- * Both operations share the same argument structure.
- */
-export interface RoleMutationArgs {
-  /** The role identifier */
-  roleId: string;
-  /** The account address */
-  account: string;
-  /** Execution configuration (EOA, relayer, etc.) */
-  executionConfig: ExecutionConfig;
-  /** Optional runtime API key for relayer */
-  runtimeApiKey?: string;
 }
 
 // ============================================================================

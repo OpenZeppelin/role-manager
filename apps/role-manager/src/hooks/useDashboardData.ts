@@ -6,10 +6,9 @@
  * for Dashboard display. Computes derived values like unique account
  * counts and combines loading/error states.
  *
- * Performance optimization: Uses useContractRolesEnriched instead of
- * useContractRoles so that when Dashboard loads first, it populates both
- * the enriched and basic roles caches. This eliminates redundant fetches
- * when navigating to Authorized Accounts or Roles pages.
+ * Performance optimization: Uses useContractRolesEnriched which, after fetching,
+ * also populates the basic roles cache via setQueryData. This enables cross-page
+ * cache sharing - when user navigates to Roles page, data is already cached.
  */
 
 import { useCallback, useMemo, useState } from 'react';
@@ -88,9 +87,9 @@ export function useDashboardData(
   // Track refreshing state separately from initial load
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Fetch roles data using enriched hook for cross-page cache sharing
-  // When Dashboard loads first, this populates both enriched and basic roles caches,
-  // eliminating redundant fetches when navigating to other pages.
+  // Fetch enriched roles data for cross-page cache sharing.
+  // After fetching, useContractRolesEnriched populates the basic roles cache via setQueryData,
+  // so when navigating to Roles page it doesn't need to make another RPC call.
   const {
     roles: enrichedRoles,
     isLoading: rolesLoading,
