@@ -225,7 +225,7 @@ function useRoleMutation(
       setStatusDetails(details);
       options?.onStatusChange?.(newStatus, details);
     },
-    [options]
+    [options?.onStatusChange]
   );
 
   // Smart invalidation logic shared by both grant and revoke
