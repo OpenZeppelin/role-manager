@@ -706,6 +706,7 @@ describe('useTransferOwnership', () => {
       await act(async () => {
         await result.current.mutateAsync({
           newOwner: '0x3333333333333333333333333333333333333333',
+          expirationLedger: 12345,
           executionConfig: mockExecutionConfig,
         });
       });
@@ -713,6 +714,7 @@ describe('useTransferOwnership', () => {
       expect(mockService.transferOwnership).toHaveBeenCalledWith(
         'CONTRACT_ADDRESS',
         '0x3333333333333333333333333333333333333333',
+        12345,
         mockExecutionConfig,
         expect.any(Function),
         undefined
@@ -728,6 +730,7 @@ describe('useTransferOwnership', () => {
       await act(async () => {
         operationResult = await result.current.mutateAsync({
           newOwner: '0x3333333333333333333333333333333333333333',
+          expirationLedger: 12345,
           executionConfig: mockExecutionConfig,
         });
       });
@@ -745,6 +748,7 @@ describe('useTransferOwnership', () => {
             async (
               _addr: string,
               _newOwner: string,
+              _expirationLedger: number,
               _config: ExecutionConfig,
               onStatusChange?: (status: TxStatus, details: TransactionStatusUpdate) => void
             ) => {
@@ -773,6 +777,7 @@ describe('useTransferOwnership', () => {
       await act(async () => {
         await result.current.mutateAsync({
           newOwner: '0x3333333333333333333333333333333333333333',
+          expirationLedger: 12345,
           executionConfig: mockExecutionConfig,
         });
       });
@@ -798,6 +803,7 @@ describe('useTransferOwnership', () => {
         try {
           await result.current.mutateAsync({
             newOwner: '0x3333333333333333333333333333333333333333',
+            expirationLedger: 12345,
             executionConfig: mockExecutionConfig,
           });
         } catch {
@@ -822,6 +828,7 @@ describe('useTransferOwnership', () => {
         try {
           await result.current.mutateAsync({
             newOwner: '0x3333333333333333333333333333333333333333',
+            expirationLedger: 12345,
             executionConfig: mockExecutionConfig,
           });
         } catch {
@@ -851,6 +858,7 @@ describe('useTransferOwnership', () => {
       await act(async () => {
         await result.current.mutateAsync({
           newOwner: '0x3333333333333333333333333333333333333333',
+          expirationLedger: 12345,
           executionConfig: mockExecutionConfig,
         });
       });
