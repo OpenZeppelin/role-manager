@@ -2,9 +2,14 @@
  * useDashboardData hook
  * Feature: 007-dashboard-real-data
  *
- * Aggregates data from useContractRoles and useContractOwnership
+ * Aggregates data from useContractRolesEnriched and useContractOwnership
  * for Dashboard display. Computes derived values like unique account
  * counts and combines loading/error states.
+ *
+ * Performance optimization: Uses useContractRolesEnriched instead of
+ * useContractRoles so that when Dashboard loads first, it populates both
+ * the enriched and basic roles caches. This eliminates redundant fetches
+ * when navigating to Authorized Accounts or Roles pages.
  */
 
 import { useCallback, useMemo, useState } from 'react';
@@ -15,7 +20,8 @@ import type { UseDashboardDataReturn } from '../types/dashboard';
 import { getUniqueAccountsCount } from '../utils/deduplication';
 import { generateSnapshotFilename } from '../utils/snapshot';
 import { useExportSnapshot } from './useAccessControlMutations';
-import { useContractOwnership, useContractRoles } from './useContractData';
+import { useContractOwnership } from './useContractData';
+import { useContractRolesEnriched } from './useContractRolesEnriched';
 
 /**
  * Options for useDashboardData hook
@@ -82,16 +88,28 @@ export function useDashboardData(
   // Track refreshing state separately from initial load
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Fetch roles data
-  // Pass isContractRegistered to prevent fetching before registration is complete
+  // Fetch roles data using enriched hook for cross-page cache sharing
+  // When Dashboard loads first, this populates both enriched and basic roles caches,
+  // eliminating redundant fetches when navigating to other pages.
   const {
-    roles,
+    roles: enrichedRoles,
     isLoading: rolesLoading,
     hasError: rolesHasError,
     errorMessage: rolesErrorMessage,
     canRetry: rolesCanRetry,
     refetch: rolesRefetch,
-  } = useContractRoles(adapter, contractAddress, isContractRegistered);
+  } = useContractRolesEnriched(adapter, contractAddress, isContractRegistered);
+
+  // Convert enriched roles to basic format for counting
+  // (enriched roles have { role, members: { address, grantedAt }[] })
+  const roles = useMemo(
+    () =>
+      enrichedRoles.map((er) => ({
+        role: er.role,
+        members: er.members.map((m) => m.address),
+      })),
+    [enrichedRoles]
+  );
 
   // Fetch ownership data
   // Pass isContractRegistered to prevent fetching before registration is complete
