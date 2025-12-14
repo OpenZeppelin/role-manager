@@ -422,7 +422,10 @@ describe('useGrantRole', () => {
         });
       });
 
-      // Only enrichedRoles is invalidated - it populates the basic roles cache when refetched
+      // Both query keys are invalidated to ensure all pages refresh
+      expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+        queryKey: ['contractRoles', 'CONTRACT_ADDRESS'],
+      });
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
         queryKey: ['contractRolesEnriched', 'CONTRACT_ADDRESS'],
       });
@@ -649,7 +652,10 @@ describe('useRevokeRole', () => {
         });
       });
 
-      // Only enrichedRoles is invalidated - it populates the basic roles cache when refetched
+      // Both query keys are invalidated to ensure all pages refresh
+      expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+        queryKey: ['contractRoles', 'CONTRACT_ADDRESS'],
+      });
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
         queryKey: ['contractRolesEnriched', 'CONTRACT_ADDRESS'],
       });

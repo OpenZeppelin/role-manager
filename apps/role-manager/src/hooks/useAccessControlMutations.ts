@@ -32,6 +32,7 @@ import { useAccessControlService } from './useAccessControlService';
 // Query Keys (must match useContractRolesEnriched.ts and useContractData.ts)
 // ============================================================================
 
+const rolesQueryKey = (address: string) => ['contractRoles', address] as const;
 const enrichedRolesQueryKey = (address: string) => ['contractRolesEnriched', address] as const;
 const ownershipQueryKey = (address: string) => ['contractOwnership', address] as const;
 
@@ -259,9 +260,14 @@ export function useGrantRole(
       );
     },
     onSuccess: (result) => {
-      // Only invalidate enrichedRoles - when it refetches, it populates the basic
-      // roles cache via setQueryData in useContractRolesEnriched.
-      // This prevents double-fetching that would occur if we invalidated both.
+      // Invalidate both query keys to ensure all pages refresh:
+      // - contractRoles: Used by Roles page (useRolesPageData)
+      // - contractRolesEnriched: Used by Authorized Accounts page
+      // Only the query with an active observer will actually refetch,
+      // so this won't cause double-fetching.
+      queryClient.invalidateQueries({
+        queryKey: rolesQueryKey(contractAddress),
+      });
       queryClient.invalidateQueries({
         queryKey: enrichedRolesQueryKey(contractAddress),
       });
@@ -376,9 +382,14 @@ export function useRevokeRole(
       );
     },
     onSuccess: (result) => {
-      // Only invalidate enrichedRoles - when it refetches, it populates the basic
-      // roles cache via setQueryData in useContractRolesEnriched.
-      // This prevents double-fetching that would occur if we invalidated both.
+      // Invalidate both query keys to ensure all pages refresh:
+      // - contractRoles: Used by Roles page (useRolesPageData)
+      // - contractRolesEnriched: Used by Authorized Accounts page
+      // Only the query with an active observer will actually refetch,
+      // so this won't cause double-fetching.
+      queryClient.invalidateQueries({
+        queryKey: rolesQueryKey(contractAddress),
+      });
       queryClient.invalidateQueries({
         queryKey: enrichedRolesQueryKey(contractAddress),
       });
