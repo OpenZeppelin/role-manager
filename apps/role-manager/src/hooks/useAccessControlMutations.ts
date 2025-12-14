@@ -260,17 +260,27 @@ export function useGrantRole(
       );
     },
     onSuccess: (result) => {
-      // Invalidate both query keys to ensure all pages refresh:
-      // - contractRoles: Used by Roles page (useRolesPageData)
-      // - contractRolesEnriched: Used by Authorized Accounts page
-      // Only the query with an active observer will actually refetch,
-      // so this won't cause double-fetching.
-      queryClient.invalidateQueries({
-        queryKey: rolesQueryKey(contractAddress),
-      });
-      queryClient.invalidateQueries({
-        queryKey: enrichedRolesQueryKey(contractAddress),
-      });
+      // Smart invalidation to prevent double-fetching while ensuring both caches update:
+      // - If enrichedRoles has active observers (Authorized Accounts page), cancel basic
+      //   query to prevent double-fetch - enriched will populate basic via setQueryData
+      // - Otherwise, invalidate both - only the one with observers will refetch,
+      //   the other is just marked stale for when user navigates there
+      const enrichedQuery = queryClient
+        .getQueryCache()
+        .find({ queryKey: enrichedRolesQueryKey(contractAddress), exact: true });
+
+      const hasEnrichedObservers = (enrichedQuery?.getObserversCount() ?? 0) > 0;
+
+      if (hasEnrichedObservers) {
+        // Authorized Accounts page - enriched query will populate basic via setQueryData
+        queryClient.cancelQueries({ queryKey: rolesQueryKey(contractAddress) });
+        queryClient.invalidateQueries({ queryKey: enrichedRolesQueryKey(contractAddress) });
+      } else {
+        // Roles page or no observers - invalidate both
+        // Only the one with active observers will refetch; the other is marked stale
+        queryClient.invalidateQueries({ queryKey: rolesQueryKey(contractAddress) });
+        queryClient.invalidateQueries({ queryKey: enrichedRolesQueryKey(contractAddress) });
+      }
       options?.onSuccess?.(result);
     },
     onError: (error: Error) => {
@@ -382,17 +392,27 @@ export function useRevokeRole(
       );
     },
     onSuccess: (result) => {
-      // Invalidate both query keys to ensure all pages refresh:
-      // - contractRoles: Used by Roles page (useRolesPageData)
-      // - contractRolesEnriched: Used by Authorized Accounts page
-      // Only the query with an active observer will actually refetch,
-      // so this won't cause double-fetching.
-      queryClient.invalidateQueries({
-        queryKey: rolesQueryKey(contractAddress),
-      });
-      queryClient.invalidateQueries({
-        queryKey: enrichedRolesQueryKey(contractAddress),
-      });
+      // Smart invalidation to prevent double-fetching while ensuring both caches update:
+      // - If enrichedRoles has active observers (Authorized Accounts page), cancel basic
+      //   query to prevent double-fetch - enriched will populate basic via setQueryData
+      // - Otherwise, invalidate both - only the one with observers will refetch,
+      //   the other is just marked stale for when user navigates there
+      const enrichedQuery = queryClient
+        .getQueryCache()
+        .find({ queryKey: enrichedRolesQueryKey(contractAddress), exact: true });
+
+      const hasEnrichedObservers = (enrichedQuery?.getObserversCount() ?? 0) > 0;
+
+      if (hasEnrichedObservers) {
+        // Authorized Accounts page - enriched query will populate basic via setQueryData
+        queryClient.cancelQueries({ queryKey: rolesQueryKey(contractAddress) });
+        queryClient.invalidateQueries({ queryKey: enrichedRolesQueryKey(contractAddress) });
+      } else {
+        // Roles page or no observers - invalidate both
+        // Only the one with active observers will refetch; the other is marked stale
+        queryClient.invalidateQueries({ queryKey: rolesQueryKey(contractAddress) });
+        queryClient.invalidateQueries({ queryKey: enrichedRolesQueryKey(contractAddress) });
+      }
       options?.onSuccess?.(result);
     },
     onError: (error: Error) => {
