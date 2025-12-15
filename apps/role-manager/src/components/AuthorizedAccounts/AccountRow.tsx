@@ -26,7 +26,7 @@ import {
   type AuthorizedAccountView,
 } from '../../types/authorized-accounts';
 import { formatDate } from '../../utils/date';
-import { OutlineBadge } from '../Shared/OutlineBadge';
+import { RoleTypeBadge } from '../Shared/RoleTypeBadge';
 import { StatusBadge } from '../Shared/StatusBadge';
 import { YouBadge } from '../Shared/YouBadge';
 import { AccountActionsMenu } from './AccountActionsMenu';
@@ -114,7 +114,7 @@ export function AccountRow({
       <td className="p-4">
         <div className="flex flex-wrap gap-1">
           {account.roles.map((role) => (
-            <OutlineBadge key={role.id}>{role.name}</OutlineBadge>
+            <RoleTypeBadge key={role.id} roleName={role.name} />
           ))}
         </div>
       </td>

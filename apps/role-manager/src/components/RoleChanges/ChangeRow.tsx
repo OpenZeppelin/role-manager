@@ -17,7 +17,7 @@ import { cn } from '@openzeppelin/ui-builder-utils';
 
 import { ACTION_TYPE_CONFIG, type RoleChangeEventView } from '../../types/role-changes';
 import { formatDateTime } from '../../utils/date';
-import { OutlineBadge } from '../Shared/OutlineBadge';
+import { RoleTypeBadge } from '../Shared/RoleTypeBadge';
 import { StatusBadge } from '../Shared/StatusBadge';
 
 /**
@@ -55,7 +55,7 @@ export function ChangeRow({ event }: ChangeRowProps) {
 
       {/* Role badge */}
       <td className="p-4">
-        <OutlineBadge>{event.roleName}</OutlineBadge>
+        <RoleTypeBadge roleName={event.roleName} />
       </td>
 
       {/* Account address */}

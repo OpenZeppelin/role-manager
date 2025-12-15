@@ -8,6 +8,7 @@ export { EmptyState } from './EmptyState';
 export { FeatureBadge } from './FeatureBadge';
 export { OutlineBadge } from './OutlineBadge';
 export { PageEmptyState } from './PageEmptyState';
+export { RoleTypeBadge } from './RoleTypeBadge';
 export { PageHeader } from './PageHeader';
 export { Pagination } from './Pagination';
 export { SelectLoadingPlaceholder } from './SelectLoadingPlaceholder';
@@ -34,6 +35,7 @@ export { NoRolesEmptyState } from './NoRolesEmptyState';
 // Types
 export type { OutlineBadgeProps } from './OutlineBadge';
 export type { PaginationProps, PaginationState } from './Pagination';
+export type { RoleTypeBadgeProps } from './RoleTypeBadge';
 export type { SelectLoadingPlaceholderProps } from './SelectLoadingPlaceholder';
 export type { SkeletonProps } from './Skeleton';
 export type { StatusBadgeProps, StatusBadgeVariant } from './StatusBadge';
