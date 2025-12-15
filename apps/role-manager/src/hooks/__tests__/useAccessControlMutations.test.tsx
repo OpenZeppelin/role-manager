@@ -21,6 +21,7 @@ import type {
 } from '@openzeppelin/ui-builder-types';
 
 import {
+  useAcceptOwnership,
   useExportSnapshot,
   useGrantRole,
   useRevokeRole,
@@ -786,7 +787,7 @@ describe('useTransferOwnership', () => {
       await act(async () => {
         await result.current.mutateAsync({
           newOwner: '0x3333333333333333333333333333333333333333',
-          expirationLedger: 12345,
+          expirationBlock: 12345,
           executionConfig: mockExecutionConfig,
         });
       });
@@ -810,7 +811,7 @@ describe('useTransferOwnership', () => {
       await act(async () => {
         operationResult = await result.current.mutateAsync({
           newOwner: '0x3333333333333333333333333333333333333333',
-          expirationLedger: 12345,
+          expirationBlock: 12345,
           executionConfig: mockExecutionConfig,
         });
       });
@@ -828,7 +829,7 @@ describe('useTransferOwnership', () => {
             async (
               _addr: string,
               _newOwner: string,
-              _expirationLedger: number,
+              _expirationBlock: number,
               _config: ExecutionConfig,
               onStatusChange?: (status: TxStatus, details: TransactionStatusUpdate) => void
             ) => {
@@ -857,7 +858,7 @@ describe('useTransferOwnership', () => {
       await act(async () => {
         await result.current.mutateAsync({
           newOwner: '0x3333333333333333333333333333333333333333',
-          expirationLedger: 12345,
+          expirationBlock: 12345,
           executionConfig: mockExecutionConfig,
         });
       });
@@ -883,7 +884,7 @@ describe('useTransferOwnership', () => {
         try {
           await result.current.mutateAsync({
             newOwner: '0x3333333333333333333333333333333333333333',
-            expirationLedger: 12345,
+            expirationBlock: 12345,
             executionConfig: mockExecutionConfig,
           });
         } catch {
@@ -908,7 +909,7 @@ describe('useTransferOwnership', () => {
         try {
           await result.current.mutateAsync({
             newOwner: '0x3333333333333333333333333333333333333333',
-            expirationLedger: 12345,
+            expirationBlock: 12345,
             executionConfig: mockExecutionConfig,
           });
         } catch {
@@ -938,7 +939,7 @@ describe('useTransferOwnership', () => {
       await act(async () => {
         await result.current.mutateAsync({
           newOwner: '0x3333333333333333333333333333333333333333',
-          expirationLedger: 12345,
+          expirationBlock: 12345,
           executionConfig: mockExecutionConfig,
         });
       });
@@ -1369,6 +1370,363 @@ describe('useExportSnapshot', () => {
 
       const snapshot: AccessSnapshot = onSuccess.mock.calls[0][0];
       expect(snapshot.version).toBe('1.0');
+    });
+  });
+});
+
+// ============================================================================
+// useAcceptOwnership Tests (Feature: 015-ownership-transfer)
+// ============================================================================
+
+describe('useAcceptOwnership', () => {
+  let mockService: AccessControlService;
+  let mockAdapter: ContractAdapter;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockService = createMockAccessControlService({
+      acceptOwnership: vi.fn().mockResolvedValue(mockOperationResult),
+    });
+    mockAdapter = createMockAdapter(mockService);
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('initialization', () => {
+    it('should return idle state initially', () => {
+      const { result } = renderHook(() => useAcceptOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      expect(result.current.isPending).toBe(false);
+      expect(result.current.error).toBeNull();
+      expect(result.current.status).toBe('idle');
+      expect(result.current.statusDetails).toBeNull();
+    });
+
+    it('should not be ready when adapter is null', () => {
+      const { result } = renderHook(() => useAcceptOwnership(null, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      expect(result.current.isReady).toBe(false);
+    });
+
+    it('should not be ready when adapter does not support access control', () => {
+      const adapterWithoutAC = createMockAdapter(null);
+      const { result } = renderHook(
+        () => useAcceptOwnership(adapterWithoutAC, 'CONTRACT_ADDRESS'),
+        {
+          wrapper: createWrapper(),
+        }
+      );
+
+      expect(result.current.isReady).toBe(false);
+    });
+
+    it('should be ready when adapter supports access control', () => {
+      const { result } = renderHook(() => useAcceptOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      expect(result.current.isReady).toBe(true);
+    });
+  });
+
+  describe('successful accept ownership', () => {
+    it('should call acceptOwnership on the service with correct parameters', async () => {
+      const { result } = renderHook(() => useAcceptOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        await result.current.mutateAsync({
+          executionConfig: mockExecutionConfig,
+        });
+      });
+
+      expect(mockService.acceptOwnership).toHaveBeenCalledWith(
+        'CONTRACT_ADDRESS',
+        mockExecutionConfig,
+        expect.any(Function),
+        undefined
+      );
+    });
+
+    it('should return operation result on success', async () => {
+      const { result } = renderHook(() => useAcceptOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      let operationResult: OperationResult | undefined;
+      await act(async () => {
+        operationResult = await result.current.mutateAsync({
+          executionConfig: mockExecutionConfig,
+        });
+      });
+
+      expect(operationResult).toEqual(mockOperationResult);
+    });
+
+    it('should track transaction status changes', async () => {
+      const statusChanges: { status: TxStatus; details: TransactionStatusUpdate }[] = [];
+
+      // Mock service that calls onStatusChange
+      const mockServiceWithStatus = createMockAccessControlService({
+        acceptOwnership: vi
+          .fn()
+          .mockImplementation(
+            async (
+              _addr: string,
+              _config: ExecutionConfig,
+              onStatusChange?: (status: TxStatus, details: TransactionStatusUpdate) => void
+            ) => {
+              if (onStatusChange) {
+                onStatusChange('pendingSignature', { title: 'Sign acceptance' });
+                onStatusChange('pendingConfirmation', {
+                  txHash: '0xaccept123',
+                  title: 'Waiting for confirmation',
+                });
+                onStatusChange('success', { txHash: '0xaccept123', title: 'Ownership accepted' });
+              }
+              return mockOperationResult;
+            }
+          ),
+      });
+      const adapter = createMockAdapter(mockServiceWithStatus);
+
+      const { result } = renderHook(
+        () =>
+          useAcceptOwnership(adapter, 'CONTRACT_ADDRESS', {
+            onStatusChange: (status, details) => {
+              statusChanges.push({ status, details });
+            },
+          }),
+        {
+          wrapper: createWrapper(),
+        }
+      );
+
+      await act(async () => {
+        await result.current.mutateAsync({
+          executionConfig: mockExecutionConfig,
+        });
+      });
+
+      expect(statusChanges).toHaveLength(3);
+      expect(statusChanges[0].status).toBe('pendingSignature');
+      expect(statusChanges[1].status).toBe('pendingConfirmation');
+      expect(statusChanges[2].status).toBe('success');
+    });
+
+    it('should support runtime API key', async () => {
+      const { result } = renderHook(() => useAcceptOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        await result.current.mutateAsync({
+          executionConfig: mockExecutionConfig,
+          runtimeApiKey: 'my-api-key',
+        });
+      });
+
+      expect(mockService.acceptOwnership).toHaveBeenCalledWith(
+        'CONTRACT_ADDRESS',
+        mockExecutionConfig,
+        expect.any(Function),
+        'my-api-key'
+      );
+    });
+  });
+
+  describe('error handling', () => {
+    it('should set error state when acceptOwnership fails', async () => {
+      const mockServiceWithError = createMockAccessControlService({
+        acceptOwnership: vi.fn().mockRejectedValue(new Error('Acceptance failed')),
+      });
+      const adapter = createMockAdapter(mockServiceWithError);
+
+      const { result } = renderHook(() => useAcceptOwnership(adapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        try {
+          await result.current.mutateAsync({
+            executionConfig: mockExecutionConfig,
+          });
+        } catch {
+          // Expected to throw
+        }
+      });
+
+      expect(result.current.error).toBeInstanceOf(Error);
+      expect(result.current.error?.message).toBe('Acceptance failed');
+    });
+
+    it('should handle network disconnection error', async () => {
+      const mockServiceWithNetworkError = createMockAccessControlService({
+        acceptOwnership: vi.fn().mockRejectedValue(new NetworkDisconnectedError()),
+      });
+      const adapter = createMockAdapter(mockServiceWithNetworkError);
+
+      const { result } = renderHook(() => useAcceptOwnership(adapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        try {
+          await result.current.mutateAsync({
+            executionConfig: mockExecutionConfig,
+          });
+        } catch {
+          // Expected to throw
+        }
+      });
+
+      expect(result.current.error).toBeInstanceOf(Error);
+      expect(result.current.isNetworkError).toBe(true);
+    });
+
+    it('should handle user rejection error', async () => {
+      const mockServiceWithRejection = createMockAccessControlService({
+        acceptOwnership: vi.fn().mockRejectedValue(new UserRejectedError()),
+      });
+      const adapter = createMockAdapter(mockServiceWithRejection);
+
+      const { result } = renderHook(() => useAcceptOwnership(adapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        try {
+          await result.current.mutateAsync({
+            executionConfig: mockExecutionConfig,
+          });
+        } catch {
+          // Expected to throw
+        }
+      });
+
+      expect(result.current.error).toBeInstanceOf(Error);
+      expect(result.current.isUserRejection).toBe(true);
+    });
+
+    it('should throw error when service is not ready', async () => {
+      const adapterWithoutAC = createMockAdapter(null);
+      const { result } = renderHook(
+        () => useAcceptOwnership(adapterWithoutAC, 'CONTRACT_ADDRESS'),
+        {
+          wrapper: createWrapper(),
+        }
+      );
+
+      await act(async () => {
+        try {
+          await result.current.mutateAsync({
+            executionConfig: mockExecutionConfig,
+          });
+        } catch {
+          // Expected to throw
+        }
+      });
+
+      expect(result.current.error).toBeInstanceOf(Error);
+      expect(result.current.error?.message).toContain('not available');
+    });
+  });
+
+  describe('query invalidation', () => {
+    it('should invalidate ownership query on successful acceptance', async () => {
+      const queryClient = new QueryClient({
+        defaultOptions: {
+          queries: { retry: false, gcTime: 0 },
+          mutations: { retry: false },
+        },
+      });
+
+      const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
+
+      const { result } = renderHook(() => useAcceptOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(queryClient),
+      });
+
+      await act(async () => {
+        await result.current.mutateAsync({
+          executionConfig: mockExecutionConfig,
+        });
+      });
+
+      expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+        queryKey: ['contractOwnership', 'CONTRACT_ADDRESS'],
+      });
+    });
+
+    it('should not invalidate queries on failed mutation', async () => {
+      const queryClient = new QueryClient({
+        defaultOptions: {
+          queries: { retry: false, gcTime: 0 },
+          mutations: { retry: false },
+        },
+      });
+
+      const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
+
+      const mockServiceWithError = createMockAccessControlService({
+        acceptOwnership: vi.fn().mockRejectedValue(new Error('Failed')),
+      });
+      const adapter = createMockAdapter(mockServiceWithError);
+
+      const { result } = renderHook(() => useAcceptOwnership(adapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(queryClient),
+      });
+
+      await act(async () => {
+        try {
+          await result.current.mutateAsync({
+            executionConfig: mockExecutionConfig,
+          });
+        } catch {
+          // Expected
+        }
+      });
+
+      expect(invalidateQueriesSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('reset functionality', () => {
+    it('should reset state after error', async () => {
+      const mockServiceWithError = createMockAccessControlService({
+        acceptOwnership: vi.fn().mockRejectedValue(new Error('Acceptance failed')),
+      });
+      const adapter = createMockAdapter(mockServiceWithError);
+
+      const { result } = renderHook(() => useAcceptOwnership(adapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        try {
+          await result.current.mutateAsync({
+            executionConfig: mockExecutionConfig,
+          });
+        } catch {
+          // Expected
+        }
+      });
+
+      expect(result.current.error).toBeTruthy();
+
+      act(() => {
+        result.current.reset();
+      });
+
+      expect(result.current.error).toBeNull();
+      expect(result.current.status).toBe('idle');
     });
   });
 });

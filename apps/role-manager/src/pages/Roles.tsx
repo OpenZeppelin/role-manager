@@ -27,6 +27,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { Button, Card } from '@openzeppelin/ui-builder-ui';
 import { cn } from '@openzeppelin/ui-builder-utils';
 
+import { AcceptOwnershipDialog, TransferOwnershipDialog } from '../components/Ownership';
 import {
   AssignRoleDialog,
   EditRoleDialog,
@@ -44,6 +45,7 @@ import { PageEmptyState } from '../components/Shared/PageEmptyState';
 import { PageHeader } from '../components/Shared/PageHeader';
 import { useAllNetworks, useRolesPageData } from '../hooks';
 import { useSelectedContract } from '../hooks/useSelectedContract';
+import { createGetAccountUrl } from '../utils/explorer-urls';
 
 export function Roles() {
   // T035: Use useRolesPageData hook
@@ -53,6 +55,7 @@ export function Roles() {
     setSelectedRoleId,
     selectedRole,
     hasContractSelected,
+    capabilities, // Feature 015: for hasTwoStepOwnable
     isLoading,
     isRefreshing, // T051: Subtle refresh loading state
     isSupported,
@@ -64,6 +67,10 @@ export function Roles() {
     connectedAddress,
     connectedRoleIds,
     roleIdentifiers,
+    pendingOwner, // Feature 015 (T021): for Accept Ownership button
+    pendingTransfer, // Feature 015 Phase 6 (T026, T027): for pending transfer display
+    ownershipState, // Feature 015 Phase 6 (T028): for expired status display
+    currentBlock, // For expiration countdown
   } = useRolesPageData();
 
   // Phase 6: Edit dialog state
@@ -79,9 +86,18 @@ export function Roles() {
     roleName: string;
   } | null>(null);
 
+  // Spec 015 (T014): Transfer Ownership dialog state
+  const [isTransferOwnershipDialogOpen, setIsTransferOwnershipDialogOpen] = useState(false);
+
+  // Spec 015 (T021): Accept Ownership dialog state
+  const [isAcceptOwnershipDialogOpen, setIsAcceptOwnershipDialogOpen] = useState(false);
+
   // Get contract info for display
-  const { selectedContract } = useSelectedContract();
+  const { selectedContract, adapter } = useSelectedContract();
   const contractLabel = selectedContract?.label || selectedContract?.address || 'Unknown Contract';
+
+  // Create URL generator function for explorer links
+  const getAccountUrl = useMemo(() => createGetAccountUrl(adapter), [adapter]);
 
   // Get network name from networkId
   const { networks } = useAllNetworks();
@@ -108,8 +124,9 @@ export function Roles() {
       isCurrentUser: connectedAddress
         ? address.toLowerCase() === connectedAddress.toLowerCase()
         : false,
+      explorerUrl: getAccountUrl(address) ?? undefined,
     }));
-  }, [selectedRole, connectedAddress]);
+  }, [selectedRole, connectedAddress, getAccountUrl]);
 
   // Phase 6: Open edit dialog
   const handleOpenEditDialog = useCallback(() => {
@@ -134,6 +151,22 @@ export function Roles() {
     },
     [selectedRole]
   );
+
+  // Spec 015 (T014): Open transfer ownership dialog
+  const handleTransferOwnership = useCallback(() => {
+    setIsTransferOwnershipDialogOpen(true);
+  }, []);
+
+  // Spec 015 (T021): Open accept ownership dialog
+  const handleAcceptOwnership = useCallback(() => {
+    setIsAcceptOwnershipDialogOpen(true);
+  }, []);
+
+  // Spec 015 (T021): Check if connected wallet can accept ownership (is the pending owner)
+  const canAcceptOwnership = useMemo(() => {
+    if (!pendingOwner || !connectedAddress) return false;
+    return pendingOwner.toLowerCase() === connectedAddress.toLowerCase();
+  }, [pendingOwner, connectedAddress]);
 
   // Phase 6: Handle description save from dialog
   const handleSaveDescription = useCallback(
@@ -246,9 +279,17 @@ export function Roles() {
                 onEdit={handleOpenEditDialog}
                 onAssign={handleAssignRole}
                 onRevoke={handleRevokeRole}
-                onTransferOwnership={() => {
-                  // Action placeholder for future mutations (spec 010)
-                }}
+                onTransferOwnership={handleTransferOwnership}
+                onAcceptOwnership={handleAcceptOwnership}
+                canAcceptOwnership={canAcceptOwnership}
+                pendingTransfer={pendingTransfer}
+                ownershipState={ownershipState}
+                pendingRecipientUrl={
+                  pendingTransfer?.pendingOwner
+                    ? (getAccountUrl(pendingTransfer.pendingOwner) ?? undefined)
+                    : undefined
+                }
+                currentBlock={currentBlock}
               />
             ) : (
               <div className="flex items-center justify-center h-full p-6 text-muted-foreground">
@@ -295,6 +336,32 @@ export function Roles() {
           roleName={revokeTarget.roleName}
         />
       )}
+
+      {/* Spec 015 (T014): Transfer Ownership Dialog */}
+      {/* Get current owner from the Owner role (first member of owner role) */}
+      {(() => {
+        const ownerRole = roles.find((r) => r.isOwnerRole);
+        const currentOwner = ownerRole?.members[0] ?? '';
+        // T033: Check if there's an existing pending transfer
+        const hasPendingTransfer = !!(pendingTransfer && ownershipState === 'pending');
+        return (
+          <TransferOwnershipDialog
+            open={isTransferOwnershipDialogOpen}
+            onOpenChange={setIsTransferOwnershipDialogOpen}
+            currentOwner={currentOwner}
+            hasTwoStepOwnable={capabilities?.hasTwoStepOwnable ?? false}
+            hasPendingTransfer={hasPendingTransfer}
+            onSuccess={refetch}
+          />
+        );
+      })()}
+
+      {/* Spec 015 (T021): Accept Ownership Dialog */}
+      <AcceptOwnershipDialog
+        open={isAcceptOwnershipDialogOpen}
+        onOpenChange={setIsAcceptOwnershipDialogOpen}
+        onSuccess={refetch}
+      />
     </div>
   );
 }

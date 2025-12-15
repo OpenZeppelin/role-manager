@@ -38,18 +38,47 @@ export {
   useGrantRole,
   useRevokeRole,
   useTransferOwnership,
+  useAcceptOwnership,
   useExportSnapshot,
 } from './useAccessControlMutations';
 export type {
   GrantRoleArgs,
   RevokeRoleArgs,
   TransferOwnershipArgs,
+  AcceptOwnershipArgs,
   MutationHookOptions,
   UseAccessControlMutationReturn,
   AccessSnapshot,
   UseExportSnapshotReturn,
   ExportSnapshotOptions,
 } from './useAccessControlMutations';
+
+// Current Block Hook (Feature: 015-ownership-transfer)
+export { useCurrentBlock, DEFAULT_POLL_INTERVAL_MS } from './useCurrentBlock';
+export type { UseCurrentBlockOptions, UseCurrentBlockReturn } from './useCurrentBlock';
+
+// Block Time Estimation Hook (Feature: 015-ownership-transfer)
+export { useBlockTimeEstimate } from './useBlockTimeEstimate';
+export type {
+  BlockTimeEstimate,
+  UseBlockTimeEstimateReturn,
+  UseBlockTimeEstimateOptions,
+} from './useBlockTimeEstimate';
+
+// Ownership Transfer Dialog Hook (Feature: 015-ownership-transfer)
+export { useOwnershipTransferDialog } from './useOwnershipTransferDialog';
+export type {
+  TransferOwnershipFormData,
+  UseOwnershipTransferDialogOptions,
+  UseOwnershipTransferDialogReturn,
+} from './useOwnershipTransferDialog';
+
+// Accept Ownership Dialog Hook (Feature: 015-ownership-transfer)
+export { useAcceptOwnershipDialog } from './useAcceptOwnershipDialog';
+export type {
+  UseAcceptOwnershipDialogOptions,
+  UseAcceptOwnershipDialogReturn,
+} from './useAcceptOwnershipDialog';
 
 // Custom Role Descriptions (Feature: 009-roles-page-data)
 export { useCustomRoleDescriptions } from './useCustomRoleDescriptions';
@@ -101,6 +130,10 @@ export type {
   UseMultiMutationExecutionOptions,
   UseMultiMutationExecutionReturn,
 } from './useTransactionExecution';
+
+// Pending Transfers Hook (Feature: 015-ownership-transfer Phase 6.5)
+export { usePendingTransfers } from './usePendingTransfers';
+export type { UsePendingTransfersOptions } from './usePendingTransfers';
 
 // Utility hooks
 export { useDebounce } from './useDebounce';

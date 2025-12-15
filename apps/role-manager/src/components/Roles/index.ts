@@ -14,6 +14,7 @@
 // =============================================================================
 
 export { AccountRow } from './AccountRow';
+export { PendingTransferInfo } from './PendingTransferInfo';
 export { RoleCard } from './RoleCard';
 export { RoleDetails } from './RoleDetails';
 export { RoleIdentifiersTable } from './RoleIdentifiersTable';
@@ -41,6 +42,7 @@ export { RevokeRoleDialog } from './RevokeRoleDialog';
 // =============================================================================
 
 export type { AccountRowProps } from './AccountRow';
+export type { PendingTransferInfoProps } from './PendingTransferInfo';
 export type { RoleCardProps } from './RoleCard';
 export type { RoleDetailsProps } from './RoleDetails';
 export type { RoleIdentifiersTableProps } from './RoleIdentifiersTable';

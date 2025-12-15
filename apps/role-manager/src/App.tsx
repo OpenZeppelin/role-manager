@@ -6,6 +6,7 @@ import { AdapterProvider, WalletStateProvider } from '@openzeppelin/ui-builder-r
 import type { NativeConfigLoader } from '@openzeppelin/ui-builder-types';
 
 import { MainLayout } from './components/Layout/MainLayout';
+import { BlockTimeProvider } from './context/BlockTimeContext';
 import { ContractProvider } from './context/ContractContext';
 import { WalletSyncProvider } from './context/WalletSyncProvider';
 import { getAdapter, getNetworkById } from './core/ecosystems/ecosystemManager';
@@ -103,22 +104,24 @@ function App() {
       <BrowserRouter>
         <AdapterProvider resolveAdapter={getAdapter}>
           <ContractProvider>
-            <WalletStateProvider
-              initialNetworkId={null}
-              getNetworkConfigById={getNetworkById}
-              loadConfigModule={loadAppConfigModule}
-            >
-              <WalletSyncProvider>
-                <MainLayout>
-                  <Routes>
-                    <Route path="/" element={<Dashboard />} />
-                    <Route path="/authorized-accounts" element={<AuthorizedAccounts />} />
-                    <Route path="/roles" element={<Roles />} />
-                    <Route path="/role-changes" element={<RoleChanges />} />
-                  </Routes>
-                </MainLayout>
-              </WalletSyncProvider>
-            </WalletStateProvider>
+            <BlockTimeProvider>
+              <WalletStateProvider
+                initialNetworkId={null}
+                getNetworkConfigById={getNetworkById}
+                loadConfigModule={loadAppConfigModule}
+              >
+                <WalletSyncProvider>
+                  <MainLayout>
+                    <Routes>
+                      <Route path="/" element={<Dashboard />} />
+                      <Route path="/authorized-accounts" element={<AuthorizedAccounts />} />
+                      <Route path="/roles" element={<Roles />} />
+                      <Route path="/role-changes" element={<RoleChanges />} />
+                    </Routes>
+                  </MainLayout>
+                </WalletSyncProvider>
+              </WalletStateProvider>
+            </BlockTimeProvider>
           </ContractProvider>
         </AdapterProvider>
       </BrowserRouter>

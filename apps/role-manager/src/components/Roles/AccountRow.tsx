@@ -10,12 +10,13 @@
  * - Assignment date display/hide logic (hide when unavailable)
  */
 
-import { Crown, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 
 import { AddressDisplay, Button } from '@openzeppelin/ui-builder-ui';
 import { cn } from '@openzeppelin/ui-builder-utils';
 
 import { formatDate } from '../../utils/date';
+import { TransferRoleButton } from '../Shared/TransferRoleButton';
 import { YouBadge } from '../Shared/YouBadge';
 
 /**
@@ -30,6 +31,8 @@ export interface AccountRowProps {
   isCurrentUser: boolean;
   /** Whether to show Owner-specific actions */
   isOwnerRole: boolean;
+  /** Explorer URL for the address (optional) */
+  explorerUrl?: string;
   /** Revoke action handler (non-owner roles) */
   onRevoke?: () => void;
   /** Transfer ownership handler (owner role only) */
@@ -50,6 +53,7 @@ export function AccountRow({
   assignedAt,
   isCurrentUser,
   isOwnerRole,
+  explorerUrl,
   onRevoke,
   onTransferOwnership,
   className,
@@ -63,6 +67,7 @@ export function AccountRow({
           startChars={10}
           endChars={8}
           showCopyButton={true}
+          explorerUrl={explorerUrl}
         />
         {/* T032: "You" badge - shown when isCurrentUser is true */}
         {isCurrentUser && <YouBadge />}
@@ -88,16 +93,12 @@ export function AccountRow({
             </Button>
           </>
         ) : (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={onTransferOwnership}
-            className="h-7 px-3 text-xs border-blue-600 text-blue-700 hover:bg-blue-50"
-            disabled={!onTransferOwnership}
-          >
-            <Crown className="h-3 w-3 mr-1" />
-            Transfer Ownership
-          </Button>
+          <>
+            {/* FR-006: Transfer Ownership button only visible when connected wallet is current owner */}
+            {isCurrentUser && onTransferOwnership && (
+              <TransferRoleButton roleType="ownership" onClick={onTransferOwnership} />
+            )}
+          </>
         )}
       </div>
     </div>

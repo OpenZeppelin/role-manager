@@ -30,6 +30,14 @@ export type {
   RevokeRoleDialogState,
 } from './role-dialogs';
 
+// Pending Transfers types (Feature: 015-ownership-transfer Phase 6.5)
+export type {
+  PendingTransferType,
+  PendingTransfer,
+  UsePendingTransfersOptions,
+  UsePendingTransfersReturn,
+} from './pending-transfers';
+
 // Role Changes types (Feature: 012-role-changes-data)
 export {
   // Domain types

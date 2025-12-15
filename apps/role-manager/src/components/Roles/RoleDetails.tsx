@@ -15,6 +15,7 @@
 
 import { Crown, Pencil, Plus } from 'lucide-react';
 
+import type { OwnershipState, PendingOwnershipTransfer } from '@openzeppelin/ui-builder-types';
 import {
   Button,
   CardContent,
@@ -26,6 +27,7 @@ import { cn } from '@openzeppelin/ui-builder-utils';
 
 import type { RoleWithDescription } from '../../types/roles';
 import { AccountRow } from './AccountRow';
+import { PendingTransferInfo } from './PendingTransferInfo';
 
 /**
  * Account data for display in role details
@@ -37,6 +39,8 @@ export interface AccountData {
   assignedAt?: Date;
   /** Whether this is the connected user */
   isCurrentUser: boolean;
+  /** Explorer URL for the address */
+  explorerUrl?: string;
 }
 
 /**
@@ -57,6 +61,24 @@ export interface RoleDetailsProps {
   onRevoke?: (address: string) => void;
   /** Transfer ownership action (placeholder for future) */
   onTransferOwnership?: () => void;
+  /** Feature 015 (T020): Accept ownership action (two-step transfer) */
+  onAcceptOwnership?: () => void;
+  /** Feature 015 (T020): Whether connected wallet can accept ownership */
+  canAcceptOwnership?: boolean;
+  /**
+   * Feature 015 Phase 6 (T026, T027): Pending transfer info for Owner role display
+   * Includes pendingOwner address and expiration block
+   */
+  pendingTransfer?: PendingOwnershipTransfer | null;
+  /**
+   * Feature 015 Phase 6 (T028): Ownership state for status display
+   * 'pending' or 'expired' will trigger PendingTransferInfo display
+   */
+  ownershipState?: OwnershipState | null;
+  /** Explorer URL for the pending recipient address */
+  pendingRecipientUrl?: string;
+  /** Current block/ledger number for expiration countdown */
+  currentBlock?: number | null;
   /** Additional CSS classes */
   className?: string;
 }
@@ -72,6 +94,12 @@ export function RoleDetails({
   onAssign,
   onRevoke,
   onTransferOwnership,
+  onAcceptOwnership,
+  canAcceptOwnership,
+  pendingTransfer,
+  ownershipState,
+  pendingRecipientUrl,
+  currentBlock,
   className,
 }: RoleDetailsProps) {
   const hasAccounts = accounts.length > 0;
@@ -133,6 +161,7 @@ export function RoleDetails({
                   assignedAt={account.assignedAt}
                   isCurrentUser={account.isCurrentUser}
                   isOwnerRole={role.isOwnerRole}
+                  explorerUrl={account.explorerUrl}
                   onRevoke={onRevoke ? () => onRevoke(account.address) : undefined}
                   onTransferOwnership={onTransferOwnership}
                 />
@@ -143,6 +172,21 @@ export function RoleDetails({
               </div>
             )}
           </div>
+
+          {/* Feature 015 Phase 6 (T026, T027, T028): Pending Transfer Info for Owner role */}
+          {role.isOwnerRole &&
+            pendingTransfer &&
+            (ownershipState === 'pending' || ownershipState === 'expired') && (
+              <PendingTransferInfo
+                pendingRecipient={pendingTransfer.pendingOwner}
+                pendingRecipientUrl={pendingRecipientUrl}
+                expirationBlock={pendingTransfer.expirationBlock}
+                isExpired={ownershipState === 'expired'}
+                canAccept={canAcceptOwnership}
+                onAccept={onAcceptOwnership}
+                currentBlock={currentBlock}
+              />
+            )}
         </div>
       </CardContent>
     </div>

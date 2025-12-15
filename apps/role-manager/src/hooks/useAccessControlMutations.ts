@@ -147,7 +147,17 @@ export interface TransferOwnershipArgs {
    * Used for two-step ownership transfers to set a deadline for the new owner to accept.
    * After this block/ledger, the transfer becomes invalid and must be re-initiated.
    */
-  expirationLedger: number;
+  expirationBlock: number;
+  /** Execution configuration (EOA, relayer, etc.) */
+  executionConfig: ExecutionConfig;
+  /** Optional runtime API key for relayer */
+  runtimeApiKey?: string;
+}
+
+/**
+ * Arguments for useAcceptOwnership mutation (Feature: 015-ownership-transfer)
+ */
+export interface AcceptOwnershipArgs {
   /** Execution configuration (EOA, relayer, etc.) */
   executionConfig: ExecutionConfig;
   /** Optional runtime API key for relayer */
@@ -461,7 +471,120 @@ export function useTransferOwnership(
       return service.transferOwnership(
         contractAddress,
         args.newOwner,
-        args.expirationLedger,
+        args.expirationBlock,
+        args.executionConfig,
+        handleStatusChange,
+        args.runtimeApiKey
+      );
+    },
+    onSuccess: (result) => {
+      // Invalidate ownership query to refetch updated data (FR-014)
+      queryClient.invalidateQueries({
+        queryKey: ownershipQueryKey(contractAddress),
+      });
+      options?.onSuccess?.(result);
+    },
+    onError: (error: Error) => {
+      setStatus('error');
+      options?.onError?.(error);
+    },
+  });
+
+  // Compute error classification
+  const errorClassification = useMemo(() => {
+    const error = mutation.error;
+    return {
+      isNetworkError: isNetworkDisconnectionError(error),
+      isUserRejection: isUserRejectionError(error),
+    };
+  }, [mutation.error]);
+
+  // Reset function
+  const reset = useCallback(() => {
+    mutation.reset();
+    setStatus('idle');
+    setStatusDetails(null);
+  }, [mutation]);
+
+  return {
+    mutate: mutation.mutate,
+    mutateAsync: mutation.mutateAsync,
+    isPending: mutation.isPending,
+    error: mutation.error as Error | null,
+    status,
+    statusDetails,
+    isReady,
+    isNetworkError: errorClassification.isNetworkError,
+    isUserRejection: errorClassification.isUserRejection,
+    reset,
+  };
+}
+
+// ============================================================================
+// useAcceptOwnership Hook (Feature: 015-ownership-transfer)
+// ============================================================================
+
+/**
+ * Hook for accepting a pending ownership transfer (two-step Ownable).
+ *
+ * Provides mutation functionality with:
+ * - Transaction status tracking
+ * - Network disconnection detection (FR-010)
+ * - User rejection detection (FR-011)
+ * - Automatic query invalidation on success (FR-014)
+ *
+ * @param adapter - The contract adapter instance, or null if not loaded
+ * @param contractAddress - The contract address to operate on
+ * @param options - Optional callbacks for status changes and completion
+ * @returns Mutation controls and state
+ *
+ * @example
+ * ```tsx
+ * const { mutate, isPending, error } = useAcceptOwnership(adapter, contractAddress);
+ *
+ * const handleAccept = () => {
+ *   mutate({ executionConfig: { method: 'eoa' } });
+ * };
+ * ```
+ */
+export function useAcceptOwnership(
+  adapter: ContractAdapter | null,
+  contractAddress: string,
+  options?: MutationHookOptions
+): UseAccessControlMutationReturn<AcceptOwnershipArgs> {
+  const { service, isReady } = useAccessControlService(adapter);
+  const queryClient = useQueryClient();
+
+  // Track transaction status internally
+  const [status, setStatus] = useState<TxStatus>('idle');
+  const [statusDetails, setStatusDetails] = useState<TransactionStatusUpdate | null>(null);
+
+  // Status change handler that updates internal state and calls external callback
+  const handleStatusChange = useCallback(
+    (newStatus: TxStatus, details: TransactionStatusUpdate) => {
+      setStatus(newStatus);
+      setStatusDetails(details);
+      options?.onStatusChange?.(newStatus, details);
+    },
+    [options]
+  );
+
+  const mutation = useMutation({
+    mutationFn: async (args: AcceptOwnershipArgs): Promise<OperationResult> => {
+      if (!service) {
+        throw new Error('Access control service not available');
+      }
+
+      if (!service.acceptOwnership) {
+        throw new Error('Accept ownership is not supported by this adapter');
+      }
+
+      // Reset status at start
+      setStatus('idle');
+      setStatusDetails(null);
+
+      return service.acceptOwnership(
+        contractAddress,
         args.executionConfig,
         handleStatusChange,
         args.runtimeApiKey

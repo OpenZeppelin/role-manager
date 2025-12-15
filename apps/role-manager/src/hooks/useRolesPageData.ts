@@ -20,13 +20,18 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useDerivedAccountStatus } from '@openzeppelin/ui-builder-react-core';
-import type { AccessControlCapabilities } from '@openzeppelin/ui-builder-types';
+import type {
+  AccessControlCapabilities,
+  OwnershipState,
+  PendingOwnershipTransfer,
+} from '@openzeppelin/ui-builder-types';
 
 import { OWNER_ROLE_DESCRIPTION, OWNER_ROLE_ID, OWNER_ROLE_NAME } from '../constants';
 import type { RoleIdentifier, RoleWithDescription } from '../types/roles';
 import { getRoleName } from '../utils/role-name';
 import { useContractCapabilities } from './useContractCapabilities';
 import { useContractOwnership, useContractRoles } from './useContractData';
+import { useCurrentBlock } from './useCurrentBlock';
 import { useCustomRoleDescriptions } from './useCustomRoleDescriptions';
 import { useSelectedContract } from './useSelectedContract';
 
@@ -78,6 +83,27 @@ export interface UseRolesPageDataReturn {
 
   /** Role identifiers for reference table */
   roleIdentifiers: RoleIdentifier[];
+
+  /** Feature 015: Pending owner address (for Accept Ownership button visibility) */
+  pendingOwner: string | null;
+
+  /**
+   * Feature 015 Phase 6: Full pending transfer info for display (T026, T027, T028)
+   * Includes pendingOwner, expirationBlock for detailed status display
+   */
+  pendingTransfer: PendingOwnershipTransfer | null;
+
+  /**
+   * Feature 015 Phase 6: Ownership state ('owned' | 'pending' | 'expired' | 'renounced')
+   * Used to determine which UI elements to show (T028)
+   */
+  ownershipState: OwnershipState | null;
+
+  /**
+   * Current ledger/block number for expiration countdown display
+   * Polled automatically when a pending transfer exists
+   */
+  currentBlock: number | null;
 }
 
 // =============================================================================
@@ -166,6 +192,13 @@ export function useRolesPageData(): UseRolesPageDataReturn {
   // Custom descriptions
   const { descriptions: customDescriptions, updateDescription } =
     useCustomRoleDescriptions(contractId);
+
+  // Current block for expiration countdown (poll when pending transfer exists)
+  const hasPendingTransfer = ownership?.state === 'pending';
+  const { currentBlock } = useCurrentBlock(adapter, {
+    enabled: hasPendingTransfer,
+    pollInterval: 5000, // Poll every 5 seconds for real-time countdown
+  });
 
   // =============================================================================
   // Computed Values
@@ -296,6 +329,19 @@ export function useRolesPageData(): UseRolesPageDataReturn {
   // Return
   // =============================================================================
 
+  // Feature 015 Phase 6 (T026, T027, T028): Extract full pending transfer info and ownership state
+  // The OwnershipInfo type includes pendingTransfer and state fields
+  const ownershipWithPending = ownership as {
+    pendingTransfer?: PendingOwnershipTransfer;
+    state?: OwnershipState;
+  } | null;
+
+  const pendingTransfer = ownershipWithPending?.pendingTransfer ?? null;
+  const ownershipState = ownershipWithPending?.state ?? null;
+
+  // Feature 015: Extract pending owner from pendingTransfer (for Accept Ownership button)
+  const pendingOwner = pendingTransfer?.pendingOwner ?? null;
+
   // Handle no contract selected
   if (!selectedContract) {
     return {
@@ -319,6 +365,10 @@ export function useRolesPageData(): UseRolesPageDataReturn {
       connectedAddress: null,
       connectedRoleIds: [],
       roleIdentifiers: [],
+      pendingOwner: null,
+      pendingTransfer: null,
+      ownershipState: null,
+      currentBlock: null,
     };
   }
 
@@ -343,5 +393,9 @@ export function useRolesPageData(): UseRolesPageDataReturn {
     connectedAddress: connectedAddress ?? null,
     connectedRoleIds,
     roleIdentifiers,
+    pendingOwner,
+    pendingTransfer,
+    ownershipState,
+    currentBlock,
   };
 }

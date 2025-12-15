@@ -1,22 +1,28 @@
 /**
  * Dashboard Page
  * Feature: 007-dashboard-real-data
+ * Updated by: 015-ownership-transfer (Phase 6.5)
  *
  * Displays an overview of the selected contract's access control configuration.
- * Shows contract info, role statistics, and provides refresh/export actions.
+ * Shows contract info, role statistics, pending transfers, and provides refresh/export actions.
  *
  * Integrates with useDashboardData hook to display:
  * - Real role count from useContractRoles
  * - Unique authorized accounts count (deduplicated)
  * - Loading/error states with retry functionality
  * - Support for Ownable-only contracts
+ *
+ * Phase 6.5 additions:
+ * - Pending transfers table from usePendingTransfers
+ * - AcceptOwnershipDialog integration
  */
 
 import { Download, Loader2, RefreshCw, Shield, Users } from 'lucide-react';
 import { toast } from 'sonner';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { useDerivedAccountStatus } from '@openzeppelin/ui-builder-react-core';
 import { Button } from '@openzeppelin/ui-builder-ui';
 import { truncateMiddle } from '@openzeppelin/ui-builder-utils';
 
@@ -24,13 +30,18 @@ import { ContractInfoCard } from '../components/Dashboard/ContractInfoCard';
 import { DashboardEmptyState } from '../components/Dashboard/DashboardEmptyState';
 import { DashboardStatsCard } from '../components/Dashboard/DashboardStatsCard';
 import { PendingChangesCard } from '../components/Dashboard/PendingChangesCard';
+import { AcceptOwnershipDialog } from '../components/Ownership/AcceptOwnershipDialog';
 import { PageHeader } from '../components/Shared/PageHeader';
-import { useDashboardData, useSelectedContract } from '../hooks';
+import { useDashboardData, usePendingTransfers, useSelectedContract } from '../hooks';
+import type { PendingTransfer } from '../types/pending-transfers';
 
 export function Dashboard() {
   const navigate = useNavigate();
   const { selectedContract, selectedNetwork, adapter, isContractRegistered } =
     useSelectedContract();
+
+  // Get connected wallet address for pending transfers
+  const { address: connectedAddress } = useDerivedAccountStatus();
 
   // Get dashboard data including roles count and unique accounts count
   // Pass isContractRegistered to prevent data fetching before registration is complete
@@ -53,6 +64,21 @@ export function Dashboard() {
     isContractRegistered,
   });
 
+  // Phase 6.5: Get pending transfers for the card
+  const {
+    transfers,
+    currentBlock,
+    isLoading: isTransfersLoading,
+    refetch: refetchTransfers,
+  } = usePendingTransfers({
+    connectedAddress,
+    includeExpired: false,
+  });
+
+  // Phase 6.5: Accept ownership dialog state
+  const [acceptDialogOpen, setAcceptDialogOpen] = useState(false);
+  const [_selectedTransfer, setSelectedTransfer] = useState<PendingTransfer | null>(null);
+
   // Determine if we have a contract selected
   const hasContract = selectedContract !== null;
 
@@ -73,12 +99,28 @@ export function Dashboard() {
   // Handle refresh with toast notification on error
   const handleRefresh = useCallback(async () => {
     try {
-      await refetch();
+      await Promise.all([refetch(), refetchTransfers()]);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to refresh data';
       toast.error(message);
     }
-  }, [refetch]);
+  }, [refetch, refetchTransfers]);
+
+  // Phase 6.5: Handle accept button click from PendingTransfersTable
+  const handleAcceptTransfer = useCallback((transfer: PendingTransfer) => {
+    if (transfer.type === 'ownership') {
+      setSelectedTransfer(transfer);
+      setAcceptDialogOpen(true);
+    }
+    // Future: Handle admin and multisig transfer types
+  }, []);
+
+  // Phase 6.5: Handle successful acceptance
+  const handleAcceptSuccess = useCallback(() => {
+    // Refresh data after successful acceptance
+    void refetchTransfers();
+    void refetch();
+  }, [refetchTransfers, refetch]);
 
   // Combined loading state for stats cards (initial load OR manual refresh)
   const isDataLoading = isLoading || isRefreshing;
@@ -146,7 +188,13 @@ export function Dashboard() {
             explorerUrl={explorerUrl}
           />
 
-          <PendingChangesCard />
+          {/* Phase 6.5: PendingChangesCard with real data */}
+          <PendingChangesCard
+            transfers={transfers}
+            currentBlock={currentBlock}
+            isLoading={isTransfersLoading}
+            onAccept={handleAcceptTransfer}
+          />
         </div>
 
         {/* Right Column */}
@@ -178,6 +226,13 @@ export function Dashboard() {
           />
         </div>
       </div>
+
+      {/* Phase 6.5: Accept Ownership Dialog (T050) */}
+      <AcceptOwnershipDialog
+        open={acceptDialogOpen}
+        onOpenChange={setAcceptDialogOpen}
+        onSuccess={handleAcceptSuccess}
+      />
     </div>
   );
 }
