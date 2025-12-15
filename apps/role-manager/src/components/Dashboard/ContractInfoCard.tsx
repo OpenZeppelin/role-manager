@@ -67,9 +67,11 @@ export function ContractInfoCard({
           <span className="text-sm font-semibold text-slate-900">Contract Address</span>
           <AddressDisplay
             address={address}
+            truncate={true}
+            startChars={6}
+            endChars={4}
             showCopyButton={true}
             explorerUrl={explorerUrl ?? undefined}
-            className="bg-transparent p-0 text-slate-600"
           />
         </div>
 
