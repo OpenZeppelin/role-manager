@@ -32,6 +32,10 @@ export { WalletDisconnectedAlert } from './WalletDisconnectedAlert';
 export { RoleListSkeleton } from './RoleListSkeleton';
 export { NoRolesEmptyState } from './NoRolesEmptyState';
 
+// Two-Step Transfer Action Buttons (Feature: 015-ownership-transfer)
+export { TransferRoleButton } from './TransferRoleButton';
+export { AcceptTransferButton } from './AcceptTransferButton';
+
 // Types
 export type { OutlineBadgeProps } from './OutlineBadge';
 export type { PaginationProps, PaginationState } from './Pagination';
@@ -56,3 +60,7 @@ export type { ConfirmCloseDialogProps } from './ConfirmCloseDialog';
 export type { WalletDisconnectedAlertProps } from './WalletDisconnectedAlert';
 export type { RoleListSkeletonProps } from './RoleListSkeleton';
 export type { NoRolesEmptyStateProps } from './NoRolesEmptyState';
+
+// Two-Step Transfer Action Button Types (Feature: 015-ownership-transfer)
+export type { TransferRoleButtonProps } from './TransferRoleButton';
+export type { AcceptTransferButtonProps } from './AcceptTransferButton';
