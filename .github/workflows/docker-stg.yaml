@@ -35,7 +35,7 @@ jobs:
       ROLE_TO_ASSUME: arn:aws:iam::${{ secrets.RESEARCH_ACCOUNT_ID }}:role/GithubOIDCResearchAccountRole
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@0080882f6c36860b6ba35c610c98ce87d4e2f26f # v2.10.2
+        uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
         with:
           egress-policy: audit
 
@@ -49,35 +49,13 @@ jobs:
       - name: Checkout role-manager
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          path: role-manager
           token: ${{ steps.gh-app-token.outputs.token }}
-          ref: ${{ inputs.branch || 'main' }}
-
-      # - name: Checkout ui-builder
-      #   uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      #   with:
-      #     repository: OpenZeppelin/ui-builder
-      #     path: ui-builder
-      #     token: ${{ steps.gh-app-token.outputs.token }}
-
-      # - name: Create symlink for contracts-ui-builder
-      #   run: ln -s ui-builder contracts-ui-builder
-
-      # - name: Setup pnpm for ui-builder
-      #   uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # v4.0.0
-      #   with:
-      #     run_install: false
 
       - name: Setup Node.js
         uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
         with:
           node-version: 22.18.0
           cache: 'pnpm'
-          cache-dependency-path: ui-builder/pnpm-lock.yaml
-
-      # - name: Build and pack ui-builder packages
-      #   working-directory: role-manager
-      #   run: ./scripts/pack-ui-builder.sh ../ui-builder
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.2.0
@@ -157,7 +135,7 @@ jobs:
       id-token: write
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@0080882f6c36860b6ba35c610c98ce87d4e2f26f # v2.10.2
+        uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
         with:
           egress-policy: audit
 
