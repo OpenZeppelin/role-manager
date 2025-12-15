@@ -15,7 +15,7 @@
  * - Expired status when applicable
  */
 
-import { AlertTriangle, Clock, User } from 'lucide-react';
+import { AlertTriangle, Clock, Info, User } from 'lucide-react';
 
 import { AddressDisplay } from '@openzeppelin/ui-builder-ui';
 import { cn } from '@openzeppelin/ui-builder-utils';
@@ -169,6 +169,16 @@ export function PendingTransferInfo({
       {canAccept && !isExpired && onAccept && (
         <div className="mt-3 pt-3 border-t border-blue-200 flex justify-end">
           <AcceptTransferButton roleLabel={transferLabel} onClick={onAccept} />
+        </div>
+      )}
+
+      {/* T034: Wrong wallet connected message - shown when user cannot accept (not pending owner) and transfer is not expired */}
+      {!canAccept && !isExpired && (
+        <div className="mt-3 pt-3 border-t border-blue-200 flex items-center gap-2">
+          <Info className="h-4 w-4 text-blue-600 shrink-0" />
+          <p className="text-xs text-blue-700">
+            Connect the pending {recipientLabel.toLowerCase()} wallet to accept this transfer.
+          </p>
         </div>
       )}
 

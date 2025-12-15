@@ -342,12 +342,15 @@ export function Roles() {
       {(() => {
         const ownerRole = roles.find((r) => r.isOwnerRole);
         const currentOwner = ownerRole?.members[0] ?? '';
+        // T033: Check if there's an existing pending transfer
+        const hasPendingTransfer = !!(pendingTransfer && ownershipState === 'pending');
         return (
           <TransferOwnershipDialog
             open={isTransferOwnershipDialogOpen}
             onOpenChange={setIsTransferOwnershipDialogOpen}
             currentOwner={currentOwner}
             hasTwoStepOwnable={capabilities?.hasTwoStepOwnable ?? false}
+            hasPendingTransfer={hasPendingTransfer}
             onSuccess={refetch}
           />
         );

@@ -192,21 +192,21 @@ interface PendingTransfer {
 
 ### Validation Edge Cases
 
-- [ ] T032 Add self-transfer prevention with error message "Cannot transfer to yourself" (FR-012, FR-012a)
-- [ ] T033 Add "This will replace the existing pending transfer" warning when initiating transfer while one is pending
-- [ ] T034 Add "Connect the pending owner wallet to accept" message when wrong wallet connected
+- [x] T032 Add self-transfer prevention with error message "Cannot transfer to yourself" (FR-012, FR-012a)
+- [x] T033 Add "This will replace the existing pending transfer" warning when initiating transfer while one is pending
+- [x] T034 Add "Connect the pending owner wallet to accept" message when wrong wallet connected
 
 ### Accessibility
 
-- [ ] T037 Verify focus moves to first interactive element when dialogs open (FR-028)
-- [ ] T038 Verify focus returns to trigger element when dialogs close (FR-029)
-- [ ] T039 Verify Escape key closes dialogs (except during pending/confirming) (FR-030)
-- [ ] T040 Verify all interactive elements are keyboard accessible via Tab (FR-031)
+- [x] T037 Verify focus moves to first interactive element when dialogs open (FR-028)
+- [x] T038 Verify focus returns to trigger element when dialogs close (FR-029)
+- [x] T039 Verify Escape key closes dialogs (except during pending/confirming) (FR-030)
+- [x] T040 Verify all interactive elements are keyboard accessible via Tab (FR-031)
 
 ### Single-Step Adaptation
 
-- [ ] T041 Ensure expiration input and current ledger display are omitted for single-step contracts (FR-032)
-- [ ] T042 Verify single-step transfers complete immediately without Accept step (FR-033)
+- [x] T041 Ensure expiration input and current ledger display are omitted for single-step contracts (FR-032)
+- [x] T042 Verify single-step transfers complete immediately without Accept step (FR-033)
 
 ---
 

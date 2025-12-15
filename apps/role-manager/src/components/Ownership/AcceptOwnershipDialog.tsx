@@ -145,6 +145,16 @@ export function AcceptOwnershipDialog({
     await submit();
   }, [submit]);
 
+  // T039: Prevent Escape key from closing dialog during pending/confirming states
+  const handleEscapeKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (step === 'pending' || step === 'confirming') {
+        event.preventDefault();
+      }
+    },
+    [step]
+  );
+
   // =============================================================================
   // Render Content Based on Step
   // =============================================================================
@@ -209,7 +219,7 @@ export function AcceptOwnershipDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-[480px]">
+        <DialogContent className="sm:max-w-[480px]" onEscapeKeyDown={handleEscapeKeyDown}>
           <DialogHeader>
             <DialogTitle>Accept Ownership</DialogTitle>
             <DialogDescription>

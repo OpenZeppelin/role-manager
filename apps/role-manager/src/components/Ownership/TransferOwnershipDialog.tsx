@@ -70,6 +70,11 @@ export interface TransferOwnershipDialogProps {
   currentOwner: string;
   /** Whether contract supports two-step transfer */
   hasTwoStepOwnable: boolean;
+  /**
+   * Whether there is an existing pending transfer (T033)
+   * When true, shows a warning that the new transfer will replace the existing one
+   */
+  hasPendingTransfer?: boolean;
   /** Callback when transaction succeeds (for parent to refresh data) */
   onSuccess?: () => void;
 }
@@ -97,6 +102,7 @@ export function TransferOwnershipDialog({
   onOpenChange,
   currentOwner,
   hasTwoStepOwnable,
+  hasPendingTransfer = false,
   onSuccess,
 }: TransferOwnershipDialogProps) {
   // Track confirmation dialog state
@@ -194,7 +200,7 @@ export function TransferOwnershipDialog({
   );
 
   // Dialog title and description
-  const dialogTitle = hasTwoStepOwnable ? 'Transfer Ownership' : 'Transfer Ownership';
+  const dialogTitle = hasTwoStepOwnable ? 'Initiate Ownership Transfer' : 'Transfer Ownership';
   const dialogDescription = hasTwoStepOwnable
     ? 'Initiate a two-step ownership transfer. The new owner must accept before the expiration.'
     : 'Transfer contract ownership to a new address. This action is immediate and irreversible.';
@@ -262,6 +268,7 @@ export function TransferOwnershipDialog({
             isWalletConnected={isWalletConnected}
             requiresExpiration={requiresExpiration}
             currentBlock={currentBlock}
+            hasPendingTransfer={hasPendingTransfer}
             onCancel={handleCancel}
             onSubmit={handleSubmit}
           />
@@ -269,10 +276,20 @@ export function TransferOwnershipDialog({
     }
   };
 
+  // T039: Prevent Escape key from closing dialog during pending/confirming states
+  const handleEscapeKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (step === 'pending' || step === 'confirming') {
+        event.preventDefault();
+      }
+    },
+    [step]
+  );
+
   return (
     <>
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-[480px]">
+        <DialogContent className="sm:max-w-[480px]" onEscapeKeyDown={handleEscapeKeyDown}>
           <DialogHeader>
             <DialogTitle>{dialogTitle}</DialogTitle>
             <DialogDescription>{dialogDescription}</DialogDescription>
@@ -303,6 +320,8 @@ interface TransferOwnershipFormContentProps {
   isWalletConnected: boolean;
   requiresExpiration: boolean;
   currentBlock: number | null;
+  /** T033: Whether there is an existing pending transfer to replace */
+  hasPendingTransfer: boolean;
   onCancel: () => void;
   onSubmit: (data: TransferOwnershipFormData) => Promise<void>;
 }
@@ -314,6 +333,7 @@ function TransferOwnershipFormContent({
   isWalletConnected,
   requiresExpiration,
   currentBlock,
+  hasPendingTransfer,
   onCancel,
   onSubmit,
 }: TransferOwnershipFormContentProps) {
@@ -370,6 +390,16 @@ function TransferOwnershipFormContent({
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-4">
       {/* Wallet Disconnection Alert */}
       {!isWalletConnected && <WalletDisconnectedAlert />}
+
+      {/* T033: Replace Pending Transfer Warning */}
+      {hasPendingTransfer && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+          <p className="text-sm text-amber-800">
+            <strong>Note:</strong> This will replace the existing pending transfer. The previous
+            pending owner will no longer be able to accept.
+          </p>
+        </div>
+      )}
 
       {/* New Owner Address Field */}
       <div className="space-y-1.5">
