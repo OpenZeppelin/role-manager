@@ -9,8 +9,8 @@
 #   ./scripts/pack-ui-builder.sh [UI_BUILDER_PATH]
 #
 # Arguments:
-#   UI_BUILDER_PATH  Path to the contracts-ui-builder repository
-#                    (default: ../contracts-ui-builder)
+#   UI_BUILDER_PATH  Path to the ui-builder repository
+#                    (default: ../ui-builder)
 #
 # Output:
 #   Creates .packed-packages/ directory in UI Builder with .tgz files
@@ -82,7 +82,7 @@ for pkg_dir in packages/*/; do
     if [ -n "$pkg_name" ]; then
       log_info "Packing $pkg_name in $pkg_dir..."
       cd "$UI_BUILDER_PATH/$pkg_dir" || { log_warn "Failed to cd into $pkg_dir"; continue; }
-      
+
       # Skip midnight adapter if it's causing issues (temporary fix for debugging)
       if [[ "$pkg_name" == *"adapter-midnight"* ]]; then
          log_warn "Skipping $pkg_name (known issue)"
