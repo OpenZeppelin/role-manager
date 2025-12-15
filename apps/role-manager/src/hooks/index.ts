@@ -24,11 +24,18 @@ export { useAccessControlService } from './useAccessControlService';
 export type { UseAccessControlServiceReturn } from './useAccessControlService';
 export { useContractCapabilities, isContractSupported } from './useContractCapabilities';
 export type { UseContractCapabilitiesReturn } from './useContractCapabilities';
-export { useContractRoles, useContractOwnership, usePaginatedRoles } from './useContractData';
+export {
+  useContractRoles,
+  useContractOwnership,
+  useContractAdminInfo,
+  usePaginatedRoles,
+  adminInfoQueryKey,
+} from './useContractData';
 export { DataError, ErrorCategory } from '../utils/errors';
 export type {
   UseContractRolesReturn,
   UseContractOwnershipReturn,
+  UseContractAdminInfoReturn,
   UsePaginatedRolesReturn,
   PaginationOptions,
 } from './useContractData';
@@ -39,6 +46,8 @@ export {
   useRevokeRole,
   useTransferOwnership,
   useAcceptOwnership,
+  useTransferAdminRole,
+  useAcceptAdminTransfer,
   useExportSnapshot,
 } from './useAccessControlMutations';
 export type {
@@ -46,6 +55,8 @@ export type {
   RevokeRoleArgs,
   TransferOwnershipArgs,
   AcceptOwnershipArgs,
+  TransferAdminRoleArgs,
+  AcceptAdminTransferArgs,
   MutationHookOptions,
   UseAccessControlMutationReturn,
   AccessSnapshot,

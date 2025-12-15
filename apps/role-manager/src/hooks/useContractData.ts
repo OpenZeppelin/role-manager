@@ -13,6 +13,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type {
+  AdminInfo,
   ContractAdapter,
   OwnershipInfo,
   RoleAssignment,
@@ -72,6 +73,31 @@ export interface UseContractOwnershipReturn {
 }
 
 /**
+ * Return type for useContractAdminInfo hook
+ * Feature: 016-two-step-admin-assignment
+ */
+export interface UseContractAdminInfoReturn {
+  /** Admin information from adapter */
+  adminInfo: AdminInfo | null;
+  /** Whether the query is currently loading (initial fetch) */
+  isLoading: boolean;
+  /** Whether data is being refetched (background refresh) */
+  isFetching: boolean;
+  /** Error if admin info fetching failed */
+  error: DataError | null;
+  /** Function to manually refetch admin info */
+  refetch: () => Promise<void>;
+  /** Whether the contract has an admin */
+  hasAdmin: boolean;
+  /** Whether the error can be recovered by retrying */
+  canRetry: boolean;
+  /** User-friendly error message */
+  errorMessage: string | null;
+  /** Whether in error state */
+  hasError: boolean;
+}
+
+/**
  * Pagination options for usePaginatedRoles
  */
 export interface PaginationOptions {
@@ -112,6 +138,12 @@ const rolesQueryKey = (address: string) => ['contractRoles', address] as const;
  * Query key factory for contract ownership
  */
 const ownershipQueryKey = (address: string) => ['contractOwnership', address] as const;
+
+/**
+ * Query key factory for contract admin info
+ * Feature: 016-two-step-admin-assignment
+ */
+export const adminInfoQueryKey = (address: string) => ['contractAdminInfo', address] as const;
 
 /**
  * Hook that fetches role assignments for a given contract.
@@ -280,6 +312,102 @@ export function useContractOwnership(
     error,
     refetch,
     hasOwner,
+    hasError,
+    canRetry,
+    errorMessage,
+  };
+}
+
+/**
+ * Hook that fetches admin information for a given contract.
+ * Feature: 016-two-step-admin-assignment
+ *
+ * @param adapter - The contract adapter instance, or null if not loaded
+ * @param contractAddress - The contract address to fetch admin info for
+ * @param isContractRegistered - Whether the contract is registered with the AccessControlService (default: true for backwards compatibility)
+ * @param enabled - Whether the query should be enabled (default: true). Set to false to skip fetching for contracts without two-step admin.
+ * @returns Object containing admin info, loading state, error, and helper functions
+ *
+ * @example
+ * ```tsx
+ * const { adminInfo, isLoading, hasAdmin } = useContractAdminInfo(adapter, address, isContractRegistered, hasTwoStepAdmin);
+ *
+ * if (isLoading) return <Spinner />;
+ * if (!hasAdmin) return <NoAdminMessage />;
+ *
+ * return <div>Admin: {adminInfo.admin}</div>;
+ * ```
+ */
+export function useContractAdminInfo(
+  adapter: ContractAdapter | null,
+  contractAddress: string,
+  isContractRegistered: boolean = true,
+  enabled: boolean = true
+): UseContractAdminInfoReturn {
+  const { service, isReady } = useAccessControlService(adapter);
+
+  const {
+    data: adminInfo,
+    isLoading,
+    isFetching,
+    error: rawError,
+    refetch: queryRefetch,
+  } = useQuery({
+    queryKey: adminInfoQueryKey(contractAddress),
+    queryFn: async (): Promise<AdminInfo | null> => {
+      if (!service) {
+        throw new DataError(
+          'Access control service not available',
+          ErrorCategory.SERVICE_UNAVAILABLE,
+          { canRetry: false }
+        );
+      }
+
+      // Check if service has getAdminInfo method (FR-001b)
+      if (!service.getAdminInfo) {
+        // Graceful degradation: return null if method not available
+        return null;
+      }
+
+      try {
+        const result = await service.getAdminInfo(contractAddress);
+        // FR-001c: Handle null return gracefully
+        return result ?? null;
+      } catch (err) {
+        throw wrapError(err, 'admin info');
+      }
+    },
+    // Wait for contract to be registered before fetching
+    enabled: isReady && !!contractAddress && isContractRegistered && enabled,
+    staleTime: 1 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    retry: false,
+    // FR-026a: Refresh admin state when browser window regains focus
+    refetchOnWindowFocus: true,
+  });
+
+  const error = useMemo(() => {
+    if (!rawError) return null;
+    return rawError instanceof DataError ? rawError : wrapError(rawError, 'admin info');
+  }, [rawError]);
+
+  const hasAdmin = useMemo(() => adminInfo?.admin != null, [adminInfo]);
+
+  const refetch = async (): Promise<void> => {
+    await queryRefetch();
+  };
+
+  const hasError = error !== null;
+  const canRetry = error?.canRetry ?? false;
+  const errorMessage = error?.getUserMessage() ?? null;
+
+  return {
+    adminInfo: adminInfo ?? null,
+    isLoading,
+    isFetching,
+    error,
+    refetch,
+    hasAdmin,
     hasError,
     canRetry,
     errorMessage,

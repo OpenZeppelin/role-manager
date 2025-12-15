@@ -10,8 +10,8 @@
 
 **Goal**: Prepare project structure for admin transfer feature.
 
-- [ ] T001 Create `apps/role-manager/src/components/Admin/` directory
-- [ ] T002 Create barrel export file `apps/role-manager/src/components/Admin/index.ts`
+- [x] T001 Create `apps/role-manager/src/components/Admin/` directory
+- [x] T002 Create barrel export file `apps/role-manager/src/components/Admin/index.ts`
 
 ---
 
@@ -23,21 +23,21 @@
 
 ### Constants & Types
 
-- [ ] T003 [P] Add `ADMIN_ROLE_ID`, `ADMIN_ROLE_NAME`, `ADMIN_ROLE_DESCRIPTION` constants to `apps/role-manager/src/constants/index.ts`
-- [ ] T004 [P] Add `isAdminRole: boolean` field to `RoleWithDescription` interface in `apps/role-manager/src/types/roles.ts`
+- [x] T003 [P] Add `ADMIN_ROLE_ID`, `ADMIN_ROLE_NAME`, `ADMIN_ROLE_DESCRIPTION` constants to `apps/role-manager/src/constants/index.ts`
+- [x] T004 [P] Add `isAdminRole: boolean` field to `RoleWithDescription` interface in `apps/role-manager/src/types/roles.ts`
 
 ### Data Fetching Hook
 
-- [ ] T005 Add `adminInfoQueryKey` query key factory to `apps/role-manager/src/hooks/useContractData.ts`
-- [ ] T006 Create `useContractAdminInfo` hook in `apps/role-manager/src/hooks/useContractData.ts` following `useContractOwnership` pattern (includes `refetchOnWindowFocus: true`)
-- [ ] T007 Add `useContractAdminInfo` export to `apps/role-manager/src/hooks/index.ts`
+- [x] T005 Add `adminInfoQueryKey` query key factory to `apps/role-manager/src/hooks/useContractData.ts`
+- [x] T006 Create `useContractAdminInfo` hook in `apps/role-manager/src/hooks/useContractData.ts` following `useContractOwnership` pattern (includes `refetchOnWindowFocus: true`)
+- [x] T007 Add `useContractAdminInfo` export to `apps/role-manager/src/hooks/index.ts`
 
 ### Mutation Hooks
 
-- [ ] T008 [P] Add `TransferAdminRoleArgs` and `AcceptAdminTransferArgs` interfaces to `apps/role-manager/src/hooks/useAccessControlMutations.ts`
-- [ ] T009 Create `useTransferAdminRole` mutation hook in `apps/role-manager/src/hooks/useAccessControlMutations.ts` (copy `useTransferOwnership` pattern, invalidate `adminInfoQueryKey`)
-- [ ] T010 Create `useAcceptAdminTransfer` mutation hook in `apps/role-manager/src/hooks/useAccessControlMutations.ts` (copy `useAcceptOwnership` pattern, invalidate `adminInfoQueryKey`)
-- [ ] T011 Add `useTransferAdminRole`, `useAcceptAdminTransfer` exports to `apps/role-manager/src/hooks/index.ts`
+- [x] T008 [P] Add `TransferAdminRoleArgs` and `AcceptAdminTransferArgs` interfaces to `apps/role-manager/src/hooks/useAccessControlMutations.ts`
+- [x] T009 Create `useTransferAdminRole` mutation hook in `apps/role-manager/src/hooks/useAccessControlMutations.ts` (copy `useTransferOwnership` pattern, invalidate `adminInfoQueryKey`)
+- [x] T010 Create `useAcceptAdminTransfer` mutation hook in `apps/role-manager/src/hooks/useAccessControlMutations.ts` (copy `useAcceptOwnership` pattern, invalidate `adminInfoQueryKey`)
+- [x] T011 Add `useTransferAdminRole`, `useAcceptAdminTransfer` exports to `apps/role-manager/src/hooks/index.ts`
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
 

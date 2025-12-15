@@ -35,6 +35,7 @@ import { useAccessControlService } from './useAccessControlService';
 const rolesQueryKey = (address: string) => ['contractRoles', address] as const;
 const enrichedRolesQueryKey = (address: string) => ['contractRolesEnriched', address] as const;
 const ownershipQueryKey = (address: string) => ['contractOwnership', address] as const;
+const adminInfoQueryKey = (address: string) => ['contractAdminInfo', address] as const;
 
 // ============================================================================
 // Error Detection Utilities
@@ -158,6 +159,30 @@ export interface TransferOwnershipArgs {
  * Arguments for useAcceptOwnership mutation (Feature: 015-ownership-transfer)
  */
 export interface AcceptOwnershipArgs {
+  /** Execution configuration (EOA, relayer, etc.) */
+  executionConfig: ExecutionConfig;
+  /** Optional runtime API key for relayer */
+  runtimeApiKey?: string;
+}
+
+/**
+ * Arguments for useTransferAdminRole mutation (Feature: 016-two-step-admin-assignment)
+ */
+export interface TransferAdminRoleArgs {
+  /** The new admin address */
+  newAdmin: string;
+  /** The block/ledger number at which the transfer expires if not accepted */
+  expirationBlock: number;
+  /** Execution configuration (EOA, relayer, etc.) */
+  executionConfig: ExecutionConfig;
+  /** Optional runtime API key for relayer */
+  runtimeApiKey?: string;
+}
+
+/**
+ * Arguments for useAcceptAdminTransfer mutation (Feature: 016-two-step-admin-assignment)
+ */
+export interface AcceptAdminTransferArgs {
   /** Execution configuration (EOA, relayer, etc.) */
   executionConfig: ExecutionConfig;
   /** Optional runtime API key for relayer */
@@ -594,6 +619,238 @@ export function useAcceptOwnership(
       // Invalidate ownership query to refetch updated data (FR-014)
       queryClient.invalidateQueries({
         queryKey: ownershipQueryKey(contractAddress),
+      });
+      options?.onSuccess?.(result);
+    },
+    onError: (error: Error) => {
+      setStatus('error');
+      options?.onError?.(error);
+    },
+  });
+
+  // Compute error classification
+  const errorClassification = useMemo(() => {
+    const error = mutation.error;
+    return {
+      isNetworkError: isNetworkDisconnectionError(error),
+      isUserRejection: isUserRejectionError(error),
+    };
+  }, [mutation.error]);
+
+  // Reset function
+  const reset = useCallback(() => {
+    mutation.reset();
+    setStatus('idle');
+    setStatusDetails(null);
+  }, [mutation]);
+
+  return {
+    mutate: mutation.mutate,
+    mutateAsync: mutation.mutateAsync,
+    isPending: mutation.isPending,
+    error: mutation.error as Error | null,
+    status,
+    statusDetails,
+    isReady,
+    isNetworkError: errorClassification.isNetworkError,
+    isUserRejection: errorClassification.isUserRejection,
+    reset,
+  };
+}
+
+// ============================================================================
+// useTransferAdminRole Hook (Feature: 016-two-step-admin-assignment)
+// ============================================================================
+
+/**
+ * Hook for transferring admin role (two-step admin transfer).
+ *
+ * Provides mutation functionality with:
+ * - Transaction status tracking
+ * - Network disconnection detection (FR-010)
+ * - User rejection detection (FR-011)
+ * - Automatic query invalidation on success (FR-014)
+ *
+ * @param adapter - The contract adapter instance, or null if not loaded
+ * @param contractAddress - The contract address to operate on
+ * @param options - Optional callbacks for status changes and completion
+ * @returns Mutation controls and state
+ *
+ * @example
+ * ```tsx
+ * const { mutate, isPending, error } = useTransferAdminRole(adapter, contractAddress);
+ *
+ * const handleTransfer = () => {
+ *   mutate({
+ *     newAdmin: '0x...',
+ *     expirationBlock: 12345678,
+ *     executionConfig: { method: 'eoa' },
+ *   });
+ * };
+ * ```
+ */
+export function useTransferAdminRole(
+  adapter: ContractAdapter | null,
+  contractAddress: string,
+  options?: MutationHookOptions
+): UseAccessControlMutationReturn<TransferAdminRoleArgs> {
+  const { service, isReady } = useAccessControlService(adapter);
+  const queryClient = useQueryClient();
+
+  // Track transaction status internally
+  const [status, setStatus] = useState<TxStatus>('idle');
+  const [statusDetails, setStatusDetails] = useState<TransactionStatusUpdate | null>(null);
+
+  // Status change handler that updates internal state and calls external callback
+  const handleStatusChange = useCallback(
+    (newStatus: TxStatus, details: TransactionStatusUpdate) => {
+      setStatus(newStatus);
+      setStatusDetails(details);
+      options?.onStatusChange?.(newStatus, details);
+    },
+    [options]
+  );
+
+  const mutation = useMutation({
+    mutationFn: async (args: TransferAdminRoleArgs): Promise<OperationResult> => {
+      if (!service) {
+        throw new Error('Access control service not available');
+      }
+
+      if (!service.transferAdminRole) {
+        throw new Error('Transfer admin role is not supported by this adapter');
+      }
+
+      // Reset status at start
+      setStatus('idle');
+      setStatusDetails(null);
+
+      return service.transferAdminRole(
+        contractAddress,
+        args.newAdmin,
+        args.expirationBlock,
+        args.executionConfig,
+        handleStatusChange,
+        args.runtimeApiKey
+      );
+    },
+    onSuccess: (result) => {
+      // Invalidate admin info query to refetch updated data (FR-014)
+      queryClient.invalidateQueries({
+        queryKey: adminInfoQueryKey(contractAddress),
+      });
+      options?.onSuccess?.(result);
+    },
+    onError: (error: Error) => {
+      setStatus('error');
+      options?.onError?.(error);
+    },
+  });
+
+  // Compute error classification
+  const errorClassification = useMemo(() => {
+    const error = mutation.error;
+    return {
+      isNetworkError: isNetworkDisconnectionError(error),
+      isUserRejection: isUserRejectionError(error),
+    };
+  }, [mutation.error]);
+
+  // Reset function
+  const reset = useCallback(() => {
+    mutation.reset();
+    setStatus('idle');
+    setStatusDetails(null);
+  }, [mutation]);
+
+  return {
+    mutate: mutation.mutate,
+    mutateAsync: mutation.mutateAsync,
+    isPending: mutation.isPending,
+    error: mutation.error as Error | null,
+    status,
+    statusDetails,
+    isReady,
+    isNetworkError: errorClassification.isNetworkError,
+    isUserRejection: errorClassification.isUserRejection,
+    reset,
+  };
+}
+
+// ============================================================================
+// useAcceptAdminTransfer Hook (Feature: 016-two-step-admin-assignment)
+// ============================================================================
+
+/**
+ * Hook for accepting a pending admin transfer (two-step admin).
+ *
+ * Provides mutation functionality with:
+ * - Transaction status tracking
+ * - Network disconnection detection (FR-010)
+ * - User rejection detection (FR-011)
+ * - Automatic query invalidation on success (FR-014)
+ *
+ * @param adapter - The contract adapter instance, or null if not loaded
+ * @param contractAddress - The contract address to operate on
+ * @param options - Optional callbacks for status changes and completion
+ * @returns Mutation controls and state
+ *
+ * @example
+ * ```tsx
+ * const { mutate, isPending, error } = useAcceptAdminTransfer(adapter, contractAddress);
+ *
+ * const handleAccept = () => {
+ *   mutate({ executionConfig: { method: 'eoa' } });
+ * };
+ * ```
+ */
+export function useAcceptAdminTransfer(
+  adapter: ContractAdapter | null,
+  contractAddress: string,
+  options?: MutationHookOptions
+): UseAccessControlMutationReturn<AcceptAdminTransferArgs> {
+  const { service, isReady } = useAccessControlService(adapter);
+  const queryClient = useQueryClient();
+
+  // Track transaction status internally
+  const [status, setStatus] = useState<TxStatus>('idle');
+  const [statusDetails, setStatusDetails] = useState<TransactionStatusUpdate | null>(null);
+
+  // Status change handler that updates internal state and calls external callback
+  const handleStatusChange = useCallback(
+    (newStatus: TxStatus, details: TransactionStatusUpdate) => {
+      setStatus(newStatus);
+      setStatusDetails(details);
+      options?.onStatusChange?.(newStatus, details);
+    },
+    [options]
+  );
+
+  const mutation = useMutation({
+    mutationFn: async (args: AcceptAdminTransferArgs): Promise<OperationResult> => {
+      if (!service) {
+        throw new Error('Access control service not available');
+      }
+
+      if (!service.acceptAdminTransfer) {
+        throw new Error('Accept admin transfer is not supported by this adapter');
+      }
+
+      // Reset status at start
+      setStatus('idle');
+      setStatusDetails(null);
+
+      return service.acceptAdminTransfer(
+        contractAddress,
+        args.executionConfig,
+        handleStatusChange,
+        args.runtimeApiKey
+      );
+    },
+    onSuccess: (result) => {
+      // Invalidate admin info query to refetch updated data (FR-014)
+      queryClient.invalidateQueries({
+        queryKey: adminInfoQueryKey(contractAddress),
       });
       options?.onSuccess?.(result);
     },
