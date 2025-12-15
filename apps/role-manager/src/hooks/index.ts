@@ -53,9 +53,17 @@ export type {
   ExportSnapshotOptions,
 } from './useAccessControlMutations';
 
-// Current Ledger Hook (Feature: 015-ownership-transfer)
-export { useCurrentLedger, DEFAULT_POLL_INTERVAL_MS } from './useCurrentLedger';
-export type { UseCurrentLedgerOptions, UseCurrentLedgerReturn } from './useCurrentLedger';
+// Current Block Hook (Feature: 015-ownership-transfer)
+export { useCurrentBlock, DEFAULT_POLL_INTERVAL_MS } from './useCurrentBlock';
+export type { UseCurrentBlockOptions, UseCurrentBlockReturn } from './useCurrentBlock';
+
+// Block Time Estimation Hook (Feature: 015-ownership-transfer)
+export { useBlockTimeEstimate } from './useBlockTimeEstimate';
+export type {
+  BlockTimeEstimate,
+  UseBlockTimeEstimateReturn,
+  UseBlockTimeEstimateOptions,
+} from './useBlockTimeEstimate';
 
 // Ownership Transfer Dialog Hook (Feature: 015-ownership-transfer)
 export { useOwnershipTransferDialog } from './useOwnershipTransferDialog';
@@ -122,6 +130,10 @@ export type {
   UseMultiMutationExecutionOptions,
   UseMultiMutationExecutionReturn,
 } from './useTransactionExecution';
+
+// Pending Transfers Hook (Feature: 015-ownership-transfer Phase 6.5)
+export { usePendingTransfers } from './usePendingTransfers';
+export type { UsePendingTransfersOptions } from './usePendingTransfers';
 
 // Utility hooks
 export { useDebounce } from './useDebounce';

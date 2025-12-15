@@ -14,11 +14,13 @@
 
 import { ArrowRight } from 'lucide-react';
 
-import { AddressDisplay, Button } from '@openzeppelin/ui-builder-ui';
+import { AddressDisplay } from '@openzeppelin/ui-builder-ui';
 import { cn } from '@openzeppelin/ui-builder-utils';
 
+import { useBlockTime } from '../../context/BlockTimeContext';
 import type { PendingTransfer } from '../../types/pending-transfers';
-import { RoleTypeBadge, StatusBadge } from '../Shared';
+import { calculateBlockExpiration, formatTimeEstimateDisplay } from '../../utils/block-time';
+import { AcceptTransferButton, RoleTypeBadge, StatusBadge } from '../Shared';
 
 // =============================================================================
 // Types
@@ -30,6 +32,8 @@ import { RoleTypeBadge, StatusBadge } from '../Shared';
 export interface PendingTransferRowProps {
   /** The transfer to display */
   transfer: PendingTransfer;
+  /** Current block number for time estimation */
+  currentBlock?: number | null;
   /** Callback when Accept button is clicked */
   onAccept?: (transfer: PendingTransfer) => void;
 }
@@ -43,10 +47,18 @@ export interface PendingTransferRowProps {
  *
  * Follows the same styling pattern as ChangeRow component.
  */
-export function PendingTransferRow({ transfer, onAccept }: PendingTransferRowProps) {
+export function PendingTransferRow({ transfer, currentBlock, onAccept }: PendingTransferRowProps) {
   const handleAccept = () => {
     onAccept?.(transfer);
   };
+
+  // Get block time estimation
+  const { formatBlocksToTime } = useBlockTime();
+
+  // Calculate blocks remaining and time estimate
+  const expirationEstimate = !transfer.isExpired
+    ? calculateBlockExpiration(transfer.expirationBlock, currentBlock, formatBlocksToTime)
+    : null;
 
   return (
     <tr className={cn('border-b last:border-b-0 transition-colors', 'hover:bg-accent/50')}>
@@ -63,7 +75,8 @@ export function PendingTransferRow({ transfer, onAccept }: PendingTransferRowPro
           startChars={6}
           endChars={4}
           showCopyButton={true}
-          className="font-mono text-sm"
+          showCopyButtonOnHover={true}
+          explorerUrl={transfer.currentHolderUrl}
         />
       </td>
 
@@ -77,31 +90,38 @@ export function PendingTransferRow({ transfer, onAccept }: PendingTransferRowPro
             startChars={6}
             endChars={4}
             showCopyButton={true}
-            className="font-mono text-sm"
+            showCopyButtonOnHover={true}
+            explorerUrl={transfer.pendingRecipientUrl}
           />
         </div>
       </td>
 
       {/* Expiration */}
-      <td className="p-4 text-sm text-muted-foreground whitespace-nowrap">
+      <td className="p-4 text-sm whitespace-nowrap">
         {transfer.isExpired ? (
           <StatusBadge variant="error">Expired</StatusBadge>
         ) : (
-          <span className="font-mono">{transfer.expirationBlock.toLocaleString()}</span>
+          <div className="flex flex-col">
+            <span className="font-mono text-muted-foreground">
+              {transfer.expirationBlock.toLocaleString()}
+            </span>
+            {expirationEstimate?.timeEstimate && (
+              <span className="text-xs text-blue-600">
+                ≈ {formatTimeEstimateDisplay(expirationEstimate.timeEstimate)}
+              </span>
+            )}
+          </div>
         )}
       </td>
 
       {/* Actions */}
       <td className="p-4">
         {transfer.canAccept && !transfer.isExpired && (
-          <Button
-            size="sm"
-            variant="default"
+          <AcceptTransferButton
+            roleLabel={transfer.label || transfer.type}
+            shortLabel
             onClick={handleAccept}
-            aria-label={`Accept ${transfer.label || transfer.type} transfer`}
-          >
-            Accept
-          </Button>
+          />
         )}
       </td>
     </tr>

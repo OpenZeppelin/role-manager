@@ -28,6 +28,8 @@ import { PendingTransferRow } from './PendingTransferRow';
 export interface PendingTransfersTableProps {
   /** List of pending transfers to display */
   transfers: PendingTransfer[];
+  /** Current block number for time estimation */
+  currentBlock?: number | null;
   /** Callback when Accept button is clicked on a transfer */
   onAccept?: (transfer: PendingTransfer) => void;
   /** Optional content to render when transfers array is empty */
@@ -60,6 +62,7 @@ const COLUMNS = [
  */
 export function PendingTransfersTable({
   transfers,
+  currentBlock,
   onAccept,
   emptyState,
 }: PendingTransfersTableProps) {
@@ -93,7 +96,12 @@ export function PendingTransfersTable({
             </tr>
           ) : (
             transfers.map((transfer) => (
-              <PendingTransferRow key={transfer.id} transfer={transfer} onAccept={onAccept} />
+              <PendingTransferRow
+                key={transfer.id}
+                transfer={transfer}
+                currentBlock={currentBlock}
+                onAccept={onAccept}
+              />
             ))
           )}
         </tbody>

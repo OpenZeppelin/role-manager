@@ -29,6 +29,8 @@ export interface PendingChangesCardProps {
   className?: string;
   /** List of pending transfers to display */
   transfers?: PendingTransfer[];
+  /** Current block number for time estimation */
+  currentBlock?: number | null;
   /** Whether data is loading */
   isLoading?: boolean;
   /** Callback when Accept button is clicked */
@@ -50,6 +52,7 @@ export interface PendingChangesCardProps {
 export function PendingChangesCard({
   className,
   transfers = [],
+  currentBlock,
   isLoading = false,
   onAccept,
 }: PendingChangesCardProps) {
@@ -75,7 +78,11 @@ export function PendingChangesCard({
             className="h-full"
           />
         ) : (
-          <PendingTransfersTable transfers={transfers} onAccept={onAccept} />
+          <PendingTransfersTable
+            transfers={transfers}
+            currentBlock={currentBlock}
+            onAccept={onAccept}
+          />
         )}
       </CardContent>
     </Card>
