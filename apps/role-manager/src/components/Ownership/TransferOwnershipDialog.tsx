@@ -110,6 +110,7 @@ export function TransferOwnershipDialog({
     isWalletConnected,
     requiresExpiration,
     currentBlock,
+    isNetworkError,
     submit,
     retry,
     reset,
@@ -229,8 +230,12 @@ export function TransferOwnershipDialog({
       case 'error':
         return (
           <DialogErrorState
-            title="Transfer Failed"
-            message={errorMessage || 'An error occurred while processing the transaction.'}
+            title={isNetworkError ? 'Network Error' : 'Transfer Failed'}
+            message={
+              isNetworkError
+                ? 'Unable to connect to the network. Please check your connection and try again.'
+                : errorMessage || 'An error occurred while processing the transaction.'
+            }
             canRetry={true}
             onRetry={retry}
             onCancel={handleCancel}

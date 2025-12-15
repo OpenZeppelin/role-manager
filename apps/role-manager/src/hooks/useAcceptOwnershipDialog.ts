@@ -46,6 +46,8 @@ export interface UseAcceptOwnershipDialogReturn {
   txStatus: TxStatus;
   /** Whether wallet is connected */
   isWalletConnected: boolean;
+  /** Whether the error is a network disconnection error (FR-026) */
+  isNetworkError: boolean;
   /** Submit the acceptance */
   submit: () => Promise<void>;
   /** Retry after error */
@@ -193,6 +195,10 @@ export function useAcceptOwnershipDialog(
 
   const isWalletConnected = !!connectedAddress;
 
+  // Network error detection (FR-026)
+  // Uses the isNetworkError flag from the underlying mutation hook
+  const isNetworkError = acceptOwnership.isNetworkError;
+
   // =============================================================================
   // Return
   // =============================================================================
@@ -203,6 +209,7 @@ export function useAcceptOwnershipDialog(
     errorMessage,
     txStatus,
     isWalletConnected,
+    isNetworkError,
 
     // Actions
     submit,

@@ -123,7 +123,7 @@ vi.mock('../useAccessControlMutations', () => ({
 }));
 
 // Mock useCurrentBlock
-let mockCurrentBlock = 1000;
+let mockCurrentBlock: number | null = 1000;
 let mockCurrentBlockLoading = false;
 
 vi.mock('../useCurrentBlock', () => ({
@@ -406,6 +406,35 @@ describe('useOwnershipTransferDialog', () => {
 
       expect(result.current.step).not.toBe('error');
       expect(mockTransferOwnershipMutateAsync).toHaveBeenCalled();
+    });
+
+    it('should reject submission when current block is not available for two-step', async () => {
+      // Set currentBlock to null to simulate not-yet-loaded state
+      mockCurrentBlock = null;
+
+      const { result } = renderHook(
+        () =>
+          useOwnershipTransferDialog({
+            currentOwner: MOCK_CONNECTED_ADDRESS,
+            hasTwoStepOwnable: true,
+            onClose: vi.fn(),
+          }),
+        { wrapper: createWrapper() }
+      );
+
+      await act(async () => {
+        await result.current.submit({
+          newOwnerAddress: MOCK_NEW_OWNER_ADDRESS,
+          expirationBlock: '2000',
+        });
+      });
+
+      expect(result.current.step).toBe('error');
+      expect(result.current.errorMessage).toContain('current block not available');
+      expect(mockTransferOwnershipMutateAsync).not.toHaveBeenCalled();
+
+      // Reset for other tests
+      mockCurrentBlock = 1000;
     });
   });
 

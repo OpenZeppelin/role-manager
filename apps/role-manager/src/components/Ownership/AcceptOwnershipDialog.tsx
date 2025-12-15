@@ -81,7 +81,7 @@ export function AcceptOwnershipDialog({
   const [showConfirmClose, setShowConfirmClose] = useState(false);
 
   // Dialog state and logic
-  const { step, errorMessage, txStatus, isWalletConnected, submit, retry, reset } =
+  const { step, errorMessage, txStatus, isWalletConnected, isNetworkError, submit, retry, reset } =
     useAcceptOwnershipDialog({
       onClose: () => onOpenChange(false),
       onSuccess,
@@ -172,8 +172,12 @@ export function AcceptOwnershipDialog({
       case 'error':
         return (
           <DialogErrorState
-            title="Accept Failed"
-            message={errorMessage || 'An error occurred while processing the transaction.'}
+            title={isNetworkError ? 'Network Error' : 'Accept Failed'}
+            message={
+              isNetworkError
+                ? 'Unable to connect to the network. Please check your connection and try again.'
+                : errorMessage || 'An error occurred while processing the transaction.'
+            }
             canRetry={true}
             onRetry={retry}
             onCancel={handleCancel}

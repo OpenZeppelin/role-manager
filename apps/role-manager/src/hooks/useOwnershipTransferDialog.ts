@@ -66,6 +66,8 @@ export interface UseOwnershipTransferDialogReturn {
   requiresExpiration: boolean;
   /** Current block for validation (null if not two-step) */
   currentBlock: number | null;
+  /** Whether the error is a network disconnection error (FR-026) */
+  isNetworkError: boolean;
   /** Submit the transfer */
   submit: (data: TransferOwnershipFormData) => Promise<void>;
   /** Retry after error */
@@ -243,14 +245,21 @@ export function useOwnershipTransferDialog(
           return;
         }
 
+        // Ensure current block is available for validation
+        if (currentBlock === null) {
+          setStep('error');
+          setErrorMessage(
+            'Unable to validate expiration: current block not available. Please try again.'
+          );
+          return;
+        }
+
         // Validate expiration is in the future (business logic validation)
-        if (expirationBlock > 0) {
-          const expirationError = validateExpiration(expirationBlock, currentBlock);
-          if (expirationError) {
-            setStep('error');
-            setErrorMessage(expirationError);
-            return;
-          }
+        const expirationError = validateExpiration(expirationBlock, currentBlock);
+        if (expirationError) {
+          setStep('error');
+          setErrorMessage(expirationError);
+          return;
         }
       }
 
@@ -306,6 +315,10 @@ export function useOwnershipTransferDialog(
 
   const isWalletConnected = !!connectedAddress;
 
+  // Network error detection (FR-026)
+  // Uses the isNetworkError flag from the underlying mutation hook
+  const isNetworkError = transferOwnership.isNetworkError;
+
   // =============================================================================
   // Return
   // =============================================================================
@@ -318,6 +331,7 @@ export function useOwnershipTransferDialog(
     isWalletConnected,
     requiresExpiration: hasTwoStepOwnable,
     currentBlock: hasTwoStepOwnable ? currentBlock : null,
+    isNetworkError,
 
     // Actions
     submit,
