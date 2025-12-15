@@ -18,7 +18,7 @@ import type { ExecutionConfig, OperationResult, TxStatus } from '@openzeppelin/u
 
 import type { DialogTransactionStep } from '../types/role-dialogs';
 import { useTransferOwnership, type TransferOwnershipArgs } from './useAccessControlMutations';
-import { useCurrentLedger } from './useCurrentLedger';
+import { useCurrentBlock } from './useCurrentBlock';
 import { useSelectedContract } from './useSelectedContract';
 import { isUserRejectionError } from './useTransactionExecution';
 
@@ -32,8 +32,8 @@ import { isUserRejectionError } from './useTransactionExecution';
 export interface TransferOwnershipFormData {
   /** The new owner's address */
   newOwnerAddress: string;
-  /** The ledger number at which the transfer expires (string for form input) */
-  expirationLedger: string;
+  /** The block number at which the transfer expires (string for form input) */
+  expirationBlock: string;
 }
 
 /**
@@ -64,8 +64,8 @@ export interface UseOwnershipTransferDialogReturn {
   isWalletConnected: boolean;
   /** Whether expiration input is required (two-step) */
   requiresExpiration: boolean;
-  /** Current ledger for validation (null if not two-step) */
-  currentLedger: number | null;
+  /** Current block for validation (null if not two-step) */
+  currentBlock: number | null;
   /** Submit the transfer */
   submit: (data: TransferOwnershipFormData) => Promise<void>;
   /** Retry after error */
@@ -89,14 +89,14 @@ function validateSelfTransfer(newOwner: string, currentOwner: string): string | 
 }
 
 /**
- * Validate expiration ledger (must be strictly greater than current)
+ * Validate expiration block (must be strictly greater than current)
  */
-function validateExpiration(expirationLedger: number, currentLedger: number | null): string | null {
-  if (currentLedger === null) {
-    return null; // Cannot validate without current ledger
+function validateExpiration(expirationBlock: number, currentBlock: number | null): string | null {
+  if (currentBlock === null) {
+    return null; // Cannot validate without current block
   }
-  if (expirationLedger <= currentLedger) {
-    return `Expiration must be greater than current ledger (${currentLedger})`;
+  if (expirationBlock <= currentBlock) {
+    return `Expiration must be greater than current block (${currentBlock})`;
   }
   return null;
 }
@@ -122,7 +122,7 @@ function validateExpiration(expirationLedger: number, currentLedger: number | nu
  * ```tsx
  * const {
  *   step,
- *   currentLedger,
+ *   currentBlock,
  *   submit,
  *   retry,
  *   reset,
@@ -151,8 +151,8 @@ export function useOwnershipTransferDialog(
   // Mutation hook for transfer
   const transferOwnership = useTransferOwnership(adapter, contractAddress);
 
-  // Current ledger polling (only for two-step)
-  const { currentLedger } = useCurrentLedger(adapter, {
+  // Current block polling (only for two-step)
+  const { currentBlock } = useCurrentBlock(adapter, {
     enabled: hasTwoStepOwnable,
     pollInterval: 5000,
   });
@@ -232,34 +232,36 @@ export function useOwnershipTransferDialog(
       }
 
       // Parse expiration (0 for single-step)
-      const expirationLedger = hasTwoStepOwnable ? parseInt(data.expirationLedger, 10) || 0 : 0;
+      const expirationBlock = hasTwoStepOwnable ? parseInt(data.expirationBlock, 10) || 0 : 0;
 
-      // Validate expiration for two-step
-      if (hasTwoStepOwnable && expirationLedger > 0) {
-        const expirationError = validateExpiration(expirationLedger, currentLedger);
-        if (expirationError) {
+      // Validate expiration for two-step transfers
+      if (hasTwoStepOwnable) {
+        // Check if expiration is provided (form-level validation)
+        if (!data.expirationBlock || !data.expirationBlock.trim()) {
           setStep('error');
-          setErrorMessage(expirationError);
+          setErrorMessage('Expiration block is required for two-step transfers');
           return;
         }
-      } else if (hasTwoStepOwnable && !data.expirationLedger) {
-        // For two-step, expiration is required
-        const expirationError = validateExpiration(0, currentLedger);
-        if (expirationError) {
-          setStep('error');
-          setErrorMessage(expirationError);
-          return;
+
+        // Validate expiration is in the future (business logic validation)
+        if (expirationBlock > 0) {
+          const expirationError = validateExpiration(expirationBlock, currentBlock);
+          if (expirationError) {
+            setStep('error');
+            setErrorMessage(expirationError);
+            return;
+          }
         }
       }
 
       // Execute the transaction
       await executeTransaction({
         newOwner: data.newOwnerAddress,
-        expirationLedger,
+        expirationBlock,
         executionConfig: { method: 'eoa' } as ExecutionConfig,
       });
     },
-    [currentOwner, hasTwoStepOwnable, currentLedger, executeTransaction]
+    [currentOwner, hasTwoStepOwnable, currentBlock, executeTransaction]
   );
 
   // =============================================================================
@@ -271,12 +273,12 @@ export function useOwnershipTransferDialog(
     if (!formData) return;
 
     // Parse expiration (validation already passed once)
-    const expirationLedger = hasTwoStepOwnable ? parseInt(formData.expirationLedger, 10) || 0 : 0;
+    const expirationBlock = hasTwoStepOwnable ? parseInt(formData.expirationBlock, 10) || 0 : 0;
 
     // Re-execute the transaction
     await executeTransaction({
       newOwner: formData.newOwnerAddress,
-      expirationLedger,
+      expirationBlock,
       executionConfig: { method: 'eoa' } as ExecutionConfig,
     });
   }, [hasTwoStepOwnable, executeTransaction]);
@@ -315,7 +317,7 @@ export function useOwnershipTransferDialog(
     txStatus,
     isWalletConnected,
     requiresExpiration: hasTwoStepOwnable,
-    currentLedger: hasTwoStepOwnable ? currentLedger : null,
+    currentBlock: hasTwoStepOwnable ? currentBlock : null,
 
     // Actions
     submit,

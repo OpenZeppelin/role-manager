@@ -1,10 +1,10 @@
 /**
- * useCurrentLedger hook
+ * useCurrentBlock hook
  * Feature: 015-ownership-transfer
  *
- * Provides polling for current block/ledger number.
+ * Provides polling for current block number.
  * Used for:
- * - Displaying current ledger in transfer dialog
+ * - Displaying current block in transfer dialog
  * - Validating expiration input is in the future
  */
 import { useQuery } from '@tanstack/react-query';
@@ -16,7 +16,7 @@ import type { ContractAdapter } from '@openzeppelin/ui-builder-types';
 // Constants
 // =============================================================================
 
-/** Default polling interval for current block/ledger (milliseconds) */
+/** Default polling interval for current block (milliseconds) */
 export const DEFAULT_POLL_INTERVAL_MS = 5000;
 
 // =============================================================================
@@ -24,9 +24,9 @@ export const DEFAULT_POLL_INTERVAL_MS = 5000;
 // =============================================================================
 
 /**
- * Options for useCurrentLedger hook
+ * Options for useCurrentBlock hook
  */
-export interface UseCurrentLedgerOptions {
+export interface UseCurrentBlockOptions {
   /** Polling interval in milliseconds (default: 5000) */
   pollInterval?: number;
   /** Whether polling is enabled (default: true) */
@@ -34,11 +34,11 @@ export interface UseCurrentLedgerOptions {
 }
 
 /**
- * Return type for useCurrentLedger hook
+ * Return type for useCurrentBlock hook
  */
-export interface UseCurrentLedgerReturn {
-  /** Current ledger/block number, null if not yet fetched */
-  currentLedger: number | null;
+export interface UseCurrentBlockReturn {
+  /** Current block number, null if not yet fetched */
+  currentBlock: number | null;
   /** Whether the initial fetch is loading */
   isLoading: boolean;
   /** Error from fetching, if any */
@@ -59,29 +59,29 @@ const currentBlockQueryKey = (networkId: string | undefined) =>
 // =============================================================================
 
 /**
- * Hook for polling the current ledger/block number.
+ * Hook for polling the current block number.
  *
  * Uses the adapter's `getCurrentBlock()` method which is chain-agnostic,
- * returning the current block number for EVM chains or ledger sequence for Stellar.
+ * returning the current block number for any supported chain.
  *
  * @param adapter - The contract adapter instance, or null if not loaded
  * @param options - Polling configuration
- * @returns Current ledger and loading/error states
+ * @returns Current block and loading/error states
  *
  * @example
  * ```tsx
- * const { currentLedger, isLoading } = useCurrentLedger(adapter, {
+ * const { currentBlock, isLoading } = useCurrentBlock(adapter, {
  *   pollInterval: 5000,
  *   enabled: hasTwoStepOwnable,
  * });
  *
- * const isExpirationValid = expirationLedger > (currentLedger ?? 0);
+ * const isExpirationValid = expirationBlock > (currentBlock ?? 0);
  * ```
  */
-export function useCurrentLedger(
+export function useCurrentBlock(
   adapter: ContractAdapter | null,
-  options?: UseCurrentLedgerOptions
-): UseCurrentLedgerReturn {
+  options?: UseCurrentBlockOptions
+): UseCurrentBlockReturn {
   const { pollInterval = DEFAULT_POLL_INTERVAL_MS, enabled = true } = options ?? {};
 
   const networkId = adapter?.networkConfig?.id;
@@ -108,7 +108,7 @@ export function useCurrentLedger(
   }, [query]);
 
   return {
-    currentLedger: query.data ?? null,
+    currentBlock: query.data ?? null,
     isLoading: query.isLoading,
     error: query.error as Error | null,
     refetch,

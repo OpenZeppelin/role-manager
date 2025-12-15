@@ -1,8 +1,8 @@
 /**
- * Tests for useCurrentLedger hook
+ * Tests for useCurrentBlock hook
  * Feature: 015-ownership-transfer
  *
- * Tests the hook for polling current block/ledger number.
+ * Tests the hook for polling current block number.
  * Covers: initial fetch, polling, error handling, manual refetch, enabled toggle.
  */
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -12,7 +12,7 @@ import type { PropsWithChildren } from 'react';
 
 import type { ContractAdapter, NetworkConfig } from '@openzeppelin/ui-builder-types';
 
-import { useCurrentLedger } from '../useCurrentLedger';
+import { useCurrentBlock } from '../useCurrentBlock';
 
 // Test fixtures
 const mockNetworkConfig: NetworkConfig = {
@@ -50,7 +50,7 @@ const createWrapper = (queryClient?: QueryClient) => {
   };
 };
 
-describe('useCurrentLedger', () => {
+describe('useCurrentBlock', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -60,26 +60,26 @@ describe('useCurrentLedger', () => {
   });
 
   describe('initialization', () => {
-    it('should return null currentLedger initially before fetch completes', () => {
+    it('should return null currentBlock initially before fetch completes', () => {
       // Use a promise that never resolves to keep loading state
       const getCurrentBlockFn = vi.fn().mockImplementation(() => new Promise(() => {}));
       const mockAdapter = createMockAdapter(getCurrentBlockFn);
 
-      const { result } = renderHook(() => useCurrentLedger(mockAdapter), {
+      const { result } = renderHook(() => useCurrentBlock(mockAdapter), {
         wrapper: createWrapper(),
       });
 
       // Initially loading
       expect(result.current.isLoading).toBe(true);
-      expect(result.current.currentLedger).toBeNull();
+      expect(result.current.currentBlock).toBeNull();
       expect(result.current.error).toBeNull();
     });
 
-    it('should return currentLedger after fetch completes', async () => {
+    it('should return currentBlock after fetch completes', async () => {
       const getCurrentBlockFn = vi.fn().mockResolvedValue(54321);
       const mockAdapter = createMockAdapter(getCurrentBlockFn);
 
-      const { result } = renderHook(() => useCurrentLedger(mockAdapter), {
+      const { result } = renderHook(() => useCurrentBlock(mockAdapter), {
         wrapper: createWrapper(),
       });
 
@@ -87,17 +87,17 @@ describe('useCurrentLedger', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      expect(result.current.currentLedger).toBe(54321);
+      expect(result.current.currentBlock).toBe(54321);
       expect(result.current.error).toBeNull();
     });
 
     it('should not fetch when adapter is null', () => {
-      const { result } = renderHook(() => useCurrentLedger(null), {
+      const { result } = renderHook(() => useCurrentBlock(null), {
         wrapper: createWrapper(),
       });
 
       expect(result.current.isLoading).toBe(false);
-      expect(result.current.currentLedger).toBeNull();
+      expect(result.current.currentBlock).toBeNull();
       expect(result.current.error).toBeNull();
     });
 
@@ -105,12 +105,12 @@ describe('useCurrentLedger', () => {
       const getCurrentBlockFn = vi.fn().mockResolvedValue(12345);
       const mockAdapter = createMockAdapter(getCurrentBlockFn);
 
-      const { result } = renderHook(() => useCurrentLedger(mockAdapter, { enabled: false }), {
+      const { result } = renderHook(() => useCurrentBlock(mockAdapter, { enabled: false }), {
         wrapper: createWrapper(),
       });
 
       expect(result.current.isLoading).toBe(false);
-      expect(result.current.currentLedger).toBeNull();
+      expect(result.current.currentBlock).toBeNull();
       expect(getCurrentBlockFn).not.toHaveBeenCalled();
     });
   });
@@ -120,13 +120,13 @@ describe('useCurrentLedger', () => {
       const getCurrentBlockFn = vi.fn().mockResolvedValue(100);
       const mockAdapter = createMockAdapter(getCurrentBlockFn);
 
-      const { result } = renderHook(() => useCurrentLedger(mockAdapter), {
+      const { result } = renderHook(() => useCurrentBlock(mockAdapter), {
         wrapper: createWrapper(),
       });
 
       // Wait for initial fetch
       await waitFor(() => {
-        expect(result.current.currentLedger).toBe(100);
+        expect(result.current.currentBlock).toBe(100);
       });
 
       // Verify initial call was made
@@ -137,13 +137,13 @@ describe('useCurrentLedger', () => {
       const getCurrentBlockFn = vi.fn().mockResolvedValue(100);
       const mockAdapter = createMockAdapter(getCurrentBlockFn);
 
-      const { result } = renderHook(() => useCurrentLedger(mockAdapter, { pollInterval: 2000 }), {
+      const { result } = renderHook(() => useCurrentBlock(mockAdapter, { pollInterval: 2000 }), {
         wrapper: createWrapper(),
       });
 
       // Wait for initial fetch
       await waitFor(() => {
-        expect(result.current.currentLedger).toBe(100);
+        expect(result.current.currentBlock).toBe(100);
       });
 
       // Verify initial call was made
@@ -155,7 +155,7 @@ describe('useCurrentLedger', () => {
       const mockAdapter = createMockAdapter(getCurrentBlockFn);
 
       const { result, rerender } = renderHook(
-        ({ enabled }) => useCurrentLedger(mockAdapter, { enabled }),
+        ({ enabled }) => useCurrentBlock(mockAdapter, { enabled }),
         {
           wrapper: createWrapper(),
           initialProps: { enabled: true },
@@ -164,7 +164,7 @@ describe('useCurrentLedger', () => {
 
       // Wait for initial fetch
       await waitFor(() => {
-        expect(result.current.currentLedger).toBe(100);
+        expect(result.current.currentBlock).toBe(100);
       });
 
       const callCountAfterInitial = getCurrentBlockFn.mock.calls.length;
@@ -183,7 +183,7 @@ describe('useCurrentLedger', () => {
       const getCurrentBlockFn = vi.fn().mockRejectedValue(new Error('Network error'));
       const mockAdapter = createMockAdapter(getCurrentBlockFn);
 
-      const { result } = renderHook(() => useCurrentLedger(mockAdapter), {
+      const { result } = renderHook(() => useCurrentBlock(mockAdapter), {
         wrapper: createWrapper(),
       });
 
@@ -193,20 +193,20 @@ describe('useCurrentLedger', () => {
 
       expect(result.current.error).toBeInstanceOf(Error);
       expect(result.current.error?.message).toBe('Network error');
-      expect(result.current.currentLedger).toBeNull();
+      expect(result.current.currentBlock).toBeNull();
     });
 
     it('should handle multiple fetch cycles', async () => {
       const getCurrentBlockFn = vi.fn().mockResolvedValueOnce(100).mockResolvedValueOnce(101);
       const mockAdapter = createMockAdapter(getCurrentBlockFn);
 
-      const { result } = renderHook(() => useCurrentLedger(mockAdapter), {
+      const { result } = renderHook(() => useCurrentBlock(mockAdapter), {
         wrapper: createWrapper(),
       });
 
       // Wait for initial fetch
       await waitFor(() => {
-        expect(result.current.currentLedger).toBe(100);
+        expect(result.current.currentBlock).toBe(100);
       });
 
       // Manual refetch to simulate next poll
@@ -215,7 +215,7 @@ describe('useCurrentLedger', () => {
       });
 
       await waitFor(() => {
-        expect(result.current.currentLedger).toBe(101);
+        expect(result.current.currentBlock).toBe(101);
       });
     });
   });
@@ -225,13 +225,13 @@ describe('useCurrentLedger', () => {
       const getCurrentBlockFn = vi.fn().mockResolvedValueOnce(100).mockResolvedValueOnce(150);
       const mockAdapter = createMockAdapter(getCurrentBlockFn);
 
-      const { result } = renderHook(() => useCurrentLedger(mockAdapter), {
+      const { result } = renderHook(() => useCurrentBlock(mockAdapter), {
         wrapper: createWrapper(),
       });
 
       // Wait for initial fetch
       await waitFor(() => {
-        expect(result.current.currentLedger).toBe(100);
+        expect(result.current.currentBlock).toBe(100);
       });
 
       // Manually refetch
@@ -240,7 +240,7 @@ describe('useCurrentLedger', () => {
       });
 
       await waitFor(() => {
-        expect(result.current.currentLedger).toBe(150);
+        expect(result.current.currentBlock).toBe(150);
       });
 
       expect(getCurrentBlockFn).toHaveBeenCalledTimes(2);
@@ -259,21 +259,21 @@ describe('useCurrentLedger', () => {
         getCurrentBlock: getCurrentBlockFn2,
       } as unknown as ContractAdapter;
 
-      const { result, rerender } = renderHook(({ adapter }) => useCurrentLedger(adapter), {
+      const { result, rerender } = renderHook(({ adapter }) => useCurrentBlock(adapter), {
         wrapper: createWrapper(),
         initialProps: { adapter: adapter1 },
       });
 
       // Wait for initial fetch
       await waitFor(() => {
-        expect(result.current.currentLedger).toBe(100);
+        expect(result.current.currentBlock).toBe(100);
       });
 
       // Change adapter
       rerender({ adapter: adapter2 });
 
       await waitFor(() => {
-        expect(result.current.currentLedger).toBe(999);
+        expect(result.current.currentBlock).toBe(999);
       });
 
       expect(getCurrentBlockFn2).toHaveBeenCalled();
@@ -281,15 +281,15 @@ describe('useCurrentLedger', () => {
   });
 
   describe('return type', () => {
-    it('should return correct shape matching UseCurrentLedgerReturn', async () => {
+    it('should return correct shape matching UseCurrentBlockReturn', async () => {
       const mockAdapter = createMockAdapter(vi.fn().mockResolvedValue(12345));
 
-      const { result } = renderHook(() => useCurrentLedger(mockAdapter), {
+      const { result } = renderHook(() => useCurrentBlock(mockAdapter), {
         wrapper: createWrapper(),
       });
 
       // Check shape immediately
-      expect(result.current).toHaveProperty('currentLedger');
+      expect(result.current).toHaveProperty('currentBlock');
       expect(result.current).toHaveProperty('isLoading');
       expect(result.current).toHaveProperty('error');
       expect(result.current).toHaveProperty('refetch');
@@ -300,7 +300,7 @@ describe('useCurrentLedger', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      expect(result.current.currentLedger).toBe(12345);
+      expect(result.current.currentBlock).toBe(12345);
     });
   });
 });

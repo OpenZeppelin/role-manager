@@ -122,14 +122,14 @@ vi.mock('../useAccessControlMutations', () => ({
   }),
 }));
 
-// Mock useCurrentLedger
-let mockCurrentLedger = 1000;
-let mockCurrentLedgerLoading = false;
+// Mock useCurrentBlock
+let mockCurrentBlock = 1000;
+let mockCurrentBlockLoading = false;
 
-vi.mock('../useCurrentLedger', () => ({
-  useCurrentLedger: () => ({
-    currentLedger: mockCurrentLedger,
-    isLoading: mockCurrentLedgerLoading,
+vi.mock('../useCurrentBlock', () => ({
+  useCurrentBlock: () => ({
+    currentBlock: mockCurrentBlock,
+    isLoading: mockCurrentBlockLoading,
     error: null,
     refetch: vi.fn(),
   }),
@@ -189,8 +189,8 @@ const setupDefaultMocks = () => {
     isUserRejection: false,
   };
 
-  mockCurrentLedger = 1000;
-  mockCurrentLedgerLoading = false;
+  mockCurrentBlock = 1000;
+  mockCurrentBlockLoading = false;
 };
 
 // =============================================================================
@@ -267,7 +267,7 @@ describe('useOwnershipTransferDialog', () => {
         { wrapper: createWrapper() }
       );
 
-      expect(result.current.currentLedger).toBe(1000);
+      expect(result.current.currentBlock).toBe(1000);
     });
 
     it('should return null for current ledger when single-step ownable', () => {
@@ -281,7 +281,7 @@ describe('useOwnershipTransferDialog', () => {
         { wrapper: createWrapper() }
       );
 
-      expect(result.current.currentLedger).toBeNull();
+      expect(result.current.currentBlock).toBeNull();
     });
   });
 
@@ -302,7 +302,7 @@ describe('useOwnershipTransferDialog', () => {
       await act(async () => {
         await result.current.submit({
           newOwnerAddress: MOCK_CONNECTED_ADDRESS, // Same as current owner
-          expirationLedger: '2000',
+          expirationBlock: '2000',
         });
       });
 
@@ -326,7 +326,7 @@ describe('useOwnershipTransferDialog', () => {
       await act(async () => {
         await result.current.submit({
           newOwnerAddress: MOCK_NEW_OWNER_ADDRESS,
-          expirationLedger: '500', // Past ledger
+          expirationBlock: '500', // Past ledger
         });
       });
 
@@ -350,7 +350,7 @@ describe('useOwnershipTransferDialog', () => {
       await act(async () => {
         await result.current.submit({
           newOwnerAddress: MOCK_NEW_OWNER_ADDRESS,
-          expirationLedger: '1000', // Same as current
+          expirationBlock: '1000', // Same as current
         });
       });
 
@@ -376,7 +376,7 @@ describe('useOwnershipTransferDialog', () => {
       await act(async () => {
         await result.current.submit({
           newOwnerAddress: MOCK_NEW_OWNER_ADDRESS,
-          expirationLedger: '2000', // Greater than current = 1000
+          expirationBlock: '2000', // Greater than current = 1000
         });
       });
 
@@ -400,7 +400,7 @@ describe('useOwnershipTransferDialog', () => {
       await act(async () => {
         await result.current.submit({
           newOwnerAddress: MOCK_NEW_OWNER_ADDRESS,
-          expirationLedger: '', // Empty for single-step
+          expirationBlock: '', // Empty for single-step
         });
       });
 
@@ -433,7 +433,7 @@ describe('useOwnershipTransferDialog', () => {
       act(() => {
         void result.current.submit({
           newOwnerAddress: MOCK_NEW_OWNER_ADDRESS,
-          expirationLedger: '2000',
+          expirationBlock: '2000',
         });
       });
 
@@ -464,7 +464,7 @@ describe('useOwnershipTransferDialog', () => {
       await act(async () => {
         await result.current.submit({
           newOwnerAddress: MOCK_NEW_OWNER_ADDRESS,
-          expirationLedger: '2000',
+          expirationBlock: '2000',
         });
       });
 
@@ -489,7 +489,7 @@ describe('useOwnershipTransferDialog', () => {
       await act(async () => {
         await result.current.submit({
           newOwnerAddress: MOCK_NEW_OWNER_ADDRESS,
-          expirationLedger: '2000',
+          expirationBlock: '2000',
         });
       });
 
@@ -519,14 +519,14 @@ describe('useOwnershipTransferDialog', () => {
       await act(async () => {
         await result.current.submit({
           newOwnerAddress: MOCK_NEW_OWNER_ADDRESS,
-          expirationLedger: '2000',
+          expirationBlock: '2000',
         });
       });
 
       expect(mockTransferOwnershipMutateAsync).toHaveBeenCalledWith(
         expect.objectContaining({
           newOwner: MOCK_NEW_OWNER_ADDRESS,
-          expirationLedger: 2000,
+          expirationBlock: 2000,
           executionConfig: { method: 'eoa' },
         })
       );
@@ -548,14 +548,14 @@ describe('useOwnershipTransferDialog', () => {
       await act(async () => {
         await result.current.submit({
           newOwnerAddress: MOCK_NEW_OWNER_ADDRESS,
-          expirationLedger: '', // Empty for single-step
+          expirationBlock: '', // Empty for single-step
         });
       });
 
       expect(mockTransferOwnershipMutateAsync).toHaveBeenCalledWith(
         expect.objectContaining({
           newOwner: MOCK_NEW_OWNER_ADDRESS,
-          expirationLedger: 0, // Default for single-step
+          expirationBlock: 0, // Default for single-step
         })
       );
     });
@@ -579,7 +579,7 @@ describe('useOwnershipTransferDialog', () => {
       await act(async () => {
         await result.current.submit({
           newOwnerAddress: MOCK_NEW_OWNER_ADDRESS,
-          expirationLedger: '2000',
+          expirationBlock: '2000',
         });
       });
 
@@ -605,7 +605,7 @@ describe('useOwnershipTransferDialog', () => {
       await act(async () => {
         await result.current.submit({
           newOwnerAddress: MOCK_NEW_OWNER_ADDRESS,
-          expirationLedger: '2000',
+          expirationBlock: '2000',
         });
       });
 
@@ -630,7 +630,7 @@ describe('useOwnershipTransferDialog', () => {
       await act(async () => {
         await result.current.submit({
           newOwnerAddress: MOCK_NEW_OWNER_ADDRESS,
-          expirationLedger: '2000',
+          expirationBlock: '2000',
         });
       });
 
@@ -658,7 +658,7 @@ describe('useOwnershipTransferDialog', () => {
       await act(async () => {
         await result.current.submit({
           newOwnerAddress: MOCK_NEW_OWNER_ADDRESS,
-          expirationLedger: '2000',
+          expirationBlock: '2000',
         });
       });
 
@@ -694,7 +694,7 @@ describe('useOwnershipTransferDialog', () => {
       await act(async () => {
         await result.current.submit({
           newOwnerAddress: MOCK_NEW_OWNER_ADDRESS,
-          expirationLedger: '2000',
+          expirationBlock: '2000',
         });
       });
 
@@ -713,7 +713,7 @@ describe('useOwnershipTransferDialog', () => {
       expect(mockTransferOwnershipMutateAsync).toHaveBeenLastCalledWith(
         expect.objectContaining({
           newOwner: MOCK_NEW_OWNER_ADDRESS,
-          expirationLedger: 2000,
+          expirationBlock: 2000,
         })
       );
     });
@@ -738,7 +738,7 @@ describe('useOwnershipTransferDialog', () => {
       await act(async () => {
         await result.current.submit({
           newOwnerAddress: MOCK_NEW_OWNER_ADDRESS,
-          expirationLedger: '2000',
+          expirationBlock: '2000',
         });
       });
 

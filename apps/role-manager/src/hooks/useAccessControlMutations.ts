@@ -147,7 +147,7 @@ export interface TransferOwnershipArgs {
    * Used for two-step ownership transfers to set a deadline for the new owner to accept.
    * After this block/ledger, the transfer becomes invalid and must be re-initiated.
    */
-  expirationLedger: number;
+  expirationBlock: number;
   /** Execution configuration (EOA, relayer, etc.) */
   executionConfig: ExecutionConfig;
   /** Optional runtime API key for relayer */
@@ -471,7 +471,7 @@ export function useTransferOwnership(
       return service.transferOwnership(
         contractAddress,
         args.newOwner,
-        args.expirationLedger,
+        args.expirationBlock,
         args.executionConfig,
         handleStatusChange,
         args.runtimeApiKey

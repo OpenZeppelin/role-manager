@@ -46,8 +46,14 @@ export interface PendingTransfer {
   /** Current holder's address */
   currentHolder: string;
 
+  /** Explorer URL for current holder address */
+  currentHolderUrl?: string;
+
   /** Pending recipient's address */
   pendingRecipient: string;
+
+  /** Explorer URL for pending recipient address */
+  pendingRecipientUrl?: string;
 
   /** Block/ledger number at which the transfer expires */
   expirationBlock: number;
@@ -86,6 +92,9 @@ export interface UsePendingTransfersOptions {
 export interface UsePendingTransfersReturn {
   /** Array of pending transfers */
   transfers: PendingTransfer[];
+
+  /** Current block number for expiration calculations */
+  currentBlock: number | null;
 
   /** Whether data is loading */
   isLoading: boolean;

@@ -31,6 +31,7 @@ import type { RoleIdentifier, RoleWithDescription } from '../types/roles';
 import { getRoleName } from '../utils/role-name';
 import { useContractCapabilities } from './useContractCapabilities';
 import { useContractOwnership, useContractRoles } from './useContractData';
+import { useCurrentBlock } from './useCurrentBlock';
 import { useCustomRoleDescriptions } from './useCustomRoleDescriptions';
 import { useSelectedContract } from './useSelectedContract';
 
@@ -97,6 +98,12 @@ export interface UseRolesPageDataReturn {
    * Used to determine which UI elements to show (T028)
    */
   ownershipState: OwnershipState | null;
+
+  /**
+   * Current ledger/block number for expiration countdown display
+   * Polled automatically when a pending transfer exists
+   */
+  currentBlock: number | null;
 }
 
 // =============================================================================
@@ -185,6 +192,13 @@ export function useRolesPageData(): UseRolesPageDataReturn {
   // Custom descriptions
   const { descriptions: customDescriptions, updateDescription } =
     useCustomRoleDescriptions(contractId);
+
+  // Current block for expiration countdown (poll when pending transfer exists)
+  const hasPendingTransfer = ownership?.state === 'pending';
+  const { currentBlock } = useCurrentBlock(adapter, {
+    enabled: hasPendingTransfer,
+    pollInterval: 5000, // Poll every 5 seconds for real-time countdown
+  });
 
   // =============================================================================
   // Computed Values
@@ -315,10 +329,6 @@ export function useRolesPageData(): UseRolesPageDataReturn {
   // Return
   // =============================================================================
 
-  // Feature 015: Extract pending owner from ownership data (for Accept Ownership button)
-  // Note: pendingOwner may not be available in all adapter implementations
-  const pendingOwner = (ownership as { pendingOwner?: string })?.pendingOwner ?? null;
-
   // Feature 015 Phase 6 (T026, T027, T028): Extract full pending transfer info and ownership state
   // The OwnershipInfo type includes pendingTransfer and state fields
   const ownershipWithPending = ownership as {
@@ -328,6 +338,9 @@ export function useRolesPageData(): UseRolesPageDataReturn {
 
   const pendingTransfer = ownershipWithPending?.pendingTransfer ?? null;
   const ownershipState = ownershipWithPending?.state ?? null;
+
+  // Feature 015: Extract pending owner from pendingTransfer (for Accept Ownership button)
+  const pendingOwner = pendingTransfer?.pendingOwner ?? null;
 
   // Handle no contract selected
   if (!selectedContract) {
@@ -355,6 +368,7 @@ export function useRolesPageData(): UseRolesPageDataReturn {
       pendingOwner: null,
       pendingTransfer: null,
       ownershipState: null,
+      currentBlock: null,
     };
   }
 
@@ -382,5 +396,6 @@ export function useRolesPageData(): UseRolesPageDataReturn {
     pendingOwner,
     pendingTransfer,
     ownershipState,
+    currentBlock,
   };
 }
