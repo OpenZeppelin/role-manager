@@ -92,11 +92,9 @@ function validateSelfTransfer(newOwner: string, currentOwner: string): string | 
 
 /**
  * Validate expiration block (must be strictly greater than current)
+ * Note: currentBlock is guaranteed non-null when this is called (caller validates first)
  */
-function validateExpiration(expirationBlock: number, currentBlock: number | null): string | null {
-  if (currentBlock === null) {
-    return null; // Cannot validate without current block
-  }
+function validateExpiration(expirationBlock: number, currentBlock: number): string | null {
   if (expirationBlock <= currentBlock) {
     return `Expiration must be greater than current block (${currentBlock})`;
   }
