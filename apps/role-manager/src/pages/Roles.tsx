@@ -45,6 +45,7 @@ import { PageEmptyState } from '../components/Shared/PageEmptyState';
 import { PageHeader } from '../components/Shared/PageHeader';
 import { useAllNetworks, useRolesPageData } from '../hooks';
 import { useSelectedContract } from '../hooks/useSelectedContract';
+import { createGetAccountUrl } from '../utils/explorer-urls';
 
 export function Roles() {
   // T035: Use useRolesPageData hook
@@ -69,6 +70,7 @@ export function Roles() {
     pendingOwner, // Feature 015 (T021): for Accept Ownership button
     pendingTransfer, // Feature 015 Phase 6 (T026, T027): for pending transfer display
     ownershipState, // Feature 015 Phase 6 (T028): for expired status display
+    currentBlock, // For expiration countdown
   } = useRolesPageData();
 
   // Phase 6: Edit dialog state
@@ -91,8 +93,11 @@ export function Roles() {
   const [isAcceptOwnershipDialogOpen, setIsAcceptOwnershipDialogOpen] = useState(false);
 
   // Get contract info for display
-  const { selectedContract } = useSelectedContract();
+  const { selectedContract, adapter } = useSelectedContract();
   const contractLabel = selectedContract?.label || selectedContract?.address || 'Unknown Contract';
+
+  // Create URL generator function for explorer links
+  const getAccountUrl = useMemo(() => createGetAccountUrl(adapter), [adapter]);
 
   // Get network name from networkId
   const { networks } = useAllNetworks();
@@ -119,8 +124,9 @@ export function Roles() {
       isCurrentUser: connectedAddress
         ? address.toLowerCase() === connectedAddress.toLowerCase()
         : false,
+      explorerUrl: getAccountUrl(address) ?? undefined,
     }));
-  }, [selectedRole, connectedAddress]);
+  }, [selectedRole, connectedAddress, getAccountUrl]);
 
   // Phase 6: Open edit dialog
   const handleOpenEditDialog = useCallback(() => {
@@ -278,6 +284,12 @@ export function Roles() {
                 canAcceptOwnership={canAcceptOwnership}
                 pendingTransfer={pendingTransfer}
                 ownershipState={ownershipState}
+                pendingRecipientUrl={
+                  pendingTransfer?.pendingOwner
+                    ? (getAccountUrl(pendingTransfer.pendingOwner) ?? undefined)
+                    : undefined
+                }
+                currentBlock={currentBlock}
               />
             ) : (
               <div className="flex items-center justify-center h-full p-6 text-muted-foreground">
@@ -336,6 +348,7 @@ export function Roles() {
             onOpenChange={setIsTransferOwnershipDialogOpen}
             currentOwner={currentOwner}
             hasTwoStepOwnable={capabilities?.hasTwoStepOwnable ?? false}
+            onSuccess={refetch}
           />
         );
       })()}
@@ -344,6 +357,7 @@ export function Roles() {
       <AcceptOwnershipDialog
         open={isAcceptOwnershipDialogOpen}
         onOpenChange={setIsAcceptOwnershipDialogOpen}
+        onSuccess={refetch}
       />
     </div>
   );

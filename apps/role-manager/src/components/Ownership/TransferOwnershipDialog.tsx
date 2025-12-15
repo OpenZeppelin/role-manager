@@ -7,7 +7,7 @@
  *
  * Implements:
  * - T011: Dialog with address input, expiration input (two-step only)
- * - Current ledger display for expiration validation
+ * - Current block display for expiration validation
  * - Transaction state rendering using DialogTransactionStates
  * - Close-during-transaction confirmation prompt
  * - Wallet disconnection handling
@@ -15,7 +15,7 @@
  * Key behaviors:
  * - Address validation via adapter.isValidAddress()
  * - Self-transfer prevention
- * - Expiration validation (must be greater than current ledger)
+ * - Expiration validation (must be greater than current block)
  * - Transaction state feedback (pending, success, error, cancelled)
  * - Auto-close after 1.5s success display
  */
@@ -39,9 +39,12 @@ import { cn } from '@openzeppelin/ui-builder-utils';
 
 import { getEcosystemAddressExample } from '@/core/ecosystems/registry';
 
+import { useBlockTime } from '../../context/BlockTimeContext';
+import { useDebounce } from '../../hooks/useDebounce';
 import { useOwnershipTransferDialog } from '../../hooks/useOwnershipTransferDialog';
 import type { TransferOwnershipFormData } from '../../hooks/useOwnershipTransferDialog';
 import { useSelectedContract } from '../../hooks/useSelectedContract';
+import { calculateBlockExpiration, formatTimeEstimateDisplay } from '../../utils/block-time';
 import {
   ConfirmCloseDialog,
   DialogCancelledState,
@@ -106,7 +109,7 @@ export function TransferOwnershipDialog({
     txStatus,
     isWalletConnected,
     requiresExpiration,
-    currentLedger,
+    currentBlock,
     submit,
     retry,
     reset,
@@ -124,7 +127,7 @@ export function TransferOwnershipDialog({
   const form = useForm<TransferOwnershipFormData>({
     defaultValues: {
       newOwnerAddress: '',
-      expirationLedger: '',
+      expirationBlock: '',
     },
     mode: 'onChange',
   });
@@ -135,7 +138,7 @@ export function TransferOwnershipDialog({
     if (open && !wasOpenRef.current) {
       // Dialog just opened - reset to fresh state
       reset();
-      form.reset({ newOwnerAddress: '', expirationLedger: '' });
+      form.reset({ newOwnerAddress: '', expirationBlock: '' });
     }
     wasOpenRef.current = open;
   }, [open, reset, form]);
@@ -253,7 +256,7 @@ export function TransferOwnershipDialog({
             isAdapterLoading={isAdapterLoading}
             isWalletConnected={isWalletConnected}
             requiresExpiration={requiresExpiration}
-            currentLedger={currentLedger}
+            currentBlock={currentBlock}
             onCancel={handleCancel}
             onSubmit={handleSubmit}
           />
@@ -294,7 +297,7 @@ interface TransferOwnershipFormContentProps {
   isAdapterLoading: boolean;
   isWalletConnected: boolean;
   requiresExpiration: boolean;
-  currentLedger: number | null;
+  currentBlock: number | null;
   onCancel: () => void;
   onSubmit: (data: TransferOwnershipFormData) => Promise<void>;
 }
@@ -305,7 +308,7 @@ function TransferOwnershipFormContent({
   isAdapterLoading,
   isWalletConnected,
   requiresExpiration,
-  currentLedger,
+  currentBlock,
   onCancel,
   onSubmit,
 }: TransferOwnershipFormContentProps) {
@@ -317,19 +320,37 @@ function TransferOwnershipFormContent({
     formState: { isValid, isSubmitting },
   } = form;
 
-  const expirationValue = watch('expirationLedger');
+  const expirationValue = watch('expirationBlock');
 
-  // Validate expiration is greater than current ledger
+  // Debounce the expiration value for time estimation (300ms)
+  const debouncedExpiration = useDebounce(expirationValue, 300);
+
+  // Get block time estimation
+  const { formatBlocksToTime, isCalibrating } = useBlockTime();
+
+  // Calculate blocks until expiration and time estimate
+  const expirationEstimate = useMemo(() => {
+    if (!requiresExpiration || !debouncedExpiration || currentBlock === null) {
+      return null;
+    }
+    const expNum = parseInt(debouncedExpiration, 10);
+    if (isNaN(expNum)) {
+      return null;
+    }
+    return calculateBlockExpiration(expNum, currentBlock, formatBlocksToTime);
+  }, [requiresExpiration, debouncedExpiration, currentBlock, formatBlocksToTime]);
+
+  // Validate expiration is greater than current block
   const expirationError = useMemo(() => {
-    if (!requiresExpiration || !expirationValue || currentLedger === null) {
+    if (!requiresExpiration || !expirationValue || currentBlock === null) {
       return null;
     }
     const expNum = parseInt(expirationValue, 10);
-    if (isNaN(expNum) || expNum <= currentLedger) {
-      return `Must be greater than current ledger (${currentLedger})`;
+    if (isNaN(expNum) || expNum <= currentBlock) {
+      return `Must be greater than current block (${currentBlock.toLocaleString()})`;
     }
     return null;
-  }, [requiresExpiration, expirationValue, currentLedger]);
+  }, [requiresExpiration, expirationValue, currentBlock]);
 
   // Disable submit if adapter is not loaded, wallet not connected, or form invalid
   const canSubmit =
@@ -361,27 +382,41 @@ function TransferOwnershipFormContent({
         />
       </div>
 
-      {/* Expiration Ledger Field (Two-Step Only) */}
+      {/* Expiration Block Field (Two-Step Only) */}
       {requiresExpiration && (
         <div className="space-y-1.5">
-          <Label htmlFor="transfer-ownership-expiration">Expiration Ledger</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="transfer-ownership-expiration">Expiration Block</Label>
+            {currentBlock !== null && (
+              <span className="text-xs text-muted-foreground">
+                Current: {currentBlock.toLocaleString()}
+              </span>
+            )}
+          </div>
           <Input
             id="transfer-ownership-expiration"
             type="number"
-            placeholder="Enter ledger number"
-            {...register('expirationLedger', { required: requiresExpiration })}
+            placeholder="Enter block number"
+            {...register('expirationBlock', { required: requiresExpiration })}
             className={cn(expirationError && 'border-destructive')}
           />
-          <div className="flex justify-between items-start">
+          {/* Helper text or time estimate */}
+          {expirationEstimate && !expirationError ? (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <span>{expirationEstimate.blocksRemaining.toLocaleString()} blocks</span>
+              {expirationEstimate.timeEstimate ? (
+                <span className="text-blue-600 font-medium">
+                  ≈ {formatTimeEstimateDisplay(expirationEstimate.timeEstimate)}
+                </span>
+              ) : isCalibrating ? (
+                <span className="text-muted-foreground/60">estimating...</span>
+              ) : null}
+            </div>
+          ) : !expirationError ? (
             <p className="text-xs text-muted-foreground">
-              The transfer must be accepted before this ledger number.
+              The transfer must be accepted before this block.
             </p>
-            {currentLedger !== null && (
-              <p className="text-xs text-muted-foreground whitespace-nowrap ml-2">
-                Current: {currentLedger.toLocaleString()}
-              </p>
-            )}
-          </div>
+          ) : null}
           {expirationError && <p className="text-xs text-destructive">{expirationError}</p>}
         </div>
       )}

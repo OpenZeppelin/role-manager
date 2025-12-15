@@ -39,6 +39,8 @@ export interface AccountData {
   assignedAt?: Date;
   /** Whether this is the connected user */
   isCurrentUser: boolean;
+  /** Explorer URL for the address */
+  explorerUrl?: string;
 }
 
 /**
@@ -73,6 +75,10 @@ export interface RoleDetailsProps {
    * 'pending' or 'expired' will trigger PendingTransferInfo display
    */
   ownershipState?: OwnershipState | null;
+  /** Explorer URL for the pending recipient address */
+  pendingRecipientUrl?: string;
+  /** Current block/ledger number for expiration countdown */
+  currentBlock?: number | null;
   /** Additional CSS classes */
   className?: string;
 }
@@ -92,6 +98,8 @@ export function RoleDetails({
   canAcceptOwnership,
   pendingTransfer,
   ownershipState,
+  pendingRecipientUrl,
+  currentBlock,
   className,
 }: RoleDetailsProps) {
   const hasAccounts = accounts.length > 0;
@@ -153,10 +161,9 @@ export function RoleDetails({
                   assignedAt={account.assignedAt}
                   isCurrentUser={account.isCurrentUser}
                   isOwnerRole={role.isOwnerRole}
+                  explorerUrl={account.explorerUrl}
                   onRevoke={onRevoke ? () => onRevoke(account.address) : undefined}
                   onTransferOwnership={onTransferOwnership}
-                  onAcceptOwnership={onAcceptOwnership}
-                  canAcceptOwnership={canAcceptOwnership}
                 />
               ))
             ) : (
@@ -172,8 +179,12 @@ export function RoleDetails({
             (ownershipState === 'pending' || ownershipState === 'expired') && (
               <PendingTransferInfo
                 pendingRecipient={pendingTransfer.pendingOwner}
+                pendingRecipientUrl={pendingRecipientUrl}
                 expirationBlock={pendingTransfer.expirationBlock}
                 isExpired={ownershipState === 'expired'}
+                canAccept={canAcceptOwnership}
+                onAccept={onAcceptOwnership}
+                currentBlock={currentBlock}
               />
             )}
         </div>

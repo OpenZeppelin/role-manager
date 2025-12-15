@@ -20,12 +20,18 @@ import { AlertTriangle, Clock, User } from 'lucide-react';
 import { AddressDisplay } from '@openzeppelin/ui-builder-ui';
 import { cn } from '@openzeppelin/ui-builder-utils';
 
+import { useBlockTime } from '../../context/BlockTimeContext';
+import { calculateBlockExpiration, formatTimeEstimateDisplay } from '../../utils/block-time';
+import { AcceptTransferButton } from '../Shared/AcceptTransferButton';
+
 /**
  * Props for PendingTransferInfo component
  */
 export interface PendingTransferInfoProps {
   /** Address of the pending recipient */
   pendingRecipient: string;
+  /** Explorer URL for the pending recipient address */
+  pendingRecipientUrl?: string;
   /** Expiration block/ledger number */
   expirationBlock: number;
   /** Whether the transfer is expired */
@@ -43,6 +49,10 @@ export interface PendingTransferInfoProps {
   recipientLabel?: string;
   /** Optional: Current block/ledger for context display */
   currentBlock?: number | null;
+  /** Whether the connected user can accept this transfer */
+  canAccept?: boolean;
+  /** Callback when Accept button is clicked */
+  onAccept?: () => void;
   /** Additional CSS classes */
   className?: string;
 }
@@ -76,13 +86,24 @@ export interface PendingTransferInfoProps {
  */
 export function PendingTransferInfo({
   pendingRecipient,
+  pendingRecipientUrl,
   expirationBlock,
   isExpired,
   transferLabel = 'Ownership',
   recipientLabel = 'Owner',
   currentBlock,
+  canAccept,
+  onAccept,
   className,
 }: PendingTransferInfoProps) {
+  // Get block time estimation for human-readable time display
+  const { formatBlocksToTime } = useBlockTime();
+
+  // Calculate blocks remaining and time estimate
+  const expirationEstimate = !isExpired
+    ? calculateBlockExpiration(expirationBlock, currentBlock, formatBlocksToTime)
+    : null;
+
   return (
     <div
       className={cn(
@@ -120,11 +141,12 @@ export function PendingTransferInfo({
           startChars={10}
           endChars={8}
           showCopyButton={true}
+          explorerUrl={pendingRecipientUrl}
         />
       </div>
 
-      {/* Expiration block */}
-      <div className="flex items-center gap-2">
+      {/* Expiration info */}
+      <div className="flex items-center gap-2 flex-wrap">
         <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
         <span className="text-xs text-muted-foreground shrink-0">
           {isExpired ? 'Expired at Block:' : 'Expires at Block:'}
@@ -132,12 +154,23 @@ export function PendingTransferInfo({
         <span className={cn('text-xs font-mono', isExpired ? 'text-amber-700' : 'text-foreground')}>
           {expirationBlock.toLocaleString()}
         </span>
-        {currentBlock !== null && currentBlock !== undefined && (
+        {expirationEstimate && (
           <span className="text-xs text-muted-foreground">
-            (current: {currentBlock.toLocaleString()})
+            ({expirationEstimate.blocksRemaining.toLocaleString()} blocks
+            {expirationEstimate.timeEstimate
+              ? ` · ${formatTimeEstimateDisplay(expirationEstimate.timeEstimate)}`
+              : ''}
+            )
           </span>
         )}
       </div>
+
+      {/* Accept button - shown when user can accept and transfer is not expired */}
+      {canAccept && !isExpired && onAccept && (
+        <div className="mt-3 pt-3 border-t border-blue-200 flex justify-end">
+          <AcceptTransferButton roleLabel={transferLabel} onClick={onAccept} />
+        </div>
+      )}
 
       {/* Expired message */}
       {isExpired && (
