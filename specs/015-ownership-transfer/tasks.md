@@ -115,6 +115,61 @@
 
 ---
 
+## Phase 6.5: Dashboard Pending Transfers (P2)
+
+**Goal**: As a User, I can see all pending transfers on the Dashboard in a unified table.
+
+**Independent Test**: View Dashboard with pending ownership transfer and verify it appears in the Pending Role Changes table with correct details and Accept action.
+
+**Dependencies**: Phase 6 (US4)
+
+**Design Notes**:
+
+- Generic `PendingTransfer` data model supports ownership, admin role, and multisig transfers
+- Flat table design (no expandable rows)
+- "Accept" button shown for transfers where connected wallet can accept
+- No row click navigation
+
+### Data Model
+
+```typescript
+interface PendingTransfer {
+  id: string; // Unique identifier
+  type: 'ownership' | 'admin' | 'multisig'; // Transfer type
+  label: string; // Display label
+  currentHolder: string; // Current address
+  pendingRecipient: string; // Pending new address
+  expirationBlock: number; // Expiration block/ledger
+  isExpired: boolean; // Derived from current block
+  step: { current: number; total: number }; // Progress (e.g., 1/2)
+  canAccept: boolean; // Whether connected wallet can accept
+  initiatedAt?: string; // Optional timestamp
+}
+```
+
+### Types
+
+- [x] T043 Create `apps/role-manager/src/types/pending-transfers.ts` with `PendingTransfer` interface and related types
+
+### Hooks
+
+- [x] T044 [P] Create test file `apps/role-manager/src/hooks/__tests__/usePendingTransfers.test.tsx` with tests for: aggregating ownership transfers, empty state, expired filtering, canAccept logic
+- [x] T045 Create `apps/role-manager/src/hooks/usePendingTransfers.ts` that aggregates pending transfers from ownership (future: admin, multisig)
+- [x] T046 Add `usePendingTransfers` export to `apps/role-manager/src/hooks/index.ts`
+
+### Components
+
+- [x] T047 Create `apps/role-manager/src/components/Dashboard/PendingTransferRow.tsx` displaying: type icon, label, addresses, expiration, step progress, Accept button
+- [x] T048 Create `apps/role-manager/src/components/Dashboard/PendingTransfersTable.tsx` using PendingTransferRow with empty state fallback
+- [x] T049 Update `apps/role-manager/src/components/Dashboard/PendingChangesCard.tsx` to use PendingTransfersTable
+
+### Integration
+
+- [x] T050 Wire AcceptOwnershipDialog to PendingTransferRow Accept button
+- [x] T051 Add `usePendingTransfers` to Dashboard page and pass data to PendingChangesCard
+
+---
+
 ## Phase 7: User Story 5 - Handle Network Errors (P2)
 
 **Goal**: As a User, I see clear error messages and can retry on network errors.
@@ -140,11 +195,6 @@
 - [ ] T032 Add self-transfer prevention with error message "Cannot transfer to yourself" (FR-012, FR-012a)
 - [ ] T033 Add "This will replace the existing pending transfer" warning when initiating transfer while one is pending
 - [ ] T034 Add "Connect the pending owner wallet to accept" message when wrong wallet connected
-
-### Dashboard Integration
-
-- [ ] T035 Ensure pending ownership transfers appear in Dashboard "Pending Role Changes" table (FR-005a)
-- [ ] T036 Display "Transfer Ownership" label with step progress indicator in pending changes (FR-005b)
 
 ### Accessibility
 
@@ -176,6 +226,9 @@ Phase 3 (US1)   Phase 4 (US2)   Phase 5 (US3)
                           ▼
                     Phase 6 (US4)
                           │
+                          ▼
+                  Phase 6.5 (Dashboard)
+                          │
     ┌─────────────────────┤
     ▼                     ▼
 Phase 7 (US5)       Phase 8 (Polish)
@@ -187,6 +240,7 @@ Phase 7 (US5)       Phase 8 (Polish)
 - T008, T015: Dialog hook tests can run in parallel
 - Phase 3, 4, 5: Can be developed in parallel after Phase 2 completes
 - T022: Can run in parallel with Phase 3-4
+- T044: usePendingTransfers tests can run in parallel with other Phase 6.5 work
 
 ---
 
@@ -223,10 +277,11 @@ This enables:
 | 4         | US2 - Accept Transfer   | 7      | P1       |
 | 5         | US3 - View Status       | 4      | P1       |
 | 6         | US4 - View Details      | 3      | P2       |
+| 6.5       | Dashboard Pending       | 9      | P2       |
 | 7         | US5 - Error Handling    | 3      | P2       |
-| 8         | Polish                  | 11     | -        |
-| **Total** |                         | **42** |          |
+| 8         | Polish                  | 9      | -        |
+| **Total** |                         | **49** |          |
 
-**Parallel Opportunities**: 8 tasks marked [P]  
+**Parallel Opportunities**: 9 tasks marked [P]  
 **Tests Included**: Yes (TDD approach per plan.md)  
 **MVP Tasks**: 20 tasks (Phases 1-3, 5)
