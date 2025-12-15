@@ -46,7 +46,7 @@ export type RoleChangeAction = 'grant' | 'revoke' | 'ownership-transfer';
 export const CHANGE_TYPE_TO_ACTION: Record<HistoryChangeType, RoleChangeAction> = {
   GRANTED: 'grant',
   REVOKED: 'revoke',
-  TRANSFERRED: 'ownership-transfer',
+  OWNERSHIP_TRANSFER_COMPLETED: 'ownership-transfer',
 };
 
 // =============================================================================
