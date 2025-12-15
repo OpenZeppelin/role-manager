@@ -1,24 +1,16 @@
 /**
- * BlockTimeContext
+ * BlockTimeProvider
  * Feature: 015-ownership-transfer
  *
  * Provides block time estimation across the application.
  * Starts calibrating when a contract is selected and caches
  * the estimate for use in all UI components.
  */
-import { createContext, useContext, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
-import {
-  useBlockTimeEstimate,
-  type UseBlockTimeEstimateReturn,
-} from '../hooks/useBlockTimeEstimate';
+import { useBlockTimeEstimate } from '../hooks/useBlockTimeEstimate';
 import { useSelectedContract } from '../hooks/useSelectedContract';
-
-// =============================================================================
-// Context
-// =============================================================================
-
-const BlockTimeContext = createContext<UseBlockTimeEstimateReturn | null>(null);
+import { BlockTimeContext } from './blockTimeContextDef';
 
 // =============================================================================
 // Provider
@@ -58,40 +50,4 @@ export function BlockTimeProvider({ children }: BlockTimeProviderProps) {
   return (
     <BlockTimeContext.Provider value={blockTimeEstimate}>{children}</BlockTimeContext.Provider>
   );
-}
-
-// =============================================================================
-// Hook
-// =============================================================================
-
-/**
- * useBlockTime - Access block time estimation from any component
- *
- * @returns Block time estimate and conversion utilities
- * @throws Error if used outside of BlockTimeProvider
- *
- * @example
- * ```tsx
- * function ExpirationDisplay({ blocksRemaining }) {
- *   const { formatBlocksToTime, isCalibrating } = useBlockTime();
- *
- *   const timeEstimate = formatBlocksToTime(blocksRemaining);
- *
- *   return (
- *     <span>
- *       {blocksRemaining.toLocaleString()} blocks
- *       {timeEstimate && ` (${timeEstimate})`}
- *     </span>
- *   );
- * }
- * ```
- */
-export function useBlockTime(): UseBlockTimeEstimateReturn {
-  const context = useContext(BlockTimeContext);
-
-  if (context === null) {
-    throw new Error('useBlockTime must be used within a BlockTimeProvider');
-  }
-
-  return context;
 }

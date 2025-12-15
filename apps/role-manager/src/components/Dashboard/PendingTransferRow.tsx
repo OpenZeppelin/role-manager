@@ -17,7 +17,7 @@ import { ArrowRight } from 'lucide-react';
 import { AddressDisplay } from '@openzeppelin/ui-builder-ui';
 import { cn } from '@openzeppelin/ui-builder-utils';
 
-import { useBlockTime } from '../../context/BlockTimeContext';
+import { useBlockTime } from '../../context/useBlockTime';
 import type { PendingTransfer } from '../../types/pending-transfers';
 import { calculateBlockExpiration, formatTimeEstimateDisplay } from '../../utils/block-time';
 import { AcceptTransferButton, RoleTypeBadge, StatusBadge } from '../Shared';

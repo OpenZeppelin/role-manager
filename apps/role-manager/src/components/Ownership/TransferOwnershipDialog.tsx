@@ -39,7 +39,7 @@ import { cn } from '@openzeppelin/ui-builder-utils';
 
 import { getEcosystemAddressExample } from '@/core/ecosystems/registry';
 
-import { useBlockTime } from '../../context/BlockTimeContext';
+import { useBlockTime } from '../../context/useBlockTime';
 import { useDebounce } from '../../hooks/useDebounce';
 import { useOwnershipTransferDialog } from '../../hooks/useOwnershipTransferDialog';
 import type { TransferOwnershipFormData } from '../../hooks/useOwnershipTransferDialog';

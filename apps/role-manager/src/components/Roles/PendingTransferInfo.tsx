@@ -20,7 +20,7 @@ import { AlertTriangle, Clock, Info, User } from 'lucide-react';
 import { AddressDisplay } from '@openzeppelin/ui-builder-ui';
 import { cn } from '@openzeppelin/ui-builder-utils';
 
-import { useBlockTime } from '../../context/BlockTimeContext';
+import { useBlockTime } from '../../context/useBlockTime';
 import { calculateBlockExpiration, formatTimeEstimateDisplay } from '../../utils/block-time';
 import { AcceptTransferButton } from '../Shared/AcceptTransferButton';
 
