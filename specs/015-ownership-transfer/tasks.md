@@ -178,9 +178,9 @@ interface PendingTransfer {
 
 **Dependencies**: Phase 3, Phase 4 (dialogs must exist)
 
-- [ ] T029 [US5] Ensure TransferOwnershipDialog displays network error message with retry button
-- [ ] T030 [US5] Ensure AcceptOwnershipDialog displays network error message with retry button
-- [ ] T031 [US5] Add wallet disconnection detection and error display to both dialogs (FR-026)
+- [x] T029 [US5] Ensure TransferOwnershipDialog displays network error message with retry button
+- [x] T030 [US5] Ensure AcceptOwnershipDialog displays network error message with retry button
+- [x] T031 [US5] Add wallet disconnection detection and error display to both dialogs (FR-026)
 
 ---
 
