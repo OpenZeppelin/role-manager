@@ -109,9 +109,9 @@
 
 **Dependencies**: Phase 5 (US3)
 
-- [ ] T026 [US4] Display pending owner address in Owner role details when state is 'pending' (FR-003)
-- [ ] T027 [US4] Display expiration ledger/block number in Owner role details for pending transfers
-- [ ] T028 [US4] Add "Transfer Expired" status display when pending transfer has expired
+- [x] T026 [US4] Display pending owner address in Owner role details when state is 'pending' (FR-003)
+- [x] T027 [US4] Display expiration ledger/block number in Owner role details for pending transfers
+- [x] T028 [US4] Add "Transfer Expired" status display when pending transfer has expired
 
 ---
 

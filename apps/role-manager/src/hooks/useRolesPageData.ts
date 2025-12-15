@@ -20,7 +20,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useDerivedAccountStatus } from '@openzeppelin/ui-builder-react-core';
-import type { AccessControlCapabilities } from '@openzeppelin/ui-builder-types';
+import type {
+  AccessControlCapabilities,
+  OwnershipState,
+  PendingOwnershipTransfer,
+} from '@openzeppelin/ui-builder-types';
 
 import { OWNER_ROLE_DESCRIPTION, OWNER_ROLE_ID, OWNER_ROLE_NAME } from '../constants';
 import type { RoleIdentifier, RoleWithDescription } from '../types/roles';
@@ -81,6 +85,18 @@ export interface UseRolesPageDataReturn {
 
   /** Feature 015: Pending owner address (for Accept Ownership button visibility) */
   pendingOwner: string | null;
+
+  /**
+   * Feature 015 Phase 6: Full pending transfer info for display (T026, T027, T028)
+   * Includes pendingOwner, expirationBlock for detailed status display
+   */
+  pendingTransfer: PendingOwnershipTransfer | null;
+
+  /**
+   * Feature 015 Phase 6: Ownership state ('owned' | 'pending' | 'expired' | 'renounced')
+   * Used to determine which UI elements to show (T028)
+   */
+  ownershipState: OwnershipState | null;
 }
 
 // =============================================================================
@@ -303,6 +319,16 @@ export function useRolesPageData(): UseRolesPageDataReturn {
   // Note: pendingOwner may not be available in all adapter implementations
   const pendingOwner = (ownership as { pendingOwner?: string })?.pendingOwner ?? null;
 
+  // Feature 015 Phase 6 (T026, T027, T028): Extract full pending transfer info and ownership state
+  // The OwnershipInfo type includes pendingTransfer and state fields
+  const ownershipWithPending = ownership as {
+    pendingTransfer?: PendingOwnershipTransfer;
+    state?: OwnershipState;
+  } | null;
+
+  const pendingTransfer = ownershipWithPending?.pendingTransfer ?? null;
+  const ownershipState = ownershipWithPending?.state ?? null;
+
   // Handle no contract selected
   if (!selectedContract) {
     return {
@@ -327,6 +353,8 @@ export function useRolesPageData(): UseRolesPageDataReturn {
       connectedRoleIds: [],
       roleIdentifiers: [],
       pendingOwner: null,
+      pendingTransfer: null,
+      ownershipState: null,
     };
   }
 
@@ -352,5 +380,7 @@ export function useRolesPageData(): UseRolesPageDataReturn {
     connectedRoleIds,
     roleIdentifiers,
     pendingOwner,
+    pendingTransfer,
+    ownershipState,
   };
 }

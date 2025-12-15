@@ -67,6 +67,8 @@ export function Roles() {
     connectedRoleIds,
     roleIdentifiers,
     pendingOwner, // Feature 015 (T021): for Accept Ownership button
+    pendingTransfer, // Feature 015 Phase 6 (T026, T027): for pending transfer display
+    ownershipState, // Feature 015 Phase 6 (T028): for expired status display
   } = useRolesPageData();
 
   // Phase 6: Edit dialog state
@@ -274,6 +276,8 @@ export function Roles() {
                 onTransferOwnership={handleTransferOwnership}
                 onAcceptOwnership={handleAcceptOwnership}
                 canAcceptOwnership={canAcceptOwnership}
+                pendingTransfer={pendingTransfer}
+                ownershipState={ownershipState}
               />
             ) : (
               <div className="flex items-center justify-center h-full p-6 text-muted-foreground">
