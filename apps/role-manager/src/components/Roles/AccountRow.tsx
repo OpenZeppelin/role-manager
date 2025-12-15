@@ -31,12 +31,16 @@ export interface AccountRowProps {
   isCurrentUser: boolean;
   /** Whether to show Owner-specific actions */
   isOwnerRole: boolean;
+  /** Feature 016: Whether this is an Admin role (for Transfer Admin button) */
+  isAdminRole?: boolean;
   /** Explorer URL for the address (optional) */
   explorerUrl?: string;
   /** Revoke action handler (non-owner roles) */
   onRevoke?: () => void;
   /** Transfer ownership handler (owner role only) */
   onTransferOwnership?: () => void;
+  /** Feature 016 (T026): Transfer admin handler (admin role only) */
+  onTransferAdmin?: () => void;
   /** Additional CSS classes */
   className?: string;
 }
@@ -53,9 +57,11 @@ export function AccountRow({
   assignedAt,
   isCurrentUser,
   isOwnerRole,
+  isAdminRole = false,
   explorerUrl,
   onRevoke,
   onTransferOwnership,
+  onTransferAdmin,
   className,
 }: AccountRowProps) {
   return (
@@ -73,8 +79,23 @@ export function AccountRow({
         {isCurrentUser && <YouBadge />}
       </div>
       <div className="flex items-center gap-2">
-        {!isOwnerRole ? (
+        {isOwnerRole ? (
           <>
+            {/* FR-006: Transfer Ownership button only visible when connected wallet is current owner */}
+            {isCurrentUser && onTransferOwnership && (
+              <TransferRoleButton roleType="ownership" onClick={onTransferOwnership} />
+            )}
+          </>
+        ) : isAdminRole ? (
+          <>
+            {/* Feature 016 (T026): Transfer Admin button only visible when connected wallet is current admin */}
+            {isCurrentUser && onTransferAdmin && (
+              <TransferRoleButton roleType="admin" onClick={onTransferAdmin} />
+            )}
+          </>
+        ) : (
+          <>
+            {/* Enumerable roles: Show assignment date and Revoke button */}
             {/* T033: Only show assignment date when available */}
             {assignedAt && (
               <span className="text-xs text-muted-foreground">
@@ -91,13 +112,6 @@ export function AccountRow({
               <Trash2 className="h-3 w-3 mr-1" />
               Revoke
             </Button>
-          </>
-        ) : (
-          <>
-            {/* FR-006: Transfer Ownership button only visible when connected wallet is current owner */}
-            {isCurrentUser && onTransferOwnership && (
-              <TransferRoleButton roleType="ownership" onClick={onTransferOwnership} />
-            )}
           </>
         )}
       </div>

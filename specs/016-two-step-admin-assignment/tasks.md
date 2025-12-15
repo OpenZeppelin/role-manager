@@ -80,20 +80,30 @@
 
 ### Dialog Hook
 
-- [ ] T021 [US1] Create `apps/role-manager/src/hooks/useAdminTransferDialog.ts` with types: `TransferAdminFormData`, `UseAdminTransferDialogOptions`, `UseAdminTransferDialogReturn`
-- [ ] T022 [US1] Implement `useAdminTransferDialog` hook in same file (copy `useOwnershipTransferDialog` pattern, use `useTransferAdminRole` mutation)
-- [ ] T023 [US1] Add `useAdminTransferDialog` export to `apps/role-manager/src/hooks/index.ts`
+- [x] T021 [US1] Create `apps/role-manager/src/hooks/useAdminTransferDialog.ts` with types: `TransferAdminFormData`, `UseAdminTransferDialogOptions`, `UseAdminTransferDialogReturn`
+- [x] T022 [US1] Implement `useAdminTransferDialog` hook in same file (copy `useOwnershipTransferDialog` pattern, use `useTransferAdminRole` mutation)
+- [x] T023 [US1] Add `useAdminTransferDialog` export to `apps/role-manager/src/hooks/index.ts`
 
 ### Dialog Component
 
-- [ ] T024 [US1] Create `apps/role-manager/src/components/Admin/TransferAdminDialog.tsx` with: address input, expiration input, current ledger display, validation messages, transaction states (copy `TransferOwnershipDialog` structure)
-- [ ] T025 [US1] Add `TransferAdminDialog` export to `apps/role-manager/src/components/Admin/index.ts`
+- [x] T024 [US1] Create `apps/role-manager/src/components/Admin/TransferAdminDialog.tsx` with: address input, expiration input, current ledger display, validation messages, transaction states (copy `TransferOwnershipDialog` structure)
+- [x] T025 [US1] Add `TransferAdminDialog` export to `apps/role-manager/src/components/Admin/index.ts`
 
 ### Integration
 
-- [ ] T026 [US1] Add "Transfer Admin" button to admin account row in `apps/role-manager/src/components/Roles/AccountRow.tsx` (visible only when `role.isAdminRole && isCurrentUser`)
-- [ ] T027 [US1] Add `transferAdminDialogOpen` state and `TransferAdminDialog` to `apps/role-manager/src/pages/Roles.tsx`
-- [ ] T028 [US1] Wire up `onTransferAdmin` handler from RoleDetails to open TransferAdminDialog in `Roles.tsx`
+- [x] T026 [US1] Add "Transfer Admin" button to admin account row in `apps/role-manager/src/components/Roles/AccountRow.tsx` (visible only when `role.isAdminRole && isCurrentUser`)
+- [x] T027 [US1] Add `transferAdminDialogOpen` state and `TransferAdminDialog` to `apps/role-manager/src/pages/Roles.tsx`
+- [x] T028 [US1] Wire up `onTransferAdmin` handler from RoleDetails to open TransferAdminDialog in `Roles.tsx`
+
+### UI Action Restrictions (Bug Fixes)
+
+- [x] T028a Hide "Assign" button for Contract Admin role in `RoleDetails.tsx` (only show for enumerable roles)
+- [x] T028b Hide "Revoke" button for Contract Admin role in `AccountRow.tsx` (only show for enumerable roles)
+
+> **Why**: The Stellar library allows dynamic role creation via `grant_role(account, "ANY_STRING")`.
+> Without these restrictions, clicking "Assign" on Contract Admin would accidentally create an
+> enumerable "CONTRACT_ADMIN" role via `grant_role()`, separate from the actual contract admin.
+> Owner and Contract Admin are singular roles managed via two-step transfer, not `grant_role`/`revoke_role`.
 
 **Checkpoint**: Current admin can initiate transfer via dialog
 
@@ -289,12 +299,12 @@ With multiple developers:
 | 1         | Setup                | 2      | -        |
 | 2         | Foundational         | 9      | -        |
 | 3         | US3 - View Status    | 9      | P1       |
-| 4         | US1 - Initiate       | 8      | P1       |
+| 4         | US1 - Initiate       | 10     | P1       |
 | 5         | US2 - Accept         | 11     | P1       |
 | 6         | US4 - Dashboard      | 4      | P2       |
 | 7         | US5 - Error Handling | 3      | P2       |
 | 8         | Polish               | 11     | -        |
-| **Total** |                      | **57** |          |
+| **Total** |                      | **59** |          |
 
 **Parallel Opportunities**: 7 tasks marked [P]  
 **Tests Included**: No (not requested in spec)  
@@ -311,3 +321,14 @@ With multiple developers:
 - Follow existing ownership transfer patterns closely (spec 015)
 - Reuse `PendingTransferInfo` component - DO NOT duplicate
 - Query key MUST match between `useContractAdminInfo` and mutation invalidation
+
+### Critical: Role ID Distinction
+
+Use `CONTRACT_ADMIN` (not `ADMIN_ROLE`) for the synthesized contract admin:
+
+| Role                  | ID               | Source           | Actions                   |
+| --------------------- | ---------------- | ---------------- | ------------------------- |
+| Contract Admin        | `CONTRACT_ADMIN` | `getAdminInfo()` | Transfer Admin (two-step) |
+| Enumerable ADMIN_ROLE | `ADMIN_ROLE`     | `grant_role()`   | Assign / Revoke           |
+
+The Stellar library allows dynamic role creation - `grant_role(account, "ADMIN_ROLE")` would create a separate enumerable role. Using distinct IDs prevents UI collision and accidental role creation.

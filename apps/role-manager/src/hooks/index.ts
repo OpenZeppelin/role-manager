@@ -91,6 +91,14 @@ export type {
   UseAcceptOwnershipDialogReturn,
 } from './useAcceptOwnershipDialog';
 
+// Admin Transfer Dialog Hook (Feature: 016-two-step-admin-assignment)
+export { useAdminTransferDialog } from './useAdminTransferDialog';
+export type {
+  TransferAdminFormData,
+  UseAdminTransferDialogOptions,
+  UseAdminTransferDialogReturn,
+} from './useAdminTransferDialog';
+
 // Custom Role Descriptions (Feature: 009-roles-page-data)
 export { useCustomRoleDescriptions } from './useCustomRoleDescriptions';
 export type { UseCustomRoleDescriptionsReturn } from './useCustomRoleDescriptions';

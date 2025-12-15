@@ -5,8 +5,9 @@
  * Exports admin-related components for managing two-step admin role transfers.
  */
 
-// Admin transfer dialog components will be added in Phase 4 (US1)
-// export { TransferAdminDialog } from './TransferAdminDialog';
+// Admin transfer dialog components (Phase 4 - US1)
+export { TransferAdminDialog } from './TransferAdminDialog';
+export type { TransferAdminDialogProps } from './TransferAdminDialog';
 
 // Accept admin transfer dialog will be added in Phase 5 (US2)
 // export { AcceptAdminTransferDialog } from './AcceptAdminTransferDialog';

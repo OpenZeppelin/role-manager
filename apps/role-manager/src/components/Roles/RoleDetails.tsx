@@ -135,7 +135,7 @@ export function RoleDetails({
   onAcceptAdminTransfer,
   canAcceptAdminTransfer,
   pendingAdminRecipientUrl,
-  onTransferAdmin: _onTransferAdmin, // Used in Phase 4 (T026)
+  onTransferAdmin,
   className,
 }: RoleDetailsProps) {
   const hasAccounts = accounts.length > 0;
@@ -184,7 +184,9 @@ export function RoleDetails({
         <div>
           <div className="flex items-center justify-between mb-3 shrink-0">
             <h3 className="text-sm font-medium">Assigned Accounts ({accounts.length})</h3>
-            {!role.isOwnerRole && (
+            {/* Only show Assign button for enumerable roles (not Owner or Contract Admin) */}
+            {/* Owner and Contract Admin are single-account roles transferred via two-step process */}
+            {!role.isOwnerRole && !role.isAdminRole && (
               <Button size="sm" onClick={onAssign} disabled={!onAssign}>
                 <Plus className="h-4 w-4 mr-1" />
                 Assign
@@ -200,9 +202,11 @@ export function RoleDetails({
                   assignedAt={account.assignedAt}
                   isCurrentUser={account.isCurrentUser}
                   isOwnerRole={role.isOwnerRole}
+                  isAdminRole={role.isAdminRole}
                   explorerUrl={account.explorerUrl}
                   onRevoke={onRevoke ? () => onRevoke(account.address) : undefined}
                   onTransferOwnership={onTransferOwnership}
+                  onTransferAdmin={onTransferAdmin}
                 />
               ))
             ) : (

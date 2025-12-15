@@ -23,10 +23,13 @@ This feature adds admin role transfer functionality that mirrors the existing ow
 ### Step 1: Constants & Types
 
 ```typescript
-// constants/index.ts
-export const ADMIN_ROLE_ID = 'ADMIN_ROLE';
-export const ADMIN_ROLE_NAME = 'Admin';
-export const ADMIN_ROLE_DESCRIPTION = 'The Admin role has elevated privileges...';
+// constants/roles.ts
+// IMPORTANT: Use 'CONTRACT_ADMIN' to avoid collision with enumerable 'ADMIN_ROLE'
+// The Stellar library allows dynamic role creation via grant_role(account, "ANY_STRING")
+export const ADMIN_ROLE_ID = 'CONTRACT_ADMIN';
+export const ADMIN_ROLE_NAME = 'Contract Admin';
+export const ADMIN_ROLE_DESCRIPTION =
+  'The Contract Admin has the highest privileges for managing access control settings. Transferred via two-step process.';
 
 // types/roles.ts - ADD to RoleWithDescription
 isAdminRole: boolean;
@@ -187,9 +190,24 @@ import { Shield } from 'lucide-react';
   />
 )}
 
-// components/Roles/AccountRow.tsx - ADD transfer admin button
-{role.isAdminRole && isCurrentUser && onTransferAdmin && (
-  <TransferRoleButton roleType="admin" onClick={onTransferAdmin} />
+// components/Roles/AccountRow.tsx - UPDATE action logic
+// CRITICAL: Owner and Contract Admin are singular roles - NO Assign/Revoke
+// Only enumerable roles support grant_role() / revoke_role()
+{isOwnerRole ? (
+  // Owner: Only Transfer Ownership (if current user)
+  isCurrentUser && onTransferOwnership && <TransferRoleButton roleType="ownership" onClick={onTransferOwnership} />
+) : isAdminRole ? (
+  // Contract Admin: Only Transfer Admin (if current user)
+  isCurrentUser && onTransferAdmin && <TransferRoleButton roleType="admin" onClick={onTransferAdmin} />
+) : (
+  // Enumerable roles: Show Revoke button
+  <Button onClick={onRevoke}>Revoke</Button>
+)}
+
+// components/Roles/RoleDetails.tsx - UPDATE Assign button visibility
+// CRITICAL: Only show Assign for enumerable roles (not Owner or Contract Admin)
+{!role.isOwnerRole && !role.isAdminRole && (
+  <Button onClick={onAssign}>Assign</Button>
 )}
 ```
 
@@ -257,3 +275,6 @@ const canAcceptAdmin = useMemo(() => {
 3. **Check for `service.getAdminInfo`** existence before calling (optional method)
 4. **Admin icon color**: Use `text-purple-600` to distinguish from Owner's blue
 5. **Self-transfer validation**: Compare addresses case-insensitively
+6. **Use `CONTRACT_ADMIN` not `ADMIN_ROLE`** for the synthesized admin role ID to avoid collision with enumerable roles
+7. **Hide Assign/Revoke for Owner and Contract Admin** - these are singular roles managed via two-step transfer, not `grant_role`/`revoke_role`
+8. **Stellar library allows dynamic roles** - `grant_role(account, "ANY_STRING")` creates new roles on the fly; UI must prevent accidental role creation

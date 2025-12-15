@@ -172,20 +172,40 @@ export interface UseAdminTransferDialogReturn {
 
 ## Constants
 
-### Admin Role Constants
+### Contract Admin Role Constants
 
-**File**: `apps/role-manager/src/constants/index.ts`
+**File**: `apps/role-manager/src/constants/roles.ts`
 
 ```typescript
 /**
- * Admin role constants for UI display
+ * Contract Admin role constants for UI display
  * Used when synthesizing the Admin role from getAdminInfo()
+ *
+ * IMPORTANT: Uses 'CONTRACT_ADMIN' to distinguish from enumerable 'ADMIN_ROLE'
+ *
+ * The Stellar access control library allows dynamic role creation - any string
+ * can be used as a role name with grant_role(). This means:
+ * - CONTRACT_ADMIN: Singular admin from getAdminInfo(), two-step transfer
+ * - ADMIN_ROLE: Could be a dynamically created enumerable role with grant_role()
+ *
+ * Using distinct IDs prevents UI collision if both exist on the same contract.
  */
-export const ADMIN_ROLE_ID = 'ADMIN_ROLE';
-export const ADMIN_ROLE_NAME = 'Admin';
+export const ADMIN_ROLE_ID = 'CONTRACT_ADMIN';
+export const ADMIN_ROLE_NAME = 'Contract Admin';
 export const ADMIN_ROLE_DESCRIPTION =
-  'The Admin role has elevated privileges for managing access control settings.';
+  'The Contract Admin has the highest privileges for managing access control settings. Transferred via two-step process.';
 ```
+
+### Contract Admin vs Enumerable Roles
+
+The Stellar access control library's role system is **dynamic** - `grant_role()` accepts any Symbol as a role name. This creates an important distinction:
+
+| Concept                   | Role ID          | Source              | Members  | Management                                      |
+| ------------------------- | ---------------- | ------------------- | -------- | ----------------------------------------------- |
+| **Contract Admin**        | `CONTRACT_ADMIN` | `getAdminInfo()`    | Single   | `transferAdminRole()` / `acceptAdminTransfer()` |
+| **Enumerable ADMIN_ROLE** | `ADMIN_ROLE`     | `getCurrentRoles()` | Multiple | `grant_role()` / `revoke_role()`                |
+
+**Key insight**: Anyone with admin privileges can call `grant_role(account, "ADMIN_ROLE")` and the library will create storage entries for this new role. The predefined role constants (MINTER_ROLE, etc.) are only used for `#[only_role]` macro checks - the underlying role system doesn't validate role names.
 
 ---
 
