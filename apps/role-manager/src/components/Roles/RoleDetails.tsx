@@ -13,9 +13,14 @@
  * Phase 6: Edit button opens EditRoleDialog for description editing.
  */
 
-import { Crown, Pencil, Plus } from 'lucide-react';
+import { Crown, Pencil, Plus, Shield } from 'lucide-react';
 
-import type { OwnershipState, PendingOwnershipTransfer } from '@openzeppelin/ui-builder-types';
+import type {
+  AdminState,
+  OwnershipState,
+  PendingAdminTransfer,
+  PendingOwnershipTransfer,
+} from '@openzeppelin/ui-builder-types';
 import {
   Button,
   CardContent,
@@ -79,6 +84,30 @@ export interface RoleDetailsProps {
   pendingRecipientUrl?: string;
   /** Current block/ledger number for expiration countdown */
   currentBlock?: number | null;
+
+  // =============================================================================
+  // Feature 016: Two-Step Admin Assignment
+  // =============================================================================
+
+  /**
+   * Feature 016: Pending admin transfer info for Admin role display
+   * Includes pendingAdmin address and expiration block
+   */
+  pendingAdminTransfer?: PendingAdminTransfer | null;
+  /**
+   * Feature 016: Admin state for status display
+   * 'pending' or 'expired' will trigger PendingTransferInfo display
+   */
+  adminState?: AdminState | null;
+  /** Feature 016: Accept admin transfer action */
+  onAcceptAdminTransfer?: () => void;
+  /** Feature 016: Whether connected wallet can accept admin transfer */
+  canAcceptAdminTransfer?: boolean;
+  /** Feature 016: Explorer URL for the pending admin recipient address */
+  pendingAdminRecipientUrl?: string;
+  /** Feature 016: Transfer admin action */
+  onTransferAdmin?: () => void;
+
   /** Additional CSS classes */
   className?: string;
 }
@@ -100,6 +129,13 @@ export function RoleDetails({
   ownershipState,
   pendingRecipientUrl,
   currentBlock,
+  // Feature 016: Admin-related props
+  pendingAdminTransfer,
+  adminState,
+  onAcceptAdminTransfer,
+  canAcceptAdminTransfer,
+  pendingAdminRecipientUrl,
+  onTransferAdmin: _onTransferAdmin, // Used in Phase 4 (T026)
   className,
 }: RoleDetailsProps) {
   const hasAccounts = accounts.length > 0;
@@ -112,6 +148,9 @@ export function RoleDetails({
             <div className="flex items-center gap-2">
               {role.isOwnerRole && (
                 <Crown className="h-4 w-4 text-blue-600" aria-label="Owner role" />
+              )}
+              {role.isAdminRole && (
+                <Shield className="h-4 w-4 text-purple-600" aria-label="Admin role" />
               )}
               <CardTitle>{role.roleName}</CardTitle>
               {isConnected && (
@@ -185,6 +224,23 @@ export function RoleDetails({
                 canAccept={canAcceptOwnership}
                 onAccept={onAcceptOwnership}
                 currentBlock={currentBlock}
+              />
+            )}
+
+          {/* Feature 016: Pending Transfer Info for Admin role */}
+          {role.isAdminRole &&
+            pendingAdminTransfer &&
+            (adminState === 'pending' || adminState === 'expired') && (
+              <PendingTransferInfo
+                pendingRecipient={pendingAdminTransfer.pendingAdmin}
+                pendingRecipientUrl={pendingAdminRecipientUrl}
+                expirationBlock={pendingAdminTransfer.expirationBlock}
+                isExpired={adminState === 'expired'}
+                canAccept={canAcceptAdminTransfer}
+                onAccept={onAcceptAdminTransfer}
+                currentBlock={currentBlock}
+                transferLabel="Admin Role"
+                recipientLabel="Admin"
               />
             )}
         </div>

@@ -122,6 +122,8 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
         grant: 'GRANTED',
         revoke: 'REVOKED',
         'ownership-transfer': 'OWNERSHIP_TRANSFER_COMPLETED',
+        'admin-transfer': 'ADMIN_TRANSFER_COMPLETED',
+        unknown: 'UNKNOWN',
       };
       changeType = actionToChangeTypeMap[filters.actionFilter];
     }

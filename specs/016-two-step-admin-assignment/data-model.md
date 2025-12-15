@@ -181,7 +181,7 @@ export interface UseAdminTransferDialogReturn {
  * Admin role constants for UI display
  * Used when synthesizing the Admin role from getAdminInfo()
  */
-export const ADMIN_ROLE_ID = '__ADMIN_ROLE__';
+export const ADMIN_ROLE_ID = 'ADMIN_ROLE';
 export const ADMIN_ROLE_NAME = 'Admin';
 export const ADMIN_ROLE_DESCRIPTION =
   'The Admin role has elevated privileges for managing access control settings.';

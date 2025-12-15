@@ -22,7 +22,7 @@ export const OWNER_ROLE_DESCRIPTION = 'Contract owner with full administrative p
 // =============================================================================
 
 /** Synthetic role ID for the contract admin */
-export const ADMIN_ROLE_ID = '__ADMIN_ROLE__';
+export const ADMIN_ROLE_ID = 'ADMIN_ROLE';
 
 /** Display name for the admin role */
 export const ADMIN_ROLE_NAME = 'Admin';

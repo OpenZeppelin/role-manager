@@ -53,18 +53,18 @@
 
 ### Admin Role Synthesis
 
-- [ ] T012 [US3] Import `useContractAdminInfo` and admin constants in `apps/role-manager/src/hooks/useRolesPageData.ts`
-- [ ] T013 [US3] Call `useContractAdminInfo` in `useRolesPageData` when `capabilities.hasTwoStepAdmin` is true
-- [ ] T014 [US3] Create `adminRole` useMemo in `useRolesPageData.ts` to synthesize Admin role (with `isAdminRole: true`, `isOwnerRole: false`)
-- [ ] T015 [US3] Update roles combination in `useRolesPageData.ts`: `[ownerRole?, adminRole?, ...enumeratedRoles]`
-- [ ] T016 [US3] Add `isAdminRole: false` default to all enumerated roles in `useRolesPageData.ts`
-- [ ] T017 [US3] Add `adminInfo`, `pendingAdminTransfer`, `adminState`, `refetchAdminInfo` to `useRolesPageData` return object
+- [x] T012 [US3] Import `useContractAdminInfo` and admin constants in `apps/role-manager/src/hooks/useRolesPageData.ts`
+- [x] T013 [US3] Call `useContractAdminInfo` in `useRolesPageData` when `capabilities.hasTwoStepAdmin` is true
+- [x] T014 [US3] Create `adminRole` useMemo in `useRolesPageData.ts` to synthesize Admin role (with `isAdminRole: true`, `isOwnerRole: false`)
+- [x] T015 [US3] Update roles combination in `useRolesPageData.ts`: `[ownerRole?, adminRole?, ...enumeratedRoles]`
+- [x] T016 [US3] Add `isAdminRole: false` default to all enumerated roles in `useRolesPageData.ts`
+- [x] T017 [US3] Add `adminInfo`, `pendingAdminTransfer`, `adminState`, `refetchAdminInfo` to `useRolesPageData` return object
 
 ### UI Updates
 
-- [ ] T018 [P] [US3] Add Shield icon import from `lucide-react` to `apps/role-manager/src/components/Roles/RoleCard.tsx`
-- [ ] T019 [US3] Add Admin role icon display in `RoleCard.tsx`: `{role.isAdminRole && <Shield className="h-3 w-3 text-purple-600" aria-label="Admin role" />}`
-- [ ] T020 [US3] Ensure Admin role details panel shows admin address with consistent formatting in `apps/role-manager/src/components/Roles/RoleDetails.tsx`
+- [x] T018 [P] [US3] Add Shield icon import from `lucide-react` to `apps/role-manager/src/components/Roles/RoleCard.tsx`
+- [x] T019 [US3] Add Admin role icon display in `RoleCard.tsx`: `{role.isAdminRole && <Shield className="h-3 w-3 text-purple-600" aria-label="Admin role" />}`
+- [x] T020 [US3] Ensure Admin role details panel shows admin address with consistent formatting in `apps/role-manager/src/components/Roles/RoleDetails.tsx`
 
 **Checkpoint**: Admin role visible in Roles page with Shield icon and status display
 

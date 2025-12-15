@@ -37,8 +37,14 @@ export type { RoleBadgeInfo };
 
 /**
  * Action types for role change events (UI representation).
+ * Feature 016: Added 'admin-transfer' for admin role transfers.
  */
-export type RoleChangeAction = 'grant' | 'revoke' | 'ownership-transfer';
+export type RoleChangeAction =
+  | 'grant'
+  | 'revoke'
+  | 'ownership-transfer'
+  | 'admin-transfer'
+  | 'unknown';
 
 /**
  * Mapping from API changeType to UI action.
@@ -47,6 +53,10 @@ export const CHANGE_TYPE_TO_ACTION: Record<HistoryChangeType, RoleChangeAction> 
   GRANTED: 'grant',
   REVOKED: 'revoke',
   OWNERSHIP_TRANSFER_COMPLETED: 'ownership-transfer',
+  OWNERSHIP_TRANSFER_STARTED: 'ownership-transfer',
+  ADMIN_TRANSFER_INITIATED: 'admin-transfer',
+  ADMIN_TRANSFER_COMPLETED: 'admin-transfer',
+  UNKNOWN: 'unknown', // Fallback for unknown change types
 };
 
 // =============================================================================
@@ -128,6 +138,8 @@ export const ACTION_TYPE_CONFIG: Record<RoleChangeAction, ActionTypeConfig> = {
   grant: { label: 'Grant', variant: 'success' },
   revoke: { label: 'Revoke', variant: 'error' },
   'ownership-transfer': { label: 'Ownership Transfer', variant: 'info' },
+  'admin-transfer': { label: 'Admin Transfer', variant: 'info' },
+  unknown: { label: 'Unknown', variant: 'warning' },
 };
 
 // =============================================================================

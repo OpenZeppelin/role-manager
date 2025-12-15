@@ -24,7 +24,7 @@ This feature adds admin role transfer functionality that mirrors the existing ow
 
 ```typescript
 // constants/index.ts
-export const ADMIN_ROLE_ID = '__ADMIN_ROLE__';
+export const ADMIN_ROLE_ID = 'ADMIN_ROLE';
 export const ADMIN_ROLE_NAME = 'Admin';
 export const ADMIN_ROLE_DESCRIPTION = 'The Admin role has elevated privileges...';
 
