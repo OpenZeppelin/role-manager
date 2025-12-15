@@ -15,6 +15,8 @@
 
 import { Crown } from 'lucide-react';
 
+import { cn } from '@openzeppelin/ui-builder-utils';
+
 import type { PendingTransferType } from '../../types/pending-transfers';
 import { OutlineBadge } from './OutlineBadge';
 
@@ -83,7 +85,7 @@ export function RoleTypeBadge({ type, roleName, label, className }: RoleTypeBadg
   const isOwner = type === 'ownership' || roleName?.toLowerCase() === 'owner';
 
   return (
-    <OutlineBadge className={isOwner ? `gap-1 ${className || ''}`.trim() : className}>
+    <OutlineBadge className={cn(isOwner && 'gap-1', className)}>
       {isOwner && <Crown className="h-3 w-3 text-blue-600" aria-label="Owner role" />}
       {displayLabel}
     </OutlineBadge>
