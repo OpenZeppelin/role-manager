@@ -9,8 +9,8 @@
  * - Horizontal layout with search input (left) + date range + dropdowns (right)
  * - Search input for account address or transaction ID
  * - Date range picker for timestamp filtering
- * - Action type filter: All, Grant, Revoke, Ownership Transfer
- * - Role filter: All Roles + available roles from props
+ * - Action type filter: All, Grant, Revoke, Ownership Transfer, Admin Transfer
+ * - Role filter: All Roles + available roles from props (Owner/Admin at top with icons)
  *
  * Tasks: T024
  */
@@ -35,7 +35,7 @@ import {
   type RoleBadgeInfo,
 } from '../../types/role-changes';
 import { formatToISOLocalString, parseISOString } from '../../utils/date';
-import { SelectLoadingPlaceholder } from '../Shared';
+import { RoleFilterItem, SelectLoadingPlaceholder } from '../Shared';
 
 /**
  * Props for ChangesFilterBar component
@@ -152,11 +152,13 @@ export function ChangesFilterBar({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Actions</SelectItem>
-            {Object.entries(ACTION_TYPE_CONFIG).map(([action, config]) => (
-              <SelectItem key={action} value={action}>
-                {config.label}
-              </SelectItem>
-            ))}
+            {Object.entries(ACTION_TYPE_CONFIG)
+              .filter(([action]) => action !== 'unknown')
+              .map(([action, config]) => (
+                <SelectItem key={action} value={action}>
+                  {config.label}
+                </SelectItem>
+              ))}
           </SelectContent>
         </Select>
 
@@ -172,7 +174,7 @@ export function ChangesFilterBar({
               <SelectItem value="all">All Roles</SelectItem>
               {availableRoles.map((role) => (
                 <SelectItem key={role.id} value={role.id}>
-                  {role.name}
+                  <RoleFilterItem roleId={role.id} roleName={role.name} />
                 </SelectItem>
               ))}
             </SelectContent>

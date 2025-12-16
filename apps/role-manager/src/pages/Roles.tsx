@@ -27,6 +27,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { Button, Card } from '@openzeppelin/ui-builder-ui';
 import { cn } from '@openzeppelin/ui-builder-utils';
 
+import { AcceptAdminTransferDialog, TransferAdminDialog } from '../components/Admin';
 import { AcceptOwnershipDialog, TransferOwnershipDialog } from '../components/Ownership';
 import {
   AssignRoleDialog,
@@ -71,6 +72,10 @@ export function Roles() {
     pendingTransfer, // Feature 015 Phase 6 (T026, T027): for pending transfer display
     ownershipState, // Feature 015 Phase 6 (T028): for expired status display
     currentBlock, // For expiration countdown
+    // Feature 016: Admin-related data
+    adminInfo,
+    pendingAdminTransfer,
+    adminState,
   } = useRolesPageData();
 
   // Phase 6: Edit dialog state
@@ -91,6 +96,12 @@ export function Roles() {
 
   // Spec 015 (T021): Accept Ownership dialog state
   const [isAcceptOwnershipDialogOpen, setIsAcceptOwnershipDialogOpen] = useState(false);
+
+  // Spec 016 (T027): Transfer Admin dialog state
+  const [isTransferAdminDialogOpen, setIsTransferAdminDialogOpen] = useState(false);
+
+  // Spec 016 (T037): Accept Admin Transfer dialog state
+  const [isAcceptAdminTransferDialogOpen, setIsAcceptAdminTransferDialogOpen] = useState(false);
 
   // Get contract info for display
   const { selectedContract, adapter } = useSelectedContract();
@@ -162,11 +173,27 @@ export function Roles() {
     setIsAcceptOwnershipDialogOpen(true);
   }, []);
 
+  // Spec 016 (T028): Open transfer admin dialog
+  const handleTransferAdmin = useCallback(() => {
+    setIsTransferAdminDialogOpen(true);
+  }, []);
+
+  // Spec 016 (T038): Open accept admin transfer dialog
+  const handleAcceptAdminTransfer = useCallback(() => {
+    setIsAcceptAdminTransferDialogOpen(true);
+  }, []);
+
   // Spec 015 (T021): Check if connected wallet can accept ownership (is the pending owner)
   const canAcceptOwnership = useMemo(() => {
     if (!pendingOwner || !connectedAddress) return false;
     return pendingOwner.toLowerCase() === connectedAddress.toLowerCase();
   }, [pendingOwner, connectedAddress]);
+
+  // Spec 016 (T035): Check if connected wallet can accept admin transfer (is the pending admin)
+  const canAcceptAdminTransfer = useMemo(() => {
+    if (!pendingAdminTransfer?.pendingAdmin || !connectedAddress) return false;
+    return pendingAdminTransfer.pendingAdmin.toLowerCase() === connectedAddress.toLowerCase();
+  }, [pendingAdminTransfer, connectedAddress]);
 
   // Phase 6: Handle description save from dialog
   const handleSaveDescription = useCallback(
@@ -290,6 +317,18 @@ export function Roles() {
                     : undefined
                 }
                 currentBlock={currentBlock}
+                // Feature 016: Admin-related props
+                onTransferAdmin={handleTransferAdmin}
+                pendingAdminTransfer={pendingAdminTransfer}
+                adminState={adminState}
+                pendingAdminRecipientUrl={
+                  pendingAdminTransfer?.pendingAdmin
+                    ? (getAccountUrl(pendingAdminTransfer.pendingAdmin) ?? undefined)
+                    : undefined
+                }
+                // Phase 5 (T036): Accept admin transfer props
+                canAcceptAdminTransfer={canAcceptAdminTransfer}
+                onAcceptAdminTransfer={handleAcceptAdminTransfer}
               />
             ) : (
               <div className="flex items-center justify-center h-full p-6 text-muted-foreground">
@@ -360,6 +399,29 @@ export function Roles() {
       <AcceptOwnershipDialog
         open={isAcceptOwnershipDialogOpen}
         onOpenChange={setIsAcceptOwnershipDialogOpen}
+        onSuccess={refetch}
+      />
+
+      {/* Spec 016 (T027): Transfer Admin Dialog */}
+      {(() => {
+        const adminRole = roles.find((r) => r.isAdminRole);
+        const currentAdmin = adminRole?.members[0] ?? adminInfo?.admin ?? '';
+        const hasPendingAdminTransferFlag = !!(pendingAdminTransfer && adminState === 'pending');
+        return (
+          <TransferAdminDialog
+            open={isTransferAdminDialogOpen}
+            onOpenChange={setIsTransferAdminDialogOpen}
+            currentAdmin={currentAdmin}
+            hasPendingAdminTransfer={hasPendingAdminTransferFlag}
+            onSuccess={refetch}
+          />
+        );
+      })()}
+
+      {/* Spec 016 (T037): Accept Admin Transfer Dialog */}
+      <AcceptAdminTransferDialog
+        open={isAcceptAdminTransferDialogOpen}
+        onOpenChange={setIsAcceptAdminTransferDialogOpen}
         onSuccess={refetch}
       />
     </div>

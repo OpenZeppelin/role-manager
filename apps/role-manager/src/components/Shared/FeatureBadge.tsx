@@ -6,7 +6,7 @@
  */
 import { cn } from '@openzeppelin/ui-builder-utils';
 
-export type FeatureBadgeVariant = 'blue' | 'purple' | 'green' | 'amber' | 'slate';
+export type FeatureBadgeVariant = 'blue' | 'purple' | 'green' | 'amber' | 'slate' | 'cyan' | 'teal';
 
 interface FeatureBadgeProps {
   children: React.ReactNode;
@@ -20,6 +20,8 @@ const variantClasses: Record<FeatureBadgeVariant, string> = {
   green: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
   amber: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
   slate: 'bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slate-300',
+  cyan: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300',
+  teal: 'bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-300',
 };
 
 /**

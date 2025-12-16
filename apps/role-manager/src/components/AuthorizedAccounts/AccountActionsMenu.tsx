@@ -4,15 +4,11 @@
  *
  * Dropdown menu with actions for an account row.
  *
- * Actions (per FR-009):
+ * Actions:
  * - Edit Roles
- * - Revoke Access
- * - View Details
- *
- * All actions log via logger (placeholder behavior).
  */
 
-import { Edit, Eye, MoreHorizontal, Trash2 } from 'lucide-react';
+import { Edit, MoreHorizontal } from 'lucide-react';
 
 import {
   Button,
@@ -40,8 +36,6 @@ export interface AccountActionsMenuProps {
  */
 const ACTION_ICONS: Record<AccountAction, React.ReactNode> = {
   'edit-roles': <Edit className="mr-2 h-4 w-4" />,
-  'revoke-access': <Trash2 className="mr-2 h-4 w-4 text-destructive" />,
-  'view-details': <Eye className="mr-2 h-4 w-4" />,
 };
 
 /**
@@ -71,10 +65,7 @@ export function AccountActionsMenu({ onAction, className }: AccountActionsMenuPr
           <DropdownMenuItem
             key={action.id}
             onClick={() => onAction(action.id)}
-            className={cn(
-              'cursor-pointer',
-              action.id === 'revoke-access' && 'text-destructive focus:text-destructive'
-            )}
+            className="cursor-pointer"
           >
             {ACTION_ICONS[action.id]}
             {action.label}

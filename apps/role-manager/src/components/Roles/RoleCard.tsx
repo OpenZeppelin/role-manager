@@ -12,7 +12,7 @@
  * Updated in spec 009 to accept RoleWithDescription type (T029).
  */
 
-import { Crown } from 'lucide-react';
+import { Crown, Shield } from 'lucide-react';
 
 import { cn } from '@openzeppelin/ui-builder-utils';
 
@@ -63,6 +63,9 @@ export function RoleCard({ role, isSelected, isConnected, onClick, className }: 
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           {role.isOwnerRole && <Crown className="h-3 w-3 text-blue-600" aria-label="Owner role" />}
+          {role.isAdminRole && (
+            <Shield className="h-3 w-3 text-purple-600" aria-label="Admin role" />
+          )}
           <h3 className="font-medium text-sm">{role.roleName}</h3>
         </div>
         <div className="flex items-center gap-1">

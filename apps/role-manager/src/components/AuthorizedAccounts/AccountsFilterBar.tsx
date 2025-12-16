@@ -11,7 +11,7 @@
  * Visual Design Requirements (from spec):
  * - Card container with search input (left) + dropdowns (right), horizontal layout
  * - Search input with magnifying glass icon
- * - Status dropdown: All Status, Active, Pending, Awaiting Signature
+ * - Status dropdown: All Status, Active, Pending
  * - Roles dropdown: All Roles + available roles from props
  */
 
@@ -28,6 +28,7 @@ import {
 import { cn } from '@openzeppelin/ui-builder-utils';
 
 import type { AccountsFilterState, RoleBadgeInfo } from '../../types/authorized-accounts';
+import { RoleFilterItem } from '../Shared';
 
 /**
  * Props for AccountsFilterBar component
@@ -114,20 +115,19 @@ export function AccountsFilterBar({
             <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="active">Active</SelectItem>
             <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="awaiting-signature">Awaiting Signature</SelectItem>
           </SelectContent>
         </Select>
 
         {/* Roles filter */}
         <Select value={filters.roleFilter} onValueChange={handleRoleChange} disabled={disabled}>
-          <SelectTrigger className="w-32" aria-label="Filter by role">
+          <SelectTrigger className="w-40" aria-label="Filter by role">
             <SelectValue placeholder="All Roles" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Roles</SelectItem>
             {availableRoles.map((role) => (
               <SelectItem key={role.id} value={role.id}>
-                {role.name}
+                <RoleFilterItem roleId={role.id} roleName={role.name} />
               </SelectItem>
             ))}
           </SelectContent>

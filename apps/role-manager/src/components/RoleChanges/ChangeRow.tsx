@@ -34,12 +34,22 @@ export interface ChangeRowProps {
  * Implements:
  * - Formatted timestamp display
  * - Action type badge with color coding
- * - Role badge
+ * - Role badge (with icon for special roles: Owner crown, Contract Admin shield)
  * - Truncated address with copy functionality and explorer link
  * - Transaction link to block explorer
  */
 export function ChangeRow({ event }: ChangeRowProps) {
   const actionConfig = ACTION_TYPE_CONFIG[event.action];
+
+  // Map action to role type for special icon display
+  // - ownership-transfer → 'ownership' (crown icon)
+  // - admin-transfer → 'admin' (shield icon for Contract Admin only)
+  const roleType =
+    event.action === 'ownership-transfer'
+      ? 'ownership'
+      : event.action === 'admin-transfer'
+        ? 'admin'
+        : undefined;
 
   return (
     <tr className={cn('border-b last:border-b-0 transition-colors', 'hover:bg-accent/50')}>
@@ -53,9 +63,9 @@ export function ChangeRow({ event }: ChangeRowProps) {
         <StatusBadge variant={actionConfig.variant}>{actionConfig.label}</StatusBadge>
       </td>
 
-      {/* Role badge */}
+      {/* Role badge - pass type for special icons (Owner crown, Contract Admin shield) */}
       <td className="p-4">
-        <RoleTypeBadge roleName={event.roleName} />
+        <RoleTypeBadge type={roleType} roleName={event.roleName} />
       </td>
 
       {/* Account address */}

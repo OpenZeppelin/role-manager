@@ -60,4 +60,6 @@ export interface RoleWithDescription {
   members: string[];
   /** Whether this is the Owner role (special UI treatment) */
   isOwnerRole: boolean;
+  /** Whether this is the Admin role (special UI treatment) - Feature: 016-two-step-admin-assignment */
+  isAdminRole: boolean;
 }

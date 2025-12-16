@@ -36,6 +36,9 @@ export { NoRolesEmptyState } from './NoRolesEmptyState';
 export { TransferRoleButton } from './TransferRoleButton';
 export { AcceptTransferButton } from './AcceptTransferButton';
 
+// Filter Dropdown Components
+export { RoleFilterItem } from './RoleFilterItem';
+
 // Types
 export type { OutlineBadgeProps } from './OutlineBadge';
 export type { PaginationProps, PaginationState } from './Pagination';
@@ -64,3 +67,6 @@ export type { NoRolesEmptyStateProps } from './NoRolesEmptyState';
 // Two-Step Transfer Action Button Types (Feature: 015-ownership-transfer)
 export type { TransferRoleButtonProps } from './TransferRoleButton';
 export type { AcceptTransferButtonProps } from './AcceptTransferButton';
+
+// Filter Dropdown Component Types
+export type { RoleFilterItemProps } from './RoleFilterItem';

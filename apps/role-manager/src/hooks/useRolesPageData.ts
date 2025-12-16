@@ -22,15 +22,25 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDerivedAccountStatus } from '@openzeppelin/ui-builder-react-core';
 import type {
   AccessControlCapabilities,
+  AdminInfo,
+  AdminState,
   OwnershipState,
+  PendingAdminTransfer,
   PendingOwnershipTransfer,
 } from '@openzeppelin/ui-builder-types';
 
-import { OWNER_ROLE_DESCRIPTION, OWNER_ROLE_ID, OWNER_ROLE_NAME } from '../constants';
+import {
+  ADMIN_ROLE_DESCRIPTION,
+  ADMIN_ROLE_ID,
+  ADMIN_ROLE_NAME,
+  OWNER_ROLE_DESCRIPTION,
+  OWNER_ROLE_ID,
+  OWNER_ROLE_NAME,
+} from '../constants';
 import type { RoleIdentifier, RoleWithDescription } from '../types/roles';
 import { getRoleName } from '../utils/role-name';
 import { useContractCapabilities } from './useContractCapabilities';
-import { useContractOwnership, useContractRoles } from './useContractData';
+import { useContractAdminInfo, useContractOwnership, useContractRoles } from './useContractData';
 import { useCurrentBlock } from './useCurrentBlock';
 import { useCustomRoleDescriptions } from './useCustomRoleDescriptions';
 import { useSelectedContract } from './useSelectedContract';
@@ -64,6 +74,8 @@ export interface UseRolesPageDataReturn {
   isCapabilitiesLoading: boolean;
   isRolesLoading: boolean;
   isOwnershipLoading: boolean;
+  /** Feature 016: Whether admin info is loading */
+  isAdminLoading: boolean;
   /** Whether data is being refreshed in background (T051) */
   isRefreshing: boolean;
 
@@ -104,6 +116,33 @@ export interface UseRolesPageDataReturn {
    * Polled automatically when a pending transfer exists
    */
   currentBlock: number | null;
+
+  // =============================================================================
+  // Feature 016: Two-Step Admin Assignment
+  // =============================================================================
+
+  /**
+   * Feature 016: Admin info from the contract
+   * Includes admin address, state, and pending transfer info
+   */
+  adminInfo: AdminInfo | null;
+
+  /**
+   * Feature 016: Pending admin transfer info
+   * Includes pendingAdmin address and expiration block
+   */
+  pendingAdminTransfer: PendingAdminTransfer | null;
+
+  /**
+   * Feature 016: Admin state ('active' | 'pending' | 'expired' | 'renounced')
+   * Used to determine which UI elements to show
+   */
+  adminState: AdminState | null;
+
+  /**
+   * Feature 016: Function to manually refetch admin info
+   */
+  refetchAdminInfo: () => Promise<void>;
 }
 
 // =============================================================================
@@ -189,12 +228,25 @@ export function useRolesPageData(): UseRolesPageDataReturn {
     hasOwner,
   } = useContractOwnership(adapter, contractAddress, isContractRegistered);
 
+  // Feature 016: Admin info fetching (T013)
+  // Only fetch when contract has two-step admin capability
+  const hasTwoStepAdmin = capabilities?.hasTwoStepAdmin ?? false;
+  const {
+    adminInfo,
+    isLoading: isAdminLoading,
+    isFetching: isAdminFetching,
+    refetch: refetchAdminInfo,
+  } = useContractAdminInfo(adapter, contractAddress, isContractRegistered, hasTwoStepAdmin);
+
   // Custom descriptions
   const { descriptions: customDescriptions, updateDescription } =
     useCustomRoleDescriptions(contractId);
 
   // Current block for expiration countdown (poll when pending transfer exists)
-  const hasPendingTransfer = ownership?.state === 'pending';
+  // Feature 016: Also poll when admin pending transfer exists
+  const hasPendingOwnershipTransfer = ownership?.state === 'pending';
+  const hasPendingAdminTransfer = adminInfo?.state === 'pending';
+  const hasPendingTransfer = hasPendingOwnershipTransfer || hasPendingAdminTransfer;
   const { currentBlock } = useCurrentBlock(adapter, {
     enabled: hasPendingTransfer,
     pollInterval: 5000, // Poll every 5 seconds for real-time countdown
@@ -219,12 +271,48 @@ export function useRolesPageData(): UseRolesPageDataReturn {
       isCustomDescription: !!customDescription,
       members: [ownership.owner],
       isOwnerRole: true,
+      isAdminRole: false,
     };
   }, [capabilities?.hasOwnable, hasOwner, ownership?.owner, customDescriptions]);
+
+  // Feature 016: Admin role synthesis (T014)
+  // Synthesize Admin role from adminInfo when contract has two-step admin capability
+  const adminRole = useMemo((): RoleWithDescription | null => {
+    // FR-001b: If capability is not available, don't display Admin role
+    if (!hasTwoStepAdmin) {
+      return null;
+    }
+
+    // FR-001c: Handle null adminInfo gracefully - don't display Admin role
+    if (!adminInfo) {
+      return null;
+    }
+
+    // Handle renounced state - show role with no admin if state is 'renounced'
+    // For active/pending/expired states, show the admin if present
+    const adminAddress = adminInfo.admin;
+
+    // If no admin (renounced), still show the role but with empty members
+    // Edge Case: "No Admin (Renounced)" - shows role with "No Admin (Renounced)" status
+    const members = adminAddress ? [adminAddress] : [];
+
+    const customDescription = customDescriptions[ADMIN_ROLE_ID];
+
+    return {
+      roleId: ADMIN_ROLE_ID,
+      roleName: ADMIN_ROLE_NAME,
+      description: customDescription ?? ADMIN_ROLE_DESCRIPTION,
+      isCustomDescription: !!customDescription,
+      members,
+      isOwnerRole: false,
+      isAdminRole: true,
+    };
+  }, [hasTwoStepAdmin, adminInfo, customDescriptions]);
 
   // Transform adapter roles with description priority resolution (T022)
   // Note: RoleAssignment from adapter has { role: { id, label? }, members: string[] }
   // T046: Implements fallback to role ID hash when name unavailable (US4.3)
+  // T016: Add isAdminRole: false default to all enumerated roles
   const transformedRoles = useMemo((): RoleWithDescription[] => {
     return adapterRoles.map((assignment) => {
       const roleId = assignment.role.id;
@@ -241,17 +329,31 @@ export function useRolesPageData(): UseRolesPageDataReturn {
         isCustomDescription: !!customDescription,
         members: assignment.members,
         isOwnerRole: false,
+        isAdminRole: false, // T016: All enumerated roles default to non-admin
       };
     });
   }, [adapterRoles, customDescriptions]);
 
-  // Combine owner role with adapter roles (Owner first)
+  // T015: Combine owner role, admin role, and adapter roles
+  // Order: [ownerRole?, adminRole?, ...enumeratedRoles]
   const roles = useMemo((): RoleWithDescription[] => {
+    const result: RoleWithDescription[] = [];
+
+    // Owner role first (if exists)
     if (ownerRole) {
-      return [ownerRole, ...transformedRoles];
+      result.push(ownerRole);
     }
-    return transformedRoles;
-  }, [ownerRole, transformedRoles]);
+
+    // Admin role second (if exists)
+    if (adminRole) {
+      result.push(adminRole);
+    }
+
+    // Then enumerated roles
+    result.push(...transformedRoles);
+
+    return result;
+  }, [ownerRole, adminRole, transformedRoles]);
 
   // Selected role (T023)
   const selectedRole = useMemo((): RoleWithDescription | null => {
@@ -301,9 +403,10 @@ export function useRolesPageData(): UseRolesPageDataReturn {
   // Loading & Error States
   // =============================================================================
 
-  const isLoading = isCapabilitiesLoading || isRolesLoading || isOwnershipLoading;
+  // Feature 016: Include admin loading state
+  const isLoading = isCapabilitiesLoading || isRolesLoading || isOwnershipLoading || isAdminLoading;
   // T051: isRefreshing is true when we have data but are fetching in the background
-  const isRefreshing = !isLoading && (isRolesFetching || isOwnershipFetching);
+  const isRefreshing = !isLoading && (isRolesFetching || isOwnershipFetching || isAdminFetching);
   const hasError = !!capabilitiesError || hasRolesError;
   const errorMessage = rolesErrorMessage ?? capabilitiesError?.message ?? null;
   const canRetry = canRetryRoles || !!capabilitiesError;
@@ -312,10 +415,20 @@ export function useRolesPageData(): UseRolesPageDataReturn {
   // Actions
   // =============================================================================
 
-  // Combined refetch function
+  // Combined refetch function (Feature 016: include admin refetch)
   const refetch = useCallback(async (): Promise<void> => {
-    await Promise.all([refetchRoles(), refetchOwnership()]);
-  }, [refetchRoles, refetchOwnership]);
+    const refetchPromises = [refetchRoles(), refetchOwnership()];
+    // Only refetch admin if the capability is enabled
+    if (hasTwoStepAdmin) {
+      refetchPromises.push(refetchAdminInfo());
+    }
+    await Promise.all(refetchPromises);
+  }, [refetchRoles, refetchOwnership, refetchAdminInfo, hasTwoStepAdmin]);
+
+  // Wrapped refetchAdminInfo for external use
+  const refetchAdminInfoCallback = useCallback(async (): Promise<void> => {
+    await refetchAdminInfo();
+  }, [refetchAdminInfo]);
 
   // Update role description (T043 - optimistic)
   const updateRoleDescription = useCallback(
@@ -356,6 +469,7 @@ export function useRolesPageData(): UseRolesPageDataReturn {
       isCapabilitiesLoading: false,
       isRolesLoading: false,
       isOwnershipLoading: false,
+      isAdminLoading: false,
       isRefreshing: false,
       hasError: false,
       errorMessage: null,
@@ -369,8 +483,17 @@ export function useRolesPageData(): UseRolesPageDataReturn {
       pendingTransfer: null,
       ownershipState: null,
       currentBlock: null,
+      // Feature 016: Admin-related properties
+      adminInfo: null,
+      pendingAdminTransfer: null,
+      adminState: null,
+      refetchAdminInfo: async () => {},
     };
   }
+
+  // Feature 016: Extract admin-related info
+  const pendingAdminTransfer = adminInfo?.pendingTransfer ?? null;
+  const adminState = adminInfo?.state ?? null;
 
   return {
     roles,
@@ -384,6 +507,7 @@ export function useRolesPageData(): UseRolesPageDataReturn {
     isCapabilitiesLoading,
     isRolesLoading,
     isOwnershipLoading,
+    isAdminLoading,
     isRefreshing,
     hasError,
     errorMessage,
@@ -397,5 +521,10 @@ export function useRolesPageData(): UseRolesPageDataReturn {
     pendingTransfer,
     ownershipState,
     currentBlock,
+    // Feature 016: Admin-related properties
+    adminInfo,
+    pendingAdminTransfer,
+    adminState,
+    refetchAdminInfo: refetchAdminInfoCallback,
   };
 }

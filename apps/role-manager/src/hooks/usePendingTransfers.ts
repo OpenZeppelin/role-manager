@@ -1,11 +1,12 @@
 /**
  * usePendingTransfers hook
  * Feature: 015-ownership-transfer (Phase 6.5)
+ * Updated by: 016-two-step-admin-assignment (Phase 6)
  *
  * Aggregates pending transfers from multiple sources for Dashboard display.
- * Currently supports ownership transfers; can be extended for admin/multisig.
+ * Currently supports ownership transfers and admin role transfers.
  *
- * Tasks: T045
+ * Tasks: T045, T040, T041
  */
 
 import { useCallback, useMemo } from 'react';
@@ -13,12 +14,14 @@ import { useCallback, useMemo } from 'react';
 import type {
   ContractAdapter,
   OwnershipInfo,
+  PendingAdminTransfer,
   PendingOwnershipTransfer,
 } from '@openzeppelin/ui-builder-types';
 
 import type { PendingTransfer, UsePendingTransfersReturn } from '../types/pending-transfers';
 import { createGetAccountUrl } from '../utils/explorer-urls';
-import { useContractOwnership } from './useContractData';
+import { useContractCapabilities } from './useContractCapabilities';
+import { useContractAdminInfo, useContractOwnership } from './useContractData';
 import { useCurrentBlock } from './useCurrentBlock';
 import { useSelectedContract } from './useSelectedContract';
 
@@ -82,6 +85,41 @@ function transformOwnershipTransfer(
   };
 }
 
+/**
+ * Transform admin pending transfer to unified PendingTransfer model
+ * Feature: 016-two-step-admin-assignment (T040, T041)
+ */
+function transformAdminTransfer(
+  contractAddress: string,
+  admin: string,
+  pendingTransfer: PendingAdminTransfer,
+  currentBlock: number | null,
+  connectedAddress: string | null | undefined,
+  adapter: ContractAdapter | null
+): PendingTransfer {
+  const expirationBlock = pendingTransfer.expirationBlock ?? 0;
+  const isExpired = currentBlock !== null && currentBlock >= expirationBlock;
+  const isPendingAdmin = addressesEqual(connectedAddress, pendingTransfer.pendingAdmin);
+
+  // Generate explorer URLs for addresses
+  const getAccountUrl = createGetAccountUrl(adapter);
+
+  return {
+    id: `admin-${contractAddress}`,
+    type: 'admin',
+    label: 'Admin',
+    currentHolder: admin,
+    currentHolderUrl: getAccountUrl(admin) ?? undefined,
+    pendingRecipient: pendingTransfer.pendingAdmin,
+    pendingRecipientUrl: getAccountUrl(pendingTransfer.pendingAdmin) ?? undefined,
+    expirationBlock,
+    isExpired,
+    step: { current: 1, total: 2 },
+    canAccept: isPendingAdmin && !isExpired,
+    initiatedAt: undefined, // Not available in current API
+  };
+}
+
 // =============================================================================
 // Hook Implementation
 // =============================================================================
@@ -91,9 +129,9 @@ function transformOwnershipTransfer(
  *
  * Currently aggregates:
  * - Ownership transfers from useContractOwnership
+ * - Admin role transfers from useContractAdminInfo (Feature 016)
  *
  * Future extensions:
- * - Admin role transfers
  * - Multisig signer changes
  *
  * @param options - Configuration options
@@ -123,6 +161,10 @@ export function usePendingTransfers(
   const { selectedContract, adapter, isContractRegistered } = useSelectedContract();
   const contractAddress = selectedContract?.address ?? '';
 
+  // Feature 016: Get capabilities to check for two-step admin support
+  const { capabilities } = useContractCapabilities(adapter, contractAddress, isContractRegistered);
+  const hasTwoStepAdmin = capabilities?.hasTwoStepAdmin ?? false;
+
   // Fetch ownership data (includes pendingTransfer if available)
   const {
     ownership,
@@ -132,6 +174,16 @@ export function usePendingTransfers(
     errorMessage: ownershipErrorMessage,
     refetch: refetchOwnership,
   } = useContractOwnership(adapter, contractAddress, isContractRegistered);
+
+  // Feature 016: Fetch admin info (only when contract supports two-step admin)
+  const {
+    adminInfo,
+    isLoading: isAdminLoading,
+    isFetching: isAdminFetching,
+    hasError: adminHasError,
+    errorMessage: adminErrorMessage,
+    refetch: refetchAdminInfo,
+  } = useContractAdminInfo(adapter, contractAddress, isContractRegistered, hasTwoStepAdmin);
 
   // Get current block for expiration calculation
   const { currentBlock, isLoading: isBlockLoading } = useCurrentBlock(adapter, {
@@ -145,39 +197,63 @@ export function usePendingTransfers(
   const transfers = useMemo((): PendingTransfer[] => {
     const result: PendingTransfer[] = [];
 
-    // Early return if no contract or ownership data
-    if (!selectedContract || !ownership) {
+    // Early return if no contract selected
+    if (!selectedContract) {
       return result;
     }
 
     // Check for ownership pending transfer
-    const ownershipWithPending = ownership as OwnershipInfo & {
-      pendingTransfer?: PendingOwnershipTransfer | null;
-    };
+    if (ownership) {
+      const ownershipWithPending = ownership as OwnershipInfo & {
+        pendingTransfer?: PendingOwnershipTransfer | null;
+      };
 
-    if (ownershipWithPending.pendingTransfer && ownership.owner) {
-      const transfer = transformOwnershipTransfer(
+      if (ownershipWithPending.pendingTransfer && ownership.owner) {
+        const transfer = transformOwnershipTransfer(
+          contractAddress,
+          ownership.owner,
+          ownershipWithPending.pendingTransfer,
+          currentBlock,
+          connectedAddress,
+          adapter
+        );
+
+        // Filter expired unless includeExpired is true
+        if (!transfer.isExpired || includeExpired) {
+          result.push(transfer);
+        }
+      }
+    }
+
+    // Feature 016: Check for admin pending transfer (T040, T041)
+    if (
+      adminInfo &&
+      adminInfo.state === 'pending' &&
+      adminInfo.pendingTransfer &&
+      adminInfo.admin
+    ) {
+      const adminTransfer = transformAdminTransfer(
         contractAddress,
-        ownership.owner,
-        ownershipWithPending.pendingTransfer,
+        adminInfo.admin,
+        adminInfo.pendingTransfer,
         currentBlock,
         connectedAddress,
         adapter
       );
 
       // Filter expired unless includeExpired is true
-      if (!transfer.isExpired || includeExpired) {
-        result.push(transfer);
+      if (!adminTransfer.isExpired || includeExpired) {
+        result.push(adminTransfer);
       }
     }
 
-    // Future: Add admin role transfers
     // Future: Add multisig signer changes
 
     return result;
   }, [
     selectedContract,
     ownership,
+    adminInfo,
     contractAddress,
     currentBlock,
     connectedAddress,
@@ -190,23 +266,27 @@ export function usePendingTransfers(
   // =============================================================================
 
   // Loading if any data source is loading (for initial load)
-  const isLoading = isOwnershipLoading || (isBlockLoading && transfers.length === 0);
+  const isLoading =
+    isOwnershipLoading || isAdminLoading || (isBlockLoading && transfers.length === 0);
 
   // Refreshing if data is being fetched but not initial load
-  const isRefreshing = !isLoading && isOwnershipFetching;
+  const isRefreshing = !isLoading && (isOwnershipFetching || isAdminFetching);
 
-  // Error state
-  const hasError = ownershipHasError;
-  const errorMessage = ownershipErrorMessage;
+  // Error state (combine errors from all sources)
+  const hasError = ownershipHasError || adminHasError;
+  const errorMessage = ownershipErrorMessage ?? adminErrorMessage ?? null;
 
   // =============================================================================
   // Actions
   // =============================================================================
 
   const refetch = useCallback(async (): Promise<void> => {
-    await refetchOwnership();
-    // Future: Add refetch for other sources
-  }, [refetchOwnership]);
+    const refetchPromises = [refetchOwnership()];
+    if (hasTwoStepAdmin) {
+      refetchPromises.push(refetchAdminInfo());
+    }
+    await Promise.all(refetchPromises);
+  }, [refetchOwnership, refetchAdminInfo, hasTwoStepAdmin]);
 
   return {
     transfers,

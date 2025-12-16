@@ -2,6 +2,7 @@
  * Dashboard Page
  * Feature: 007-dashboard-real-data
  * Updated by: 015-ownership-transfer (Phase 6.5)
+ * Updated by: 016-two-step-admin-assignment (Phase 6 - T043)
  *
  * Displays an overview of the selected contract's access control configuration.
  * Shows contract info, role statistics, pending transfers, and provides refresh/export actions.
@@ -15,6 +16,9 @@
  * Phase 6.5 additions:
  * - Pending transfers table from usePendingTransfers
  * - AcceptOwnershipDialog integration
+ *
+ * Feature 016 additions:
+ * - AcceptAdminTransferDialog integration for admin role transfers
  */
 
 import { Download, Loader2, RefreshCw, Shield, Users } from 'lucide-react';
@@ -26,6 +30,7 @@ import { useDerivedAccountStatus } from '@openzeppelin/ui-builder-react-core';
 import { Button } from '@openzeppelin/ui-builder-ui';
 import { truncateMiddle } from '@openzeppelin/ui-builder-utils';
 
+import { AcceptAdminTransferDialog } from '../components/Admin/AcceptAdminTransferDialog';
 import { ContractInfoCard } from '../components/Dashboard/ContractInfoCard';
 import { DashboardEmptyState } from '../components/Dashboard/DashboardEmptyState';
 import { DashboardStatsCard } from '../components/Dashboard/DashboardStatsCard';
@@ -76,7 +81,9 @@ export function Dashboard() {
   });
 
   // Phase 6.5: Accept ownership dialog state
-  const [acceptDialogOpen, setAcceptDialogOpen] = useState(false);
+  const [acceptOwnershipDialogOpen, setAcceptOwnershipDialogOpen] = useState(false);
+  // Feature 016: Accept admin transfer dialog state (T043)
+  const [acceptAdminDialogOpen, setAcceptAdminDialogOpen] = useState(false);
   const [_selectedTransfer, setSelectedTransfer] = useState<PendingTransfer | null>(null);
 
   // Determine if we have a contract selected
@@ -107,12 +114,16 @@ export function Dashboard() {
   }, [refetch, refetchTransfers]);
 
   // Phase 6.5: Handle accept button click from PendingTransfersTable
+  // Feature 016: Updated to handle admin transfers (T043)
   const handleAcceptTransfer = useCallback((transfer: PendingTransfer) => {
+    setSelectedTransfer(transfer);
+
     if (transfer.type === 'ownership') {
-      setSelectedTransfer(transfer);
-      setAcceptDialogOpen(true);
+      setAcceptOwnershipDialogOpen(true);
+    } else if (transfer.type === 'admin') {
+      setAcceptAdminDialogOpen(true);
     }
-    // Future: Handle admin and multisig transfer types
+    // Future: Handle multisig transfer types
   }, []);
 
   // Phase 6.5: Handle successful acceptance
@@ -229,8 +240,15 @@ export function Dashboard() {
 
       {/* Phase 6.5: Accept Ownership Dialog (T050) */}
       <AcceptOwnershipDialog
-        open={acceptDialogOpen}
-        onOpenChange={setAcceptDialogOpen}
+        open={acceptOwnershipDialogOpen}
+        onOpenChange={setAcceptOwnershipDialogOpen}
+        onSuccess={handleAcceptSuccess}
+      />
+
+      {/* Feature 016: Accept Admin Transfer Dialog (T043) */}
+      <AcceptAdminTransferDialog
+        open={acceptAdminDialogOpen}
+        onOpenChange={setAcceptAdminDialogOpen}
         onSuccess={handleAcceptSuccess}
       />
     </div>

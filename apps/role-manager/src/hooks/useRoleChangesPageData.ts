@@ -21,8 +21,8 @@ import {
   type UseRoleChangesPageDataReturn,
 } from '../types/role-changes';
 import { createGetAccountUrl, createGetTransactionUrl } from '../utils/explorer-urls';
+import { buildFilterRoles } from '../utils/filter-roles';
 import { transformHistoryEntries } from '../utils/history-transformer';
-import { getRoleName } from '../utils/role-name';
 import { useContractCapabilities } from './useContractCapabilities';
 import { useContractRoles } from './useContractData';
 import { DEFAULT_PAGE_SIZE, useContractHistory } from './useContractHistory';
@@ -122,6 +122,8 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
         grant: 'GRANTED',
         revoke: 'REVOKED',
         'ownership-transfer': 'OWNERSHIP_TRANSFER_COMPLETED',
+        'admin-transfer': 'ADMIN_TRANSFER_COMPLETED',
+        unknown: 'UNKNOWN',
       };
       changeType = actionToChangeTypeMap[filters.actionFilter];
     }
@@ -201,14 +203,11 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
   const events = transformedEvents;
 
   // Available roles for filter dropdown (reuses cached roles query)
-  const availableRoles = useMemo((): RoleBadgeInfo[] => {
-    if (!contractRoles) return [];
-    const badges = contractRoles.map((assignment) => ({
-      id: assignment.role.id,
-      name: getRoleName(assignment.role.label, assignment.role.id),
-    }));
-    return badges.sort((a, b) => a.name.localeCompare(b.name));
-  }, [contractRoles]);
+  // Includes synthetic Owner and Admin roles for filtering ownership/admin transfer events
+  const availableRoles = useMemo(
+    (): RoleBadgeInfo[] => buildFilterRoles(contractRoles),
+    [contractRoles]
+  );
   const availableRolesLoading = areRolesLoading || areRolesFetching;
 
   // =============================================================================
