@@ -1,5 +1,6 @@
 /**
  * RoleTypeBadge Component
+ * Updated by: 016-two-step-admin-assignment (T042)
  *
  * Displays a role type badge with an appropriate icon.
  * Used in pending transfers tables, authorized accounts, and role displays.
@@ -10,10 +11,11 @@
  *
  * Icons:
  * - Crown: Owner role / Ownership transfers (blue)
- * - Future: Admin, Multisig icons can be added
+ * - Shield: Admin role / Admin transfers (purple)
+ * - Future: Multisig icons can be added
  */
 
-import { Crown } from 'lucide-react';
+import { Crown, Shield } from 'lucide-react';
 
 import { cn } from '@openzeppelin/ui-builder-utils';
 
@@ -66,6 +68,10 @@ const TYPE_LABELS: Record<PendingTransferType, string> = {
  * <RoleTypeBadge type="ownership" />
  *
  * @example
+ * // Admin type with Shield icon (pending transfers)
+ * <RoleTypeBadge type="admin" />
+ *
+ * @example
  * // Role name with Crown icon (authorized accounts)
  * <RoleTypeBadge roleName="Owner" />
  *
@@ -84,9 +90,16 @@ export function RoleTypeBadge({ type, roleName, label, className }: RoleTypeBadg
   // Show Crown icon for ownership transfers OR Owner role name
   const isOwner = type === 'ownership' || roleName?.toLowerCase() === 'owner';
 
+  // Show Shield icon for admin transfers OR Admin role name (T042)
+  const isAdmin = type === 'admin' || roleName?.toLowerCase() === 'admin';
+
+  // Determine if icon should be shown
+  const hasIcon = isOwner || isAdmin;
+
   return (
-    <OutlineBadge className={cn(isOwner && 'gap-1', className)}>
+    <OutlineBadge className={cn(hasIcon && 'gap-1', className)}>
       {isOwner && <Crown className="h-3 w-3 text-blue-600" aria-label="Owner role" />}
+      {isAdmin && <Shield className="h-3 w-3 text-purple-600" aria-label="Admin role" />}
       {displayLabel}
     </OutlineBadge>
   );

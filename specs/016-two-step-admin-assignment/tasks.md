@@ -152,10 +152,10 @@
 
 **Dependencies**: Phase 3 (US3 - Admin role synthesis), Phase 5 (US2 - Accept flow)
 
-- [ ] T040 [US4] Add admin transfer aggregation to `apps/role-manager/src/hooks/useRoleChangesPageData.ts` (parallel to ownership transfer detection)
-- [ ] T041 [US4] Create `PendingTransfer` entry with `type: 'admin'`, `label: 'Transfer Admin Role'` for pending admin transfers
-- [ ] T042 [US4] Ensure `PendingTransferRow` displays admin transfers with correct icon and styling
-- [ ] T043 [US4] Wire AcceptAdminTransferDialog to Dashboard pending transfer Accept button
+- [x] T040 [US4] Add admin transfer aggregation to `apps/role-manager/src/hooks/usePendingTransfers.ts` (parallel to ownership transfer detection)
+- [x] T041 [US4] Create `PendingTransfer` entry with `type: 'admin'`, `label: 'Admin'` for pending admin transfers
+- [x] T042 [US4] Ensure `PendingTransferRow` displays admin transfers with correct icon and styling
+- [x] T043 [US4] Wire AcceptAdminTransferDialog to Dashboard pending transfer Accept button
 
 **Checkpoint**: Pending admin transfers visible in Dashboard
 
