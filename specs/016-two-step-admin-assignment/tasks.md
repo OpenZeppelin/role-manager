@@ -119,26 +119,26 @@
 
 ### Dialog Hook
 
-- [ ] T029 [US2] Create `apps/role-manager/src/hooks/useAcceptAdminTransferDialog.ts` with types: `UseAcceptAdminTransferDialogOptions`, `UseAcceptAdminTransferDialogReturn`
-- [ ] T030 [US2] Implement `useAcceptAdminTransferDialog` hook in same file (copy `useAcceptOwnershipDialog` pattern, use `useAcceptAdminTransfer` mutation)
-- [ ] T031 [US2] Add `useAcceptAdminTransferDialog` export to `apps/role-manager/src/hooks/index.ts`
+- [x] T029 [US2] Create `apps/role-manager/src/hooks/useAcceptAdminTransferDialog.ts` with types: `UseAcceptAdminTransferDialogOptions`, `UseAcceptAdminTransferDialogReturn`
+- [x] T030 [US2] Implement `useAcceptAdminTransferDialog` hook in same file (copy `useAcceptOwnershipDialog` pattern, use `useAcceptAdminTransfer` mutation)
+- [x] T031 [US2] Add `useAcceptAdminTransferDialog` export to `apps/role-manager/src/hooks/index.ts`
 
 ### Dialog Component
 
-- [ ] T032 [US2] Create `apps/role-manager/src/components/Admin/AcceptAdminTransferDialog.tsx` with: confirmation content, contract address display, transaction states
-- [ ] T033 [US2] Add `AcceptAdminTransferDialog` export to `apps/role-manager/src/components/Admin/index.ts`
+- [x] T032 [US2] Create `apps/role-manager/src/components/Admin/AcceptAdminTransferDialog.tsx` with: confirmation content, contract address display, transaction states
+- [x] T033 [US2] Add `AcceptAdminTransferDialog` export to `apps/role-manager/src/components/Admin/index.ts`
 
 ### Pending Transfer Display
 
-- [ ] T034 [US2] Add `PendingTransferInfo` display for admin role in `apps/role-manager/src/components/Roles/RoleDetails.tsx` with `transferLabel="Admin Role"`, `recipientLabel="Admin"`
-- [ ] T035 [US2] Compute `canAcceptAdmin` in `Roles.tsx`: connected wallet matches pending admin address
-- [ ] T036 [US2] Pass `pendingAdminTransfer`, `adminState`, `canAcceptAdmin`, `onAcceptAdminTransfer` props to RoleDetails
+- [x] T034 [US2] Add `PendingTransferInfo` display for admin role in `apps/role-manager/src/components/Roles/RoleDetails.tsx` with `transferLabel="Admin Role"`, `recipientLabel="Admin"`
+- [x] T035 [US2] Compute `canAcceptAdmin` in `Roles.tsx`: connected wallet matches pending admin address
+- [x] T036 [US2] Pass `pendingAdminTransfer`, `adminState`, `canAcceptAdmin`, `onAcceptAdminTransfer` props to RoleDetails
 
 ### Integration
 
-- [ ] T037 [US2] Add `acceptAdminDialogOpen` state and `AcceptAdminTransferDialog` to `apps/role-manager/src/pages/Roles.tsx`
-- [ ] T038 [US2] Wire up `onAcceptAdminTransfer` handler to open AcceptAdminTransferDialog in `Roles.tsx`
-- [ ] T039 [US2] Add "Connect the pending admin wallet to accept this transfer" message when wrong wallet connected
+- [x] T037 [US2] Add `acceptAdminDialogOpen` state and `AcceptAdminTransferDialog` to `apps/role-manager/src/pages/Roles.tsx`
+- [x] T038 [US2] Wire up `onAcceptAdminTransfer` handler to open AcceptAdminTransferDialog in `Roles.tsx`
+- [x] T039 [US2] Add "Connect the pending admin wallet to accept this transfer" message when wrong wallet connected
 
 **Checkpoint**: Pending admin can accept transfer via PendingTransferInfo or dialog
 

@@ -9,5 +9,6 @@
 export { TransferAdminDialog } from './TransferAdminDialog';
 export type { TransferAdminDialogProps } from './TransferAdminDialog';
 
-// Accept admin transfer dialog will be added in Phase 5 (US2)
-// export { AcceptAdminTransferDialog } from './AcceptAdminTransferDialog';
+// Accept admin transfer dialog (Phase 5 - US2)
+export { AcceptAdminTransferDialog } from './AcceptAdminTransferDialog';
+export type { AcceptAdminTransferDialogProps } from './AcceptAdminTransferDialog';

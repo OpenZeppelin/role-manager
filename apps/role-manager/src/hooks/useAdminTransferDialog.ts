@@ -44,8 +44,8 @@ export interface UseAdminTransferDialogOptions {
   currentAdmin: string;
   /** Callback when dialog should close */
   onClose: () => void;
-  /** Callback on successful transfer */
-  onSuccess?: () => void;
+  /** Callback on successful transfer (can be async for data refresh) */
+  onSuccess?: () => void | Promise<void>;
 }
 
 /**
@@ -170,9 +170,10 @@ export function useAdminTransferDialog(
   // =============================================================================
 
   const handleSuccess = useCallback(
-    (_result: OperationResult) => {
+    async (_result: OperationResult) => {
       setStep('success');
-      onSuccess?.();
+      // Await onSuccess to ensure data is refetched before auto-close
+      await onSuccess?.();
 
       // Auto-close after delay
       setTimeout(() => {

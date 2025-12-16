@@ -99,6 +99,13 @@ export type {
   UseAdminTransferDialogReturn,
 } from './useAdminTransferDialog';
 
+// Accept Admin Transfer Dialog Hook (Feature: 016-two-step-admin-assignment)
+export { useAcceptAdminTransferDialog } from './useAcceptAdminTransferDialog';
+export type {
+  UseAcceptAdminTransferDialogOptions,
+  UseAcceptAdminTransferDialogReturn,
+} from './useAcceptAdminTransferDialog';
+
 // Custom Role Descriptions (Feature: 009-roles-page-data)
 export { useCustomRoleDescriptions } from './useCustomRoleDescriptions';
 export type { UseCustomRoleDescriptionsReturn } from './useCustomRoleDescriptions';

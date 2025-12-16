@@ -27,6 +27,7 @@ import type {
 } from '@openzeppelin/ui-builder-types';
 
 import { useAccessControlService } from './useAccessControlService';
+import { adminInfoQueryKey } from './useContractData';
 
 // ============================================================================
 // Query Keys (must match useContractRolesEnriched.ts and useContractData.ts)
@@ -35,7 +36,6 @@ import { useAccessControlService } from './useAccessControlService';
 const rolesQueryKey = (address: string) => ['contractRoles', address] as const;
 const enrichedRolesQueryKey = (address: string) => ['contractRolesEnriched', address] as const;
 const ownershipQueryKey = (address: string) => ['contractOwnership', address] as const;
-const adminInfoQueryKey = (address: string) => ['contractAdminInfo', address] as const;
 
 // ============================================================================
 // Error Detection Utilities
@@ -734,10 +734,15 @@ export function useTransferAdminRole(
         args.runtimeApiKey
       );
     },
-    onSuccess: (result) => {
-      // Invalidate admin info query to refetch updated data (FR-014)
-      queryClient.invalidateQueries({
+    onSuccess: async (result) => {
+      // Invalidate AND refetch admin info query to ensure UI updates (FR-014)
+      // First invalidate to mark stale, then refetch to get fresh data
+      await queryClient.invalidateQueries({
         queryKey: adminInfoQueryKey(contractAddress),
+      });
+      await queryClient.refetchQueries({
+        queryKey: adminInfoQueryKey(contractAddress),
+        type: 'active',
       });
       options?.onSuccess?.(result);
     },
@@ -847,10 +852,15 @@ export function useAcceptAdminTransfer(
         args.runtimeApiKey
       );
     },
-    onSuccess: (result) => {
-      // Invalidate admin info query to refetch updated data (FR-014)
-      queryClient.invalidateQueries({
+    onSuccess: async (result) => {
+      // Invalidate AND refetch admin info query to ensure UI updates (FR-014)
+      // First invalidate to mark stale, then refetch to get fresh data
+      await queryClient.invalidateQueries({
         queryKey: adminInfoQueryKey(contractAddress),
+      });
+      await queryClient.refetchQueries({
+        queryKey: adminInfoQueryKey(contractAddress),
+        type: 'active',
       });
       options?.onSuccess?.(result);
     },

@@ -27,7 +27,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { Button, Card } from '@openzeppelin/ui-builder-ui';
 import { cn } from '@openzeppelin/ui-builder-utils';
 
-import { TransferAdminDialog } from '../components/Admin';
+import { AcceptAdminTransferDialog, TransferAdminDialog } from '../components/Admin';
 import { AcceptOwnershipDialog, TransferOwnershipDialog } from '../components/Ownership';
 import {
   AssignRoleDialog,
@@ -76,7 +76,6 @@ export function Roles() {
     adminInfo,
     pendingAdminTransfer,
     adminState,
-    refetchAdminInfo,
   } = useRolesPageData();
 
   // Phase 6: Edit dialog state
@@ -100,6 +99,9 @@ export function Roles() {
 
   // Spec 016 (T027): Transfer Admin dialog state
   const [isTransferAdminDialogOpen, setIsTransferAdminDialogOpen] = useState(false);
+
+  // Spec 016 (T037): Accept Admin Transfer dialog state
+  const [isAcceptAdminTransferDialogOpen, setIsAcceptAdminTransferDialogOpen] = useState(false);
 
   // Get contract info for display
   const { selectedContract, adapter } = useSelectedContract();
@@ -176,11 +178,22 @@ export function Roles() {
     setIsTransferAdminDialogOpen(true);
   }, []);
 
+  // Spec 016 (T038): Open accept admin transfer dialog
+  const handleAcceptAdminTransfer = useCallback(() => {
+    setIsAcceptAdminTransferDialogOpen(true);
+  }, []);
+
   // Spec 015 (T021): Check if connected wallet can accept ownership (is the pending owner)
   const canAcceptOwnership = useMemo(() => {
     if (!pendingOwner || !connectedAddress) return false;
     return pendingOwner.toLowerCase() === connectedAddress.toLowerCase();
   }, [pendingOwner, connectedAddress]);
+
+  // Spec 016 (T035): Check if connected wallet can accept admin transfer (is the pending admin)
+  const canAcceptAdminTransfer = useMemo(() => {
+    if (!pendingAdminTransfer?.pendingAdmin || !connectedAddress) return false;
+    return pendingAdminTransfer.pendingAdmin.toLowerCase() === connectedAddress.toLowerCase();
+  }, [pendingAdminTransfer, connectedAddress]);
 
   // Phase 6: Handle description save from dialog
   const handleSaveDescription = useCallback(
@@ -313,6 +326,9 @@ export function Roles() {
                     ? (getAccountUrl(pendingAdminTransfer.pendingAdmin) ?? undefined)
                     : undefined
                 }
+                // Phase 5 (T036): Accept admin transfer props
+                canAcceptAdminTransfer={canAcceptAdminTransfer}
+                onAcceptAdminTransfer={handleAcceptAdminTransfer}
               />
             ) : (
               <div className="flex items-center justify-center h-full p-6 text-muted-foreground">
@@ -397,10 +413,17 @@ export function Roles() {
             onOpenChange={setIsTransferAdminDialogOpen}
             currentAdmin={currentAdmin}
             hasPendingAdminTransfer={hasPendingAdminTransferFlag}
-            onSuccess={refetchAdminInfo}
+            onSuccess={refetch}
           />
         );
       })()}
+
+      {/* Spec 016 (T037): Accept Admin Transfer Dialog */}
+      <AcceptAdminTransferDialog
+        open={isAcceptAdminTransferDialogOpen}
+        onOpenChange={setIsAcceptAdminTransferDialogOpen}
+        onSuccess={refetch}
+      />
     </div>
   );
 }
