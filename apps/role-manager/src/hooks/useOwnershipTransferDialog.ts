@@ -178,7 +178,12 @@ export function useOwnershipTransferDialog(
     async (_result: OperationResult) => {
       setStep('success');
       // Await onSuccess to ensure data is refetched before auto-close
-      await onSuccess?.();
+      // Silently catch errors - transaction already succeeded, don't block dialog close
+      try {
+        await onSuccess?.();
+      } catch {
+        // Error in callback shouldn't block dialog close since transaction succeeded
+      }
 
       // Auto-close after delay
       setTimeout(() => {
