@@ -146,7 +146,7 @@ export function getMasterCheckboxState(
 /**
  * Available actions for an account row
  */
-export type AccountAction = 'edit-roles' | 'revoke-access' | 'view-details';
+export type AccountAction = 'edit-roles';
 
 /**
  * Display configuration for actions
@@ -154,8 +154,4 @@ export type AccountAction = 'edit-roles' | 'revoke-access' | 'view-details';
 export const ACCOUNT_ACTIONS: Array<{
   id: AccountAction;
   label: string;
-}> = [
-  { id: 'edit-roles', label: 'Edit Roles' },
-  { id: 'revoke-access', label: 'Revoke Access' },
-  { id: 'view-details', label: 'View Details' },
-];
+}> = [{ id: 'edit-roles', label: 'Edit Roles' }];

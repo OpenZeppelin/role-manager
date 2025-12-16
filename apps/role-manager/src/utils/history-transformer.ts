@@ -9,6 +9,7 @@
  * Tasks: T002
  */
 
+import { ADMIN_ROLE_ID } from '../constants/roles';
 import type { RoleBadgeInfo } from '../types/authorized-accounts';
 import {
   CHANGE_TYPE_TO_ACTION,
@@ -68,12 +69,21 @@ export function transformHistoryEntry(
   const action = CHANGE_TYPE_MAP[entry.changeType] ?? 'grant';
   const timestamp = entry.timestamp ?? new Date().toISOString();
 
+  // Determine role ID and name - override for admin transfer events
+  // Admin transfers should use CONTRACT_ADMIN role ID and "Admin" name
+  // This ensures filtering works correctly (matches SYNTHETIC_ADMIN_ROLE in filter-roles.ts)
+  const isAdminTransfer =
+    entry.changeType === 'ADMIN_TRANSFER_INITIATED' ||
+    entry.changeType === 'ADMIN_TRANSFER_COMPLETED';
+  const roleId = isAdminTransfer ? ADMIN_ROLE_ID : entry.role.id;
+  const roleName = isAdminTransfer ? 'Admin' : getRoleName(undefined, entry.role.id);
+
   return {
-    id: `${timestamp}-${entry.changeType}-${entry.role.id}-${entry.account}`,
+    id: `${timestamp}-${entry.changeType}-${roleId}-${entry.account}`,
     timestamp,
     action,
-    roleId: entry.role.id,
-    roleName: getRoleName(undefined, entry.role.id),
+    roleId,
+    roleName,
     account: entry.account,
     accountUrl: options.getAccountUrl(entry.account),
     transactionHash: entry.txId ?? null,

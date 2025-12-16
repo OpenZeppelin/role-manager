@@ -19,6 +19,7 @@ import {
   type RoleBadgeInfo,
 } from '../types/authorized-accounts';
 import { applyAccountsFilters, transformRolesToAccounts } from '../utils/account-transformer';
+import { buildFilterRolesFromBadges } from '../utils/filter-roles';
 import { useContractCapabilities } from './useContractCapabilities';
 import { useContractOwnership } from './useContractData';
 import { useContractRolesEnriched } from './useContractRolesEnriched';
@@ -197,7 +198,9 @@ export function useAuthorizedAccountsPageData(): UseAuthorizedAccountsPageDataRe
   );
 
   // Extract available roles for filter dropdown
+  // Uses consistent sorting: Owner, Admin at top, then enumerated roles alphabetically
   const availableRoles = useMemo((): RoleBadgeInfo[] => {
+    // Extract unique roles from accounts
     const rolesMap = new Map<string, RoleBadgeInfo>();
     for (const account of allAccountsUnfiltered) {
       for (const role of account.roles) {
@@ -206,7 +209,9 @@ export function useAuthorizedAccountsPageData(): UseAuthorizedAccountsPageDataRe
         }
       }
     }
-    return Array.from(rolesMap.values());
+
+    // Use shared utility to add synthetic roles at top and sort
+    return buildFilterRolesFromBadges(Array.from(rolesMap.values()));
   }, [allAccountsUnfiltered]);
 
   // Apply filters

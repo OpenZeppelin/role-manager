@@ -11,8 +11,11 @@
  *
  * Icons:
  * - Crown: Owner role / Ownership transfers (blue)
- * - Shield: Admin role / Admin transfers (purple)
+ * - Shield: Contract Admin transfers only (purple) - NOT for regular Admin roles
  * - Future: Multisig icons can be added
+ *
+ * Note: The shield icon is reserved for Contract Admin (two-step admin transfer),
+ * not for the regular enumerated "ADMIN_ROLE" from AccessControl.
  */
 
 import { Crown, Shield } from 'lucide-react';
@@ -90,16 +93,20 @@ export function RoleTypeBadge({ type, roleName, label, className }: RoleTypeBadg
   // Show Crown icon for ownership transfers OR Owner role name
   const isOwner = type === 'ownership' || roleName?.toLowerCase() === 'owner';
 
-  // Show Shield icon for admin transfers OR Admin role name (T042)
-  const isAdmin = type === 'admin' || roleName?.toLowerCase() === 'admin';
+  // Show Shield icon ONLY for Contract Admin transfers (type='admin')
+  // NOT for regular enumerated Admin roles - shield is reserved for the
+  // official Contract Admin two-step transfer events only (T042)
+  const isContractAdmin = type === 'admin';
 
   // Determine if icon should be shown
-  const hasIcon = isOwner || isAdmin;
+  const hasIcon = isOwner || isContractAdmin;
 
   return (
     <OutlineBadge className={cn(hasIcon && 'gap-1', className)}>
       {isOwner && <Crown className="h-3 w-3 text-blue-600" aria-label="Owner role" />}
-      {isAdmin && <Shield className="h-3 w-3 text-purple-600" aria-label="Admin role" />}
+      {isContractAdmin && (
+        <Shield className="h-3 w-3 text-purple-600" aria-label="Contract Admin role" />
+      )}
       {displayLabel}
     </OutlineBadge>
   );

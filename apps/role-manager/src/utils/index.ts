@@ -7,6 +7,7 @@ export * from './date';
 export * from './deduplication';
 export * from './errors';
 export * from './explorer-urls';
+export * from './filter-roles';
 export * from './hash';
 export * from './history-transformer';
 export * from './network';
