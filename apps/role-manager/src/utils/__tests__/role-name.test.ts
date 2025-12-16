@@ -10,36 +10,42 @@ describe('capitalizeRoleName', () => {
     expect(capitalizeRoleName('admin')).toBe('Admin');
   });
 
-  it('should handle SNAKE_CASE', () => {
-    expect(capitalizeRoleName('ADMIN_ROLE')).toBe('Admin Role');
-    expect(capitalizeRoleName('MINTER_ROLE')).toBe('Minter Role');
+  it('should handle SNAKE_CASE and strip _ROLE suffix', () => {
+    expect(capitalizeRoleName('ADMIN_ROLE')).toBe('Admin');
+    expect(capitalizeRoleName('MINTER_ROLE')).toBe('Minter');
   });
 
-  it('should handle camelCase', () => {
-    expect(capitalizeRoleName('minterRole')).toBe('Minter Role');
-    expect(capitalizeRoleName('adminRole')).toBe('Admin Role');
+  it('should handle camelCase and strip Role suffix', () => {
+    expect(capitalizeRoleName('minterRole')).toBe('Minter');
+    expect(capitalizeRoleName('adminRole')).toBe('Admin');
   });
 
   it('should handle already capitalized names', () => {
     expect(capitalizeRoleName('Admin')).toBe('Admin');
-    expect(capitalizeRoleName('Admin Role')).toBe('Admin Role');
+    expect(capitalizeRoleName('Admin Role')).toBe('Admin');
   });
 
-  it('should handle mixed case', () => {
+  it('should handle mixed case and strip _ROLE suffix', () => {
     expect(capitalizeRoleName('PAUSER')).toBe('Pauser');
-    expect(capitalizeRoleName('DEFAULT_ADMIN_ROLE')).toBe('Default Admin Role');
+    expect(capitalizeRoleName('DEFAULT_ADMIN_ROLE')).toBe('Default Admin');
+  });
+
+  it('should handle names without _ROLE suffix', () => {
+    expect(capitalizeRoleName('BURNER')).toBe('Burner');
+    expect(capitalizeRoleName('TRANSFER')).toBe('Transfer');
+    expect(capitalizeRoleName('OPERATOR')).toBe('Operator');
   });
 });
 
 describe('getRoleName', () => {
   it('should return capitalized label when provided and not a hash', () => {
-    expect(getRoleName('ADMIN_ROLE', 'some-id')).toBe('Admin Role');
+    expect(getRoleName('ADMIN_ROLE', 'some-id')).toBe('Admin');
     expect(getRoleName('minter', '0x123')).toBe('Minter');
   });
 
   it('should return capitalized roleId when label is undefined', () => {
-    expect(getRoleName(undefined, 'ADMIN_ROLE')).toBe('Admin Role');
-    expect(getRoleName(undefined, 'MINTER_ROLE')).toBe('Minter Role');
+    expect(getRoleName(undefined, 'ADMIN_ROLE')).toBe('Admin');
+    expect(getRoleName(undefined, 'MINTER_ROLE')).toBe('Minter');
   });
 
   it('should return truncated hash when roleId is a hash and no label', () => {

@@ -61,8 +61,14 @@ export function AccessControlCapabilitiesSummary({
       {hasAnyFeature && (
         <div className="mb-3 flex flex-wrap gap-2">
           {capabilities.hasOwnable && <FeatureBadge variant="blue">Ownable</FeatureBadge>}
+          {capabilities.hasTwoStepOwnable && (
+            <FeatureBadge variant="cyan">Two-Step Ownership</FeatureBadge>
+          )}
           {capabilities.hasAccessControl && (
             <FeatureBadge variant="purple">AccessControl</FeatureBadge>
+          )}
+          {capabilities.hasTwoStepAdmin && (
+            <FeatureBadge variant="teal">Two-Step Admin</FeatureBadge>
           )}
           {capabilities.hasEnumerableRoles && (
             <FeatureBadge variant="green">Enumerable Roles</FeatureBadge>

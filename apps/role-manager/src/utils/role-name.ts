@@ -10,15 +10,19 @@ import { isHash } from './hash';
 /**
  * Capitalize each word in a role name for display.
  * Handles snake_case, camelCase, and space-separated names.
+ * Strips common suffixes like '_ROLE' for cleaner display.
  *
  * @example
  * capitalizeRoleName('admin') // 'Admin'
- * capitalizeRoleName('ADMIN_ROLE') // 'Admin Role'
- * capitalizeRoleName('minterRole') // 'Minter Role'
+ * capitalizeRoleName('ADMIN_ROLE') // 'Admin'
+ * capitalizeRoleName('minterRole') // 'Minter'
+ * capitalizeRoleName('MINTER_ROLE') // 'Minter'
  */
 export function capitalizeRoleName(name: string): string {
   return (
     name
+      // Strip common _ROLE suffix (case-insensitive)
+      .replace(/_?[Rr][Oo][Ll][Ee]$/i, '')
       // Insert space before uppercase letters (camelCase)
       .replace(/([a-z])([A-Z])/g, '$1 $2')
       // Replace underscores with spaces
@@ -27,6 +31,8 @@ export function capitalizeRoleName(name: string): string {
       .split(' ')
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(' ')
+      // Trim any trailing whitespace
+      .trim()
   );
 }
 
