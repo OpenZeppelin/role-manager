@@ -169,9 +169,9 @@
 
 **Dependencies**: Phase 4 (US1), Phase 5 (US2) - dialogs must exist
 
-- [ ] T044 [US5] Ensure TransferAdminDialog displays network error message with retry button (FR-028, FR-028a, FR-028b)
-- [ ] T045 [US5] Ensure AcceptAdminTransferDialog displays network error message with retry button
-- [ ] T046 [US5] Add wallet disconnection detection and error display to both admin dialogs (FR-030)
+- [x] T044 [US5] Ensure TransferAdminDialog displays network error message with retry button (FR-028, FR-028a, FR-028b)
+- [x] T045 [US5] Ensure AcceptAdminTransferDialog displays network error message with retry button
+- [x] T046 [US5] Add wallet disconnection detection and error display to both admin dialogs (FR-030)
 
 **Checkpoint**: Error handling and retry functional for admin transfer operations
 

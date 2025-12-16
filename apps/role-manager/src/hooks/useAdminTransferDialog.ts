@@ -266,14 +266,26 @@ export function useAdminTransferDialog(
 
   // =============================================================================
   // Retry with Stored Form Data
+  // FR-028a: Retry uses same form parameters (stored in lastFormDataRef)
+  // FR-028b: Re-validate expiration against current block before submission
   // =============================================================================
 
   const retry = useCallback(async () => {
     const formData = lastFormDataRef.current;
     if (!formData) return;
 
-    // Parse expiration (validation already passed once)
+    // Parse expiration
     const expirationBlock = parseInt(formData.expirationBlock, 10) || 0;
+
+    // FR-028b: Re-validate expiration against current block before retry
+    if (currentBlock !== null) {
+      const expirationError = validateExpiration(expirationBlock, currentBlock);
+      if (expirationError) {
+        setStep('error');
+        setErrorMessage(expirationError);
+        return;
+      }
+    }
 
     // Re-execute the transaction
     await executeTransaction({
@@ -281,7 +293,7 @@ export function useAdminTransferDialog(
       expirationBlock,
       executionConfig: { method: 'eoa' } as ExecutionConfig,
     });
-  }, [executeTransaction]);
+  }, [currentBlock, executeTransaction]);
 
   // =============================================================================
   // Reset Function
