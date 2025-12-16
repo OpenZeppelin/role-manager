@@ -30,8 +30,8 @@ import { isUserRejectionError } from './useTransactionExecution';
 export interface UseAcceptOwnershipDialogOptions {
   /** Callback when dialog should close */
   onClose: () => void;
-  /** Callback on successful acceptance */
-  onSuccess?: () => void;
+  /** Callback on successful acceptance (can be async for data refresh) */
+  onSuccess?: () => void | Promise<void>;
 }
 
 /**
@@ -113,9 +113,15 @@ export function useAcceptOwnershipDialog(
   // =============================================================================
 
   const handleSuccess = useCallback(
-    (_result: OperationResult) => {
+    async (_result: OperationResult) => {
       setStep('success');
-      onSuccess?.();
+      // Await onSuccess to ensure data is refetched before auto-close
+      // Silently catch errors - transaction already succeeded, don't block dialog close
+      try {
+        await onSuccess?.();
+      } catch {
+        // Error in callback shouldn't block dialog close since transaction succeeded
+      }
 
       // Auto-close after delay
       setTimeout(() => {

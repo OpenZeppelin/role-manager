@@ -502,12 +502,22 @@ export function useTransferOwnership(
         args.runtimeApiKey
       );
     },
-    onSuccess: (result) => {
-      // Invalidate ownership query to refetch updated data (FR-014)
-      queryClient.invalidateQueries({
+    onSuccess: async (result) => {
+      // Invalidate AND refetch ownership query to ensure UI updates (FR-014)
+      // First invalidate to mark stale, then refetch to get fresh data
+      await queryClient.invalidateQueries({
         queryKey: ownershipQueryKey(contractAddress),
       });
-      options?.onSuccess?.(result);
+      await queryClient.refetchQueries({
+        queryKey: ownershipQueryKey(contractAddress),
+        type: 'active',
+      });
+      // Silently catch callback errors - query invalidation already succeeded
+      try {
+        options?.onSuccess?.(result);
+      } catch {
+        // Error in callback shouldn't fail mutation since query invalidation succeeded
+      }
     },
     onError: (error: Error) => {
       setStatus('error');
@@ -615,12 +625,22 @@ export function useAcceptOwnership(
         args.runtimeApiKey
       );
     },
-    onSuccess: (result) => {
-      // Invalidate ownership query to refetch updated data (FR-014)
-      queryClient.invalidateQueries({
+    onSuccess: async (result) => {
+      // Invalidate AND refetch ownership query to ensure UI updates (FR-014)
+      // First invalidate to mark stale, then refetch to get fresh data
+      await queryClient.invalidateQueries({
         queryKey: ownershipQueryKey(contractAddress),
       });
-      options?.onSuccess?.(result);
+      await queryClient.refetchQueries({
+        queryKey: ownershipQueryKey(contractAddress),
+        type: 'active',
+      });
+      // Silently catch callback errors - query invalidation already succeeded
+      try {
+        options?.onSuccess?.(result);
+      } catch {
+        // Error in callback shouldn't fail mutation since query invalidation succeeded
+      }
     },
     onError: (error: Error) => {
       setStatus('error');
@@ -744,7 +764,12 @@ export function useTransferAdminRole(
         queryKey: adminInfoQueryKey(contractAddress),
         type: 'active',
       });
-      options?.onSuccess?.(result);
+      // Silently catch callback errors - query invalidation already succeeded
+      try {
+        options?.onSuccess?.(result);
+      } catch {
+        // Error in callback shouldn't fail mutation since query invalidation succeeded
+      }
     },
     onError: (error: Error) => {
       setStatus('error');
@@ -862,7 +887,12 @@ export function useAcceptAdminTransfer(
         queryKey: adminInfoQueryKey(contractAddress),
         type: 'active',
       });
-      options?.onSuccess?.(result);
+      // Silently catch callback errors - query invalidation already succeeded
+      try {
+        options?.onSuccess?.(result);
+      } catch {
+        // Error in callback shouldn't fail mutation since query invalidation succeeded
+      }
     },
     onError: (error: Error) => {
       setStatus('error');

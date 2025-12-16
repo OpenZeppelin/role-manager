@@ -46,8 +46,8 @@ export interface UseOwnershipTransferDialogOptions {
   hasTwoStepOwnable: boolean;
   /** Callback when dialog should close */
   onClose: () => void;
-  /** Callback on successful transfer */
-  onSuccess?: () => void;
+  /** Callback on successful transfer (can be async for data refresh) */
+  onSuccess?: () => void | Promise<void>;
 }
 
 /**
@@ -175,9 +175,15 @@ export function useOwnershipTransferDialog(
   // =============================================================================
 
   const handleSuccess = useCallback(
-    (_result: OperationResult) => {
+    async (_result: OperationResult) => {
       setStep('success');
-      onSuccess?.();
+      // Await onSuccess to ensure data is refetched before auto-close
+      // Silently catch errors - transaction already succeeded, don't block dialog close
+      try {
+        await onSuccess?.();
+      } catch {
+        // Error in callback shouldn't block dialog close since transaction succeeded
+      }
 
       // Auto-close after delay
       setTimeout(() => {
