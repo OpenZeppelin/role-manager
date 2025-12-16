@@ -294,9 +294,9 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
         if (pageInfo.endCursor) {
           setPaginationState((prev) => ({
             currentCursor: pageInfo.endCursor,
-            cursorHistory: prev.currentCursor
-              ? [...prev.cursorHistory, prev.currentCursor]
-              : prev.cursorHistory,
+            // Always push current cursor to history (even undefined for page 1)
+            // This ensures hasPrevPage is true after navigating forward
+            cursorHistory: [...prev.cursorHistory, prev.currentCursor],
           }));
         }
       },
