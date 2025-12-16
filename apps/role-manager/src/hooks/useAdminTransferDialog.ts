@@ -278,13 +278,20 @@ export function useAdminTransferDialog(
     const expirationBlock = parseInt(formData.expirationBlock, 10) || 0;
 
     // FR-028b: Re-validate expiration against current block before retry
-    if (currentBlock !== null) {
-      const expirationError = validateExpiration(expirationBlock, currentBlock);
-      if (expirationError) {
-        setStep('error');
-        setErrorMessage(expirationError);
-        return;
-      }
+    // Must have currentBlock available (consistent with submit validation)
+    if (currentBlock === null) {
+      setStep('error');
+      setErrorMessage(
+        'Unable to validate expiration: current block not available. Please try again.'
+      );
+      return;
+    }
+
+    const expirationError = validateExpiration(expirationBlock, currentBlock);
+    if (expirationError) {
+      setStep('error');
+      setErrorMessage(expirationError);
+      return;
     }
 
     // Re-execute the transaction
