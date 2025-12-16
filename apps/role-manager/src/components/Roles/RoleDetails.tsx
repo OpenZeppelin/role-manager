@@ -211,7 +211,10 @@ export function RoleDetails({
               ))
             ) : (
               <div className="p-6 text-center text-sm text-muted-foreground">
-                No accounts assigned to this role
+                {/* T055: Show "No Admin (Renounced)" for renounced admin state */}
+                {role.isAdminRole && adminState === 'renounced'
+                  ? 'No Admin (Renounced)'
+                  : 'No accounts assigned to this role'}
               </div>
             )}
           </div>

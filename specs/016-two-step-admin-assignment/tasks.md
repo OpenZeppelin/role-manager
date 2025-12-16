@@ -185,23 +185,23 @@
 
 ### Validation Edge Cases
 
-- [ ] T047 Add self-transfer prevention with error message "Cannot transfer to yourself" in TransferAdminDialog (FR-015)
-- [ ] T048 Add "This will replace the existing pending transfer" warning when initiating transfer while one is pending (Edge Case: Replace Pending Transfer)
-- [ ] T049 Validate expiration > current block with message "Expiration must be greater than current block" (FR-013, FR-016)
+- [x] T047 Add self-transfer prevention with error message "Cannot transfer to yourself" in TransferAdminDialog (FR-015)
+- [x] T048 Add "This will replace the existing pending transfer" warning when initiating transfer while one is pending (Edge Case: Replace Pending Transfer)
+- [x] T049 Validate expiration > current block with message "Expiration must be greater than current block" (FR-013, FR-016)
 
 ### Accessibility
 
-- [ ] T050 Verify focus moves to first interactive element when admin dialogs open (FR-032)
-- [ ] T051 Verify focus returns to trigger element when admin dialogs close (FR-033)
-- [ ] T052 Verify Escape key closes admin dialogs (except during pending/confirming) (FR-034)
-- [ ] T053 Verify all interactive elements are keyboard accessible via Tab in admin dialogs (FR-035)
-- [ ] T054 Verify Shield icon has `aria-label="Admin role"` for screen reader (FR-002d, FR-035c)
+- [x] T050 Verify focus moves to first interactive element when admin dialogs open (FR-032)
+- [x] T051 Verify focus returns to trigger element when admin dialogs close (FR-033)
+- [x] T052 Verify Escape key closes admin dialogs (except during pending/confirming) (FR-034)
+- [x] T053 Verify all interactive elements are keyboard accessible via Tab in admin dialogs (FR-035)
+- [x] T054 Verify Shield icon has `aria-label="Admin role"` for screen reader (FR-002d, FR-035c)
 
 ### Edge Cases
 
-- [ ] T055 Handle renounced admin state: show "No Admin (Renounced)" with no transfer actions (Edge Case: No Admin)
-- [ ] T056 Handle `getAdminInfo()` returning null: graceful degradation, Admin role not displayed (FR-001c)
-- [ ] T057 Handle dual pending transfers (Owner + Admin): both displayed independently (FR-003a, Edge Case: Dual Pending)
+- [x] T055 Handle renounced admin state: show "No Admin (Renounced)" with no transfer actions (Edge Case: No Admin)
+- [x] T056 Handle `getAdminInfo()` returning null: graceful degradation, Admin role not displayed (FR-001c)
+- [x] T057 Handle dual pending transfers (Owner + Admin): both displayed independently (FR-003a, Edge Case: Dual Pending)
 
 ---
 
