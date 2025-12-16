@@ -502,10 +502,15 @@ export function useTransferOwnership(
         args.runtimeApiKey
       );
     },
-    onSuccess: (result) => {
-      // Invalidate ownership query to refetch updated data (FR-014)
-      queryClient.invalidateQueries({
+    onSuccess: async (result) => {
+      // Invalidate AND refetch ownership query to ensure UI updates (FR-014)
+      // First invalidate to mark stale, then refetch to get fresh data
+      await queryClient.invalidateQueries({
         queryKey: ownershipQueryKey(contractAddress),
+      });
+      await queryClient.refetchQueries({
+        queryKey: ownershipQueryKey(contractAddress),
+        type: 'active',
       });
       options?.onSuccess?.(result);
     },
@@ -615,10 +620,15 @@ export function useAcceptOwnership(
         args.runtimeApiKey
       );
     },
-    onSuccess: (result) => {
-      // Invalidate ownership query to refetch updated data (FR-014)
-      queryClient.invalidateQueries({
+    onSuccess: async (result) => {
+      // Invalidate AND refetch ownership query to ensure UI updates (FR-014)
+      // First invalidate to mark stale, then refetch to get fresh data
+      await queryClient.invalidateQueries({
         queryKey: ownershipQueryKey(contractAddress),
+      });
+      await queryClient.refetchQueries({
+        queryKey: ownershipQueryKey(contractAddress),
+        type: 'active',
       });
       options?.onSuccess?.(result);
     },
