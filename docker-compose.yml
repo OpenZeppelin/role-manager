@@ -2,7 +2,7 @@ services:
   app:
     build:
       context: ..
-      dockerfile: role-manager/Dockerfile
+      dockerfile: ./Dockerfile
     ports:
       - '3000:3000'
     environment:

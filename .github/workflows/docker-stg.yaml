@@ -20,24 +20,17 @@ permissions:
   actions: read
 
 jobs:
-  build-and-push:
+  publish-rc:
     runs-on: ubuntu-latest
     permissions:
-      id-token: write
-      contents: read
+      contents: write
       packages: write
-      attestations: write
-      security-events: write
-    env:
-      REGISTRY: ${{ secrets.RESEARCH_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
-      IMAGE_NAME: role-manager-stg
-      ROLE_FOR_OIDC: arn:aws:iam::${{ secrets.ROOT_ACCOUNT_ID }}:role/github-actions-research-account-oidc-role
-      ROLE_TO_ASSUME: arn:aws:iam::${{ secrets.RESEARCH_ACCOUNT_ID }}:role/GithubOIDCResearchAccountRole
+      pull-requests: write
     steps:
-      - name: Harden the runner
-        uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
-        with:
-          egress-policy: audit
+      # - name: Harden the runner
+      #   uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
+      #   with:
+      #     egress-policy: audit
 
       - name: Generate GitHub App token
         uses: actions/create-github-app-token@5d869da34e18e7287c1daad50e0b8ea0f506ce69 # v1.11.0
@@ -51,11 +44,112 @@ jobs:
         with:
           token: ${{ steps.gh-app-token.outputs.token }}
 
-      - name: Setup Node.js
-        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+      - name: Prepare pre-requisites
+        uses: ./.github/actions/prepare
         with:
-          node-version: 22.18.0
-          cache: 'pnpm'
+          token: ${{ steps.gh-app-token.outputs.token }}
+
+      # - name: Configure npm authentication for npm registry
+      #   run: |
+      #     echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" >> ~/.npmrc
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build all packages
+        run: pnpm build:app
+        env:
+          NODE_OPTIONS: '--max-old-space-size=8192'
+
+      # - name: Check for pending changesets
+      #   id: changeset-check
+      #   run: |
+      #     # Check if there are any pending changesets to create snapshots from
+      #     if [ -z "$(find .changeset -name '*.md' -not -name 'README.md' -not -name 'config.json')" ]; then
+      #       echo "has_changesets=false" >> $GITHUB_OUTPUT
+      #       echo "⚠️  No pending changesets found. Skipping RC publishing to prevent stable version pollution."
+      #     else
+      #       echo "has_changesets=true" >> $GITHUB_OUTPUT
+      #       echo "✅ Pending changesets found. Proceeding with RC snapshot creation."
+      #     fi
+
+      # - name: Create RC snapshot version
+      #   if: steps.changeset-check.outputs.has_changesets == 'true'
+      #   run: |
+      #     # Create RC snapshot version with 'rc' tag
+      #     pnpm changeset version --snapshot rc
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      #     HUSKY: 0
+
+      # - name: Rebuild packages after version update
+      #   if: steps.changeset-check.outputs.has_changesets == 'true'
+      #   run: pnpm -r build
+      #   env:
+      #     NODE_OPTIONS: '--max-old-space-size=8192'
+
+      # - name: Type check all packages
+      #   if: steps.changeset-check.outputs.has_changesets == 'true'
+      #   run: pnpm -r typecheck
+
+      # - name: Publish RC packages
+      #   if: steps.changeset-check.outputs.has_changesets == 'true'
+      #   run: |
+      #     # Publish RC packages with dependencies pre-built
+      #     # Temporarily disable prepublishOnly scripts to skip rebuild during publishing
+      #     # since we already built all packages with proper dependencies in previous step
+      #     export SKIP_PUBLISH_BUILD=true
+      #     # TRANSITION NOTE: When switching to public npm, this will automatically
+      #     # start publishing RC versions to public npm instead of GitHub registry
+      #     pnpm changeset publish --tag rc --no-git-checks
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      #     HUSKY: 0
+
+      # - name: Skip RC publishing notice
+      #   if: steps.changeset-check.outputs.has_changesets == 'false'
+      #   run: |
+      #     echo "🚫 RC publishing skipped because no pending changesets were found."
+      #     echo "This prevents publishing stable versions with 'rc' tags."
+      #     echo "Stable versions should only be published by the Release workflow with 'latest' tags."
+
+      # - name: Update export versions for RC packages
+      #   if: steps.changeset-check.outputs.has_changesets == 'true'
+      #   run: |
+      #     # Sync versions.ts with the newly published RC versions
+      #     # This ensures staging exports use correct RC versions (e.g., 0.2.1-rc.123)
+      #     pnpm update-export-versions
+
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+      packages: write
+      attestations: write
+      security-events: write
+
+    env:
+      REGISTRY: ${{ secrets.RESEARCH_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
+      IMAGE_NAME: role-manager-stg
+      ROLE_FOR_OIDC: arn:aws:iam::${{ secrets.ROOT_ACCOUNT_ID }}:role/github-actions-research-account-oidc-role
+      ROLE_TO_ASSUME: arn:aws:iam::${{ secrets.RESEARCH_ACCOUNT_ID }}:role/GithubOIDCResearchAccountRole
+    steps:
+      steps:
+      # - name: Harden the runner (Audit all outbound calls)
+      #   uses: step-security/harden-runner@4d991eb9b905ef189e4c376166672c3f2f230481 # v2.11.0
+      #   with:
+      #     egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Prepare pre-requisites
+        uses: ./.github/actions/prepare
+        with:
+          token: ${{ steps.gh-app-token.outputs.token }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.2.0
@@ -74,40 +168,37 @@ jobs:
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
 
-      - name: Build Docker image for scanning
-        uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.10.0
-        with:
-          context: .
-          file: role-manager/Dockerfile
-          platforms: linux/amd64
-          tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          load: true
-          build-args: |
-            VITE_APP_CFG_FEATURE_FLAG_ANALYTICS_ENABLED=true
-            VITE_GA_TAG_ID=${{ secrets.VITE_GA_TAG_ID_STAGING }}
-          secrets: |
-            npm_token=${{ secrets.NPM_TOKEN }}
+      # - name: Build Docker image for scanning
+      #   uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.10.0
+      #   with:
+      #     context: .
+      #     platforms: linux/amd64
+      #     tags: |
+      #       ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+      #     cache-from: type=gha
+      #     cache-to: type=gha,mode=max
+      #     load: true
+          # build-args: |
+          #   VITE_APP_CFG_FEATURE_FLAG_ANALYTICS_ENABLED=false
+          #   VITE_GA_TAG_ID=${{ secrets.VITE_GA_TAG_ID_STAGING }}
 
-      - name: Scan Docker image with Anchore
-        uses: anchore/scan-action@64a33b277ea7a1215a3c142735a1091341939ff5 # v4.1.2
-        id: scan
-        with:
-          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          fail-build: false
+      # Uncomment after making repo public and adding codeql
+      # - name: Scan Docker image with Anchore
+      #   uses: anchore/scan-action@64a33b277ea7a1215a3c142735a1091341939ff5 # v4.1.2
+      #   id: scan
+      #   with:
+      #     image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+      #     fail-build: false
 
-      - name: Upload Anchore scan SARIF report
-        uses: github/codeql-action/upload-sarif@ea9e4e37992a54ee68a9622e985e60c8e8f12d9f # v3.27.4
-        with:
-          sarif_file: ${{ steps.scan.outputs.sarif }}
+      # - name: Upload Anchore scan SARIF report
+      #   uses: github/codeql-action/upload-sarif@ea9e4e37992a54ee68a9622e985e60c8e8f12d9f # v3.27.4
+      #   with:
+      #     sarif_file: ${{ steps.scan.outputs.sarif }}
 
       - name: Build and push multi-platform Docker image
         uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.10.0
         with:
           context: .
-          file: role-manager/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
@@ -115,11 +206,9 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          build-args: |
-            VITE_APP_CFG_FEATURE_FLAG_ANALYTICS_ENABLED=true
-            VITE_GA_TAG_ID=${{ secrets.VITE_GA_TAG_ID_STAGING }}
-          secrets: |
-            npm_token=${{ secrets.NPM_TOKEN }}
+          # build-args: |
+          #   VITE_APP_CFG_FEATURE_FLAG_ANALYTICS_ENABLED=true
+          #   VITE_GA_TAG_ID=${{ secrets.VITE_GA_TAG_ID_STAGING }}
 
   deploy:
     runs-on: ubuntu-latest
@@ -134,10 +223,10 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - name: Harden the runner
-        uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
-        with:
-          egress-policy: audit
+      # - name: Harden the runner
+      #   uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
+      #   with:
+      #     egress-policy: audit
 
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
