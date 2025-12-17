@@ -1,0 +1,42 @@
+# Git
+.git
+.github
+.gitignore
+
+# Docker
+.dockerignore
+Dockerfile
+docker-compose.yml
+
+# Node
+node_modules
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build artifacts
+dist
+coverage
+.next
+.vercel
+
+# Test
+test-results
+coverage
+
+# Editor/OS files
+.vscode
+.idea
+.cursor
+.DS_Store
+*.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Development
+.husky
+.changeset
+specs/

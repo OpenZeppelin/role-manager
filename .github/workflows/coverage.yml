@@ -1,9 +1,8 @@
-# Lint workflow for Role Manager monorepo
-# =======================================
-
-name: Lint
+name: Coverage
 
 on:
+  push:
+    branches: [main]
   pull_request:
     branches: [main]
 
@@ -11,14 +10,12 @@ permissions:
   contents: read
 
 jobs:
-  lint:
-    name: Lint Check
+  coverage:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-
     steps:
-      - name: Harden the runner (Audit all outbound calls)
+      - name: Harden the runner
         uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
         with:
           egress-policy: audit
@@ -44,13 +41,20 @@ jobs:
         uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
         with:
           node-version: 22.x
-          cache: "pnpm"
+          cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Lint check
-        run: pnpm lint
+      - name: Build all packages
+        run: pnpm build
 
-      - name: Format check
-        run: pnpm format:check
+      - name: Run tests with coverage
+        run: pnpm test:coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@015f24e6818733317a2da2edd6290ab26238649a # v5.0.7
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./packages/*/coverage/lcov.info,./apps/*/coverage/lcov.info
+          fail_ci_if_error: false
