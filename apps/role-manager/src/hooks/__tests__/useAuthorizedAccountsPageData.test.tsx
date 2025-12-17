@@ -81,6 +81,17 @@ vi.mock('../useContractRolesEnriched', () => ({
 
 vi.mock('../useContractData', () => ({
   useContractOwnership: (...args: unknown[]) => mockUseContractOwnership(...args),
+  useContractAdminInfo: () => ({
+    adminInfo: null,
+    isLoading: false,
+    isFetching: false,
+    error: null,
+    refetch: vi.fn(),
+    hasAdmin: false,
+    canRetry: false,
+    errorMessage: null,
+    hasError: false,
+  }),
 }));
 
 // Mock useDerivedAccountStatus from react-core (spec 013)

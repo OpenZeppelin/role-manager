@@ -100,6 +100,17 @@ const mockUseContractRoles = vi.fn();
 
 vi.mock('../useContractData', () => ({
   useContractRoles: (...args: unknown[]) => mockUseContractRoles(...args),
+  useContractAdminInfo: () => ({
+    adminInfo: null,
+    isLoading: false,
+    isFetching: false,
+    error: null,
+    refetch: vi.fn(),
+    hasAdmin: false,
+    canRetry: false,
+    errorMessage: null,
+    hasError: false,
+  }),
 }));
 
 // =============================================================================
@@ -794,7 +805,11 @@ describe('useRoleChangesPageData', () => {
       });
 
       expect(result.current.events).toEqual([]);
-      expect(result.current.availableRoles).toEqual([]);
+      // availableRoles always includes synthetic Owner and Admin roles for filtering
+      expect(result.current.availableRoles).toEqual([
+        { id: 'OWNER_ROLE', name: 'Owner' },
+        { id: 'CONTRACT_ADMIN', name: 'Admin' },
+      ]);
     });
 
     it('should return empty state for no contract selected', async () => {
