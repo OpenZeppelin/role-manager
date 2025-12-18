@@ -78,8 +78,8 @@ describe('transformRolesToAccounts', () => {
 
     const result = transformRolesToAccounts(roles, null);
 
-    // Role names are capitalized using getRoleName utility
-    expect(result[0].roles[0].name).toBe('Minter Role');
+    // Role names are capitalized and _ROLE suffix is stripped using getRoleName utility
+    expect(result[0].roles[0].name).toBe('Minter');
   });
 
   it('should preserve original address case (important for Stellar)', () => {

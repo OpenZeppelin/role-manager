@@ -22,6 +22,17 @@ import { useDashboardData } from '../useDashboardData';
 // Mock the hooks
 vi.mock('../useContractData', () => ({
   useContractOwnership: vi.fn(),
+  useContractAdminInfo: vi.fn().mockReturnValue({
+    adminInfo: null,
+    isLoading: false,
+    isFetching: false,
+    error: null,
+    refetch: vi.fn(),
+    hasAdmin: false,
+    canRetry: false,
+    errorMessage: null,
+    hasError: false,
+  }),
 }));
 
 vi.mock('../useContractRolesEnriched', () => ({
