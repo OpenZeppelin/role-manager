@@ -216,6 +216,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
+            VITE_APP_CFG_FEATURE_FLAG_ANALYTICS_ENABLED=true
             VITE_GA_TAG_ID=${{ secrets.VITE_GA_TAG_ID_STAGING }}
 
   deploy:
