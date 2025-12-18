@@ -124,6 +124,7 @@ jobs:
 
   build-and-push:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     permissions:
       id-token: write
       contents: read
