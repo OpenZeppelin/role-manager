@@ -2,7 +2,7 @@ name: Staging Build and Push Docker Images
 
 on:
   push:
-    branches: [main]
+    branches: [fix-docker-stg]
   workflow_dispatch:
     inputs:
       branch:

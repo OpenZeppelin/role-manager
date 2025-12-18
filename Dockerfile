@@ -46,8 +46,7 @@ ENV NODE_OPTIONS="--max-old-space-size=4096"
 # Build all packages and the application with optimizations
 # Use filter to build packages first, then the app
 # This provides better caching and error isolation
-RUN pnpm --filter "./packages/**" build && \
-    pnpm --filter role-manager build
+RUN pnpm build:app
 
 # Runtime stage - using a slim image for a smaller footprint
 FROM node:22-slim@sha256:752ea8a2f758c34002a0461bd9f1cee4f9a3c36d48494586f60ffce1fc708e0e AS runner
