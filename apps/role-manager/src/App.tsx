@@ -171,8 +171,8 @@ function App() {
               </ContractProvider>
             </AdapterProvider>
           </AnalyticsProvider>
+          <Toaster position="top-right" />
         </NetworkErrorNotificationProvider>
-        <Toaster position="top-right" />
       </BrowserRouter>
     </QueryClientProvider>
   );
