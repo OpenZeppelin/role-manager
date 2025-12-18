@@ -15,6 +15,7 @@ permissions:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    timeout-minutes: 30  # Prevent build from hanging indefinitely
     permissions:
       id-token: write
       contents: read
