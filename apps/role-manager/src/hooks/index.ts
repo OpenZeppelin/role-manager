@@ -163,3 +163,6 @@ export type { UsePendingTransfersOptions } from './usePendingTransfers';
 
 // Utility hooks
 export { useDebounce } from './useDebounce';
+
+// Analytics hooks (Feature: analytics)
+export { useRoleManagerAnalytics } from './useRoleManagerAnalytics';
