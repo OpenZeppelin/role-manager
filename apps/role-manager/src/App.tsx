@@ -105,8 +105,11 @@ function App() {
     return null;
   }, []);
 
-  // Get analytics tag ID from environment variable
+  // Get analytics tag ID from environment variable.
+  // Configure VITE_GA_TAG_ID in .env or .env.local file.
   // Staging: G-9PR17V0MCP, Production: G-E0ZEWRWW06
+  // Note: The AnalyticsProvider internally checks the 'analytics_enabled' feature flag
+  // via appConfigService - no explicit check needed here.
   const analyticsTagId = import.meta.env.VITE_GA_TAG_ID || '';
 
   return (
