@@ -11,6 +11,7 @@
   so that Tailwind generates the necessary CSS for those classes.
   - ui: Shared UI components (Header, Sidebar, etc.)
   - react-core: Wallet connection components (WalletConnectionHeader, etc.)
+  - renderer: Network settings dialog and form components
   - adapter-stellar: Stellar wallet UI components (AccountDisplay, etc.)
   - adapter-evm: EVM wallet UI components (for future EVM support)
 */
@@ -18,6 +19,7 @@
 @source "./";
 @source "../../../node_modules/@openzeppelin/ui-builder-ui";
 @source "../../../node_modules/@openzeppelin/ui-builder-react-core";
+@source "../../../node_modules/@openzeppelin/ui-builder-renderer";
 @source "../../../node_modules/@openzeppelin/ui-builder-adapter-stellar";
 @source "../../../node_modules/@openzeppelin/ui-builder-adapter-evm";
 
