@@ -15,7 +15,7 @@ yarn-error.log*
 pnpm-debug.log*
 
 # Build artifacts
-dist
+# dist
 coverage
 .next
 .vercel

@@ -32,13 +32,20 @@ COPY ./package.json ./pnpm-lock.yaml ./pnpm-workspace.yaml ./.npmrc ./
 COPY ./tsconfig.json ./tsconfig.base.json ./tsconfig.node.json ./
 
 # Copy all workspace packages and apps
-COPY ./packages ./apps/ ./
+COPY ./packages ./packages/
+COPY ./apps ./apps/
 
 # Install dependencies directly from the public npm registry
 # Retry once on failure after clearing possible corrupted caches to avoid node-gyp issues
 RUN pnpm install --frozen-lockfile || (echo "Install failed, clearing caches and retrying..." && rm -rf /root/.cache/node-gyp /root/.npm /root/.node-gyp && pnpm install --frozen-lockfile)
 
-# Build all packages and the application
+# Set Node.js memory limit to prevent OOM during build
+# This is especially important for TypeScript compilation in CI environments
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+
+# Build all packages and the application with optimizations
+# Use filter to build packages first, then the app
+# This provides better caching and error isolation
 RUN pnpm build:app
 
 # Runtime stage - using a slim image for a smaller footprint
@@ -53,7 +60,7 @@ WORKDIR /app
 RUN npm install -g serve
 
 # Copy the built application from the base stage
-COPY --from=base /app/role-manager/dist ./dist
+COPY --from=base /app/apps/role-manager/dist ./dist
 
 # Expose the port the app will run on
 EXPOSE 3000
