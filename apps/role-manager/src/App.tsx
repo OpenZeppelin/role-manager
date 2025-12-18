@@ -8,6 +8,7 @@ import {
   WalletStateProvider,
 } from '@openzeppelin/ui-builder-react-core';
 import type { NativeConfigLoader } from '@openzeppelin/ui-builder-types';
+import { NetworkErrorNotificationProvider, Toaster } from '@openzeppelin/ui-builder-ui';
 
 import { TrackedRoute } from './components/Analytics';
 import { MainLayout } from './components/Layout/MainLayout';
@@ -57,6 +58,7 @@ function createQueryClient(): QueryClient {
  * Provider hierarchy:
  * - QueryClientProvider: React Query for data fetching/caching
  * - BrowserRouter: Client-side routing
+ * - NetworkErrorNotificationProvider: Error notifications with "Configure" action buttons
  * - AnalyticsProvider: Google Analytics tracking (Feature: analytics)
  * - AdapterProvider: Manages adapter singleton instances
  * - ContractProvider: Shared contract selection state (OUTSIDE WalletStateProvider)
@@ -77,6 +79,7 @@ function createQueryClient(): QueryClient {
  *
  * Feature: 007-dashboard-real-data
  * Feature: 013-wallet-connect-header (AdapterProvider, WalletStateProvider, WalletSyncProvider)
+ * Feature: network-settings (NetworkErrorNotificationProvider)
  */
 function App() {
   // Create QueryClient inside component with useState for proper encapsulation
@@ -115,58 +118,61 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <AnalyticsProvider tagId={analyticsTagId} autoInit>
-          <AdapterProvider resolveAdapter={getAdapter}>
-            <ContractProvider>
-              <BlockTimeProvider>
-                <WalletStateProvider
-                  initialNetworkId={null}
-                  getNetworkConfigById={getNetworkById}
-                  loadConfigModule={loadAppConfigModule}
-                >
-                  <WalletSyncProvider>
-                    <MainLayout>
-                      <Routes>
-                        <Route
-                          path="/"
-                          element={
-                            <TrackedRoute name="Dashboard">
-                              <Dashboard />
-                            </TrackedRoute>
-                          }
-                        />
-                        <Route
-                          path="/authorized-accounts"
-                          element={
-                            <TrackedRoute name="Authorized Accounts">
-                              <AuthorizedAccounts />
-                            </TrackedRoute>
-                          }
-                        />
-                        <Route
-                          path="/roles"
-                          element={
-                            <TrackedRoute name="Roles">
-                              <Roles />
-                            </TrackedRoute>
-                          }
-                        />
-                        <Route
-                          path="/role-changes"
-                          element={
-                            <TrackedRoute name="Role Changes">
-                              <RoleChanges />
-                            </TrackedRoute>
-                          }
-                        />
-                      </Routes>
-                    </MainLayout>
-                  </WalletSyncProvider>
-                </WalletStateProvider>
-              </BlockTimeProvider>
-            </ContractProvider>
-          </AdapterProvider>
-        </AnalyticsProvider>
+        <NetworkErrorNotificationProvider>
+          <AnalyticsProvider tagId={analyticsTagId} autoInit>
+            <AdapterProvider resolveAdapter={getAdapter}>
+              <ContractProvider>
+                <BlockTimeProvider>
+                  <WalletStateProvider
+                    initialNetworkId={null}
+                    getNetworkConfigById={getNetworkById}
+                    loadConfigModule={loadAppConfigModule}
+                  >
+                    <WalletSyncProvider>
+                      <MainLayout>
+                        <Routes>
+                          <Route
+                            path="/"
+                            element={
+                              <TrackedRoute name="Dashboard">
+                                <Dashboard />
+                              </TrackedRoute>
+                            }
+                          />
+                          <Route
+                            path="/authorized-accounts"
+                            element={
+                              <TrackedRoute name="Authorized Accounts">
+                                <AuthorizedAccounts />
+                              </TrackedRoute>
+                            }
+                          />
+                          <Route
+                            path="/roles"
+                            element={
+                              <TrackedRoute name="Roles">
+                                <Roles />
+                              </TrackedRoute>
+                            }
+                          />
+                          <Route
+                            path="/role-changes"
+                            element={
+                              <TrackedRoute name="Role Changes">
+                                <RoleChanges />
+                              </TrackedRoute>
+                            }
+                          />
+                        </Routes>
+                      </MainLayout>
+                    </WalletSyncProvider>
+                  </WalletStateProvider>
+                </BlockTimeProvider>
+              </ContractProvider>
+            </AdapterProvider>
+          </AnalyticsProvider>
+          <Toaster position="top-right" />
+        </NetworkErrorNotificationProvider>
       </BrowserRouter>
     </QueryClientProvider>
   );
