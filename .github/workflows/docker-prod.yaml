@@ -107,6 +107,7 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             VITE_EXPORT_ENV=production
+            VITE_GA_TAG_ID=${{ secrets.VITE_GA_TAG_ID_PROD }}
 
   deploy:
     runs-on: ubuntu-latest
