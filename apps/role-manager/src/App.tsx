@@ -2,9 +2,14 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useCallback, useState } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
-import { AdapterProvider, WalletStateProvider } from '@openzeppelin/ui-builder-react-core';
+import {
+  AdapterProvider,
+  AnalyticsProvider,
+  WalletStateProvider,
+} from '@openzeppelin/ui-builder-react-core';
 import type { NativeConfigLoader } from '@openzeppelin/ui-builder-types';
 
+import { TrackedRoute } from './components/Analytics';
 import { MainLayout } from './components/Layout/MainLayout';
 import { BlockTimeProvider } from './context/BlockTimeContext';
 import { ContractProvider } from './context/ContractContext';
@@ -52,6 +57,7 @@ function createQueryClient(): QueryClient {
  * Provider hierarchy:
  * - QueryClientProvider: React Query for data fetching/caching
  * - BrowserRouter: Client-side routing
+ * - AnalyticsProvider: Google Analytics tracking (Feature: analytics)
  * - AdapterProvider: Manages adapter singleton instances
  * - ContractProvider: Shared contract selection state (OUTSIDE WalletStateProvider)
  * - WalletStateProvider: Manages wallet connection state
@@ -99,31 +105,65 @@ function App() {
     return null;
   }, []);
 
+  // Get analytics tag ID from environment variable
+  // Staging: G-9PR17V0MCP, Production: G-E0ZEWRWW06
+  const analyticsTagId = import.meta.env.VITE_GA_TAG_ID || '';
+
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <AdapterProvider resolveAdapter={getAdapter}>
-          <ContractProvider>
-            <BlockTimeProvider>
-              <WalletStateProvider
-                initialNetworkId={null}
-                getNetworkConfigById={getNetworkById}
-                loadConfigModule={loadAppConfigModule}
-              >
-                <WalletSyncProvider>
-                  <MainLayout>
-                    <Routes>
-                      <Route path="/" element={<Dashboard />} />
-                      <Route path="/authorized-accounts" element={<AuthorizedAccounts />} />
-                      <Route path="/roles" element={<Roles />} />
-                      <Route path="/role-changes" element={<RoleChanges />} />
-                    </Routes>
-                  </MainLayout>
-                </WalletSyncProvider>
-              </WalletStateProvider>
-            </BlockTimeProvider>
-          </ContractProvider>
-        </AdapterProvider>
+        <AnalyticsProvider tagId={analyticsTagId} autoInit>
+          <AdapterProvider resolveAdapter={getAdapter}>
+            <ContractProvider>
+              <BlockTimeProvider>
+                <WalletStateProvider
+                  initialNetworkId={null}
+                  getNetworkConfigById={getNetworkById}
+                  loadConfigModule={loadAppConfigModule}
+                >
+                  <WalletSyncProvider>
+                    <MainLayout>
+                      <Routes>
+                        <Route
+                          path="/"
+                          element={
+                            <TrackedRoute name="Dashboard">
+                              <Dashboard />
+                            </TrackedRoute>
+                          }
+                        />
+                        <Route
+                          path="/authorized-accounts"
+                          element={
+                            <TrackedRoute name="Authorized Accounts">
+                              <AuthorizedAccounts />
+                            </TrackedRoute>
+                          }
+                        />
+                        <Route
+                          path="/roles"
+                          element={
+                            <TrackedRoute name="Roles">
+                              <Roles />
+                            </TrackedRoute>
+                          }
+                        />
+                        <Route
+                          path="/role-changes"
+                          element={
+                            <TrackedRoute name="Role Changes">
+                              <RoleChanges />
+                            </TrackedRoute>
+                          }
+                        />
+                      </Routes>
+                    </MainLayout>
+                  </WalletSyncProvider>
+                </WalletStateProvider>
+              </BlockTimeProvider>
+            </ContractProvider>
+          </AdapterProvider>
+        </AnalyticsProvider>
       </BrowserRouter>
     </QueryClientProvider>
   );
