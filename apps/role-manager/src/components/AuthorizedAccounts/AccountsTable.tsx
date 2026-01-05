@@ -17,8 +17,8 @@
  * - Indeterminate state when partial selection
  */
 
-import { Checkbox } from '@openzeppelin/ui-builder-ui';
-import { cn } from '@openzeppelin/ui-builder-utils';
+import { Checkbox } from '@openzeppelin/ui-components';
+import { cn } from '@openzeppelin/ui-utils';
 
 import {
   getMasterCheckboxState,

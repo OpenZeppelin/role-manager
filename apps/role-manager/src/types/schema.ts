@@ -5,7 +5,7 @@
  * These types support the useContractSchemaLoader hook and schema comparison functionality.
  */
 
-import type { ContractSchema } from '@openzeppelin/ui-builder-types';
+import type { ContractSchema } from '@openzeppelin/ui-types';
 
 import type { ContractSchemaSource, RecentContractRecord } from './storage';
 

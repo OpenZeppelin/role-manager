@@ -15,7 +15,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { AccessControlCapabilities, OwnershipInfo } from '@openzeppelin/ui-builder-types';
+import type { AccessControlCapabilities, OwnershipInfo } from '@openzeppelin/ui-types';
 
 import type { EnrichedRoleAssignment } from '../../types/authorized-accounts';
 import { useAuthorizedAccountsPageData } from '../useAuthorizedAccountsPageData';
@@ -97,7 +97,7 @@ vi.mock('../useContractData', () => ({
 // Mock useDerivedAccountStatus from react-core (spec 013)
 const mockUseDerivedAccountStatus = vi.fn();
 
-vi.mock('@openzeppelin/ui-builder-react-core', () => ({
+vi.mock('@openzeppelin/ui-react', () => ({
   useDerivedAccountStatus: () => mockUseDerivedAccountStatus(),
 }));
 

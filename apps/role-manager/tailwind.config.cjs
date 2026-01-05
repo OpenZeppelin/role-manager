@@ -1,7 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   // Minimal config for Tailwind v4
-  // Theme configuration has moved to @openzeppelin/ui-builder-styles/global.css using @theme directives
+  // Theme configuration has moved to @openzeppelin/ui-styles/global.css using @theme directives
 
   // Content paths are automatically detected by Tailwind v4 via the source() function in index.css
   // Theme is defined in global.css from the styles package

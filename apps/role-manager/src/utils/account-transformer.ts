@@ -7,7 +7,7 @@
  *
  * Tasks: T014-T016 (transformRolesToAccounts, sortAccounts, applyAccountsFilters)
  */
-import type { OwnershipInfo } from '@openzeppelin/ui-builder-types';
+import type { OwnershipInfo } from '@openzeppelin/ui-types';
 
 import { OWNER_ROLE_ID, OWNER_ROLE_NAME } from '../constants';
 import type {

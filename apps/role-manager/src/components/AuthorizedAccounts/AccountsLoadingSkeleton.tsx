@@ -13,8 +13,8 @@
  * - Uses shimmer animation via animate-pulse class
  */
 
-import { Card } from '@openzeppelin/ui-builder-ui';
-import { cn } from '@openzeppelin/ui-builder-utils';
+import { Card } from '@openzeppelin/ui-components';
+import { cn } from '@openzeppelin/ui-utils';
 
 import { Skeleton } from '../Shared/Skeleton';
 

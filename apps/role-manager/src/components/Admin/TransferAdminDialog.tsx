@@ -36,8 +36,8 @@ import {
   DialogTitle,
   Input,
   Label,
-} from '@openzeppelin/ui-builder-ui';
-import { cn } from '@openzeppelin/ui-builder-utils';
+} from '@openzeppelin/ui-components';
+import { cn } from '@openzeppelin/ui-utils';
 
 import { getEcosystemAddressExample } from '@/core/ecosystems/registry';
 

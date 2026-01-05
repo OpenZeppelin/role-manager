@@ -7,8 +7,8 @@
 
 import { ShieldX } from 'lucide-react';
 
-import type { AccessControlCapabilities } from '@openzeppelin/ui-builder-types';
-import { Button } from '@openzeppelin/ui-builder-ui';
+import { Button } from '@openzeppelin/ui-components';
+import type { AccessControlCapabilities } from '@openzeppelin/ui-types';
 
 import { AccessControlCapabilitiesSummary } from './AccessControlCapabilitiesSummary';
 

@@ -14,8 +14,8 @@
 
 import { FileSearch, RefreshCw } from 'lucide-react';
 
-import { Button, Card } from '@openzeppelin/ui-builder-ui';
-import { cn } from '@openzeppelin/ui-builder-utils';
+import { Button, Card } from '@openzeppelin/ui-components';
+import { cn } from '@openzeppelin/ui-utils';
 
 import {
   ChangesEmptyState,

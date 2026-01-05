@@ -10,8 +10,8 @@
 
 import { Clock, Loader2 } from 'lucide-react';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@openzeppelin/ui-builder-ui';
-import { cn } from '@openzeppelin/ui-builder-utils';
+import { Card, CardContent, CardHeader, CardTitle } from '@openzeppelin/ui-components';
+import { cn } from '@openzeppelin/ui-utils';
 
 import type { PendingTransfer } from '../../types/pending-transfers';
 import { EmptyState } from '../Shared/EmptyState';

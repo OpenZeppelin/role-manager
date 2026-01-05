@@ -8,7 +8,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-import type { NetworkConfig } from '@openzeppelin/ui-builder-types';
+import type { NetworkConfig } from '@openzeppelin/ui-types';
 
 import { getNetworksByEcosystem } from '@/core/ecosystems/ecosystemManager';
 import { ECOSYSTEM_ORDER, getEcosystemDefaultFeatureConfig } from '@/core/ecosystems/registry';

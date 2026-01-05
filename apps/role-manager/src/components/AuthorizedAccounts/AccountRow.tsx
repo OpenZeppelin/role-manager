@@ -17,8 +17,8 @@
  * - Checkbox: follows Radix UI states (checked, unchecked)
  */
 
-import { AddressDisplay, Checkbox } from '@openzeppelin/ui-builder-ui';
-import { cn } from '@openzeppelin/ui-builder-utils';
+import { AddressDisplay, Checkbox } from '@openzeppelin/ui-components';
+import { cn } from '@openzeppelin/ui-utils';
 
 import {
   ACCOUNT_STATUS_CONFIG,

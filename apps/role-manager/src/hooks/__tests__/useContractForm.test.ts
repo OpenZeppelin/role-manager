@@ -7,7 +7,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ContractAdapter, NetworkConfig } from '@openzeppelin/ui-builder-types';
+import type { ContractAdapter, NetworkConfig } from '@openzeppelin/ui-types';
 
 import { getEcosystemAddressExample, getEcosystemName } from '@/core/ecosystems/registry';
 

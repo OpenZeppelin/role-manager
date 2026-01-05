@@ -3,7 +3,7 @@
  * Shared utilities for formatting role names for display.
  */
 
-import { truncateMiddle } from '@openzeppelin/ui-builder-utils';
+import { truncateMiddle } from '@openzeppelin/ui-utils';
 
 import { isHash } from './hash';
 

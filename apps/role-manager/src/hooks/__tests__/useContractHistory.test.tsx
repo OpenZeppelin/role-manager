@@ -20,7 +20,7 @@ import type {
   HistoryEntry,
   NetworkConfig,
   PaginatedHistoryResult,
-} from '@openzeppelin/ui-builder-types';
+} from '@openzeppelin/ui-types';
 
 import { DEFAULT_PAGE_SIZE, useContractHistory } from '../useContractHistory';
 

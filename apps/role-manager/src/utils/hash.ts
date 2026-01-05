@@ -4,7 +4,7 @@
  * Provides functions for detecting and handling blockchain hash values
  * (bytes32, hex strings, etc.) for display purposes.
  *
- * Note: truncateMiddle from @openzeppelin/ui-builder-utils should be used
+ * Note: truncateMiddle from @openzeppelin/ui-utils should be used
  * for truncating hashes for display.
  */
 

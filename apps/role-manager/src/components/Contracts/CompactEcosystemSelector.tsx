@@ -8,8 +8,8 @@
 
 import { NetworkEthereum, NetworkSolana, NetworkStellar } from '@web3icons/react';
 
-import type { Ecosystem } from '@openzeppelin/ui-builder-types';
-import { MidnightIcon } from '@openzeppelin/ui-builder-ui';
+import { MidnightIcon } from '@openzeppelin/ui-components';
+import type { Ecosystem } from '@openzeppelin/ui-types';
 
 import {
   ECOSYSTEM_ORDER,

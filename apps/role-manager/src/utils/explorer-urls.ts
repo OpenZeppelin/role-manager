@@ -6,7 +6,7 @@
  * URL patterns across chains (EVM, Stellar, etc.).
  */
 
-import type { ContractAdapter } from '@openzeppelin/ui-builder-types';
+import type { ContractAdapter } from '@openzeppelin/ui-types';
 
 /**
  * Function type for generating explorer URLs.

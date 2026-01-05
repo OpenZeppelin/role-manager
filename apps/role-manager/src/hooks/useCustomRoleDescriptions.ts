@@ -7,7 +7,7 @@
  */
 import { useCallback, useEffect, useState } from 'react';
 
-import { logger } from '@openzeppelin/ui-builder-utils';
+import { logger } from '@openzeppelin/ui-utils';
 
 import { recentContractsStorage } from '@/core/storage/RecentContractsStorage';
 import type { CustomRoleDescriptions } from '@/types/storage';

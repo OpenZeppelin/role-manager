@@ -8,7 +8,7 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { PropsWithChildren } from 'react';
 
-import type { ContractAdapter, NetworkConfig } from '@openzeppelin/ui-builder-types';
+import type { ContractAdapter, NetworkConfig } from '@openzeppelin/ui-types';
 
 import { ContractProvider } from '../../context/ContractContext';
 import type { ContractRecord } from '../../types/contracts';

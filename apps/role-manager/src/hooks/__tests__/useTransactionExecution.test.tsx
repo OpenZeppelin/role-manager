@@ -9,11 +9,7 @@ import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { PropsWithChildren } from 'react';
 
-import type {
-  OperationResult,
-  TransactionStatusUpdate,
-  TxStatus,
-} from '@openzeppelin/ui-builder-types';
+import type { OperationResult, TransactionStatusUpdate, TxStatus } from '@openzeppelin/ui-types';
 
 import {
   isUserRejectionError,

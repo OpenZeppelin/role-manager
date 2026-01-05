@@ -13,7 +13,7 @@
 
 import { useCallback, useMemo, useState } from 'react';
 
-import type { ContractAdapter } from '@openzeppelin/ui-builder-types';
+import type { ContractAdapter } from '@openzeppelin/ui-types';
 
 import type { UseDashboardDataReturn } from '../types/dashboard';
 import { getUniqueAccountsCount } from '../utils/deduplication';

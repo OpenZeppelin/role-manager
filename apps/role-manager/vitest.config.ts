@@ -13,7 +13,7 @@ export default mergeConfig(
       include: ['src/**/*.{test,spec}.{ts,tsx}'],
       server: {
         deps: {
-          inline: ['@openzeppelin/ui-builder-ui', '@uiw/react-textarea-code-editor'],
+          inline: ['@openzeppelin/ui-components', '@uiw/react-textarea-code-editor'],
         },
       },
     },

@@ -24,8 +24,8 @@ import { FileSearch, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCallback, useMemo, useState } from 'react';
 
-import { Button, Card } from '@openzeppelin/ui-builder-ui';
-import { cn } from '@openzeppelin/ui-builder-utils';
+import { Button, Card } from '@openzeppelin/ui-components';
+import { cn } from '@openzeppelin/ui-utils';
 
 import { AcceptAdminTransferDialog, TransferAdminDialog } from '../components/Admin';
 import { AcceptOwnershipDialog, TransferOwnershipDialog } from '../components/Ownership';

@@ -1,6 +1,6 @@
 import { Loader2 } from 'lucide-react';
 
-import { cn } from '@openzeppelin/ui-builder-utils';
+import { cn } from '@openzeppelin/ui-utils';
 
 export interface SelectLoadingPlaceholderProps {
   /** Text shown while select options load */

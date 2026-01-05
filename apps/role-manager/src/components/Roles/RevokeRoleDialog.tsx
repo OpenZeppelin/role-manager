@@ -34,7 +34,7 @@ import {
   DialogHeader,
   DialogTitle,
   Label,
-} from '@openzeppelin/ui-builder-ui';
+} from '@openzeppelin/ui-components';
 
 import { useRevokeRoleDialog } from '../../hooks/useRevokeRoleDialog';
 import {

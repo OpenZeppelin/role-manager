@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import { useLiveQuery } from '@openzeppelin/ui-builder-storage';
+import { useLiveQuery } from '@openzeppelin/ui-storage';
 
 import { db } from '@/core/storage';
 import { recentContractsStorage } from '@/core/storage/RecentContractsStorage';

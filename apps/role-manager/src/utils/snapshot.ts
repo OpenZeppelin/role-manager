@@ -6,13 +6,13 @@
  * with truncated addresses and filesystem-safe timestamps.
  */
 
-import { truncateMiddle } from '@openzeppelin/ui-builder-utils';
+import { truncateMiddle } from '@openzeppelin/ui-utils';
 
 /**
  * Truncates an address to a shorter format for display and filenames.
  *
  * Uses the format: `{prefix}...{suffix}` (e.g., "GCKF...MTGG")
- * Wraps the `truncateMiddle` utility from ui-builder-utils with address-specific defaults.
+ * Wraps the `truncateMiddle` utility from @openzeppelin/ui-utils with address-specific defaults.
  *
  * @param address - The full address to truncate
  * @param prefixLen - Number of characters to keep at the start (default: 4)

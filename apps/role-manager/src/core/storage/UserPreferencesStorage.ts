@@ -1,4 +1,4 @@
-import { KeyValueStorage } from '@openzeppelin/ui-builder-storage';
+import { KeyValueStorage } from '@openzeppelin/ui-storage';
 
 import { db } from './database';
 

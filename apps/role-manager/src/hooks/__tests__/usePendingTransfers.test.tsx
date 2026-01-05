@@ -13,7 +13,7 @@ import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { type ReactNode } from 'react';
 
-import type { ContractAdapter, OwnershipInfo } from '@openzeppelin/ui-builder-types';
+import type { ContractAdapter, OwnershipInfo } from '@openzeppelin/ui-types';
 
 import { DataError, ErrorCategory } from '../../utils/errors';
 import * as useContractDataModule from '../useContractData';

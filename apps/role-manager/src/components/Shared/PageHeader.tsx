@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react';
 
-import { cn } from '@openzeppelin/ui-builder-utils';
+import { cn } from '@openzeppelin/ui-utils';
 
 interface PageHeaderProps {
   title: string;

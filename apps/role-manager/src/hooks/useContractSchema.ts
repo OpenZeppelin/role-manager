@@ -8,8 +8,8 @@
 
 import { useCallback, useRef, useState } from 'react';
 
-import type { ContractAdapter, ContractSchema } from '@openzeppelin/ui-builder-types';
-import { logger } from '@openzeppelin/ui-builder-utils';
+import type { ContractAdapter, ContractSchema } from '@openzeppelin/ui-types';
+import { logger } from '@openzeppelin/ui-utils';
 
 import { recentContractsStorage } from '@/core/storage/RecentContractsStorage';
 import type {

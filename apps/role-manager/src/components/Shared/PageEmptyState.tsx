@@ -1,5 +1,5 @@
-import { Card, CardContent } from '@openzeppelin/ui-builder-ui';
-import { cn } from '@openzeppelin/ui-builder-utils';
+import { Card, CardContent } from '@openzeppelin/ui-components';
+import { cn } from '@openzeppelin/ui-utils';
 
 import { EmptyState, EmptyStateProps } from './EmptyState';
 

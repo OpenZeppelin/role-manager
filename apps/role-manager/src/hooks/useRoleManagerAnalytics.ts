@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import { useAnalytics } from '@openzeppelin/ui-builder-react-core';
+import { useAnalytics } from '@openzeppelin/ui-react';
 
 /**
  * Role Manager specific analytics tracking hook.

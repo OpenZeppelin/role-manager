@@ -7,11 +7,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type {
-  ContractAdapter,
-  ContractSchema,
-  NetworkConfig,
-} from '@openzeppelin/ui-builder-types';
+import type { ContractAdapter, ContractSchema, NetworkConfig } from '@openzeppelin/ui-types';
 
 import type { SchemaLoadResult } from '@/types/schema';
 import { DEFAULT_CIRCUIT_BREAKER_CONFIG } from '@/types/schema';

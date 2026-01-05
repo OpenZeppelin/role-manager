@@ -23,7 +23,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@openzeppelin/ui-builder-ui';
+} from '@openzeppelin/ui-components';
 
 // =============================================================================
 // Types

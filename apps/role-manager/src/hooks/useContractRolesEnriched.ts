@@ -12,7 +12,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
-import type { ContractAdapter, RoleAssignment } from '@openzeppelin/ui-builder-types';
+import type { ContractAdapter, RoleAssignment } from '@openzeppelin/ui-types';
 
 import type { EnrichedRoleAssignment } from '../types/authorized-accounts';
 import { DataError, ErrorCategory, wrapError } from '../utils/errors';

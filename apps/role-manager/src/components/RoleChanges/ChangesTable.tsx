@@ -12,7 +12,7 @@
  * Tasks: T007
  */
 
-import { cn } from '@openzeppelin/ui-builder-utils';
+import { cn } from '@openzeppelin/ui-utils';
 
 import type { RoleChangeEventView } from '../../types/role-changes';
 import { ChangeRow } from './ChangeRow';

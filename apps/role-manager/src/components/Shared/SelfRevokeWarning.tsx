@@ -14,8 +14,8 @@
 
 import { AlertTriangle } from 'lucide-react';
 
-import { Alert, AlertDescription, AlertTitle } from '@openzeppelin/ui-builder-ui';
-import { cn } from '@openzeppelin/ui-builder-utils';
+import { Alert, AlertDescription, AlertTitle } from '@openzeppelin/ui-components';
+import { cn } from '@openzeppelin/ui-utils';
 
 /**
  * Props for SelfRevokeWarning component

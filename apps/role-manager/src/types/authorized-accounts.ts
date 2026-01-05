@@ -7,7 +7,7 @@
  * Supports real blockchain data from AccessControlService.
  */
 
-import type { EnrichedRoleAssignment, EnrichedRoleMember } from '@openzeppelin/ui-builder-types';
+import type { EnrichedRoleAssignment, EnrichedRoleMember } from '@openzeppelin/ui-types';
 
 // Re-export adapter types for convenience
 // Note: RoleIdentifier is not re-exported here as it's defined in ./roles.ts

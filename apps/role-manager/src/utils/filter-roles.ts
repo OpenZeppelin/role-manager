@@ -12,7 +12,7 @@
  * AccessControl role that can have multiple members.
  */
 
-import type { RoleAssignment } from '@openzeppelin/ui-builder-types';
+import type { RoleAssignment } from '@openzeppelin/ui-types';
 
 import { ADMIN_ROLE_ID, OWNER_ROLE_ID, OWNER_ROLE_NAME } from '../constants/roles';
 import type { RoleBadgeInfo } from '../types/authorized-accounts';

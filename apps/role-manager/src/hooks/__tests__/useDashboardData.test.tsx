@@ -11,7 +11,7 @@ import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { type ReactNode } from 'react';
 
-import type { ContractAdapter, OwnershipInfo } from '@openzeppelin/ui-builder-types';
+import type { ContractAdapter, OwnershipInfo } from '@openzeppelin/ui-types';
 
 import type { EnrichedRoleAssignment } from '../../types/authorized-accounts';
 import { DataError, ErrorCategory } from '../../utils/errors';

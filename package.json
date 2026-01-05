@@ -30,8 +30,8 @@
     "prepare": "husky",
     "commit": "git-cz",
     "changeset": "changeset",
-    "dev:local": "./scripts/setup-local-dev.sh local",
-    "dev:registry": "./scripts/setup-local-dev.sh registry"
+    "dev:local": "LOCAL_UI=true pnpm install --force && echo '✅ Using local @openzeppelin/ui-* packages from ../openzeppelin-ui'",
+    "dev:npm": "pnpm install --force && echo '✅ Using npm @openzeppelin/ui-* packages'"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,cjs,mjs}": "pnpm fix-all"

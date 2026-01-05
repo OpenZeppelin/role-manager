@@ -10,7 +10,7 @@
  */
 import { ShieldOff } from 'lucide-react';
 
-import { cn } from '@openzeppelin/ui-builder-utils';
+import { cn } from '@openzeppelin/ui-utils';
 
 import { PageEmptyState } from '../Shared/PageEmptyState';
 

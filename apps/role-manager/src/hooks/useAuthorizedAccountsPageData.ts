@@ -9,8 +9,8 @@
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { useDerivedAccountStatus } from '@openzeppelin/ui-builder-react-core';
-import type { AccessControlCapabilities } from '@openzeppelin/ui-builder-types';
+import { useDerivedAccountStatus } from '@openzeppelin/ui-react';
+import type { AccessControlCapabilities } from '@openzeppelin/ui-types';
 
 import {
   DEFAULT_FILTER_STATE,

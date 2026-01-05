@@ -1,6 +1,6 @@
 # Storage Layer Documentation
 
-The application uses IndexedDB (via Dexie) for client-side persistence, powered by the `@openzeppelin/ui-builder-storage` package.
+The application uses IndexedDB (via Dexie) for client-side persistence, powered by the `@openzeppelin/ui-storage` package.
 
 ## Database Structure
 

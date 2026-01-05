@@ -16,8 +16,8 @@
 import { FileSearch, RefreshCw, Users } from 'lucide-react';
 import { useState } from 'react';
 
-import { Button, Card } from '@openzeppelin/ui-builder-ui';
-import { cn, logger } from '@openzeppelin/ui-builder-utils';
+import { Button, Card } from '@openzeppelin/ui-components';
+import { cn, logger } from '@openzeppelin/ui-utils';
 
 import {
   AccountsEmptyState,

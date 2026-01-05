@@ -8,8 +8,8 @@
 
 import { ShieldOff } from 'lucide-react';
 
-import { Checkbox, EmptyState, Label } from '@openzeppelin/ui-builder-ui';
-import { cn } from '@openzeppelin/ui-builder-utils';
+import { Checkbox, EmptyState, Label } from '@openzeppelin/ui-components';
+import { cn } from '@openzeppelin/ui-utils';
 
 import type { RoleCheckboxItem } from '@/types/role-dialogs';
 

@@ -2,7 +2,7 @@
  * Pagination Component
  *
  * A reusable pagination control component for navigating through paginated data.
- * Designed to be portable to ui-builder-ui package in the future.
+ * Designed to be portable to @openzeppelin/ui-components package in the future.
  *
  * Features:
  * - Displays "Showing X-Y of Z {itemLabel}" summary
@@ -14,8 +14,8 @@
 
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-import { Button } from '@openzeppelin/ui-builder-ui';
-import { cn } from '@openzeppelin/ui-builder-utils';
+import { Button } from '@openzeppelin/ui-components';
+import { cn } from '@openzeppelin/ui-utils';
 
 /**
  * Pagination state interface - can be satisfied by any pagination hook

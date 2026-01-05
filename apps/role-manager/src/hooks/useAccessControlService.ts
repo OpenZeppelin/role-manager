@@ -8,7 +8,7 @@
 
 import { useMemo } from 'react';
 
-import type { AccessControlService, ContractAdapter } from '@openzeppelin/ui-builder-types';
+import type { AccessControlService, ContractAdapter } from '@openzeppelin/ui-types';
 
 /**
  * Return type for useAccessControlService hook

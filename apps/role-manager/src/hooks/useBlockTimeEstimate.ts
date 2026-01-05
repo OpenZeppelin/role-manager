@@ -13,7 +13,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import type { ContractAdapter } from '@openzeppelin/ui-builder-types';
+import type { ContractAdapter } from '@openzeppelin/ui-types';
 
 import { useCurrentBlock } from './useCurrentBlock';
 

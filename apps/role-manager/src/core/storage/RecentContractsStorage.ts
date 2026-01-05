@@ -1,7 +1,7 @@
 import type { Table } from 'dexie';
 
-import { EntityStorage, withQuotaHandling } from '@openzeppelin/ui-builder-storage';
-import { simpleHash } from '@openzeppelin/ui-builder-utils';
+import { EntityStorage, withQuotaHandling } from '@openzeppelin/ui-storage';
+import { simpleHash } from '@openzeppelin/ui-utils';
 
 import type {
   ContractSchemaInput,

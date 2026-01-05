@@ -25,9 +25,9 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@openzeppelin/ui-builder-ui';
-import type { DateRange } from '@openzeppelin/ui-builder-ui';
-import { cn } from '@openzeppelin/ui-builder-utils';
+} from '@openzeppelin/ui-components';
+import type { DateRange } from '@openzeppelin/ui-components';
+import { cn } from '@openzeppelin/ui-utils';
 
 import {
   ACTION_TYPE_CONFIG,

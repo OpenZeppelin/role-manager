@@ -17,11 +17,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type {
-  AccessControlCapabilities,
-  HistoryEntry,
-  PageInfo,
-} from '@openzeppelin/ui-builder-types';
+import type { AccessControlCapabilities, HistoryEntry, PageInfo } from '@openzeppelin/ui-types';
 
 import { useRoleChangesPageData } from '../useRoleChangesPageData';
 

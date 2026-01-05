@@ -29,7 +29,6 @@
 
 import { useCallback, useState } from 'react';
 
-import { useDerivedAccountStatus } from '@openzeppelin/ui-builder-react-core';
 import {
   AddressDisplay,
   Button,
@@ -40,7 +39,8 @@ import {
   DialogHeader,
   DialogTitle,
   Label,
-} from '@openzeppelin/ui-builder-ui';
+} from '@openzeppelin/ui-components';
+import { useDerivedAccountStatus } from '@openzeppelin/ui-react';
 
 import { useManageRolesDialog } from '../../hooks/useManageRolesDialog';
 import { useRolesPageData } from '../../hooks/useRolesPageData';

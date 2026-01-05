@@ -18,7 +18,7 @@ import type {
   AccessControlCapabilities,
   OwnershipInfo,
   RoleAssignment,
-} from '@openzeppelin/ui-builder-types';
+} from '@openzeppelin/ui-types';
 
 import { useRolesPageData } from '../useRolesPageData';
 
@@ -94,7 +94,7 @@ vi.mock('../useSelectedContract', () => ({
 // Mock useDerivedAccountStatus from react-core (spec 013)
 const mockUseDerivedAccountStatus = vi.fn();
 
-vi.mock('@openzeppelin/ui-builder-react-core', () => ({
+vi.mock('@openzeppelin/ui-react', () => ({
   useDerivedAccountStatus: () => mockUseDerivedAccountStatus(),
 }));
 

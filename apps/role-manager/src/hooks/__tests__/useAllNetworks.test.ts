@@ -7,7 +7,7 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { NetworkConfig } from '@openzeppelin/ui-builder-types';
+import type { NetworkConfig } from '@openzeppelin/ui-types';
 
 // Import after mock setup
 import { getNetworksByEcosystem } from '@/core/ecosystems/ecosystemManager';

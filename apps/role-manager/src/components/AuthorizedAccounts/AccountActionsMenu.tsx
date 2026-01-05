@@ -16,8 +16,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@openzeppelin/ui-builder-ui';
-import { cn } from '@openzeppelin/ui-builder-utils';
+} from '@openzeppelin/ui-components';
+import { cn } from '@openzeppelin/ui-utils';
 
 import { ACCOUNT_ACTIONS, type AccountAction } from '../../types/authorized-accounts';
 
