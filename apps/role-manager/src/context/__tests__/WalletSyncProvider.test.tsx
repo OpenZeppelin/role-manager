@@ -76,7 +76,7 @@ vi.mock('@openzeppelin/ui-react', () => ({
   NetworkSwitchManager: () => null,
 }));
 
-// Mock logger from ui-builder-utils
+// Mock logger from @openzeppelin/ui-utils
 vi.mock('@openzeppelin/ui-utils', () => ({
   logger: {
     info: vi.fn(),

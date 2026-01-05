@@ -2,7 +2,7 @@
  * Pagination Component
  *
  * A reusable pagination control component for navigating through paginated data.
- * Designed to be portable to ui-builder-ui package in the future.
+ * Designed to be portable to @openzeppelin/ui-components package in the future.
  *
  * Features:
  * - Displays "Showing X-Y of Z {itemLabel}" summary
