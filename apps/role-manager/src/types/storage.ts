@@ -1,9 +1,9 @@
-import type { BaseRecord } from '@openzeppelin/ui-builder-storage';
+import type { BaseRecord } from '@openzeppelin/ui-storage';
 import type {
   AccessControlCapabilities,
   ContractSchema,
   Ecosystem,
-} from '@openzeppelin/ui-builder-types';
+} from '@openzeppelin/ui-types';
 
 /**
  * Source of the contract schema definition

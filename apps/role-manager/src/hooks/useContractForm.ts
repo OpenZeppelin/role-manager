@@ -9,7 +9,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
-import type { NetworkConfig } from '@openzeppelin/ui-builder-types';
+import type { NetworkConfig } from '@openzeppelin/ui-types';
 
 import { getEcosystemAddressExample, getEcosystemName } from '@/core/ecosystems/registry';
 import type { AddContractFormData, UseContractFormReturn } from '@/types/contracts';

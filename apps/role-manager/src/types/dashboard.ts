@@ -10,7 +10,7 @@ import type {
   AccessControlCapabilities,
   ContractAdapter,
   NetworkConfig,
-} from '@openzeppelin/ui-builder-types';
+} from '@openzeppelin/ui-types';
 
 import type { ContractRecord } from './contracts';
 

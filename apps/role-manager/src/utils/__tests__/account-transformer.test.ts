@@ -9,7 +9,7 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import type { OwnershipInfo } from '@openzeppelin/ui-builder-types';
+import type { OwnershipInfo } from '@openzeppelin/ui-types';
 
 import type {
   AccountsFilterState,

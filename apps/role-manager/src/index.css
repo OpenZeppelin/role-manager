@@ -3,31 +3,26 @@
 
 /* 
   Import Tailwind directives.
-  The `source()` function is a Tailwind v4 feature that sets the base path for
-  automatic content detection. By setting it to the app source directory, Tailwind
-  can discover all necessary files in the app.
-  
-  NOTE: Each UI Builder package that contains Tailwind classes must be listed here
-  so that Tailwind generates the necessary CSS for those classes.
-  - ui: Shared UI components (Header, Sidebar, etc.)
-  - react-core: Wallet connection components (WalletConnectionHeader, etc.)
-  - renderer: Network settings dialog and form components
-  - adapter-stellar: Stellar wallet UI components (AccountDisplay, etc.)
-  - adapter-evm: EVM wallet UI components (for future EVM support)
+  Tailwind v4 uses automatic content detection for the local project.
+  The source() function sets the base path for scanning - we use the monorepo root.
+  This ensures consistent path resolution in both local dev and Docker builds.
 */
-@import 'tailwindcss';
-@source "./";
-@source "../../../node_modules/@openzeppelin/ui-builder-ui";
-@source "../../../node_modules/@openzeppelin/ui-builder-react-core";
-@source "../../../node_modules/@openzeppelin/ui-builder-renderer";
-@source "../../../node_modules/@openzeppelin/ui-builder-adapter-stellar";
-@source "../../../node_modules/@openzeppelin/ui-builder-adapter-evm";
+@import 'tailwindcss' source('../../../');
 
 /*
-  Import global theme variables and base styles from the UI Builder styles package.
-  This provides the design system theme, CSS variables, and base styles.
+  Tell Tailwind to scan @openzeppelin npm packages for class names.
+  These packages are installed in node_modules and contain compiled JS files
+  with Tailwind classes that need to be included in the final CSS.
+  
+  Note: node_modules is ignored by default (gitignore patterns), so we must
+  explicitly register it with @source. Path is relative to the stylesheet.
 */
-@import '@openzeppelin/ui-builder-styles/global.css';
+@source "../../../node_modules/@openzeppelin";
+
+/*
+  Import global theme variables and base styles from the @openzeppelin/ui-styles package.
+*/
+@import '@openzeppelin/ui-styles/global.css';
 
 /* App-specific styles or overrides can be added here, preferably in layers */
 @layer components {

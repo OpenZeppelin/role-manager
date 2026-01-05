@@ -8,7 +8,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
-import type { ContractAdapter, NetworkConfig } from '@openzeppelin/ui-builder-types';
+import type { ContractAdapter, NetworkConfig } from '@openzeppelin/ui-types';
 
 import { getAdapter } from '@/core/ecosystems/ecosystemManager';
 import type { UseNetworkAdapterReturn } from '@/types/contracts';

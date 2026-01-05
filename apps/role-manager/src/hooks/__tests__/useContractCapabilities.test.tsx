@@ -15,7 +15,7 @@ import type {
   AccessControlService,
   ContractAdapter,
   NetworkConfig,
-} from '@openzeppelin/ui-builder-types';
+} from '@openzeppelin/ui-types';
 
 import { useContractCapabilities } from '../useContractCapabilities';
 

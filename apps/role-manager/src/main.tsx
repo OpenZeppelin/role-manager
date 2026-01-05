@@ -1,7 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
-import { appConfigService } from '@openzeppelin/ui-builder-utils';
+import { appConfigService } from '@openzeppelin/ui-utils';
 
 import './index.css';
 

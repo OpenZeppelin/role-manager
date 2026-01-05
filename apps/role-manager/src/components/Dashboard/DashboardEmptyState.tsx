@@ -8,7 +8,7 @@
 import { FileSearch } from 'lucide-react';
 import { useState } from 'react';
 
-import { Button, Card, CardContent } from '@openzeppelin/ui-builder-ui';
+import { Button, Card, CardContent } from '@openzeppelin/ui-components';
 
 import { AddContractDialog } from '../Contracts/AddContractDialog';
 

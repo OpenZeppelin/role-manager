@@ -9,7 +9,7 @@ import { act, render, renderHook, screen, waitFor } from '@testing-library/react
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { PropsWithChildren } from 'react';
 
-import type { ContractAdapter, NetworkConfig } from '@openzeppelin/ui-builder-types';
+import type { ContractAdapter, NetworkConfig } from '@openzeppelin/ui-types';
 
 import type { ContractRecord } from '../../types/contracts';
 import { ContractProvider, useContractContext } from '../ContractContext';

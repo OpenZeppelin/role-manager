@@ -10,7 +10,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
-import type { ContractAdapter } from '@openzeppelin/ui-builder-types';
+import type { ContractAdapter } from '@openzeppelin/ui-types';
 
 import type {
   HistoryQueryOptions,

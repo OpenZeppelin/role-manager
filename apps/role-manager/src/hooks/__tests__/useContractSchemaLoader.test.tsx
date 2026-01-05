@@ -11,7 +11,7 @@ import type {
   ContractAdapter,
   ContractSchema,
   NetworkConfig,
-} from '@openzeppelin/ui-builder-types';
+} from '@openzeppelin/ui-types';
 
 import type { SchemaLoadResult } from '@/types/schema';
 import { DEFAULT_CIRCUIT_BREAKER_CONFIG } from '@/types/schema';

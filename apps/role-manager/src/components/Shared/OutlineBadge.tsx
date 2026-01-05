@@ -5,7 +5,7 @@
  * Uses gray outline styling with transparent background.
  */
 
-import { cn } from '@openzeppelin/ui-builder-utils';
+import { cn } from '@openzeppelin/ui-utils';
 
 /**
  * Props for OutlineBadge component

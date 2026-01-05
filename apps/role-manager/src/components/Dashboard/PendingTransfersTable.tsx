@@ -13,7 +13,7 @@
  * Tasks: T048
  */
 
-import { cn } from '@openzeppelin/ui-builder-utils';
+import { cn } from '@openzeppelin/ui-utils';
 
 import type { PendingTransfer } from '../../types/pending-transfers';
 import { PendingTransferRow } from './PendingTransferRow';

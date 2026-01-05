@@ -8,8 +8,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import type { ContractAdapter } from '@openzeppelin/ui-builder-types';
-import { simpleHash } from '@openzeppelin/ui-builder-utils';
+import type { ContractAdapter } from '@openzeppelin/ui-types';
+import { simpleHash } from '@openzeppelin/ui-utils';
 
 import type {
   CircuitBreakerState,

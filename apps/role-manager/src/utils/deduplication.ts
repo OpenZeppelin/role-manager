@@ -6,7 +6,7 @@
  * across role assignments using Set-based deduplication.
  */
 
-import type { RoleAssignment } from '@openzeppelin/ui-builder-types';
+import type { RoleAssignment } from '@openzeppelin/ui-types';
 
 /**
  * Computes the count of unique member addresses across all roles.

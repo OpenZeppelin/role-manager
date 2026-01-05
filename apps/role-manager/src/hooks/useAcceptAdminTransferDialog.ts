@@ -13,8 +13,8 @@
  */
 import { useCallback, useState } from 'react';
 
-import { useDerivedAccountStatus } from '@openzeppelin/ui-builder-react-core';
-import type { ExecutionConfig, OperationResult, TxStatus } from '@openzeppelin/ui-builder-types';
+import { useDerivedAccountStatus } from '@openzeppelin/ui-react';
+import type { ExecutionConfig, OperationResult, TxStatus } from '@openzeppelin/ui-types';
 
 import type { DialogTransactionStep } from '../types/role-dialogs';
 import { useAcceptAdminTransfer, type AcceptAdminTransferArgs } from './useAccessControlMutations';

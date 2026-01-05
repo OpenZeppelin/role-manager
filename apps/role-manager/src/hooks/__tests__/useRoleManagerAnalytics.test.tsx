@@ -27,7 +27,7 @@ const mockAnalytics = {
   isEnabled: mockIsEnabled,
 };
 
-vi.mock('@openzeppelin/ui-builder-react-core', () => ({
+vi.mock('@openzeppelin/ui-react', () => ({
   useAnalytics: () => mockAnalytics,
 }));
 

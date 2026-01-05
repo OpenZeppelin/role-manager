@@ -10,7 +10,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
-import type { AccessControlCapabilities, ContractAdapter } from '@openzeppelin/ui-builder-types';
+import type { AccessControlCapabilities, ContractAdapter } from '@openzeppelin/ui-types';
 
 import { useAccessControlService } from './useAccessControlService';
 

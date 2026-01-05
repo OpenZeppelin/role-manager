@@ -8,7 +8,7 @@
 
 import { describe, expect, it } from 'vitest';
 
-import type { RoleAssignment } from '@openzeppelin/ui-builder-types';
+import type { RoleAssignment } from '@openzeppelin/ui-types';
 
 import { getUniqueAccountsCount } from '../deduplication';
 

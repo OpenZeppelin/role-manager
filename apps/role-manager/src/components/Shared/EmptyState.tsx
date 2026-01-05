@@ -1,7 +1,7 @@
 import { LucideIcon } from 'lucide-react';
 
-import { Button } from '@openzeppelin/ui-builder-ui';
-import { cn } from '@openzeppelin/ui-builder-utils';
+import { Button } from '@openzeppelin/ui-components';
+import { cn } from '@openzeppelin/ui-utils';
 
 export interface EmptyStateProps {
   title: string;

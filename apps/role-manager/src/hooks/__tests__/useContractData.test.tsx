@@ -15,7 +15,7 @@ import type {
   NetworkConfig,
   OwnershipInfo,
   RoleAssignment,
-} from '@openzeppelin/ui-builder-types';
+} from '@openzeppelin/ui-types';
 
 import { DataError, ErrorCategory } from '../../utils/errors';
 import { useContractOwnership, useContractRoles, usePaginatedRoles } from '../useContractData';

@@ -4,7 +4,7 @@
  * Reusable badge component for displaying access control features
  * with consistent styling across the application.
  */
-import { cn } from '@openzeppelin/ui-builder-utils';
+import { cn } from '@openzeppelin/ui-utils';
 
 export type FeatureBadgeVariant = 'blue' | 'purple' | 'green' | 'amber' | 'slate' | 'cyan' | 'teal';
 

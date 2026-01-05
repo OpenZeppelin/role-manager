@@ -5,7 +5,7 @@
  * These types are used by the form, hooks, and components for managing contract records.
  */
 
-import type { ContractAdapter, NetworkConfig } from '@openzeppelin/ui-builder-types';
+import type { ContractAdapter, NetworkConfig } from '@openzeppelin/ui-types';
 
 import type { RecentContractRecord } from './storage';
 

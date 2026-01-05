@@ -16,7 +16,7 @@
  * - MUST forward className to container
  */
 
-import { WalletConnectionWithSettings } from '@openzeppelin/ui-builder-react-core';
+import { WalletConnectionWithSettings } from '@openzeppelin/ui-renderer';
 
 import { useContractContext } from '../../context/ContractContext';
 

@@ -1,4 +1,4 @@
-import { createDexieDatabase } from '@openzeppelin/ui-builder-storage';
+import { createDexieDatabase } from '@openzeppelin/ui-storage';
 
 export const db = createDexieDatabase('RoleManager', [
   {

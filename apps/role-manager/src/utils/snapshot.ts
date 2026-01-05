@@ -6,7 +6,7 @@
  * with truncated addresses and filesystem-safe timestamps.
  */
 
-import { truncateMiddle } from '@openzeppelin/ui-builder-utils';
+import { truncateMiddle } from '@openzeppelin/ui-utils';
 
 /**
  * Truncates an address to a shorter format for display and filenames.

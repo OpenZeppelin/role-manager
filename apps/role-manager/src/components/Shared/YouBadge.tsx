@@ -5,7 +5,7 @@
  * Uses blue outline styling to visually distinguish from other badges.
  */
 
-import { cn } from '@openzeppelin/ui-builder-utils';
+import { cn } from '@openzeppelin/ui-utils';
 
 /**
  * Props for YouBadge component

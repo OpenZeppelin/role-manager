@@ -13,7 +13,7 @@ import type {
   OperationResult,
   TransactionStatusUpdate,
   TxStatus,
-} from '@openzeppelin/ui-builder-types';
+} from '@openzeppelin/ui-types';
 
 import {
   isUserRejectionError,

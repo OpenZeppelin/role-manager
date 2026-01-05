@@ -12,8 +12,8 @@
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { ReactNode } from 'react';
 
-import { Button, Card, CardContent, CardHeader, CardTitle } from '@openzeppelin/ui-builder-ui';
-import { cn } from '@openzeppelin/ui-builder-utils';
+import { Button, Card, CardContent, CardHeader, CardTitle } from '@openzeppelin/ui-components';
+import { cn } from '@openzeppelin/ui-utils';
 
 import { FeatureBadge } from '../Shared/FeatureBadge';
 

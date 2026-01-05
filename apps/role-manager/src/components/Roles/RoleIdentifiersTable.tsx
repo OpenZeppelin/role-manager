@@ -10,7 +10,7 @@
  * - T046: Handles hash identifiers with proper truncation display
  */
 
-import { cn, truncateMiddle } from '@openzeppelin/ui-builder-utils';
+import { cn, truncateMiddle } from '@openzeppelin/ui-utils';
 
 import type { RoleIdentifier } from '../../types/roles';
 import { isHash } from '../../utils/hash';

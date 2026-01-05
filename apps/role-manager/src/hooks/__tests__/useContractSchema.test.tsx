@@ -7,7 +7,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ContractAdapter, ContractSchema } from '@openzeppelin/ui-builder-types';
+import type { ContractAdapter, ContractSchema } from '@openzeppelin/ui-types';
 
 import type { ContractSchemaMetadata, RecentContractRecord } from '@/types/storage';
 

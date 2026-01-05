@@ -14,7 +14,7 @@
 
 import { Crown, Shield } from 'lucide-react';
 
-import { cn } from '@openzeppelin/ui-builder-utils';
+import { cn } from '@openzeppelin/ui-utils';
 
 import type { RoleWithDescription } from '../../types/roles';
 

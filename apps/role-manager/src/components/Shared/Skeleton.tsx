@@ -5,11 +5,11 @@
  * Provides visual feedback during async operations by displaying
  * animated placeholder shapes that match the content layout.
  *
- * TODO: Move this primitive component to @openzeppelin/ui-builder-ui package
+ * TODO: Move this primitive component to @openzeppelin/ui-components package
  * for broader reuse across all UI Builder apps. This would allow consistent
  * loading states across the ecosystem.
  */
-import { cn } from '@openzeppelin/ui-builder-utils';
+import { cn } from '@openzeppelin/ui-utils';
 
 /**
  * Props for Skeleton component

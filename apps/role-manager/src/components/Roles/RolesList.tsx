@@ -6,7 +6,7 @@
  * Updated in spec 009 to accept RoleWithDescription[] (T030).
  */
 
-import { cn } from '@openzeppelin/ui-builder-utils';
+import { cn } from '@openzeppelin/ui-utils';
 
 import type { RoleWithDescription } from '../../types/roles';
 import { RoleCard } from './RoleCard';

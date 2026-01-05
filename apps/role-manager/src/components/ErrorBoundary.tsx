@@ -10,8 +10,8 @@ import { QueryErrorResetBoundary } from '@tanstack/react-query';
 import { AlertTriangle, RefreshCw, WifiOff } from 'lucide-react';
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 
-import { Button } from '@openzeppelin/ui-builder-ui';
-import { cn } from '@openzeppelin/ui-builder-utils';
+import { Button } from '@openzeppelin/ui-components';
+import { cn } from '@openzeppelin/ui-utils';
 
 import { ErrorCategory, getErrorMeta } from '../utils/errors';
 

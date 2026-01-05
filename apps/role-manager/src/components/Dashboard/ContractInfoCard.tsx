@@ -1,4 +1,4 @@
-import type { AccessControlCapabilities, NetworkConfig } from '@openzeppelin/ui-builder-types';
+import type { AccessControlCapabilities, NetworkConfig } from '@openzeppelin/ui-types';
 import {
   AddressDisplay,
   Card,
@@ -6,8 +6,8 @@ import {
   CardHeader,
   CardTitle,
   NetworkStatusBadge,
-} from '@openzeppelin/ui-builder-ui';
-import { cn } from '@openzeppelin/ui-builder-utils';
+} from '@openzeppelin/ui-components';
+import { cn } from '@openzeppelin/ui-utils';
 
 import { FeatureBadge } from '../Shared/FeatureBadge';
 

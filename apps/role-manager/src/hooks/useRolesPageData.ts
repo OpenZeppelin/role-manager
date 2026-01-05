@@ -19,7 +19,7 @@
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { useDerivedAccountStatus } from '@openzeppelin/ui-builder-react-core';
+import { useDerivedAccountStatus } from '@openzeppelin/ui-react';
 import type {
   AccessControlCapabilities,
   AdminInfo,
@@ -27,7 +27,7 @@ import type {
   OwnershipState,
   PendingAdminTransfer,
   PendingOwnershipTransfer,
-} from '@openzeppelin/ui-builder-types';
+} from '@openzeppelin/ui-types';
 
 import {
   ADMIN_ROLE_DESCRIPTION,

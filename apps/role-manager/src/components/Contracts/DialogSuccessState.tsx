@@ -7,8 +7,8 @@
 
 import { CheckCircle2 } from 'lucide-react';
 
-import type { AccessControlCapabilities } from '@openzeppelin/ui-builder-types';
-import { AddressDisplay, Button } from '@openzeppelin/ui-builder-ui';
+import type { AccessControlCapabilities } from '@openzeppelin/ui-types';
+import { AddressDisplay, Button } from '@openzeppelin/ui-components';
 
 import { AccessControlCapabilitiesSummary } from './AccessControlCapabilitiesSummary';
 

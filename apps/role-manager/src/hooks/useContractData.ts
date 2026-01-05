@@ -17,7 +17,7 @@ import type {
   ContractAdapter,
   OwnershipInfo,
   RoleAssignment,
-} from '@openzeppelin/ui-builder-types';
+} from '@openzeppelin/ui-types';
 
 import { DataError, ErrorCategory, wrapError } from '../utils/errors';
 import { useAccessControlService } from './useAccessControlService';

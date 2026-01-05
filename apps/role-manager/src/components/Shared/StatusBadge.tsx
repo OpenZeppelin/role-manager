@@ -5,7 +5,7 @@
  * Supports success (green), error (red), and warning (yellow) variants.
  */
 
-import { cn } from '@openzeppelin/ui-builder-utils';
+import { cn } from '@openzeppelin/ui-utils';
 
 /**
  * Available status badge variants

@@ -9,8 +9,8 @@ import { vi } from 'vitest';
 
 // Mock the logger utility to avoid console noise in tests
 // Also provide simpleHash for schema storage tests
-vi.mock('@openzeppelin/ui-builder-utils', async () => {
-  const actual = await vi.importActual('@openzeppelin/ui-builder-utils');
+vi.mock('@openzeppelin/ui-utils', async () => {
+  const actual = await vi.importActual('@openzeppelin/ui-utils');
   return {
     ...actual,
     logger: {
@@ -33,11 +33,11 @@ vi.mock('@openzeppelin/ui-builder-utils', async () => {
 });
 
 /**
- * Mock @openzeppelin/ui-builder-storage to provide the API used by the app.
+ * Mock @openzeppelin/ui-storage to provide the API used by the app.
  * The published npm version has a different API than the local dev version,
  * so we provide compatible mocks for testing.
  */
-vi.mock('@openzeppelin/ui-builder-storage', () => {
+vi.mock('@openzeppelin/ui-storage', () => {
   // Create a mock database factory
   const createDexieDatabase = (
     name: string,

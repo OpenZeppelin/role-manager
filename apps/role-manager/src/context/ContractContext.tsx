@@ -25,8 +25,8 @@ import type {
   AccessControlService,
   ContractSchema,
   NetworkConfig,
-} from '@openzeppelin/ui-builder-types';
-import { logger } from '@openzeppelin/ui-builder-utils';
+} from '@openzeppelin/ui-types';
+import { logger } from '@openzeppelin/ui-utils';
 
 import { useAllNetworks } from '../hooks/useAllNetworks';
 import { useNetworkAdapter } from '../hooks/useNetworkAdapter';

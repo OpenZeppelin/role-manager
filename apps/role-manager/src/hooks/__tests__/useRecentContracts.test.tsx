@@ -43,7 +43,7 @@ vi.mock('@/core/storage/RecentContractsStorage', () => ({
 }));
 
 // Mock useLiveQuery from ui-builder-storage
-vi.mock('@openzeppelin/ui-builder-storage', () => ({
+vi.mock('@openzeppelin/ui-storage', () => ({
   useLiveQuery: vi.fn(() => mocks.useLiveQueryResult),
 }));
 

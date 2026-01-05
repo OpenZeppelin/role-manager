@@ -20,7 +20,7 @@
 
 import { Crown, Shield } from 'lucide-react';
 
-import { cn } from '@openzeppelin/ui-builder-utils';
+import { cn } from '@openzeppelin/ui-utils';
 
 import type { PendingTransferType } from '../../types/pending-transfers';
 import { OutlineBadge } from './OutlineBadge';

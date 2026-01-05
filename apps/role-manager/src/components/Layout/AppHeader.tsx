@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Header as UIBuilderHeader } from '@openzeppelin/ui-builder-ui';
+import { Header as UIBuilderHeader } from '@openzeppelin/ui-components';
 
 import { WalletHeaderSection } from './WalletHeaderSection';
 

@@ -6,7 +6,7 @@
  * - Data hooks and UI components
  * - UI components and user interactions
  *
- * Note: API types (HistoryEntry, PageInfo, etc.) are imported from @openzeppelin/ui-builder-types
+ * Note: API types (HistoryEntry, PageInfo, etc.) are imported from @openzeppelin/ui-types
  */
 
 import type {
@@ -15,7 +15,7 @@ import type {
   HistoryQueryOptions,
   PageInfo,
   PaginatedHistoryResult,
-} from '@openzeppelin/ui-builder-types';
+} from '@openzeppelin/ui-types';
 
 // Re-export RoleBadgeInfo from authorized-accounts (same interface used in both features)
 import type { RoleBadgeInfo } from './authorized-accounts';

@@ -8,7 +8,7 @@
 import { render } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { NetworkConfig } from '@openzeppelin/ui-builder-types';
+import type { NetworkConfig } from '@openzeppelin/ui-types';
 
 import { WalletSyncProvider } from '../WalletSyncProvider';
 
@@ -60,7 +60,7 @@ vi.mock('../ContractContext', () => ({
 }));
 
 // Mock WalletState hook and related exports from react-core
-vi.mock('@openzeppelin/ui-builder-react-core', () => ({
+vi.mock('@openzeppelin/ui-react', () => ({
   useWalletState: () => ({
     setActiveNetworkId: mocks.setActiveNetworkId,
     activeNetworkId: null,
@@ -77,7 +77,7 @@ vi.mock('@openzeppelin/ui-builder-react-core', () => ({
 }));
 
 // Mock logger from ui-builder-utils
-vi.mock('@openzeppelin/ui-builder-utils', () => ({
+vi.mock('@openzeppelin/ui-utils', () => ({
   logger: {
     info: vi.fn(),
     warn: vi.fn(),

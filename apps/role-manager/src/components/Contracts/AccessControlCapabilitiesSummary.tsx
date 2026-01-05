@@ -5,7 +5,7 @@
  * Reusable in success and unsupported states.
  */
 
-import type { AccessControlCapabilities } from '@openzeppelin/ui-builder-types';
+import type { AccessControlCapabilities } from '@openzeppelin/ui-types';
 
 import { FeatureBadge } from '../Shared/FeatureBadge';
 

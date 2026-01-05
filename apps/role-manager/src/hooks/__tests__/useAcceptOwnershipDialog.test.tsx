@@ -17,7 +17,7 @@ import type {
   OperationResult,
   TransactionStatusUpdate,
   TxStatus,
-} from '@openzeppelin/ui-builder-types';
+} from '@openzeppelin/ui-types';
 
 import { useAcceptOwnershipDialog } from '../useAcceptOwnershipDialog';
 
@@ -95,7 +95,7 @@ vi.mock('../useSelectedContract', () => ({
 // Mock useDerivedAccountStatus from react-core
 const mockUseDerivedAccountStatus = vi.fn();
 
-vi.mock('@openzeppelin/ui-builder-react-core', () => ({
+vi.mock('@openzeppelin/ui-react', () => ({
   useDerivedAccountStatus: () => mockUseDerivedAccountStatus(),
 }));
 

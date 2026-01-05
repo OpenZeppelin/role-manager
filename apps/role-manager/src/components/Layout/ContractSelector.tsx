@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@openzeppelin/ui-builder-ui';
+} from '@openzeppelin/ui-components';
 
 import type { ContractSelectorProps } from '../../types/contracts';
 

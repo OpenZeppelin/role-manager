@@ -23,7 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
   TextField,
-} from '@openzeppelin/ui-builder-ui';
+} from '@openzeppelin/ui-components';
 
 import type { RoleWithDescription } from '../../types/roles';
 

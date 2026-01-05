@@ -6,9 +6,9 @@ import {
   AdapterProvider,
   AnalyticsProvider,
   WalletStateProvider,
-} from '@openzeppelin/ui-builder-react-core';
-import type { NativeConfigLoader } from '@openzeppelin/ui-builder-types';
-import { NetworkErrorNotificationProvider, Toaster } from '@openzeppelin/ui-builder-ui';
+} from '@openzeppelin/ui-react';
+import type { NativeConfigLoader } from '@openzeppelin/ui-types';
+import { NetworkErrorNotificationProvider, Toaster } from '@openzeppelin/ui-components';
 
 import { TrackedRoute } from './components/Analytics';
 import { MainLayout } from './components/Layout/MainLayout';

@@ -14,8 +14,8 @@
 
 import { ArrowRight } from 'lucide-react';
 
-import { AddressDisplay } from '@openzeppelin/ui-builder-ui';
-import { cn } from '@openzeppelin/ui-builder-utils';
+import { AddressDisplay } from '@openzeppelin/ui-components';
+import { cn } from '@openzeppelin/ui-utils';
 
 import { useBlockTime } from '../../context/useBlockTime';
 import type { PendingTransfer } from '../../types/pending-transfers';

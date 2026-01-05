@@ -1,16 +1,24 @@
 #!/usr/bin/env node
 /**
- * setup-local-dev.cjs
+ * setup-local-dev.cjs (DEPRECATED - Tarball-based approach)
  *
- * Switches role-manager dependencies between local tarballs and npm registry.
- * This enables testing UI Builder changes before publishing to npm.
+ * ⚠️  PREFERRED METHOD: Use pnpm dev:local / pnpm dev:npm instead.
  *
- * Usage:
+ * The recommended approach uses .pnpmfile.cjs with an environment variable
+ * toggle that dynamically resolves packages without modifying package.json:
+ *
+ *   pnpm dev:local   # Use local packages from ../openzeppelin-ui & ../contracts-ui-builder
+ *   pnpm dev:npm     # Switch back to npm registry packages
+ *
+ * This script is kept as a FALLBACK for testing specific packed versions
+ * when you need to test against exact tarball builds (e.g., release candidates).
+ *
+ * Usage (fallback):
  *   node scripts/setup-local-dev.cjs local    # Use local tarballs
- *   node scripts/setup-local-dev.cjs registry # Use npm registry (latest)
- *   node scripts/setup-local-dev.cjs registry 0.16.0  # Use specific version
+ *   node scripts/setup-local-dev.cjs registry # Use npm registry (^1.0.0)
+ *   node scripts/setup-local-dev.cjs registry 1.2.0  # Use specific version
  *
- * Prerequisites:
+ * Prerequisites for tarball mode:
  *   Run ./scripts/pack-ui-builder.sh first to create tarballs
  */
 
@@ -42,20 +50,19 @@ const packedDir = '.packed-packages';
 const packedPath = path.join(uiBuilderPath, packedDir);
 
 /**
- * All UI Builder packages that role-manager may depend on.
+ * All UI packages that role-manager may depend on.
  * The script will dynamically find tarballs for these packages.
  */
 const UI_BUILDER_PACKAGES = [
-  // Core packages (always needed)
-  '@openzeppelin/ui-builder-renderer',
-  '@openzeppelin/ui-builder-storage',
-  '@openzeppelin/ui-builder-styles',
-  '@openzeppelin/ui-builder-types',
-  '@openzeppelin/ui-builder-ui',
-  '@openzeppelin/ui-builder-utils',
-  // React integration (wallet state, adapter provider)
-  '@openzeppelin/ui-builder-react-core',
-  // Adapter packages (needed for network/address validation)
+  // Core packages (migrated to new @openzeppelin/ui-* namespace)
+  '@openzeppelin/ui-renderer',
+  '@openzeppelin/ui-storage',
+  '@openzeppelin/ui-styles',
+  '@openzeppelin/ui-types',
+  '@openzeppelin/ui-components',
+  '@openzeppelin/ui-utils',
+  '@openzeppelin/ui-react',
+  // Adapter packages (remain in UI Builder namespace)
   '@openzeppelin/ui-builder-adapter-evm',
   '@openzeppelin/ui-builder-adapter-stellar',
   '@openzeppelin/ui-builder-adapter-solana',
@@ -157,7 +164,7 @@ if (mode === 'local') {
 } else {
   console.log('🔄 Switching to registry dependencies...\n');
 
-  const versionToUse = targetVersion || 'latest';
+  const versionToUse = targetVersion || '^1.0.0';
   const currentDeps = getCurrentDependencies(pkg);
 
   if (currentDeps.length === 0) {

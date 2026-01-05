@@ -14,7 +14,7 @@
  * Feature: 004-add-contract-record
  */
 
-import type { ContractAdapter, Ecosystem, NetworkConfig } from '@openzeppelin/ui-builder-types';
+import type { ContractAdapter, Ecosystem, NetworkConfig } from '@openzeppelin/ui-types';
 
 // =============================================================================
 // Ecosystem Registry (mirrors UI Builder's ecosystemRegistry pattern)

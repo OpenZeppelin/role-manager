@@ -2,7 +2,7 @@ import type {
   Ecosystem,
   EcosystemFeatureConfig,
   EcosystemInfo,
-} from '@openzeppelin/ui-builder-types';
+} from '@openzeppelin/ui-types';
 
 /**
  * Ordered list of ecosystems for consistent display across the application

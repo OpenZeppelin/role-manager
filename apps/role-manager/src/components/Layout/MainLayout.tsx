@@ -1,6 +1,6 @@
 import React, { ReactNode, useState } from 'react';
 
-import { Footer } from '@openzeppelin/ui-builder-ui';
+import { Footer } from '@openzeppelin/ui-components';
 
 import { AppHeader } from './AppHeader';
 import { Sidebar } from './Sidebar';

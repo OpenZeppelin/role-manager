@@ -24,7 +24,7 @@ import type {
   RoleAssignment,
   TransactionStatusUpdate,
   TxStatus,
-} from '@openzeppelin/ui-builder-types';
+} from '@openzeppelin/ui-types';
 
 import { useAccessControlService } from './useAccessControlService';
 import { adminInfoQueryKey } from './useContractData';

@@ -7,7 +7,7 @@
 
 import { AlertCircle } from 'lucide-react';
 
-import { Button } from '@openzeppelin/ui-builder-ui';
+import { Button } from '@openzeppelin/ui-components';
 
 interface DialogErrorStateProps {
   /**

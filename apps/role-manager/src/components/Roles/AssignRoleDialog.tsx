@@ -39,7 +39,7 @@ import {
   DialogHeader,
   DialogTitle,
   SelectField,
-} from '@openzeppelin/ui-builder-ui';
+} from '@openzeppelin/ui-components';
 
 import { getEcosystemAddressExample } from '@/core/ecosystems/registry';
 

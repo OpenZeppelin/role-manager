@@ -21,7 +21,7 @@ import type {
   AccessControlCapabilities,
   HistoryEntry,
   PageInfo,
-} from '@openzeppelin/ui-builder-types';
+} from '@openzeppelin/ui-types';
 
 import { useRoleChangesPageData } from '../useRoleChangesPageData';
 

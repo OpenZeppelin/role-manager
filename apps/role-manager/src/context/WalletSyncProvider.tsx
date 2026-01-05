@@ -29,8 +29,8 @@ import {
   NetworkSwitchManager,
   useWalletReconnectionHandler,
   useWalletState,
-} from '@openzeppelin/ui-builder-react-core';
-import { logger } from '@openzeppelin/ui-builder-utils';
+} from '@openzeppelin/ui-react';
+import { logger } from '@openzeppelin/ui-utils';
 
 import { useContractContext } from './ContractContext';
 

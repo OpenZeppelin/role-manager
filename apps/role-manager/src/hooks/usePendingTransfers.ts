@@ -16,7 +16,7 @@ import type {
   OwnershipInfo,
   PendingAdminTransfer,
   PendingOwnershipTransfer,
-} from '@openzeppelin/ui-builder-types';
+} from '@openzeppelin/ui-types';
 
 import type { PendingTransfer, UsePendingTransfersReturn } from '../types/pending-transfers';
 import { createGetAccountUrl } from '../utils/explorer-urls';

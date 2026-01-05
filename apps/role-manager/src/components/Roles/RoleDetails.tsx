@@ -20,15 +20,15 @@ import type {
   OwnershipState,
   PendingAdminTransfer,
   PendingOwnershipTransfer,
-} from '@openzeppelin/ui-builder-types';
+} from '@openzeppelin/ui-types';
 import {
   Button,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@openzeppelin/ui-builder-ui';
-import { cn } from '@openzeppelin/ui-builder-utils';
+} from '@openzeppelin/ui-components';
+import { cn } from '@openzeppelin/ui-utils';
 
 import type { RoleWithDescription } from '../../types/roles';
 import { AccountRow } from './AccountRow';

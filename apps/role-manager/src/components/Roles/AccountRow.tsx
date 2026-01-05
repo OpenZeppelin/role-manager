@@ -12,8 +12,8 @@
 
 import { Trash2 } from 'lucide-react';
 
-import { AddressDisplay, Button } from '@openzeppelin/ui-builder-ui';
-import { cn } from '@openzeppelin/ui-builder-utils';
+import { AddressDisplay, Button } from '@openzeppelin/ui-components';
+import { cn } from '@openzeppelin/ui-utils';
 
 import { formatDate } from '../../utils/date';
 import { TransferRoleButton } from '../Shared/TransferRoleButton';

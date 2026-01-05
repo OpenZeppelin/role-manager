@@ -15,9 +15,9 @@ import type {
   AccessControlService,
   ContractSchema,
   NetworkConfig,
-} from '@openzeppelin/ui-builder-types';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@openzeppelin/ui-builder-ui';
-import { logger } from '@openzeppelin/ui-builder-utils';
+} from '@openzeppelin/ui-types';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@openzeppelin/ui-components';
+import { logger } from '@openzeppelin/ui-utils';
 
 import { recentContractsStorage } from '@/core/storage/RecentContractsStorage';
 import {

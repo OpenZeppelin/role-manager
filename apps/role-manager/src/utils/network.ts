@@ -5,7 +5,7 @@
  * Utilities for formatting and working with network configurations.
  */
 
-import type { NetworkConfig } from '@openzeppelin/ui-builder-types';
+import type { NetworkConfig } from '@openzeppelin/ui-types';
 
 /**
  * Formats a network configuration into a human-readable display name.

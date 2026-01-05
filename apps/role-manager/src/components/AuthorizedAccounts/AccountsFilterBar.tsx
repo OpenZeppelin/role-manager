@@ -24,8 +24,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@openzeppelin/ui-builder-ui';
-import { cn } from '@openzeppelin/ui-builder-utils';
+} from '@openzeppelin/ui-components';
+import { cn } from '@openzeppelin/ui-utils';
 
 import type { AccountsFilterState, RoleBadgeInfo } from '../../types/authorized-accounts';
 import { RoleFilterItem } from '../Shared';

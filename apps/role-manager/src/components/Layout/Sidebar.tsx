@@ -9,8 +9,8 @@ import {
   SidebarButton,
   SidebarLayout,
   SidebarSection,
-} from '@openzeppelin/ui-builder-ui';
-import { logger } from '@openzeppelin/ui-builder-utils';
+} from '@openzeppelin/ui-components';
+import { logger } from '@openzeppelin/ui-utils';
 
 import { getEcosystemName } from '../../core/ecosystems/registry';
 import { useAllNetworks } from '../../hooks/useAllNetworks';
