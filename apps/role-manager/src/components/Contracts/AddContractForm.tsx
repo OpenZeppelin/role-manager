@@ -13,13 +13,6 @@ import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { Control } from 'react-hook-form';
 
-import { DynamicFormField } from '@openzeppelin/ui-renderer';
-import type {
-  Ecosystem,
-  FormFieldType,
-  FormValues,
-  NetworkConfig,
-} from '@openzeppelin/ui-types';
 import {
   Button,
   Label,
@@ -27,6 +20,8 @@ import {
   NetworkSelector,
   TextField,
 } from '@openzeppelin/ui-components';
+import { DynamicFormField } from '@openzeppelin/ui-renderer';
+import type { Ecosystem, FormFieldType, FormValues, NetworkConfig } from '@openzeppelin/ui-types';
 
 import {
   ECOSYSTEM_ORDER,

@@ -2,13 +2,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useCallback, useState } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
-import {
-  AdapterProvider,
-  AnalyticsProvider,
-  WalletStateProvider,
-} from '@openzeppelin/ui-react';
-import type { NativeConfigLoader } from '@openzeppelin/ui-types';
 import { NetworkErrorNotificationProvider, Toaster } from '@openzeppelin/ui-components';
+import { AdapterProvider, AnalyticsProvider, WalletStateProvider } from '@openzeppelin/ui-react';
+import type { NativeConfigLoader } from '@openzeppelin/ui-types';
 
 import { TrackedRoute } from './components/Analytics';
 import { MainLayout } from './components/Layout/MainLayout';

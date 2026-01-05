@@ -21,11 +21,7 @@ import React, {
   useState,
 } from 'react';
 
-import type {
-  AccessControlService,
-  ContractSchema,
-  NetworkConfig,
-} from '@openzeppelin/ui-types';
+import type { AccessControlService, ContractSchema, NetworkConfig } from '@openzeppelin/ui-types';
 import { logger } from '@openzeppelin/ui-utils';
 
 import { useAllNetworks } from '../hooks/useAllNetworks';

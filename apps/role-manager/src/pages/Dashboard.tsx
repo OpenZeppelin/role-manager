@@ -26,8 +26,8 @@ import { toast } from 'sonner';
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { useDerivedAccountStatus } from '@openzeppelin/ui-react';
 import { Button } from '@openzeppelin/ui-components';
+import { useDerivedAccountStatus } from '@openzeppelin/ui-react';
 import { truncateMiddle } from '@openzeppelin/ui-utils';
 
 import { AcceptAdminTransferDialog } from '../components/Admin/AcceptAdminTransferDialog';

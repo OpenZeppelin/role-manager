@@ -15,12 +15,6 @@
 
 import { Crown, Pencil, Plus, Shield } from 'lucide-react';
 
-import type {
-  AdminState,
-  OwnershipState,
-  PendingAdminTransfer,
-  PendingOwnershipTransfer,
-} from '@openzeppelin/ui-types';
 import {
   Button,
   CardContent,
@@ -28,6 +22,12 @@ import {
   CardHeader,
   CardTitle,
 } from '@openzeppelin/ui-components';
+import type {
+  AdminState,
+  OwnershipState,
+  PendingAdminTransfer,
+  PendingOwnershipTransfer,
+} from '@openzeppelin/ui-types';
 import { cn } from '@openzeppelin/ui-utils';
 
 import type { RoleWithDescription } from '../../types/roles';

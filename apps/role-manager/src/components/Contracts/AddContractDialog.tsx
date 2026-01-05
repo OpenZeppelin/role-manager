@@ -10,13 +10,13 @@
 import { toast } from 'sonner';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@openzeppelin/ui-components';
 import type {
   AccessControlCapabilities,
   AccessControlService,
   ContractSchema,
   NetworkConfig,
 } from '@openzeppelin/ui-types';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@openzeppelin/ui-components';
 import { logger } from '@openzeppelin/ui-utils';
 
 import { recentContractsStorage } from '@/core/storage/RecentContractsStorage';

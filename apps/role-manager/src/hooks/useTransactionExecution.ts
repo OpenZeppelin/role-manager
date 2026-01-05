@@ -14,11 +14,7 @@
  */
 import { useCallback, useRef, useState } from 'react';
 
-import type {
-  OperationResult,
-  TransactionStatusUpdate,
-  TxStatus,
-} from '@openzeppelin/ui-types';
+import type { OperationResult, TransactionStatusUpdate, TxStatus } from '@openzeppelin/ui-types';
 
 import type { DialogTransactionStep } from '../types/role-dialogs';
 
