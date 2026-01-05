@@ -31,7 +31,8 @@
     "commit": "git-cz",
     "changeset": "changeset",
     "dev:local": "LOCAL_UI=true pnpm install --force && echo '✅ Using local @openzeppelin/ui-* packages from ../openzeppelin-ui'",
-    "dev:npm": "pnpm install --force && echo '✅ Using npm @openzeppelin/ui-* packages'"
+    "dev:npm": "pnpm install --force && echo '✅ Using npm @openzeppelin/ui-* packages'",
+    "docker:dev": "docker-compose up --build"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,cjs,mjs}": "pnpm fix-all"
