@@ -13,6 +13,8 @@
  */
 
 import { FileSearch, RefreshCw } from 'lucide-react';
+import { useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { Button, Card } from '@openzeppelin/ui-components';
 import { cn } from '@openzeppelin/ui-utils';
@@ -41,6 +43,9 @@ import { useSelectedContract } from '../hooks/useSelectedContract';
  * - Displays events in table format
  */
 export function RoleChanges() {
+  // Navigation for role linking
+  const navigate = useNavigate();
+
   // Get real data from hook (T010, T022, T028, T032)
   const {
     events,
@@ -63,6 +68,14 @@ export function RoleChanges() {
   // Get contract info for display
   const { selectedContract } = useSelectedContract();
   const contractLabel = selectedContract?.label || 'Unknown Contract';
+
+  // Handler for navigating to Roles page with specific role pre-selected
+  const handleRoleClick = useCallback(
+    (roleId: string) => {
+      navigate(`/roles?role=${encodeURIComponent(roleId)}`);
+    },
+    [navigate]
+  );
 
   // Empty state when no contract is selected
   if (!hasContractSelected) {
@@ -175,6 +188,7 @@ export function RoleChanges() {
           <>
             <ChangesTable
               events={events}
+              onRoleClick={handleRoleClick}
               emptyState={<ChangesEmptyState noEventsFound contractName={contractLabel} />}
             />
             {/* Cursor-based pagination (T022 - US3) */}

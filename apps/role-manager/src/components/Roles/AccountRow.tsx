@@ -15,7 +15,7 @@ import { Trash2 } from 'lucide-react';
 import { AddressDisplay, Button } from '@openzeppelin/ui-components';
 import { cn } from '@openzeppelin/ui-utils';
 
-import { formatDate } from '../../utils/date';
+import { formatDateTime } from '../../utils/date';
 import { TransferRoleButton } from '../Shared/TransferRoleButton';
 import { YouBadge } from '../Shared/YouBadge';
 
@@ -96,10 +96,10 @@ export function AccountRow({
         ) : (
           <>
             {/* Enumerable roles: Show assignment date and Revoke button */}
-            {/* T033: Only show assignment date when available */}
+            {/* T033: Only show assignment date when available (UTC for blockchain timestamps) */}
             {assignedAt && (
-              <span className="text-xs text-muted-foreground">
-                {formatDate(assignedAt instanceof Date ? assignedAt.toISOString() : assignedAt)}
+              <span className="text-xs text-muted-foreground whitespace-nowrap">
+                {formatDateTime(assignedAt instanceof Date ? assignedAt.toISOString() : assignedAt)}
               </span>
             )}
             <Button

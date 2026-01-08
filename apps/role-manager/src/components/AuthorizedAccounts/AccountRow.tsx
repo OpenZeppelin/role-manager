@@ -17,7 +17,9 @@
  * - Checkbox: follows Radix UI states (checked, unchecked)
  */
 
-import { AddressDisplay, Checkbox } from '@openzeppelin/ui-components';
+import { Edit } from 'lucide-react';
+
+import { AddressDisplay, Button, Checkbox } from '@openzeppelin/ui-components';
 import { cn } from '@openzeppelin/ui-utils';
 
 import {
@@ -25,11 +27,10 @@ import {
   type AccountAction,
   type AuthorizedAccountView,
 } from '../../types/authorized-accounts';
-import { formatDate } from '../../utils/date';
+import { formatDateTime } from '../../utils/date';
 import { RoleTypeBadge } from '../Shared/RoleTypeBadge';
 import { StatusBadge } from '../Shared/StatusBadge';
 import { YouBadge } from '../Shared/YouBadge';
-import { AccountActionsMenu } from './AccountActionsMenu';
 
 /**
  * Props for AccountRow component
@@ -45,6 +46,8 @@ export interface AccountRowProps {
   onToggleSelection: () => void;
   /** Callback when an action is triggered */
   onAction: (action: AccountAction) => void;
+  /** Callback when a role badge is clicked (for navigation to Roles page) */
+  onRoleClick?: (roleId: string) => void;
 }
 
 /**
@@ -63,6 +66,7 @@ export function AccountRow({
   isCurrentUser = false,
   onToggleSelection,
   onAction,
+  onRoleClick,
 }: AccountRowProps) {
   return (
     <tr
@@ -106,22 +110,34 @@ export function AccountRow({
       </td>
 
       {/* Date Added - display "-" if unavailable */}
-      <td className="p-4 text-sm text-muted-foreground">
-        {account.dateAdded ? formatDate(account.dateAdded) : '-'}
+      <td className="p-4 text-sm text-muted-foreground whitespace-nowrap">
+        {account.dateAdded ? formatDateTime(account.dateAdded) : '-'}
       </td>
 
-      {/* Roles - multiple badges */}
+      {/* Roles - multiple badges (clickable for navigation) */}
       <td className="p-4">
         <div className="flex flex-wrap gap-1">
           {account.roles.map((role) => (
-            <RoleTypeBadge key={role.id} roleName={role.name} />
+            <RoleTypeBadge
+              key={role.id}
+              roleName={role.name}
+              onClick={onRoleClick ? () => onRoleClick(role.id) : undefined}
+            />
           ))}
         </div>
       </td>
 
-      {/* Actions menu */}
+      {/* Actions - direct Edit Roles button */}
       <td className="p-4">
-        <AccountActionsMenu onAction={onAction} />
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onAction('edit-roles')}
+          className="h-8 gap-1.5 whitespace-nowrap"
+        >
+          <Edit className="h-3.5 w-3.5 shrink-0" />
+          Edit Roles
+        </Button>
       </td>
     </tr>
   );

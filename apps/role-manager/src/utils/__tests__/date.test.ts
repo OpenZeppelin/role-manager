@@ -9,11 +9,17 @@ import { describe, expect, it } from 'vitest';
 import { formatDate, formatDateTime, formatToISOLocalString, parseISOString } from '../date';
 
 describe('formatDate', () => {
-  it('should format ISO date string to M/D/YYYY format', () => {
-    // Use midday times to avoid timezone boundary issues
+  it('should format ISO date string to M/D/YYYY format in UTC', () => {
+    // UTC dates should be consistent regardless of local timezone
     expect(formatDate('2024-11-15T12:00:00Z')).toBe('11/15/2024');
     expect(formatDate('2024-01-05T12:00:00Z')).toBe('1/5/2024');
     expect(formatDate('2024-12-15T12:00:00Z')).toBe('12/15/2024');
+  });
+
+  it('should handle midnight UTC correctly without timezone shift', () => {
+    // This tests that we use UTC - midnight UTC should not shift to previous day
+    expect(formatDate('2024-11-15T00:00:00Z')).toBe('11/15/2024');
+    expect(formatDate('2024-01-01T00:00:00Z')).toBe('1/1/2024');
   });
 
   it('should return empty string for empty input', () => {
@@ -27,10 +33,15 @@ describe('formatDate', () => {
 });
 
 describe('formatDateTime', () => {
-  it('should format ISO date string to M/D/YYYY, h:mm AM/PM format', () => {
-    // Note: Output depends on local timezone, so we just check the format
+  it('should format ISO date string to M/D/YYYY, h:mm AM/PM UTC format', () => {
+    // UTC output should be consistent regardless of local timezone
     const result = formatDateTime('2024-11-15T10:30:00Z');
-    expect(result).toMatch(/^\d{1,2}\/\d{1,2}\/\d{4}, \d{1,2}:\d{2} (AM|PM)$/);
+    expect(result).toBe('11/15/2024, 10:30 AM UTC');
+  });
+
+  it('should handle PM times correctly', () => {
+    const result = formatDateTime('2024-11-15T14:30:00Z');
+    expect(result).toBe('11/15/2024, 2:30 PM UTC');
   });
 
   it('should return empty string for empty input', () => {

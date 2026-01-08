@@ -41,6 +41,8 @@ export interface AccountsTableProps {
   onSelectionChange: (selectedIds: Set<string>) => void;
   /** Callback when an action is triggered on an account */
   onAction: (accountId: string, action: AccountAction) => void;
+  /** Callback when a role badge is clicked (for navigation to Roles page) */
+  onRoleClick?: (roleId: string) => void;
   /** Optional content to render when accounts array is empty */
   emptyState?: React.ReactNode;
 }
@@ -52,9 +54,9 @@ const COLUMNS = [
   { id: 'checkbox', label: '', width: 'w-12' },
   { id: 'address', label: 'Address', width: '' },
   { id: 'status', label: 'Status', width: 'w-24' },
-  { id: 'dateAdded', label: 'Date Added', width: 'w-32' },
+  { id: 'dateAdded', label: 'Date Added', width: 'w-44' },
   { id: 'roles', label: 'Roles', width: 'w-48' },
-  { id: 'actions', label: 'Actions', width: 'w-16' },
+  { id: 'actions', label: '', width: 'w-32' },
 ] as const;
 
 /**
@@ -71,6 +73,7 @@ export function AccountsTable({
   connectedAddress,
   onSelectionChange,
   onAction,
+  onRoleClick,
   emptyState,
 }: AccountsTableProps) {
   // Derive master checkbox state
@@ -134,7 +137,7 @@ export function AccountsTable({
               <th
                 key={column.id}
                 className={cn(
-                  'p-4 text-left text-sm font-medium text-muted-foreground',
+                  'p-4 text-left text-sm font-medium text-muted-foreground whitespace-nowrap',
                   column.width
                 )}
               >
@@ -165,6 +168,7 @@ export function AccountsTable({
                 }
                 onToggleSelection={() => handleRowToggle(account.id)}
                 onAction={(action) => handleAction(account.id, action)}
+                onRoleClick={onRoleClick}
               />
             ))
           )}

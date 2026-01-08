@@ -23,6 +23,8 @@ import { ChangeRow } from './ChangeRow';
 export interface ChangesTableProps {
   /** List of events to display */
   events: RoleChangeEventView[];
+  /** Callback when a role badge is clicked (for navigation to Roles page) */
+  onRoleClick?: (roleId: string) => void;
   /** Optional content to render when events array is empty */
   emptyState?: React.ReactNode;
 }
@@ -46,7 +48,7 @@ const COLUMNS = [
  * - Event rows via ChangeRow component
  * - Empty state slot for no-data scenarios
  */
-export function ChangesTable({ events, emptyState }: ChangesTableProps) {
+export function ChangesTable({ events, onRoleClick, emptyState }: ChangesTableProps) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full" aria-label="Role changes history">
@@ -76,7 +78,9 @@ export function ChangesTable({ events, emptyState }: ChangesTableProps) {
               </td>
             </tr>
           ) : (
-            events.map((event) => <ChangeRow key={event.id} event={event} />)
+            events.map((event) => (
+              <ChangeRow key={event.id} event={event} onRoleClick={onRoleClick} />
+            ))
           )}
         </tbody>
       </table>
