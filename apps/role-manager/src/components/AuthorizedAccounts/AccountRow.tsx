@@ -17,7 +17,9 @@
  * - Checkbox: follows Radix UI states (checked, unchecked)
  */
 
-import { AddressDisplay, Checkbox } from '@openzeppelin/ui-components';
+import { Edit } from 'lucide-react';
+
+import { AddressDisplay, Button, Checkbox } from '@openzeppelin/ui-components';
 import { cn } from '@openzeppelin/ui-utils';
 
 import {
@@ -29,7 +31,6 @@ import { formatDateTime } from '../../utils/date';
 import { RoleTypeBadge } from '../Shared/RoleTypeBadge';
 import { StatusBadge } from '../Shared/StatusBadge';
 import { YouBadge } from '../Shared/YouBadge';
-import { AccountActionsMenu } from './AccountActionsMenu';
 
 /**
  * Props for AccountRow component
@@ -126,9 +127,17 @@ export function AccountRow({
         </div>
       </td>
 
-      {/* Actions menu */}
+      {/* Actions - direct Edit Roles button */}
       <td className="p-4">
-        <AccountActionsMenu onAction={onAction} />
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onAction('edit-roles')}
+          className="h-8 gap-1.5 whitespace-nowrap"
+        >
+          <Edit className="h-3.5 w-3.5 shrink-0" />
+          Edit Roles
+        </Button>
       </td>
     </tr>
   );

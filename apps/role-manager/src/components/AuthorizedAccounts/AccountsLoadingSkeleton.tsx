@@ -57,9 +57,9 @@ function TableRowSkeleton() {
           <Skeleton className="h-5 w-16 rounded-full" />
         </div>
       </td>
-      {/* Actions */}
+      {/* Actions - Edit Roles button */}
       <td className="p-4">
-        <Skeleton className="h-8 w-8 rounded" />
+        <Skeleton className="h-8 w-24 rounded" />
       </td>
     </tr>
   );

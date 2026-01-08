@@ -56,7 +56,7 @@ const COLUMNS = [
   { id: 'status', label: 'Status', width: 'w-24' },
   { id: 'dateAdded', label: 'Date Added', width: 'w-44' },
   { id: 'roles', label: 'Roles', width: 'w-48' },
-  { id: 'actions', label: 'Actions', width: 'w-16' },
+  { id: 'actions', label: '', width: 'w-32' },
 ] as const;
 
 /**
