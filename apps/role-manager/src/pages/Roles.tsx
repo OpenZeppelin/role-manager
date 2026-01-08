@@ -22,7 +22,8 @@
 
 import { FileSearch, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 import { Button, Card } from '@openzeppelin/ui-components';
 import { cn } from '@openzeppelin/ui-utils';
@@ -49,6 +50,10 @@ import { useSelectedContract } from '../hooks/useSelectedContract';
 import { createGetAccountUrl } from '../utils/explorer-urls';
 
 export function Roles() {
+  // URL search params for deep linking to specific role
+  const [searchParams, setSearchParams] = useSearchParams();
+  const roleFromUrl = searchParams.get('role');
+
   // T035: Use useRolesPageData hook
   const {
     roles,
@@ -77,6 +82,23 @@ export function Roles() {
     pendingAdminTransfer,
     adminState,
   } = useRolesPageData();
+
+  // Effect to handle deep linking: select role from URL param
+  useEffect(() => {
+    if (roleFromUrl && roles.length > 0) {
+      // Find the role by ID (URL-decoded)
+      const decodedRoleId = decodeURIComponent(roleFromUrl);
+      const roleExists = roles.some((r) => r.roleId === decodedRoleId);
+      if (roleExists) {
+        setSelectedRoleId(decodedRoleId);
+        // Clear the URL param after selecting to avoid re-selection on refresh
+        setSearchParams((params) => {
+          params.delete('role');
+          return params;
+        });
+      }
+    }
+  }, [roleFromUrl, roles, setSelectedRoleId, setSearchParams]);
 
   // Phase 6: Edit dialog state
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);

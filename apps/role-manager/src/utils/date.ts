@@ -5,36 +5,38 @@
  */
 
 /**
- * Format ISO date string to M/D/YYYY format
+ * Format ISO date string to M/D/YYYY format in UTC
  * @param isoString - ISO 8601 date string (e.g., "2024-11-15T10:30:00Z")
- * @returns Formatted date string (e.g., "11/15/2024") or empty string if invalid
+ * @returns Formatted date string in UTC (e.g., "11/15/2024") or empty string if invalid
+ * @note Uses UTC to ensure consistent display across timezones for blockchain timestamps
  */
 export function formatDate(isoString: string): string {
   if (!isoString) return '';
   const date = new Date(isoString);
   if (isNaN(date.getTime())) return '';
-  return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
+  return `${date.getUTCMonth() + 1}/${date.getUTCDate()}/${date.getUTCFullYear()}`;
 }
 
 /**
- * Format ISO date string to M/D/YYYY, h:mm AM/PM format
+ * Format ISO date string to M/D/YYYY, h:mm AM/PM format in UTC
  * @param isoString - ISO 8601 date string (e.g., "2024-11-15T10:30:00Z")
- * @returns Formatted date/time string in the user's local timezone (e.g., "11/15/2024, 10:30 AM") or empty string if invalid
- * @note The output time depends on the user's local timezone settings
+ * @returns Formatted date/time string in UTC (e.g., "11/15/2024, 10:30 AM UTC") or empty string if invalid
+ * @note Uses UTC to ensure consistent display across timezones for blockchain timestamps
  */
 export function formatDateTime(isoString: string): string {
   if (!isoString) return '';
   const date = new Date(isoString);
   if (isNaN(date.getTime())) return '';
 
-  const dateStr = `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
+  const dateStr = `${date.getUTCMonth() + 1}/${date.getUTCDate()}/${date.getUTCFullYear()}`;
   const timeStr = date.toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
+    timeZone: 'UTC',
   });
 
-  return `${dateStr}, ${timeStr}`;
+  return `${dateStr}, ${timeStr} UTC`;
 }
 
 /**

@@ -14,7 +14,8 @@
  */
 
 import { FileSearch, RefreshCw, Users } from 'lucide-react';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { Button, Card } from '@openzeppelin/ui-components';
 import { cn, logger } from '@openzeppelin/ui-utils';
@@ -45,6 +46,9 @@ import { useSelectedContract } from '../hooks/useSelectedContract';
  * - Selection and actions log to console (placeholder behavior)
  */
 export function AuthorizedAccounts() {
+  // Navigation for role linking
+  const navigate = useNavigate();
+
   // Get real data from hook (T040)
   const {
     paginatedAccounts,
@@ -75,6 +79,14 @@ export function AuthorizedAccounts() {
 
   // T027: State for ManageRolesDialog (Feature 014)
   const [manageRolesAccount, setManageRolesAccount] = useState<string | null>(null);
+
+  // Handler for navigating to Roles page with specific role pre-selected
+  const handleRoleClick = useCallback(
+    (roleId: string) => {
+      navigate(`/roles?role=${encodeURIComponent(roleId)}`);
+    },
+    [navigate]
+  );
 
   // Selection change handler (logs to console per T069)
   const handleSelectionChange = (newSelectedIds: Set<string>) => {
@@ -228,6 +240,7 @@ export function AuthorizedAccounts() {
           connectedAddress={connectedAddress}
           onSelectionChange={handleSelectionChange}
           onAction={handleAction}
+          onRoleClick={handleRoleClick}
           emptyState={
             <div className="py-16 px-4">
               <PageEmptyState

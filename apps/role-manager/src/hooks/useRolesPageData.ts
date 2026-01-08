@@ -403,8 +403,18 @@ export function useRolesPageData(): UseRolesPageDataReturn {
   // Loading & Error States
   // =============================================================================
 
+  // Include contract registration waiting period in loading state
+  // When contract is selected but not yet registered, queries are disabled
+  // and their isLoading is false, but we're still "loading" from user perspective
+  const isWaitingForRegistration = !!selectedContract && !isContractRegistered;
+
   // Feature 016: Include admin loading state
-  const isLoading = isCapabilitiesLoading || isRolesLoading || isOwnershipLoading || isAdminLoading;
+  const isLoading =
+    isWaitingForRegistration ||
+    isCapabilitiesLoading ||
+    isRolesLoading ||
+    isOwnershipLoading ||
+    isAdminLoading;
   // T051: isRefreshing is true when we have data but are fetching in the background
   const isRefreshing = !isLoading && (isRolesFetching || isOwnershipFetching || isAdminFetching);
   const hasError = !!capabilitiesError || hasRolesError;

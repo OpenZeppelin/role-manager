@@ -249,7 +249,12 @@ export function useAuthorizedAccountsPageData(): UseAuthorizedAccountsPageDataRe
   // Loading & Error States
   // =============================================================================
 
-  const isLoading = isCapabilitiesLoading || isRolesLoading || isOwnershipLoading;
+  // Include contract registration waiting period in loading state
+  // When contract is selected but not yet registered, queries are disabled
+  // and their isLoading is false, but we're still "loading" from user perspective
+  const isWaitingForRegistration = !!selectedContract && !isContractRegistered;
+  const isLoading =
+    isWaitingForRegistration || isCapabilitiesLoading || isRolesLoading || isOwnershipLoading;
   const isRefreshing = !isLoading && (isRolesFetching || isOwnershipFetching);
   const hasError = !!capabilitiesError || hasRolesError;
   const errorMessage = rolesErrorMessage ?? capabilitiesError?.message ?? null;

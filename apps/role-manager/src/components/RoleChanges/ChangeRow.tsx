@@ -26,6 +26,8 @@ import { StatusBadge } from '../Shared/StatusBadge';
 export interface ChangeRowProps {
   /** Event data to display */
   event: RoleChangeEventView;
+  /** Callback when a role badge is clicked (for navigation to Roles page) */
+  onRoleClick?: (roleId: string) => void;
 }
 
 /**
@@ -38,7 +40,7 @@ export interface ChangeRowProps {
  * - Truncated address with copy functionality and explorer link
  * - Transaction link to block explorer
  */
-export function ChangeRow({ event }: ChangeRowProps) {
+export function ChangeRow({ event, onRoleClick }: ChangeRowProps) {
   const actionConfig = ACTION_TYPE_CONFIG[event.action];
 
   // Map action to role type for special icon display
@@ -64,8 +66,13 @@ export function ChangeRow({ event }: ChangeRowProps) {
       </td>
 
       {/* Role badge - pass type for special icons (Owner crown, Contract Admin shield) */}
+      {/* Clickable for navigation to Roles page */}
       <td className="p-4">
-        <RoleTypeBadge type={roleType} roleName={event.roleName} />
+        <RoleTypeBadge
+          type={roleType}
+          roleName={event.roleName}
+          onClick={onRoleClick ? () => onRoleClick(event.roleId) : undefined}
+        />
       </td>
 
       {/* Account address */}

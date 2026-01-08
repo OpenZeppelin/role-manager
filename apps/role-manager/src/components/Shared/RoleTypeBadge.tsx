@@ -20,6 +20,7 @@
 
 import { Crown, Shield } from 'lucide-react';
 
+import { Tooltip, TooltipContent, TooltipTrigger } from '@openzeppelin/ui-components';
 import { cn } from '@openzeppelin/ui-utils';
 
 import type { PendingTransferType } from '../../types/pending-transfers';
@@ -44,6 +45,8 @@ export interface RoleTypeBadgeProps {
   label?: string;
   /** Additional CSS classes for the badge */
   className?: string;
+  /** Optional click handler for navigation (makes badge clickable) */
+  onClick?: () => void;
 }
 
 // =============================================================================
@@ -85,8 +88,12 @@ const TYPE_LABELS: Record<PendingTransferType, string> = {
  * @example
  * // Custom label override
  * <RoleTypeBadge type="admin" label="Admin Role" />
+ *
+ * @example
+ * // Clickable badge for navigation (shows tooltip on hover)
+ * <RoleTypeBadge roleName="Minter" onClick={() => navigate('/roles?role=xxx')} />
  */
-export function RoleTypeBadge({ type, roleName, label, className }: RoleTypeBadgeProps) {
+export function RoleTypeBadge({ type, roleName, label, className, onClick }: RoleTypeBadgeProps) {
   // Determine display label: custom label > type label > role name
   const displayLabel = label || (type ? TYPE_LABELS[type] : roleName) || '';
 
@@ -101,8 +108,28 @@ export function RoleTypeBadge({ type, roleName, label, className }: RoleTypeBadg
   // Determine if icon should be shown
   const hasIcon = isOwner || isContractAdmin;
 
-  return (
-    <OutlineBadge className={cn(hasIcon && 'gap-1', className)}>
+  // Clickable styles when onClick is provided
+  const clickableStyles = onClick
+    ? 'cursor-pointer hover:bg-accent/50 transition-colors'
+    : undefined;
+
+  const badge = (
+    <OutlineBadge
+      className={cn(hasIcon && 'gap-1', clickableStyles, className)}
+      onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={
+        onClick
+          ? (e: React.KeyboardEvent) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onClick();
+              }
+            }
+          : undefined
+      }
+    >
       {isOwner && <Crown className="h-3 w-3 text-blue-600" aria-label="Owner role" />}
       {isContractAdmin && (
         <Shield className="h-3 w-3 text-purple-600" aria-label="Contract Admin role" />
@@ -110,4 +137,18 @@ export function RoleTypeBadge({ type, roleName, label, className }: RoleTypeBadg
       {displayLabel}
     </OutlineBadge>
   );
+
+  // Wrap with tooltip when clickable
+  if (onClick) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>{badge}</TooltipTrigger>
+        <TooltipContent>
+          <p>View role details</p>
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  return badge;
 }
