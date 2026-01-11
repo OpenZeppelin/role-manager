@@ -142,7 +142,7 @@ export function RoleDetails({
 
   return (
     <div className={cn(className)}>
-      <CardHeader className="shrink-0 pt-6 pb-4">
+      <CardHeader className="shrink-0 pb-4">
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-2">

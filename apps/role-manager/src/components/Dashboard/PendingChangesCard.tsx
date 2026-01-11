@@ -60,7 +60,7 @@ export function PendingChangesCard({
 
   return (
     <Card className={cn('w-full flex flex-col shadow-none pt-0 lg:min-h-[300px]', className)}>
-      <CardHeader className={cn('pt-6', hasTransfers && 'pb-6')}>
+      <CardHeader className={cn(hasTransfers && 'pb-6')}>
         <CardTitle className="text-lg font-medium">Pending Role Changes</CardTitle>
       </CardHeader>
       {/* Remove padding when showing table so it sits flush with card edges */}
