@@ -224,3 +224,7 @@ chore: update dependencies
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
+
+---
+
+_This project uses [@openzeppelin/ui-components](https://www.npmjs.com/package/@openzeppelin/ui-components) for shared UI components._
