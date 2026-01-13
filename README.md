@@ -6,6 +6,8 @@
 
 This project is currently in development.
 
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/OpenZeppelin/role-manager/badge)](https://api.securityscorecards.dev/projects/github.com/OpenZeppelin/role-manager)
+[![Scorecard supply-chain security](https://github.com/OpenZeppelin/role-manager/actions/workflows/scorecard.yml/badge.svg)](https://github.com/OpenZeppelin/role-manager/actions/workflows/scorecard.yml)
 [![CI](https://github.com/OpenZeppelin/role-manager/actions/workflows/ci.yml/badge.svg)](https://github.com/OpenZeppelin/role-manager/actions/workflows/ci.yml)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-brightgreen.svg)](https://conventionalcommits.org)
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
