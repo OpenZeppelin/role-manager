@@ -6,6 +6,11 @@
 
 This project is currently in development.
 
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/OpenZeppelin/role-manager/badge)](https://api.securityscorecards.dev/projects/github.com/OpenZeppelin/role-manager)
+[![Scorecard supply-chain security](https://github.com/OpenZeppelin/role-manager/actions/workflows/scorecard.yml/badge.svg)](https://github.com/OpenZeppelin/role-manager/actions/workflows/scorecard.yml)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/11773/badge)](https://www.bestpractices.dev/projects/11773)
+[![CLA Assistant](https://github.com/OpenZeppelin/role-manager/actions/workflows/cla.yml/badge.svg)](https://github.com/OpenZeppelin/role-manager/actions/workflows/cla.yml)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![CI](https://github.com/OpenZeppelin/role-manager/actions/workflows/ci.yml/badge.svg)](https://github.com/OpenZeppelin/role-manager/actions/workflows/ci.yml)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-brightgreen.svg)](https://conventionalcommits.org)
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
@@ -14,7 +19,6 @@ This project is currently in development.
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![Vite](https://img.shields.io/badge/Vite-B73BFE?logo=vite&logoColor=FFD62E)](https://vitejs.dev/)
 [![pnpm](https://img.shields.io/badge/pnpm-F69220?logo=pnpm&logoColor=white)](https://pnpm.io/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
 ## Table of Contents
 
