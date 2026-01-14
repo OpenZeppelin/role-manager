@@ -3,8 +3,6 @@ name: Prod Build and Push Docker Images
 on:
   release:
     types: [published]
-  push:
-    branches: ["trigger-build"]
 
 concurrency:
   group: production-deployment-${{ github.ref }}
