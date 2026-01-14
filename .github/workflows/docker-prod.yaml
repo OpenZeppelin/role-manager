@@ -116,8 +116,8 @@ jobs:
     env:
       ROLE_FOR_OIDC: arn:aws:iam::${{ secrets.ROOT_ACCOUNT_ID }}:role/github-actions-research-account-oidc-role
       ROLE_TO_ASSUME: arn:aws:iam::${{ secrets.RESEARCH_ACCOUNT_ID }}:role/GithubOIDCResearchAccountRole
-      ECS_CLUSTER: role-manager-prod-cluster
-      ECS_SERVICE: role-manager-prod-service
+      ECS_CLUSTER: role-manager-cluster
+      ECS_SERVICE: role-manager-service
       AWS_REGION: us-east-1
     permissions:
       contents: read
