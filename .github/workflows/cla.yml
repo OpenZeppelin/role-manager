@@ -10,6 +10,9 @@ on:
       - closed
       - synchronize
       - labeled
+permissions:
+  contents: read
+
 jobs:
   CLAAssistant:
     runs-on: ubuntu-latest
