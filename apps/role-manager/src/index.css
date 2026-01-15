@@ -17,7 +17,7 @@
   Note: node_modules is ignored by default (gitignore patterns), so we must
   explicitly register it with @source. Path is relative to the stylesheet.
 */
-@source "../../../node_modules/@openzeppelin";
+@source '../../../node_modules/@openzeppelin';
 
 /*
   Import global theme variables and base styles from the @openzeppelin/ui-styles package.
