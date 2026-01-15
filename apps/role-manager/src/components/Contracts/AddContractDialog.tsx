@@ -74,11 +74,13 @@ const DIALOG_TITLES: Record<DialogStep, string> = {
  * @param open - Whether the dialog is open
  * @param onOpenChange - Callback when dialog open state changes
  * @param onContractAdded - Callback when a contract is successfully added
+ * @param defaultNetwork - Default network to preselect when opening the dialog
  */
 export function AddContractDialog({
   open,
   onOpenChange,
   onContractAdded,
+  defaultNetwork,
 }: AddContractDialogProps): React.ReactElement {
   const [step, setStep] = useState<DialogStep>('form');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -319,6 +321,7 @@ export function AddContractDialog({
             onSubmit={handleSubmit}
             onCancel={handleCancel}
             isSubmitting={isSubmitting}
+            defaultNetwork={defaultNetwork}
           />
         )}
 
