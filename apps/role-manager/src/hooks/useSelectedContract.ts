@@ -73,5 +73,6 @@ export function useSelectedContract(): UseSelectedContractReturn {
     contracts: context.contracts,
     isContractsLoading: context.isContractsLoading,
     isContractRegistered: context.isContractRegistered,
+    selectContractById: context.selectContractById,
   };
 }

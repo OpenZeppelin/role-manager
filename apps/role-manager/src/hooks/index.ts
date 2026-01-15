@@ -6,9 +6,21 @@
 export { useAllNetworks } from './useAllNetworks';
 export { useNetworkAdapter } from './useNetworkAdapter';
 export { useNetworksByEcosystem } from './useNetworksByEcosystem';
+export { useNetworkSelection } from './useNetworkSelection';
+export type { UseNetworkSelectionOptions, UseNetworkSelectionReturn } from './useNetworkSelection';
 
 // Contract selection hooks (Feature: 007-dashboard-real-data)
 export { useSelectedContract } from './useSelectedContract';
+export { useContractSelection } from './useContractSelection';
+export type {
+  UseContractSelectionOptions,
+  UseContractSelectionReturn,
+} from './useContractSelection';
+export { useContractRegistration } from './useContractRegistration';
+export type {
+  UseContractRegistrationOptions,
+  UseContractRegistrationReturn,
+} from './useContractRegistration';
 
 // Dashboard data aggregation hook (Feature: 007-dashboard-real-data)
 export { useDashboardData } from './useDashboardData';

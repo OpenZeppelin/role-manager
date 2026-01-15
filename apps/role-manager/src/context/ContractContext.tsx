@@ -11,23 +11,14 @@
  * 2. Use useContractContext() or useSelectedContract() to access state
  */
 
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-
-import type { AccessControlService, ContractSchema, NetworkConfig } from '@openzeppelin/ui-types';
-import { logger } from '@openzeppelin/ui-utils';
+import React, { createContext, useCallback, useContext, useMemo } from 'react';
 
 import { useAllNetworks } from '../hooks/useAllNetworks';
+import { useContractRegistration } from '../hooks/useContractRegistration';
+import { useContractSelection } from '../hooks/useContractSelection';
 import { useNetworkAdapter } from '../hooks/useNetworkAdapter';
+import { useNetworkSelection } from '../hooks/useNetworkSelection';
 import { useRecentContracts } from '../hooks/useRecentContracts';
-import type { ContractRecord } from '../types/contracts';
 import type { ContractContextValue } from '../types/dashboard';
 
 // =============================================================================
@@ -82,20 +73,12 @@ export function ContractProvider({ children }: ContractProviderProps): React.Rea
 
   const { networks, isLoading: isLoadingNetworks } = useAllNetworks();
 
-  // Selected network state
-  const [selectedNetwork, setSelectedNetworkState] = useState<NetworkConfig | null>(null);
-
-  // Auto-select first network once loaded
-  useEffect(() => {
-    if (!selectedNetwork && networks.length > 0 && !isLoadingNetworks) {
-      setSelectedNetworkState(networks[0]);
-    }
-  }, [networks, selectedNetwork, isLoadingNetworks]);
-
-  // Stable setter for network
-  const setSelectedNetwork = useCallback((network: NetworkConfig | null) => {
-    setSelectedNetworkState(network);
-  }, []);
+  // Network selection with preference persistence
+  const { selectedNetwork, setSelectedNetwork, pendingContractId, setPendingContractId } =
+    useNetworkSelection({
+      networks,
+      isLoadingNetworks,
+    });
 
   // ==========================================================================
   // Contracts (filtered by selected network)
@@ -105,32 +88,22 @@ export function ContractProvider({ children }: ContractProviderProps): React.Rea
     selectedNetwork?.id
   );
 
-  // Selected contract state
-  const [selectedContract, setSelectedContractState] = useState<ContractRecord | null>(null);
+  // Callback for when pending contract is handled
+  const handlePendingContractHandled = useCallback(() => {
+    setPendingContractId(null);
+  }, [setPendingContractId]);
 
-  // Auto-select first contract when contracts load or change
-  useEffect(() => {
-    const contractsList = contracts ?? [];
-
-    if (contractsList.length > 0) {
-      // If no contract selected, select first
-      if (!selectedContract) {
-        setSelectedContractState(contractsList[0]);
-      }
-      // If current selection is not in the list (deleted or network changed), select first
-      else if (!contractsList.find((c) => c.id === selectedContract.id)) {
-        setSelectedContractState(contractsList[0]);
-      }
-    } else {
-      // No contracts available, clear selection
-      setSelectedContractState(null);
-    }
-  }, [contracts, selectedContract]);
-
-  // Stable setter for contract
-  const setSelectedContract = useCallback((contract: ContractRecord | null) => {
-    setSelectedContractState(contract);
-  }, []);
+  // Contract selection with preference persistence
+  const { selectedContract, setSelectedContract, selectContractById } = useContractSelection({
+    contracts,
+    isContractsLoading,
+    pendingContractId,
+    onPendingContractHandled: handlePendingContractHandled,
+    selectedNetwork,
+    networks,
+    setSelectedNetwork,
+    setPendingContractId,
+  });
 
   // ==========================================================================
   // Adapter (for selected network)
@@ -142,105 +115,12 @@ export function ContractProvider({ children }: ContractProviderProps): React.Rea
   // Contract Registration
   // ==========================================================================
 
-  // Track which contracts have been registered to avoid duplicate registrations
-  // Using state (not ref) so changes trigger re-renders and hooks get updated value
-  const [registeredContracts, setRegisteredContracts] = useState<Set<string>>(new Set());
-
-  // Track previous ecosystem to detect actual ecosystem changes (not just network changes)
-  const prevEcosystemRef = useRef<string | null>(null);
-
-  // Compute isContractRegistered synchronously based on current selection
-  // This ensures the value is correct during render, not just after effects
-  const isContractRegistered = useMemo(() => {
-    if (!selectedNetwork || !selectedContract) {
-      return false;
-    }
-    const registrationKey = `${selectedNetwork.ecosystem}:${selectedContract.address}`;
-    return registeredContracts.has(registrationKey);
-  }, [selectedNetwork, selectedContract, registeredContracts]);
-
-  // Register contract with access control service when contract/adapter changes
-  useEffect(() => {
-    // Skip if no adapter, still loading, no network, or no contract selected
-    if (!adapter || isAdapterLoading || !selectedNetwork || !selectedContract) {
-      return;
-    }
-
-    const registrationKey = `${selectedNetwork.ecosystem}:${selectedContract.address}`;
-
-    // Skip if already registered
-    if (registeredContracts.has(registrationKey)) {
-      return;
-    }
-
-    // Skip if contract doesn't have a schema
-    if (!selectedContract.schema) {
-      logger.debug('ContractContext', 'Contract has no schema, skipping registration', {
-        address: selectedContract.address,
-      });
-      // Mark as "registered" even without schema so data hooks don't wait forever
-      setRegisteredContracts((prev) => new Set(prev).add(registrationKey));
-      return;
-    }
-
-    // Get access control service from adapter
-    const service = adapter.getAccessControlService?.() as
-      | (AccessControlService & {
-          registerContract?: (address: string, schema: ContractSchema) => void;
-        })
-      | undefined;
-
-    // If adapter doesn't support registration, mark as registered anyway
-    if (!service || typeof service.registerContract !== 'function') {
-      setRegisteredContracts((prev) => new Set(prev).add(registrationKey));
-      return;
-    }
-
-    try {
-      // Parse the stored schema JSON
-      const schema = JSON.parse(selectedContract.schema) as ContractSchema;
-
-      // Register the contract with the service
-      service.registerContract(selectedContract.address, schema);
-
-      logger.debug('ContractContext', 'Registered contract with access control service', {
-        address: selectedContract.address,
-        ecosystem: selectedNetwork.ecosystem,
-      });
-
-      // Add to registered set (triggers re-render, hooks see updated isContractRegistered)
-      setRegisteredContracts((prev) => new Set(prev).add(registrationKey));
-    } catch (error) {
-      logger.error('ContractContext', 'Failed to register contract', error);
-      // Still mark as registered so hooks don't wait forever (they'll get the error)
-      setRegisteredContracts((prev) => new Set(prev).add(registrationKey));
-    }
-  }, [adapter, isAdapterLoading, selectedNetwork, selectedContract, registeredContracts]);
-
-  // Clear registration cache when ecosystem changes (new service instance)
-  // Uses a ref to track the previous ecosystem and only clear when it actually changes,
-  // avoiding unnecessary re-registrations when switching between networks of the same ecosystem
-  useEffect(() => {
-    if (selectedNetwork) {
-      const currentEcosystem = selectedNetwork.ecosystem;
-
-      // Only clear registrations when ecosystem actually changes
-      if (prevEcosystemRef.current !== null && prevEcosystemRef.current !== currentEcosystem) {
-        // When ecosystem changes, the adapter and service are recreated
-        // Clear registrations for other ecosystems
-        setRegisteredContracts((prev) => {
-          const filtered = Array.from(prev).filter((key) => key.startsWith(`${currentEcosystem}:`));
-          if (filtered.length !== prev.size) {
-            return new Set(filtered);
-          }
-          return prev;
-        });
-      }
-
-      // Update ref to current ecosystem
-      prevEcosystemRef.current = currentEcosystem;
-    }
-  }, [selectedNetwork]);
+  const { isContractRegistered } = useContractRegistration({
+    adapter,
+    isAdapterLoading,
+    selectedNetwork,
+    selectedContract,
+  });
 
   // ==========================================================================
   // Context Value
@@ -257,6 +137,7 @@ export function ContractProvider({ children }: ContractProviderProps): React.Rea
       contracts: contracts ?? [],
       isContractsLoading,
       isContractRegistered,
+      selectContractById,
     }),
     [
       selectedContract,
@@ -268,6 +149,7 @@ export function ContractProvider({ children }: ContractProviderProps): React.Rea
       contracts,
       isContractsLoading,
       isContractRegistered,
+      selectContractById,
     ]
   );
 

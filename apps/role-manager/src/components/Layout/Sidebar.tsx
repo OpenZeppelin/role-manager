@@ -43,19 +43,27 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps): React
   const { networks, isLoading: isLoadingNetworks } = useAllNetworks();
 
   // Contract selection from shared context (Feature: 007-dashboard-real-data)
-  const { selectedContract, setSelectedContract, selectedNetwork, setSelectedNetwork, contracts } =
-    useSelectedContract();
+  const {
+    selectedContract,
+    setSelectedContract,
+    selectedNetwork,
+    setSelectedNetwork,
+    contracts,
+    selectContractById,
+  } = useSelectedContract();
 
   // Contracts data - for delete operation
   const { deleteContract } = useRecentContracts(selectedNetwork?.id);
 
   // Handle contract added - auto-select the new contract (FR-008a)
-  const handleContractAdded = useCallback((contractId: string) => {
-    logger.info('Sidebar', `Contract added with ID: ${contractId}`);
-    // Note: Selection logic is handled by the effect above implicitly for now,
-    // or by the user manually selecting.
-    // Ideally we would set a flag to "select next update with this ID".
-  }, []);
+  const handleContractAdded = useCallback(
+    (contractId: string) => {
+      logger.info('Sidebar', `Contract added with ID: ${contractId}`);
+      // Auto-select the newly added contract (will also switch networks if needed)
+      selectContractById(contractId);
+    },
+    [selectContractById]
+  );
 
   const handleRemoveContract = async (contract: ContractRecord) => {
     try {
@@ -156,6 +164,7 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps): React
         open={isAddDialogOpen}
         onOpenChange={setIsAddDialogOpen}
         onContractAdded={handleContractAdded}
+        defaultNetwork={selectedNetwork}
       />
     </>
   );

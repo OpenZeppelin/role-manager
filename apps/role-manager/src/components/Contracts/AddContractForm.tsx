@@ -9,7 +9,7 @@
  */
 
 import { Loader2 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { Control } from 'react-hook-form';
 
@@ -28,6 +28,7 @@ import {
   getEcosystemDefaultFeatureConfig,
   getEcosystemName,
 } from '@/core/ecosystems/registry';
+import { recentContractsStorage } from '@/core/storage/RecentContractsStorage';
 import { useNetworkAdapter, useNetworksByEcosystem } from '@/hooks';
 import type { AddContractFormProps } from '@/types/contracts';
 
@@ -62,8 +63,9 @@ export function AddContractForm({
   onSubmit,
   onCancel,
   isSubmitting = false,
+  defaultNetwork,
 }: AddContractFormProps): React.ReactElement {
-  // Get the first enabled ecosystem (for auto-selection)
+  // Get the first enabled ecosystem (for auto-selection when no default)
   const firstEnabledEcosystem = useMemo(() => {
     return (
       ECOSYSTEM_ORDER.find((eco) => {
@@ -73,10 +75,16 @@ export function AddContractForm({
     );
   }, []);
 
-  // Two-step state: ecosystem selection before network (auto-select first enabled)
-  const [selectedEcosystem, setSelectedEcosystem] = useState<Ecosystem | null>(
-    firstEnabledEcosystem
-  );
+  // Determine initial ecosystem: use default network's ecosystem or fall back to first enabled
+  const initialEcosystem = useMemo(() => {
+    if (defaultNetwork?.ecosystem) {
+      return defaultNetwork.ecosystem;
+    }
+    return firstEnabledEcosystem;
+  }, [defaultNetwork, firstEnabledEcosystem]);
+
+  // Two-step state: ecosystem selection before network
+  const [selectedEcosystem, setSelectedEcosystem] = useState<Ecosystem | null>(initialEcosystem);
 
   // Lazy load networks only for the selected ecosystem
   const {
@@ -86,17 +94,39 @@ export function AddContractForm({
   } = useNetworksByEcosystem(selectedEcosystem);
 
   // Form state management with react-hook-form
-  const { control, handleSubmit, watch, setValue, formState, reset } = useForm<ExtendedFormData>({
-    mode: 'onChange',
-    defaultValues: {
-      name: '',
-      networkId: '',
-    },
-  });
+  const { control, handleSubmit, watch, setValue, formState, reset, setError, clearErrors } =
+    useForm<ExtendedFormData>({
+      mode: 'onChange',
+      defaultValues: {
+        name: '',
+        networkId: defaultNetwork?.id ?? '',
+      },
+    });
+
+  // Track if we've applied the default network (to avoid re-applying on subsequent renders)
+  const defaultNetworkAppliedRef = useRef(false);
+
+  // Preselect network when networks load and a default is provided
+  useEffect(() => {
+    // Only apply default once, when networks first load
+    if (defaultNetworkAppliedRef.current || !defaultNetwork || isLoadingNetworks) {
+      return;
+    }
+
+    // Check if the default network exists in the loaded networks
+    const networkExists = networks.some((n) => n.id === defaultNetwork.id);
+    if (networkExists) {
+      setValue('networkId', defaultNetwork.id, { shouldValidate: true });
+      defaultNetworkAppliedRef.current = true;
+    }
+  }, [defaultNetwork, networks, isLoadingNetworks, setValue]);
 
   // Watch networkId to manage network selection state
   const networkId = watch('networkId');
   const selectedNetwork = networks.find((n) => n.id === networkId) ?? null;
+
+  // Watch contractAddress for duplicate validation
+  const contractAddress = watch('contractAddress') as string | undefined;
 
   // Load adapter for selected network (used for address validation and dynamic fields)
   const {
@@ -104,6 +134,60 @@ export function AddContractForm({
     isLoading: isAdapterLoading,
     error: adapterError,
   } = useNetworkAdapter(selectedNetwork);
+
+  // Duplicate contract validation
+  const [isDuplicateChecking, setIsDuplicateChecking] = useState(false);
+  const duplicateCheckTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Check for duplicate contracts when address or network changes
+  useEffect(() => {
+    // Clear any existing error when inputs change
+    const clearDuplicateError = () => {
+      if (formState.errors.contractAddress?.type === 'duplicate') {
+        clearErrors('contractAddress');
+      }
+    };
+
+    // If no address or network, clear error and return
+    if (!contractAddress || !networkId) {
+      clearDuplicateError();
+      return;
+    }
+
+    // Debounce the duplicate check
+    if (duplicateCheckTimeoutRef.current) {
+      clearTimeout(duplicateCheckTimeoutRef.current);
+    }
+
+    duplicateCheckTimeoutRef.current = setTimeout(async () => {
+      setIsDuplicateChecking(true);
+      try {
+        const existing = await recentContractsStorage.getByAddressAndNetwork(
+          contractAddress,
+          networkId
+        );
+
+        if (existing) {
+          setError('contractAddress', {
+            type: 'duplicate',
+            message: `This contract is already added${existing.label ? ` as "${existing.label}"` : ''}`,
+          });
+        } else {
+          clearDuplicateError();
+        }
+      } catch {
+        // Silently ignore storage errors during validation
+      } finally {
+        setIsDuplicateChecking(false);
+      }
+    }, 300); // 300ms debounce
+
+    return () => {
+      if (duplicateCheckTimeoutRef.current) {
+        clearTimeout(duplicateCheckTimeoutRef.current);
+      }
+    };
+  }, [contractAddress, networkId, setError, clearErrors, formState.errors.contractAddress]);
 
   // Get contract definition inputs from adapter
   const contractDefinitionInputs = useMemo<FormFieldType[]>(() => {
@@ -155,12 +239,17 @@ export function AddContractForm({
     return true;
   }, [adapter, contractDefinitionInputs]);
 
+  // Check if there's a duplicate error
+  const hasDuplicateError = formState.errors.contractAddress?.type === 'duplicate';
+
   const isFormValid =
     formState.isValid &&
     !!selectedNetwork &&
     !isAdapterLoading &&
     !adapterError &&
-    hasRequiredAdapterFields;
+    hasRequiredAdapterFields &&
+    !hasDuplicateError &&
+    !isDuplicateChecking;
 
   return (
     <form onSubmit={onFormSubmit} className="flex flex-col gap-4">

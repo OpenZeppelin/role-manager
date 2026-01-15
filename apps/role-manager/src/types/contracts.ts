@@ -51,6 +51,8 @@ export interface AddContractDialogProps {
   onOpenChange: (open: boolean) => void;
   /** Callback when a contract is successfully added, receives the record ID */
   onContractAdded?: (contractId: string) => void;
+  /** Default network to preselect when opening the dialog */
+  defaultNetwork?: NetworkConfig | null;
 }
 
 /**
@@ -63,6 +65,8 @@ export interface AddContractFormProps {
   onCancel: () => void;
   /** Whether form submission is in progress */
   isSubmitting?: boolean;
+  /** Default network to preselect */
+  defaultNetwork?: NetworkConfig | null;
 }
 
 /**

@@ -49,6 +49,13 @@ export interface ContractContextValue {
    * This is required for adapters (like Stellar) that need contract context registered first.
    */
   isContractRegistered: boolean;
+
+  /**
+   * Select a contract by ID.
+   * This is useful when a new contract is added and we want to auto-select it.
+   * Will also switch networks if the contract is on a different network.
+   */
+  selectContractById: (contractId: string) => Promise<void>;
 }
 
 // =============================================================================
@@ -159,4 +166,10 @@ export interface UseSelectedContractReturn {
   isContractsLoading: boolean;
   /** Whether the contract is registered with the access control service */
   isContractRegistered: boolean;
+  /**
+   * Select a contract by ID.
+   * This is useful when a new contract is added and we want to auto-select it.
+   * Will also switch networks if the contract is on a different network.
+   */
+  selectContractById: (contractId: string) => Promise<void>;
 }
