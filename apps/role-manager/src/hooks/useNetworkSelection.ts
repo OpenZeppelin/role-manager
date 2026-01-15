@@ -112,6 +112,19 @@ export function useNetworkSelection({
     loadPreferences();
   }, [networks, isLoadingNetworks]);
 
+  // Auto-select first network when network is null but networks are available
+  // This handles the case when user explicitly sets network to null
+  useEffect(() => {
+    if (
+      !selectedNetwork &&
+      networks.length > 0 &&
+      !isLoadingNetworks &&
+      preferencesLoadedRef.current
+    ) {
+      setSelectedNetworkState(networks[0]);
+    }
+  }, [selectedNetwork, networks, isLoadingNetworks]);
+
   // Stable setter for network (also saves to preferences)
   const setSelectedNetwork = useCallback((network: NetworkConfig | null) => {
     setSelectedNetworkState(network);

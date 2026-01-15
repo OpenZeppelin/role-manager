@@ -85,7 +85,8 @@ export function useContractSelection({
 
   // Handle pending contract selection (from preferences or selectContractById)
   useEffect(() => {
-    if (!pendingContractId || !contracts || contracts.length === 0) {
+    // Don't process pending while contracts are still loading
+    if (!pendingContractId || !contracts || contracts.length === 0 || isContractsLoading) {
       return;
     }
 
@@ -93,7 +94,7 @@ export function useContractSelection({
     if (contract) {
       setSelectedContractState(contract);
       onPendingContractHandled();
-    } else if (!isContractsLoading) {
+    } else {
       // Contract not found in list, clear pending and select first
       onPendingContractHandled();
       setSelectedContractState(contracts[0]);

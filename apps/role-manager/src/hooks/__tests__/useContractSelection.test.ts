@@ -180,7 +180,7 @@ describe('useContractSelection', () => {
       });
     });
 
-    it('should allow setting contract to null', async () => {
+    it('should auto-reselect first contract when set to null', async () => {
       const { result } = renderHook(() => useContractSelection(defaultProps));
 
       await waitFor(() => {
@@ -191,7 +191,10 @@ describe('useContractSelection', () => {
         result.current.setSelectedContract(null);
       });
 
-      expect(result.current.selectedContract).toBeNull();
+      // Auto-selection kicks in and selects the first contract
+      await waitFor(() => {
+        expect(result.current.selectedContract).toEqual(mockContract1);
+      });
     });
   });
 

@@ -201,7 +201,7 @@ describe('useNetworkSelection', () => {
       });
     });
 
-    it('should allow setting network to null', async () => {
+    it('should auto-reselect first network when set to null', async () => {
       const { result } = renderHook(() =>
         useNetworkSelection({
           networks: [mockNetworkStellar],
@@ -217,7 +217,10 @@ describe('useNetworkSelection', () => {
         result.current.setSelectedNetwork(null);
       });
 
-      expect(result.current.selectedNetwork).toBeNull();
+      // Auto-selection kicks in and selects the first network
+      await waitFor(() => {
+        expect(result.current.selectedNetwork).toEqual(mockNetworkStellar);
+      });
     });
   });
 
