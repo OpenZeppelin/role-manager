@@ -46,8 +46,6 @@ jobs:
 
       - name: Prepare pre-requisites
         uses: ./.github/actions/prepare
-        with:
-          token: ${{ steps.gh-app-token.outputs.token }}
 
       # - name: Configure npm authentication for npm registry
       #   run: |
@@ -157,8 +155,6 @@ jobs:
 
       - name: Prepare pre-requisites
         uses: ./.github/actions/prepare
-        with:
-          token: ${{ steps.gh-app-token.outputs.token }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.2.0

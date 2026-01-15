@@ -1,17 +1,10 @@
 name: Pre-requisites
-description: Setup Pre-requisites for Role Manager
-inputs:
-  token:
-    description: 'GitHub token for authentication'
-    required: true
+description: Setup Pre-requisites for Role Manager (pnpm and Node.js)
 runs:
   using: composite
   steps:
-    - name: Checkout role-manager
-      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      with:
-        token: ${{ inputs.token }}
-        persist-credentials: false
+    # Note: Checkout is handled by the calling workflow before this action runs.
+    # This action only sets up pnpm and Node.js.
 
     - name: Setup pnpm
       uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # v4.0.0
