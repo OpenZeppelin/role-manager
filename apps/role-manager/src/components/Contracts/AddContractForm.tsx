@@ -141,6 +141,13 @@ export function AddContractForm({
 
   // Check for duplicate contracts when address or network changes
   useEffect(() => {
+    // Always clear any pending timeout when dependencies change
+    // This must happen before any early returns to ensure cleanup
+    if (duplicateCheckTimeoutRef.current) {
+      clearTimeout(duplicateCheckTimeoutRef.current);
+      duplicateCheckTimeoutRef.current = null;
+    }
+
     // Clear any existing error when inputs change
     const clearDuplicateError = () => {
       if (formState.errors.contractAddress?.type === 'duplicate') {
@@ -152,11 +159,6 @@ export function AddContractForm({
     if (!contractAddress || !networkId) {
       clearDuplicateError();
       return;
-    }
-
-    // Debounce the duplicate check
-    if (duplicateCheckTimeoutRef.current) {
-      clearTimeout(duplicateCheckTimeoutRef.current);
     }
 
     duplicateCheckTimeoutRef.current = setTimeout(async () => {
@@ -182,6 +184,7 @@ export function AddContractForm({
       }
     }, 300); // 300ms debounce
 
+    // Cleanup on unmount
     return () => {
       if (duplicateCheckTimeoutRef.current) {
         clearTimeout(duplicateCheckTimeoutRef.current);
