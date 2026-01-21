@@ -106,33 +106,26 @@ This project is organized as a monorepo with the following packages:
 
 This project can consume packages from the [UI Builder](https://github.com/OpenZeppelin/ui-builder) repository. To develop against local changes:
 
-1. **Pack the dependencies** (in the root directory):
-
-   ```bash
-   ./scripts/pack-ui-builder.sh
-   ```
-
-2. **Switch to local tarballs**:
+1. **Enable local packages**:
 
    ```bash
    pnpm dev:local
    ```
 
-   This rewrites `package.json` to use `file:` paths pointing to the generated tarballs.
+   This automatically builds the local `openzeppelin-ui` packages (defaults to `../openzeppelin-ui`)
+   and installs dependencies with `LOCAL_UI=true`.
 
-3. **Revert to registry mode** (before committing):
-
-   ```bash
-   pnpm dev:registry
-   ```
-
-   Or specify a version:
+2. **Switch back to npm packages** (before committing):
 
    ```bash
-   ./scripts/setup-local-dev.sh registry ^0.16.0
+   pnpm dev:npm
    ```
 
-   **Note**: A `pre-commit` hook will prevent you from committing `file:` paths to ensure CI compatibility.
+3. **Custom path** (optional):
+
+   ```bash
+   LOCAL_UI_PATH=/path/to/openzeppelin-ui pnpm dev:local
+   ```
 
 ## Project Structure
 
