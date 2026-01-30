@@ -207,7 +207,7 @@ Uses `logger.info` from `@openzeppelin/ui-builder-utils` (Constitution III compl
 Ensure local tarball is built and linked:
 
 ```bash
-cd ../contracts-ui-builder
+cd ../ui-builder
 pnpm build:packages
 cd ../role-manager
 pnpm install

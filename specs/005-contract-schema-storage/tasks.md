@@ -97,7 +97,7 @@
 
 **Independent Test**: Paste a valid JSON spec for a contract, verify the system parses and displays functions correctly
 
-> **⚠️ BLOCKED BY ADAPTER**: The Stellar adapter currently only returns `contractAddress` from `getContractDefinitionInputs()`. Manual definition support requires the adapter to add a `contractDefinition` field first. See [adapter.ts lines 157-180](https://github.com/OpenZeppelin/contracts-ui-builder/blob/main/packages/adapter-stellar/src/adapter.ts#L157-L180) for the documented enhancement plan.
+> **⚠️ BLOCKED BY ADAPTER**: The Stellar adapter currently only returns `contractAddress` from `getContractDefinitionInputs()`. Manual definition support requires the adapter to add a `contractDefinition` field first. See [adapter.ts lines 157-180](https://github.com/OpenZeppelin/ui-builder/blob/main/packages/adapter-stellar/src/adapter.ts#L157-L180) for the documented enhancement plan.
 >
 > **Architecture Ready**: Role Manager's dynamic form rendering and storage (with `source: 'manual'`) are designed to support this automatically when the adapter is updated.
 >

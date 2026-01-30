@@ -8,7 +8,7 @@
 1. **Local Development Setup** (if using local UI Builder packages):
 
    ```bash
-   # From contracts-ui-builder repo
+   # From ui-builder repo
    ./scripts/pack-ui-builder.sh
 
    # From role-manager repo

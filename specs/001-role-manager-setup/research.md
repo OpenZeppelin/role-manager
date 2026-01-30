@@ -4,7 +4,7 @@
 
 ### 1. Monorepo Structure
 
-**Decision**: Mirror `contracts-ui-builder` exactly (`apps/` + `packages/`).
+**Decision**: Mirror `ui-builder` exactly (`apps/` + `packages/`).
 **Rationale**:
 
 - Ensures compatibility with shared tooling and configuration.
@@ -29,7 +29,7 @@
 
 - **Mandated by Constitution**: Principle II prohibits symlinks.
 - **Reliability**: Ensures that `role-manager` builds against the exact artifact structure that will be published to NPM, catching packaging issues early.
-- **Mechanism**: A script `scripts/setup-local-dev.sh` will rewrite `package.json` dependencies to point to `file:../contracts-ui-builder/.packed-packages/*.tgz` on demand.
+- **Mechanism**: A script `scripts/setup-local-dev.sh` will rewrite `package.json` dependencies to point to `file:../ui-builder/.packed-packages/*.tgz` on demand.
 
 ### 4. Versioning Strategy
 
@@ -37,7 +37,7 @@
 **Rationale**:
 
 - `apps/role-manager` is a standalone product.
-- `packages/components` may need to evolve with `contracts-ui-builder`.
+- `packages/components` may need to evolve with `ui-builder`.
 - **Mechanism**: `changesets` handles this granularity natively.
 
 ## Unknowns & Risks

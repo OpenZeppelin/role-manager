@@ -4,7 +4,7 @@
 
 - **Node.js**: v24+ (Active LTS)
 - **PNPM**: v10+ (`corepack enable` recommended)
-- **Upstream Repo**: `contracts-ui-builder` cloned at `../contracts-ui-builder` (optional, for local linking)
+- **Upstream Repo**: `ui-builder` cloned at `../ui-builder` (optional, for local linking)
 
 ## Setup
 
@@ -27,9 +27,9 @@
 
 ## Local Development with UI Builder
 
-To develop against local changes in `contracts-ui-builder` packages (e.g., `adapter-stellar`):
+To develop against local changes in `ui-builder` packages (e.g., `adapter-stellar`):
 
-1.  **In `contracts-ui-builder`**:
+1.  **In `ui-builder`**:
 
     ```bash
     # Pack the packages you are working on

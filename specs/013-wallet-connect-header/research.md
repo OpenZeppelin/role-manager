@@ -140,7 +140,7 @@ function WalletHeaderSection() {
 **Reference** (UI Builder's implementation):
 
 ```typescript
-// From contracts-ui-builder/packages/builder/src/core/ecosystemManager.ts
+// From ui-builder/packages/builder/src/core/ecosystemManager.ts
 export async function getNetworkById(id: string): Promise<NetworkConfig | undefined> {
   // 1. Check all existing populated ecosystem-specific caches first
   for (const ecosystemKey of Object.keys(networksByEcosystemCache)) {

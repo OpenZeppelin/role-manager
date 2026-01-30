@@ -23,7 +23,7 @@
 const path = require('path');
 
 const LOCAL_UI_PATH = process.env.LOCAL_UI_PATH || '../openzeppelin-ui';
-const LOCAL_UI_BUILDER_PATH = process.env.LOCAL_UI_BUILDER_PATH || '../contracts-ui-builder';
+const LOCAL_UI_BUILDER_PATH = process.env.LOCAL_UI_BUILDER_PATH || '../ui-builder';
 
 /**
  * Maps npm package names to their directory paths within openzeppelin-ui
@@ -39,7 +39,7 @@ const UI_PACKAGE_MAP = {
 };
 
 /**
- * Maps npm package names to their directory paths within contracts-ui-builder
+ * Maps npm package names to their directory paths within ui-builder
  * These adapter packages remain in the UI Builder repo
  */
 const UI_BUILDER_PACKAGE_MAP = {
@@ -64,7 +64,9 @@ function readPackage(pkg, context) {
   const baseDir = context.dir || process.cwd();
 
   // Replace dependencies with local file: references
-  for (const depType of ['dependencies', 'devDependencies', 'peerDependencies']) {
+  // Note: peerDependencies are excluded because pnpm requires them to be
+  // semver ranges, workspace: specs, or catalog: specs (not file: paths)
+  for (const depType of ['dependencies', 'devDependencies']) {
     if (!pkg[depType]) continue;
 
     // Handle @openzeppelin/ui-* packages from openzeppelin-ui
@@ -76,7 +78,7 @@ function readPackage(pkg, context) {
       }
     }
 
-    // Handle @openzeppelin/ui-builder-adapter-* packages from contracts-ui-builder
+    // Handle @openzeppelin/ui-builder-adapter-* packages from ui-builder
     for (const [npmName, localPath] of Object.entries(UI_BUILDER_PACKAGE_MAP)) {
       if (pkg[depType][npmName]) {
         const absolutePath = path.resolve(baseDir, LOCAL_UI_BUILDER_PATH, localPath);
