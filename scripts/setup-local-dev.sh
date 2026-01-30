@@ -9,7 +9,7 @@
 #   ./scripts/setup-local-dev.sh [local|registry]
 #
 # Modes:
-#   local    - Use local tarballs from ../contracts-ui-builder/.packed-packages/
+#   local    - Use local tarballs from ../ui-builder/.packed-packages/
 #   registry - Use packages from npm registry (default versions)
 # =============================================================================
 

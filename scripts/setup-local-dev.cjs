@@ -7,7 +7,7 @@
  * The recommended approach uses .pnpmfile.cjs with an environment variable
  * toggle that dynamically resolves packages without modifying package.json:
  *
- *   pnpm dev:local   # Use local packages from ../openzeppelin-ui & ../contracts-ui-builder
+ *   pnpm dev:local   # Use local packages from ../openzeppelin-ui & ../ui-builder
  *   pnpm dev:npm     # Switch back to npm registry packages
  *
  * This script is kept as a FALLBACK for testing specific packed versions
@@ -45,7 +45,7 @@ if (!['local', 'registry'].includes(mode)) {
 }
 
 const packageJsonPath = path.resolve(__dirname, '../apps/role-manager/package.json');
-const uiBuilderPath = path.resolve(__dirname, '../../contracts-ui-builder');
+const uiBuilderPath = path.resolve(__dirname, '../../ui-builder');
 const packedDir = '.packed-packages';
 const packedPath = path.join(uiBuilderPath, packedDir);
 

@@ -31,14 +31,14 @@ log_warn() { echo -e "${YELLOW}⚠️  $1${NC}"; }
 log_error() { echo -e "${RED}❌ $1${NC}"; }
 
 # Default path to UI Builder (sibling directory)
-UI_BUILDER_PATH="${1:-../contracts-ui-builder}"
+UI_BUILDER_PATH="${1:-../ui-builder}"
 PACKED_DIR=".packed-packages"
 
 # Resolve to absolute path
 UI_BUILDER_PATH=$(cd "$(dirname "$0")/.." && cd "$UI_BUILDER_PATH" 2>/dev/null && pwd) || {
-  log_error "UI Builder not found at: ${1:-../contracts-ui-builder}"
+  log_error "UI Builder not found at: ${1:-../ui-builder}"
   log_info "Please provide the correct path as an argument:"
-  log_info "  ./scripts/pack-ui-builder.sh /path/to/contracts-ui-builder"
+  log_info "  ./scripts/pack-ui-builder.sh /path/to/ui-builder"
   exit 1
 }
 
@@ -52,7 +52,7 @@ fi
 
 # Check if it has the expected workspace structure
 if [ ! -d "$UI_BUILDER_PATH/packages" ]; then
-  log_error "No packages/ directory found. Is this contracts-ui-builder?"
+  log_error "No packages/ directory found. Is this ui-builder?"
   exit 1
 fi
 

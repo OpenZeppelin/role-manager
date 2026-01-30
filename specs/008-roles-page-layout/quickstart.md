@@ -149,7 +149,7 @@ After implementation, verify:
 Ensure packages are packed and installed:
 
 ```bash
-cd ../contracts-ui-builder
+cd ../ui-builder
 pnpm pack:all
 cd ../role-manager
 pnpm install
