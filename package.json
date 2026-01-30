@@ -14,7 +14,6 @@
     "install-deps": "pnpm install --frozen-lockfile --ignore-scripts --prefer-offline",
     "dev": "pnpm --filter @openzeppelin/role-manager-app dev",
     "dev:all": "pnpm -r --parallel dev",
-    "build:ui-builder": "./scripts/pack-ui-builder.sh",
     "build": "pnpm -r build",
     "build:packages": "pnpm --filter \"./packages/*\" build",
     "build:app": "pnpm --filter @openzeppelin/role-manager-app build",
@@ -30,8 +29,8 @@
     "prepare": "husky",
     "commit": "git-cz",
     "changeset": "changeset",
-    "dev:local": "LOCAL_UI_PATH=${LOCAL_UI_PATH:-../openzeppelin-ui} && echo '🔨 Building local openzeppelin-ui packages...' && (cd \"$LOCAL_UI_PATH\" && pnpm build) && LOCAL_UI=true pnpm install --force && echo \"✅ Using local @openzeppelin/ui-* packages from $LOCAL_UI_PATH\"",
-    "dev:npm": "pnpm install --force && echo '✅ Using npm @openzeppelin/ui-* packages'",
+    "dev:local": "LOCAL_UI_PATH=${LOCAL_UI_PATH:-../openzeppelin-ui} && LOCAL_UI_BUILDER_PATH=${LOCAL_UI_BUILDER_PATH:-../ui-builder} && echo '🔨 Building local openzeppelin-ui packages...' && (cd \"$LOCAL_UI_PATH\" && pnpm --filter='./packages/*' build) && echo '🔨 Building local ui-builder adapter packages...' && (cd \"$LOCAL_UI_BUILDER_PATH\" && pnpm --filter='./packages/adapter-*' build) && LOCAL_UI=true pnpm install --force && echo \"✅ Using local @openzeppelin/ui-* packages from $LOCAL_UI_PATH\" && echo \"✅ Using local @openzeppelin/ui-builder-adapter-* packages from $LOCAL_UI_BUILDER_PATH\"",
+    "dev:npm": "pnpm install --force && echo '✅ Using npm @openzeppelin/ui-* and @openzeppelin/ui-builder-adapter-* packages'",
     "docker:dev": "docker-compose up --build"
   },
   "lint-staged": {
