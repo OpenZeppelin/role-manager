@@ -28,7 +28,9 @@ import { useRolesPageData } from '../useRolesPageData';
 
 const mockCapabilities: AccessControlCapabilities = {
   hasAccessControl: true,
+  hasTwoStepAdmin: false,
   hasOwnable: true,
+  hasTwoStepOwnable: false,
   hasEnumerableRoles: false,
   supportsHistory: false,
   verifiedAgainstOZInterfaces: true,

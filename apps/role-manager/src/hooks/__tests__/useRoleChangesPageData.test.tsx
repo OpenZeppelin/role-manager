@@ -27,7 +27,9 @@ import { useRoleChangesPageData } from '../useRoleChangesPageData';
 
 const mockCapabilitiesWithHistory: AccessControlCapabilities = {
   hasAccessControl: true,
+  hasTwoStepAdmin: false,
   hasOwnable: true,
+  hasTwoStepOwnable: false,
   hasEnumerableRoles: false,
   supportsHistory: true,
   verifiedAgainstOZInterfaces: true,
@@ -35,7 +37,9 @@ const mockCapabilitiesWithHistory: AccessControlCapabilities = {
 
 const mockCapabilitiesNoHistory: AccessControlCapabilities = {
   hasAccessControl: true,
+  hasTwoStepAdmin: false,
   hasOwnable: true,
+  hasTwoStepOwnable: false,
   hasEnumerableRoles: false,
   supportsHistory: false,
   verifiedAgainstOZInterfaces: true,

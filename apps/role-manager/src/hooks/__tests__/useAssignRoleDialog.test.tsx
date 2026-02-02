@@ -52,6 +52,7 @@ const mockRoles: RoleWithDescription[] = [
     isCustomDescription: false,
     members: [MOCK_CONNECTED_ADDRESS],
     isOwnerRole: false,
+    isAdminRole: true,
   },
   {
     roleId: 'MINTER_ROLE_ID',
@@ -60,6 +61,7 @@ const mockRoles: RoleWithDescription[] = [
     isCustomDescription: false,
     members: ['0xOtherAddress'],
     isOwnerRole: false,
+    isAdminRole: false,
   },
   {
     roleId: 'PAUSER_ROLE_ID',
@@ -68,6 +70,7 @@ const mockRoles: RoleWithDescription[] = [
     isCustomDescription: false,
     members: [],
     isOwnerRole: false,
+    isAdminRole: false,
   },
   {
     roleId: 'OWNER_ROLE_ID',
@@ -76,6 +79,7 @@ const mockRoles: RoleWithDescription[] = [
     isCustomDescription: false,
     members: [MOCK_CONNECTED_ADDRESS],
     isOwnerRole: true,
+    isAdminRole: false,
   },
 ];
 
