@@ -8,7 +8,7 @@
 ### 1. Adapter Interface
 
 **Question**: What is the exact shape of `AccessControlService`?
-**Finding**: The interface is fully defined in `@openzeppelin/ui-builder-types` (read from `contracts-ui-builder` repo).
+**Finding**: The interface is fully defined in `@openzeppelin/ui-builder-types` (read from `ui-builder` repo).
 **Details**:
 
 - `getCapabilities(address)` -> `AccessControlCapabilities`

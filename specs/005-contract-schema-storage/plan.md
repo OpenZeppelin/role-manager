@@ -12,7 +12,7 @@ This feature adds contract schema loading and storage capabilities to Role Manag
 3. Persist loaded schemas in IndexedDB for offline access
 4. Refresh schemas and detect function-level changes
 
-The implementation reuses patterns from `contracts-ui-builder`:
+The implementation reuses patterns from `ui-builder`:
 
 - `@openzeppelin/ui-builder-renderer` for dynamic form rendering (`DynamicFormField`)
 - `@openzeppelin/ui-builder-adapter-stellar` for contract loading via `loadContractWithMetadata()`

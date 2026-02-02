@@ -87,7 +87,7 @@ When developing against local changes to `@openzeppelin/ui-*` packages:
 # From the monorepo root, enable local packages
 pnpm dev:local
 
-# This uses packages from ../openzeppelin-ui and ../contracts-ui-builder
+# This uses packages from ../openzeppelin-ui and ../ui-builder
 # Make sure those repos are built first:
 # cd ../openzeppelin-ui && pnpm install && pnpm build
 
@@ -101,7 +101,7 @@ The local development workflow uses pnpm's [`readPackage` hook](https://pnpm.io/
 
 1. When `LOCAL_UI=true` is set (via `pnpm dev:local`), the hook intercepts package resolution
 2. Any `@openzeppelin/ui-*` dependency is rewritten to `file:../openzeppelin-ui/packages/*`
-3. Any `@openzeppelin/ui-builder-adapter-*` dependency is rewritten to `file:../contracts-ui-builder/packages/*`
+3. Any `@openzeppelin/ui-builder-adapter-*` dependency is rewritten to `file:../ui-builder/packages/*`
 
 **Benefits:**
 

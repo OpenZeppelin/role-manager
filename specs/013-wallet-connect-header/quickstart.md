@@ -19,7 +19,7 @@
 cd /path/to/role-manager
 
 # First, pack all UI Builder packages (run from UI Builder repo)
-cd ../contracts-ui-builder
+cd ../ui-builder
 ./scripts/pack-all.sh  # or pnpm pack for individual packages
 
 # Then use the setup script (after adding react-core to package.json)
@@ -33,12 +33,12 @@ node scripts/setup-local-dev.cjs local
 cd apps/role-manager
 
 # Pack the react-core package from UI Builder
-cd ../../../contracts-ui-builder
+cd ../../../ui-builder
 pnpm pack --pack-destination .packed-packages packages/react-core
 
 # Install in role-manager
 cd ../role-manager/apps/role-manager
-pnpm add file:../../../contracts-ui-builder/.packed-packages/openzeppelin-ui-builder-react-core-0.16.0.tgz
+pnpm add file:../../../ui-builder/.packed-packages/openzeppelin-ui-builder-react-core-0.16.0.tgz
 ```
 
 > **Note**: The `scripts/setup-local-dev.cjs` script has been updated to include `@openzeppelin/ui-builder-react-core` in the managed packages list.

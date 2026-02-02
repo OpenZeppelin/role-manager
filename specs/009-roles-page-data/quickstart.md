@@ -6,7 +6,7 @@
 
 - Node.js 20+
 - pnpm 8+
-- Access to `contracts-ui-builder` monorepo (for local development)
+- Access to `ui-builder` monorepo (for local development)
 - A Stellar testnet contract with AccessControl/Ownable capabilities (for testing)
 
 ## Setup
@@ -25,7 +25,7 @@ pnpm install
 If making changes to UI Builder packages:
 
 ```bash
-# In contracts-ui-builder repo
+# In ui-builder repo
 pnpm install
 pnpm build
 
