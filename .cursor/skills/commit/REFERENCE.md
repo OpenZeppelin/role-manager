@@ -156,10 +156,10 @@ This allows developing with local ui-builder changes.
 
 ```bash
 # Switch to registry versions before committing
-pnpm dev:registry
+pnpm dev:npm
 ```
 
-**IMPORTANT**: Always run `pnpm dev:registry` before committing if you've been using local tarballs.
+**IMPORTANT**: Always run `pnpm dev:npm` before committing if you've been using local tarballs.
 
 ### Why This Matters
 
@@ -180,7 +180,7 @@ Commit fails?
 ├── "header-max-length" error
 │   └── Shorten subject to under 100 chars
 ├── "Local tarball dependencies detected"
-│   └── Run: pnpm dev:registry
+│   └── Run: pnpm dev:npm
 ├── Hook permission denied / GPG signing failed
 │   └── Running in sandbox mode - use full permissions
 └── Node.js version error
