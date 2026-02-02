@@ -55,21 +55,21 @@ This skill guides committing changes following the project's Conventional Commit
 
 The commitlint config enforces these scopes:
 
-| Scope          | Description                        |
-| -------------- | ---------------------------------- |
-| `role-manager` | Main application changes           |
-| `components`   | Shared component changes           |
-| `hooks`        | Shared hook changes                |
-| `deps`         | Dependency updates                 |
-| `config`       | Configuration files                |
-| `ci`           | CI/CD configuration                |
-| `docs`         | Documentation                      |
-| `spec`         | Specification/planning documents   |
-| `tests`        | Test-related changes               |
-| `release`      | Release automation                 |
-| `ui`           | UI-specific changes                |
-| `utils`        | Utility functions                  |
-| `types`        | TypeScript type definitions        |
+| Scope          | Description                      |
+| -------------- | -------------------------------- |
+| `role-manager` | Main application changes         |
+| `components`   | Shared component changes         |
+| `hooks`        | Shared hook changes              |
+| `deps`         | Dependency updates               |
+| `config`       | Configuration files              |
+| `ci`           | CI/CD configuration              |
+| `docs`         | Documentation                    |
+| `spec`         | Specification/planning documents |
+| `tests`        | Test-related changes             |
+| `release`      | Release automation               |
+| `ui`           | UI-specific changes              |
+| `utils`        | Utility functions                |
+| `types`        | TypeScript type definitions      |
 
 ## Commit Workflow
 
