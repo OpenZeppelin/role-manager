@@ -102,7 +102,7 @@ The following checks run automatically on commit:
 If pre-commit fails:
 
 - **Formatting/Linting**: Usually auto-fixed; re-stage and commit again
-- **Local tarball**: Run `pnpm dev:registry` to switch to registry versions before committing
+- **Local tarball**: Run `pnpm dev:npm` to switch to registry versions before committing
 - **Commit message**: Fix message format and retry
 
 ## Pre-push Hooks
@@ -164,7 +164,7 @@ All consumers must update their configuration.
 
 **Symptom**: Pre-commit fails with "Local tarball dependencies detected" error.
 
-**Fix**: Run `pnpm dev:registry` to switch from local file paths to registry versions before committing.
+**Fix**: Run `pnpm dev:npm` to switch from local file paths to registry versions before committing.
 
 ## Examples
 
@@ -219,7 +219,7 @@ git log --oneline -10
 git commit --amend
 
 # Switch to registry versions before committing
-pnpm dev:registry
+pnpm dev:npm
 ```
 
 ## Branch Naming
