@@ -49,6 +49,10 @@ const ecosystemRegistry: Record<Ecosystem, EcosystemMetadata> = {
     networksExportName: 'solanaNetworks',
     adapterClassName: 'SolanaAdapter',
   },
+  polkadot: {
+    networksExportName: 'polkadotNetworks',
+    adapterClassName: 'PolkadotAdapter',
+  },
 };
 
 // =============================================================================
@@ -81,6 +85,7 @@ async function loadAdapterPackageModule(ecosystem: Ecosystem): Promise<Record<st
       return import('@openzeppelin/ui-builder-adapter-stellar');
     case 'solana':
     case 'midnight':
+    case 'polkadot':
       // These adapters are not yet available in role-manager
       throw new Error(`${ecosystem} adapter is not available in role-manager`);
     default: {

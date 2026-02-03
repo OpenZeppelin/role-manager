@@ -31,7 +31,9 @@ const mockNetworkConfig: NetworkConfig = {
 
 const mockCapabilitiesWithBoth: AccessControlCapabilities = {
   hasOwnable: true,
+  hasTwoStepOwnable: false,
   hasAccessControl: true,
+  hasTwoStepAdmin: false,
   hasEnumerableRoles: true,
   supportsHistory: false,
   verifiedAgainstOZInterfaces: true,
@@ -40,7 +42,9 @@ const mockCapabilitiesWithBoth: AccessControlCapabilities = {
 
 const mockCapabilitiesOwnableOnly: AccessControlCapabilities = {
   hasOwnable: true,
+  hasTwoStepOwnable: false,
   hasAccessControl: false,
+  hasTwoStepAdmin: false,
   hasEnumerableRoles: false,
   supportsHistory: false,
   verifiedAgainstOZInterfaces: true,
@@ -49,7 +53,9 @@ const mockCapabilitiesOwnableOnly: AccessControlCapabilities = {
 
 const mockCapabilitiesAccessControlOnly: AccessControlCapabilities = {
   hasOwnable: false,
+  hasTwoStepOwnable: false,
   hasAccessControl: true,
+  hasTwoStepAdmin: false,
   hasEnumerableRoles: true,
   supportsHistory: false,
   verifiedAgainstOZInterfaces: true,
@@ -58,7 +64,9 @@ const mockCapabilitiesAccessControlOnly: AccessControlCapabilities = {
 
 const mockCapabilitiesNone: AccessControlCapabilities = {
   hasOwnable: false,
+  hasTwoStepOwnable: false,
   hasAccessControl: false,
+  hasTwoStepAdmin: false,
   hasEnumerableRoles: false,
   supportsHistory: false,
   verifiedAgainstOZInterfaces: false,

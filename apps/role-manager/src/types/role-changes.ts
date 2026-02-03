@@ -152,8 +152,8 @@ export const ACTION_TYPE_CONFIG: Record<RoleChangeAction, ActionTypeConfig> = {
 export interface CursorPaginationState {
   /** Current cursor (undefined = first page) */
   currentCursor: string | undefined;
-  /** Stack of previous cursors for back navigation */
-  cursorHistory: string[];
+  /** Stack of previous cursors for back navigation (undefined = first page) */
+  cursorHistory: (string | undefined)[];
 }
 
 /**

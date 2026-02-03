@@ -4,7 +4,13 @@ import type { Ecosystem, EcosystemFeatureConfig, EcosystemInfo } from '@openzepp
  * Ordered list of ecosystems for consistent display across the application
  * This defines the order in which ecosystems appear in the UI
  */
-export const ECOSYSTEM_ORDER: Ecosystem[] = ['stellar', 'evm', 'midnight', 'solana'] as const;
+export const ECOSYSTEM_ORDER: Ecosystem[] = [
+  'stellar',
+  'evm',
+  'midnight',
+  'solana',
+  'polkadot',
+] as const;
 
 /**
  * Central registry of blockchain ecosystem information
@@ -64,6 +70,20 @@ export const ECOSYSTEM_REGISTRY: Record<Ecosystem, EcosystemInfo> = {
     networkIconName: 'solana',
     bgColorClass: 'bg-purple-100',
     textColorClass: 'text-purple-900',
+    defaultFeatureConfig: {
+      enabled: false,
+      showInUI: false,
+      disabledLabel: 'Coming Soon',
+    },
+  },
+  polkadot: {
+    name: 'Polkadot',
+    description:
+      'Polkadot is a heterogeneous multi-chain network that enables interoperability between different blockchains. It uses a unique sharded design with a central relay chain and parallel parachains.',
+    explorerGuidance: 'contract addresses on Subscan',
+    networkIconName: 'polkadot',
+    bgColorClass: 'bg-pink-100',
+    textColorClass: 'text-pink-900',
     defaultFeatureConfig: {
       enabled: false,
       showInUI: false,
