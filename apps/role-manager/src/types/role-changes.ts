@@ -57,15 +57,12 @@ export const CHANGE_TYPE_TO_ACTION: Record<HistoryChangeType, RoleChangeAction> 
   ADMIN_TRANSFER_INITIATED: 'admin-transfer',
   ADMIN_TRANSFER_COMPLETED: 'admin-transfer',
   UNKNOWN: 'unknown', // Fallback for unknown change types
-  // TODO(011-evm-access-control): Add these entries when bumping @openzeppelin/ui-types
-  // to the version that includes PR-2 (EVM-specific HistoryChangeType variants) and
-  // the v1.6.0 variants (ROLE_ADMIN_CHANGED, OWNERSHIP_RENOUNCED, ADMIN_RENOUNCED):
-  //   ROLE_ADMIN_CHANGED: 'grant',
-  //   OWNERSHIP_RENOUNCED: 'ownership-transfer',
-  //   ADMIN_RENOUNCED: 'admin-transfer',
-  //   ADMIN_TRANSFER_CANCELED: 'admin-transfer',
-  //   ADMIN_DELAY_CHANGE_SCHEDULED: 'admin-transfer',
-  //   ADMIN_DELAY_CHANGE_CANCELED: 'admin-transfer',
+  ROLE_ADMIN_CHANGED: 'grant',
+  OWNERSHIP_RENOUNCED: 'ownership-transfer',
+  ADMIN_RENOUNCED: 'admin-transfer',
+  ADMIN_TRANSFER_CANCELED: 'admin-transfer',
+  ADMIN_DELAY_CHANGE_SCHEDULED: 'admin-transfer',
+  ADMIN_DELAY_CHANGE_CANCELED: 'admin-transfer',
 };
 
 // =============================================================================
