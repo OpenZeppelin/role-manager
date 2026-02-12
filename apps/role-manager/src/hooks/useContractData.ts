@@ -257,7 +257,8 @@ export function useContractRoles(
 export function useContractOwnership(
   adapter: ContractAdapter | null,
   contractAddress: string,
-  isContractRegistered: boolean = true
+  isContractRegistered: boolean = true,
+  enabled: boolean = true
 ): UseContractOwnershipReturn {
   const { service, isReady } = useAccessControlService(adapter);
 
@@ -283,8 +284,8 @@ export function useContractOwnership(
         throw wrapError(err, 'ownership');
       }
     },
-    // Wait for contract to be registered before fetching
-    enabled: isReady && !!contractAddress && isContractRegistered,
+    // Wait for contract to be registered before fetching; skip if not enabled (e.g., contract lacks Ownable)
+    enabled: isReady && !!contractAddress && isContractRegistered && enabled,
     staleTime: 1 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     retry: false,

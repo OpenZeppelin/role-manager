@@ -219,14 +219,15 @@ export function useRolesPageData(): UseRolesPageDataReturn {
   } = useContractRoles(adapter, contractAddress, isContractRegistered);
 
   // Ownership fetching (T020)
-  // Wait for contract to be registered before fetching ownership
+  // Only fetch when contract has Ownable capability (prevents errors on AccessControl-only contracts)
+  const hasOwnableCapability = capabilities?.hasOwnable ?? false;
   const {
     ownership,
     isLoading: isOwnershipLoading,
     isFetching: isOwnershipFetching,
     refetch: refetchOwnership,
     hasOwner,
-  } = useContractOwnership(adapter, contractAddress, isContractRegistered);
+  } = useContractOwnership(adapter, contractAddress, isContractRegistered, hasOwnableCapability);
 
   // Feature 016: Admin info fetching (T013)
   // Only fetch when contract has two-step admin capability

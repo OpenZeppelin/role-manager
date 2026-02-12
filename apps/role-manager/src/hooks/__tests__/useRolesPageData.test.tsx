@@ -326,7 +326,8 @@ describe('useRolesPageData', () => {
       expect(mockUseContractOwnership).toHaveBeenCalledWith(
         { id: 'test-adapter' },
         '0xcontract123',
-        true // isContractRegistered
+        true, // isContractRegistered
+        true // enabled (hasOwnable from capabilities)
       );
     });
 

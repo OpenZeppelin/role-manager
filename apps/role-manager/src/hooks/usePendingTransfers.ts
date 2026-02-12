@@ -163,9 +163,11 @@ export function usePendingTransfers(
 
   // Feature 016: Get capabilities to check for two-step admin support
   const { capabilities } = useContractCapabilities(adapter, contractAddress, isContractRegistered);
+  const hasOwnable = capabilities?.hasOwnable ?? false;
   const hasTwoStepAdmin = capabilities?.hasTwoStepAdmin ?? false;
 
   // Fetch ownership data (includes pendingTransfer if available)
+  // Only fetch when contract has Ownable capability (prevents errors on AccessControl-only contracts)
   const {
     ownership,
     isLoading: isOwnershipLoading,
@@ -173,7 +175,7 @@ export function usePendingTransfers(
     hasError: ownershipHasError,
     errorMessage: ownershipErrorMessage,
     refetch: refetchOwnership,
-  } = useContractOwnership(adapter, contractAddress, isContractRegistered);
+  } = useContractOwnership(adapter, contractAddress, isContractRegistered, hasOwnable);
 
   // Feature 016: Fetch admin info (only when contract supports two-step admin)
   const {
