@@ -52,7 +52,7 @@ Follow-up TODOs: none
 
 - All application-specific business logic (e.g., storage management, hook state logic, data transformers) MUST follow TDD: write failing tests first.
 - UI components (layouts, pages, presentational components) do NOT require unit tests unless they contain complex internal logic. Focus testing efforts on hooks, services, and utility functions.
-- Vitest is the standard for unit/integration tests; Storybook is required for new reusable UI components.
+- Vitest is the standard for unit/integration tests;
 - The app MUST be testable with mock adapters; UI components should not tightly couple to live network sockets during tests.
 - Rationale: Preserves confidence in the application shell and persistence layer independent of blockchain availability, while avoiding brittle tests for visual components.
 
