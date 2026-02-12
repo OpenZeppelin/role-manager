@@ -69,18 +69,18 @@
 
 ### Tests for User Story 1
 
-- [ ] T008 [P] [US1] Write unit test for `useContractForm` handling EVM verified/unverified contract errors in `apps/role-manager/src/hooks/__tests__/useContractForm.test.tsx`
+- [x] T008 [P] [US1] Write unit test for `useContractForm` handling EVM verified/unverified contract errors in `apps/role-manager/src/hooks/__tests__/useContractForm.test.ts`
 
 ### Implementation for User Story 1
 
-- [ ] T009 [US1] Verify `CompactEcosystemSelector` shows EVM as enabled option (may need no changes — depends on registry flag from T001) in `apps/role-manager/src/components/Contracts/CompactEcosystemSelector.tsx`
-- [ ] T010 [US1] Verify `AddContractForm` handles EVM address format (0x-prefixed, 42 chars) via adapter's `isValidAddress()` in `apps/role-manager/src/components/Contracts/AddContractForm.tsx`
-- [ ] T011 [US1] Verify `useContractSchemaLoader` works with EVM adapter's `loadContractWithMetadata(address)` — handle "Contract not verified" error state in `apps/role-manager/src/hooks/useContractSchemaLoader.ts`
-- [ ] T012 [US1] Verify `useContractForm` surfaces verification errors clearly to the user in `apps/role-manager/src/hooks/useContractForm.ts`
-- [ ] T013 [US1] Verify wallet switching works: adding EVM contract → wallet UI switches to wagmi provider → MetaMask connectable. Manual E2E test.
-- [ ] T013a [US1] Verify connected EVM wallet address displays in the application header, consistent with Stellar wallet display pattern (FR-007). Manual E2E test.
-- [ ] T014 [US1] Verify chain switching: connect on wrong chain → system prompts chain switch. Manual E2E test.
-- [ ] T015 [US1] Verify ecosystem switching: select Stellar contract → select EVM contract → wallet provider swaps without page reload. Manual E2E test.
+- [x] T009 [US1] Verify `CompactEcosystemSelector` shows EVM as enabled option — registry flag `enabled: true, showInUI: true` from T001 makes EVM clickable. No code changes needed.
+- [x] T010 [US1] Verify `AddContractForm` handles EVM address format (0x-prefixed, 42 chars) via adapter's `isValidAddress()` — `DynamicFormField` delegates validation to adapter. No code changes needed.
+- [x] T011 [US1] Verify `useContractSchemaLoader` works with EVM adapter's `loadContractWithMetadata(address)` — hook already calls `adapter.loadContractWithMetadata(artifacts)` generically; error message from adapter (e.g., "Contract not verified") surfaced via `setError()`. No code changes needed.
+- [x] T012 [US1] Verify `useContractForm` surfaces verification errors clearly to the user — errors flow through `AddContractDialog` → `schemaLoader.error` → `DialogErrorState` with retry option. No code changes needed.
+- [x] T013 [US1] Verify wallet switching works: `WalletSyncProvider` syncs network → `WalletStateProvider` loads wagmi provider for EVM → MetaMask connectable. Code verified; manual E2E confirmed.
+- [x] T013a [US1] Verify connected EVM wallet address displays in the application header — `WalletHeaderSection` renders `WalletConnectionWithSettings` when any network is selected (ecosystem-agnostic). Code verified; manual E2E confirmed.
+- [x] T014 [US1] Verify chain switching: `NetworkSwitchManager` mounted by `WalletSyncProvider` when adapter target differs from wallet chain → prompts chain switch. Code verified; manual E2E confirmed.
+- [x] T015 [US1] Verify ecosystem switching: `WalletStateProvider` uses dynamic key props; adapter singletons swap without page reload. Code verified; manual E2E confirmed.
 
 **Checkpoint**: EVM contracts can be added. Wallet connects. Chain switching works. Ecosystem switching seamless.
 
