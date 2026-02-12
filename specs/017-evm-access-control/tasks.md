@@ -40,10 +40,10 @@
 
 **Purpose**: Enable EVM in the registry and configure credentials. No upstream dependency.
 
-- [ ] T001 Enable EVM ecosystem: set `defaultFeatureConfig.enabled: true`, remove `disabledLabel` (keep `showInUI: true`) in `apps/role-manager/src/core/ecosystems/registry.ts`
-- [ ] T002 [P] Add `globalServiceConfigs.walletconnect.projectId` placeholder to `apps/role-manager/public/app.config.json`
-- [ ] T003 [P] Add `VITE_APP_CFG_SERVICE_ETHERSCANV2_API_KEY` documentation to `apps/role-manager/.env.example`
-- [ ] T004 [P] Create `apps/role-manager/.env.local` with Etherscan V2 API key (gitignored, developer setup)
+- [x] T001 Enable EVM ecosystem: set `defaultFeatureConfig.enabled: true`, remove `disabledLabel` (keep `showInUI: true`) in `apps/role-manager/src/core/ecosystems/registry.ts`
+- [x] T002 [P] Add `globalServiceConfigs.walletconnect.projectId` placeholder to `apps/role-manager/public/app.config.json`
+- [x] T003 [P] Add `VITE_APP_CFG_SERVICE_ETHERSCANV2_API_KEY` documentation to `apps/role-manager/.env.example`
+- [x] T004 [P] Create `apps/role-manager/.env.local` with Etherscan V2 API key (gitignored, developer setup)
 
 **Checkpoint**: EVM appears as selectable ecosystem in Add Contract dialog. App builds and runs.
 

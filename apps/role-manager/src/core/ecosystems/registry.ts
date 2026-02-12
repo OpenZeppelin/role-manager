@@ -26,9 +26,8 @@ export const ECOSYSTEM_REGISTRY: Record<Ecosystem, EcosystemInfo> = {
     bgColorClass: 'bg-blue-100',
     textColorClass: 'text-blue-900',
     defaultFeatureConfig: {
-      enabled: false,
+      enabled: true,
       showInUI: true,
-      disabledLabel: 'Coming Soon',
     },
   },
   stellar: {

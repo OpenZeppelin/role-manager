@@ -6,6 +6,9 @@
   "rpcEndpoints": {},
   "indexerEndpoints": {},
   "globalServiceConfigs": {
+    "walletconnect": {
+      "projectId": "9f7100fc84f2327968f7bb11d38a4c2b"
+    },
     "walletui": {
       "stellar": {
         "kitName": "custom",
