@@ -53,9 +53,9 @@
 
 **Purpose**: Create reusable components and utilities that multiple user stories depend on. No upstream dependency.
 
-- [ ] T005 Create `RoleHashDisplay` shared component with truncated hash + copy-to-clipboard in `apps/role-manager/src/components/Shared/RoleHashDisplay.tsx`
-- [ ] T006 [P] Update `getRoleName` utility to handle `RoleIdentifier.label` display logic (label → truncated hash fallback) in `apps/role-manager/src/utils/role-name.ts`
-- [ ] T007 [P] Write unit test for `getRoleName` with label, without label, and with long hash in `apps/role-manager/src/utils/__tests__/role-name.test.ts`
+- [x] T005 ~~Create `RoleHashDisplay` shared component~~ — Reuse `AddressDisplay` from `@openzeppelin/ui-components` (already supports truncated hash + copy-to-clipboard). No new component needed.
+- [x] T006 [P] Update `getRoleName` utility to handle `RoleIdentifier.label` display logic (label → truncated hash fallback) in `apps/role-manager/src/utils/role-name.ts`
+- [x] T007 [P] Write unit test for `getRoleName` with label, without label, and with long hash in `apps/role-manager/src/utils/__tests__/role-name.test.ts`
 
 **Checkpoint**: Shared components available. Utility handles both labeled and unlabeled roles.
 
