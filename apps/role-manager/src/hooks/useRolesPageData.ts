@@ -38,7 +38,7 @@ import {
   OWNER_ROLE_NAME,
 } from '../constants';
 import type { RoleIdentifier, RoleWithDescription } from '../types/roles';
-import { getRoleName } from '../utils/role-name';
+import { getRoleName, isRoleDisplayHash } from '../utils/role-name';
 import { useContractCapabilities } from './useContractCapabilities';
 import { useContractAdminInfo, useContractOwnership, useContractRoles } from './useContractData';
 import { useCurrentBlock } from './useCurrentBlock';
@@ -273,6 +273,7 @@ export function useRolesPageData(): UseRolesPageDataReturn {
       members: [ownership.owner],
       isOwnerRole: true,
       isAdminRole: false,
+      isHashDisplay: false,
     };
   }, [capabilities?.hasOwnable, hasOwner, ownership?.owner, customDescriptions]);
 
@@ -307,6 +308,7 @@ export function useRolesPageData(): UseRolesPageDataReturn {
       members,
       isOwnerRole: false,
       isAdminRole: true,
+      isHashDisplay: false,
     };
   }, [hasTwoStepAdmin, adminInfo, customDescriptions]);
 
@@ -331,6 +333,8 @@ export function useRolesPageData(): UseRolesPageDataReturn {
         members: assignment.members,
         isOwnerRole: false,
         isAdminRole: false, // T016: All enumerated roles default to non-admin
+        // T018: Determine if role name is a hash for AddressDisplay rendering
+        isHashDisplay: isRoleDisplayHash(assignment.role.label, roleId),
       };
     });
   }, [adapterRoles, customDescriptions]);

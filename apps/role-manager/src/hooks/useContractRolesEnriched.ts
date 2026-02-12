@@ -13,6 +13,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 import type { ContractAdapter, RoleAssignment } from '@openzeppelin/ui-types';
+import { logger } from '@openzeppelin/ui-utils';
 
 import type { EnrichedRoleAssignment } from '../types/authorized-accounts';
 import { DataError, ErrorCategory, wrapError } from '../utils/errors';
@@ -116,8 +117,30 @@ export function useContractRolesEnriched(
         queryClient.setQueryData(rolesQueryKey(contractAddress), basicRoles);
 
         return enrichedRoles;
-      } catch (err) {
-        throw wrapError(err, 'enriched-roles');
+      } catch (enrichedErr) {
+        // T022: Fallback to getCurrentRoles() when enriched data is unavailable
+        // (e.g., indexer not deployed for this network). Convert basic roles
+        // to enriched format without timestamp metadata.
+        logger.warn(
+          `[useContractRolesEnriched] Enriched roles unavailable for ${contractAddress}, falling back to basic roles:`,
+          enrichedErr instanceof Error ? enrichedErr.message : String(enrichedErr)
+        );
+        try {
+          const basicRoles = await service.getCurrentRoles(contractAddress);
+
+          // Populate the basic roles cache
+          queryClient.setQueryData(rolesQueryKey(contractAddress), basicRoles);
+
+          // Convert to enriched format (no grant metadata available)
+          const enrichedFromBasic: EnrichedRoleAssignment[] = basicRoles.map((role) => ({
+            role: role.role,
+            members: role.members.map((address) => ({ address })),
+          }));
+
+          return enrichedFromBasic;
+        } catch (fallbackErr) {
+          throw wrapError(fallbackErr, 'enriched-roles');
+        }
       }
     },
     enabled: isReady && !!contractAddress && isContractRegistered,

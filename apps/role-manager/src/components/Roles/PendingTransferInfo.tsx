@@ -32,8 +32,8 @@ export interface PendingTransferInfoProps {
   pendingRecipient: string;
   /** Explorer URL for the pending recipient address */
   pendingRecipientUrl?: string;
-  /** Expiration block/ledger number */
-  expirationBlock: number;
+  /** Expiration block/ledger number (undefined when chain has no expiration, e.g., EVM Ownable2Step) */
+  expirationBlock?: number;
   /** Whether the transfer is expired */
   isExpired: boolean;
   /**
@@ -99,10 +99,11 @@ export function PendingTransferInfo({
   // Get block time estimation for human-readable time display
   const { formatBlocksToTime } = useBlockTime();
 
-  // Calculate blocks remaining and time estimate
-  const expirationEstimate = !isExpired
-    ? calculateBlockExpiration(expirationBlock, currentBlock, formatBlocksToTime)
-    : null;
+  // Calculate blocks remaining and time estimate (only when expiration is defined)
+  const expirationEstimate =
+    !isExpired && expirationBlock != null
+      ? calculateBlockExpiration(expirationBlock, currentBlock, formatBlocksToTime)
+      : null;
 
   return (
     <div
@@ -145,25 +146,29 @@ export function PendingTransferInfo({
         />
       </div>
 
-      {/* Expiration info */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-        <span className="text-xs text-muted-foreground shrink-0">
-          {isExpired ? 'Expired at Block:' : 'Expires at Block:'}
-        </span>
-        <span className={cn('text-xs font-mono', isExpired ? 'text-amber-700' : 'text-foreground')}>
-          {expirationBlock.toLocaleString()}
-        </span>
-        {expirationEstimate && (
-          <span className="text-xs text-muted-foreground">
-            ({expirationEstimate.blocksRemaining.toLocaleString()} blocks
-            {expirationEstimate.timeEstimate
-              ? ` · ${formatTimeEstimateDisplay(expirationEstimate.timeEstimate)}`
-              : ''}
-            )
+      {/* Expiration info — only shown when chain has expiration (e.g., Stellar) */}
+      {expirationBlock != null && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+          <span className="text-xs text-muted-foreground shrink-0">
+            {isExpired ? 'Expired at Block:' : 'Expires at Block:'}
           </span>
-        )}
-      </div>
+          <span
+            className={cn('text-xs font-mono', isExpired ? 'text-amber-700' : 'text-foreground')}
+          >
+            {expirationBlock.toLocaleString()}
+          </span>
+          {expirationEstimate && (
+            <span className="text-xs text-muted-foreground">
+              ({expirationEstimate.blocksRemaining.toLocaleString()} blocks
+              {expirationEstimate.timeEstimate
+                ? ` · ${formatTimeEstimateDisplay(expirationEstimate.timeEstimate)}`
+                : ''}
+              )
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Accept button - shown when user can accept and transfer is not expired */}
       {canAccept && !isExpired && onAccept && (

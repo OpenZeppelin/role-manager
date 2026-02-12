@@ -17,6 +17,7 @@ import { Crown, Shield } from 'lucide-react';
 import { cn } from '@openzeppelin/ui-utils';
 
 import type { RoleWithDescription } from '../../types/roles';
+import { RoleNameDisplay } from '../Shared/RoleNameDisplay';
 
 /**
  * RoleCard props interface per contracts/components.ts
@@ -66,7 +67,12 @@ export function RoleCard({ role, isSelected, isConnected, onClick, className }: 
           {role.isAdminRole && (
             <Shield className="h-3 w-3 text-purple-600" aria-label="Admin role" />
           )}
-          <h3 className="font-medium text-sm">{role.roleName}</h3>
+          <RoleNameDisplay
+            roleName={role.roleName}
+            roleId={role.roleId}
+            isHashDisplay={role.isHashDisplay}
+            className="font-medium text-sm"
+          />
         </div>
         <div className="flex items-center gap-1">
           {isConnected && (

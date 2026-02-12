@@ -31,6 +31,7 @@ import type {
 import { cn } from '@openzeppelin/ui-utils';
 
 import type { RoleWithDescription } from '../../types/roles';
+import { RoleNameDisplay } from '../Shared/RoleNameDisplay';
 import { AccountRow } from './AccountRow';
 import { PendingTransferInfo } from './PendingTransferInfo';
 
@@ -152,7 +153,13 @@ export function RoleDetails({
               {role.isAdminRole && (
                 <Shield className="h-4 w-4 text-purple-600" aria-label="Admin role" />
               )}
-              <CardTitle>{role.roleName}</CardTitle>
+              <CardTitle>
+                <RoleNameDisplay
+                  roleName={role.roleName}
+                  roleId={role.roleId}
+                  isHashDisplay={role.isHashDisplay}
+                />
+              </CardTitle>
               {isConnected && (
                 <span className="text-xs bg-blue-50 text-blue-700 border border-blue-300 rounded-full px-2 py-0.5">
                   Connected

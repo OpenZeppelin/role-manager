@@ -94,18 +94,18 @@
 
 ### Implementation for User Story 2 (Contract Loading)
 
-- [ ] T016 [US2] Verify `AccessControlCapabilitiesSummary` displays EVM-detected capabilities (Ownable, Ownable2Step, AccessControl, AccessControlEnumerable, AccessControlDefaultAdminRules) in `apps/role-manager/src/components/Contracts/AccessControlCapabilitiesSummary.tsx`
-- [ ] T017 [US2] Verify proxy contract detection works through the adapter — no Role Manager changes needed, just E2E validation. Manual test.
+- [x] T016 [US2] Verify `AccessControlCapabilitiesSummary` displays EVM-detected capabilities (Ownable, Ownable2Step, AccessControl, AccessControlEnumerable, AccessControlDefaultAdminRules) in `apps/role-manager/src/components/Contracts/AccessControlCapabilitiesSummary.tsx`
+- [x] T017 [US2] Verify proxy contract detection works through the adapter — no Role Manager changes needed, just E2E validation. Manual test.
 
 ### Implementation for User Story 3 (View Roles & Ownership)
 
-- [ ] T018 [P] [US3] Update `RoleCard` to display `RoleIdentifier.label` when present, fall back to `RoleHashDisplay` for unlabeled hashes in `apps/role-manager/src/components/Roles/RoleCard.tsx`
-- [ ] T019 [P] [US3] Verify `useRolesPageData` correctly transforms EVM roles — `getRoleName` already handles `assignment.role.label` in `apps/role-manager/src/hooks/useRolesPageData.ts`
-- [ ] T020 [US3] Verify synthesized Owner role displays for EVM Ownable contracts in `apps/role-manager/src/hooks/useRolesPageData.ts`
-- [ ] T021 [US3] Verify synthesized Admin role displays for EVM AccessControlDefaultAdminRules contracts in `apps/role-manager/src/hooks/useRolesPageData.ts`
-- [ ] T022 [US3] Verify enriched roles fallback: when indexer unavailable, `getCurrentRoles()` used without error in `apps/role-manager/src/hooks/useContractRolesEnriched.ts`
-- [ ] T023 [US3] Verify Authorized Accounts page works with EVM contracts (ecosystem-agnostic — should work) in `apps/role-manager/src/hooks/useAuthorizedAccountsPageData.ts`
-- [ ] T024 [US3] Verify Dashboard stats work with EVM contracts (ecosystem-agnostic — should work) in `apps/role-manager/src/hooks/useDashboardData.ts`
+- [x] T018 [P] [US3] Update `RoleCard` to display `RoleIdentifier.label` when present, fall back to `RoleHashDisplay` for unlabeled hashes in `apps/role-manager/src/components/Roles/RoleCard.tsx`
+- [x] T019 [P] [US3] Verify `useRolesPageData` correctly transforms EVM roles — `getRoleName` already handles `assignment.role.label` in `apps/role-manager/src/hooks/useRolesPageData.ts`
+- [x] T020 [US3] Verify synthesized Owner role displays for EVM Ownable contracts in `apps/role-manager/src/hooks/useRolesPageData.ts`
+- [x] T021 [US3] Verify synthesized Admin role displays for EVM AccessControlDefaultAdminRules contracts in `apps/role-manager/src/hooks/useRolesPageData.ts`
+- [x] T022 [US3] Verify enriched roles fallback: when indexer unavailable, `getCurrentRoles()` used without error in `apps/role-manager/src/hooks/useContractRolesEnriched.ts`
+- [x] T023 [US3] Verify Authorized Accounts page works with EVM contracts (ecosystem-agnostic — should work) in `apps/role-manager/src/hooks/useAuthorizedAccountsPageData.ts`
+- [x] T024 [US3] Verify Dashboard stats work with EVM contracts (ecosystem-agnostic — should work) in `apps/role-manager/src/hooks/useDashboardData.ts`
 
 **Checkpoint**: All read operations work for EVM contracts. Roles show labels. Owner/Admin roles display. Dashboard and Authorized Accounts pages work.
 

@@ -36,6 +36,9 @@ export { NoRolesEmptyState } from './NoRolesEmptyState';
 export { TransferRoleButton } from './TransferRoleButton';
 export { AcceptTransferButton } from './AcceptTransferButton';
 
+// Role Display Components (Feature: 017-evm-access-control)
+export { RoleNameDisplay } from './RoleNameDisplay';
+
 // Filter Dropdown Components
 export { RoleFilterItem } from './RoleFilterItem';
 
@@ -67,6 +70,9 @@ export type { NoRolesEmptyStateProps } from './NoRolesEmptyState';
 // Two-Step Transfer Action Button Types (Feature: 015-ownership-transfer)
 export type { TransferRoleButtonProps } from './TransferRoleButton';
 export type { AcceptTransferButtonProps } from './AcceptTransferButton';
+
+// Role Display Component Types (Feature: 017-evm-access-control)
+export type { RoleNameDisplayProps } from './RoleNameDisplay';
 
 // Filter Dropdown Component Types
 export type { RoleFilterItemProps } from './RoleFilterItem';

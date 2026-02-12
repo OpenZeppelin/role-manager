@@ -62,4 +62,10 @@ export interface RoleWithDescription {
   isOwnerRole: boolean;
   /** Whether this is the Admin role (special UI treatment) - Feature: 016-two-step-admin-assignment */
   isAdminRole: boolean;
+  /**
+   * Whether the role name is a truncated hash (for display purposes).
+   * When true, RoleCard should render AddressDisplay (with copy-to-clipboard)
+   * instead of plain text. Feature: 017-evm-access-control (T018)
+   */
+  isHashDisplay: boolean;
 }
