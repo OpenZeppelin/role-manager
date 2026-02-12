@@ -119,14 +119,14 @@
 
 ### Tests for User Story 4
 
-- [ ] T025 [P] [US4] Write unit test for `useGrantRole` and `useRevokeRole` mutations with EVM adapter mock in `apps/role-manager/src/hooks/__tests__/useAccessControlMutations.test.tsx`
+- [x] T025 [P] [US4] Write unit test for `useGrantRole` and `useRevokeRole` mutations with EVM adapter mock in `apps/role-manager/src/hooks/__tests__/useAccessControlMutations.test.tsx`
 
 ### Implementation for User Story 4
 
-- [ ] T026 [US4] Verify `AssignRoleDialog` works with EVM address validation via `adapter.isValidAddress()` in `apps/role-manager/src/components/Roles/AssignRoleDialog.tsx`
-- [ ] T027 [US4] Verify `RevokeRoleDialog` works for EVM contracts in `apps/role-manager/src/components/Roles/RevokeRoleDialog.tsx`
-- [ ] T028 [US4] Verify transaction status flow (signing → submitting → confirming → confirmed) displays correctly for EVM transactions. Manual E2E test.
-- [ ] T029 [US4] Verify wallet rejection preserves form state and shows retry option. Manual E2E test.
+- [x] T026 [US4] Verify `AssignRoleDialog` works with EVM address validation via `adapter.isValidAddress()` in `apps/role-manager/src/components/Roles/AssignRoleDialog.tsx`
+- [x] T027 [US4] Verify `RevokeRoleDialog` works for EVM contracts in `apps/role-manager/src/components/Roles/RevokeRoleDialog.tsx`
+- [x] T028 [US4] Verify transaction status flow (signing → submitting → confirming → confirmed) displays correctly for EVM transactions. Manual E2E test.
+- [x] T029 [US4] Verify wallet rejection preserves form state and shows retry option. Manual E2E test.
 
 **Checkpoint**: Grant and revoke work on EVM. Transaction status updates correctly. Error recovery works.
 
