@@ -650,7 +650,7 @@ describe('useManageRolesDialog', () => {
         expect.objectContaining({
           roleId: 'MINTER_ROLE_ID',
           account: MOCK_ACCOUNT_ADDRESS,
-          executionConfig: { method: 'eoa' },
+          executionConfig: { method: 'eoa', allowAny: true },
         })
       );
       expect(mockRevokeRoleMutateAsync).not.toHaveBeenCalled();
@@ -684,7 +684,7 @@ describe('useManageRolesDialog', () => {
         expect.objectContaining({
           roleId: 'ADMIN_ROLE_ID',
           account: MOCK_ACCOUNT_ADDRESS,
-          executionConfig: { method: 'eoa' },
+          executionConfig: { method: 'eoa', allowAny: true },
         })
       );
       expect(mockGrantRoleMutateAsync).not.toHaveBeenCalled();
