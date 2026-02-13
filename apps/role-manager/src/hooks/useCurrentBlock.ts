@@ -1,11 +1,15 @@
 /**
  * useCurrentBlock hook
  * Feature: 015-ownership-transfer
+ * Updated by: 017-evm-access-control (Phase 6 — US5, T041a)
  *
- * Provides polling for current block number.
+ * Provides polling for current block/ledger number.
  * Used for:
- * - Displaying current block in transfer dialog
+ * - Displaying current block/ledger in transfer dialogs (label from adapter metadata)
  * - Validating expiration input is in the future
+ *
+ * Polling is only enabled when the adapter requires expiration input (mode: 'required').
+ * Callers use getCurrentValueLabel() from utils/expiration.ts for display labels.
  */
 import { useQuery } from '@tanstack/react-query';
 import { useCallback } from 'react';

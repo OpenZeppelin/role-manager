@@ -1,13 +1,15 @@
 /**
  * TransferOwnershipDialog Component
  * Feature: 015-ownership-transfer
+ * Updated by: 017-evm-access-control (Phase 6 — US5, T036)
  *
  * Dialog for initiating ownership transfers.
  * Accessible from the Roles page via the "Transfer Ownership" button.
  *
  * Implements:
- * - T011: Dialog with address input, expiration input (two-step only)
- * - Current block display for expiration validation
+ * - T011: Dialog with address input, expiration input (adapter-driven)
+ * - Adapter-driven expiration handling (required / none / contract-managed)
+ * - Current block display for expiration validation (only when mode: 'required')
  * - Transaction state rendering using DialogTransactionStates
  * - Close-during-transaction confirmation prompt
  * - Wallet disconnection handling
@@ -15,7 +17,7 @@
  * Key behaviors:
  * - Address validation via adapter.isValidAddress()
  * - Self-transfer prevention
- * - Expiration validation (must be greater than current block)
+ * - Expiration validation (must be greater than current value, only when required)
  * - Transaction state feedback (pending, success, error, cancelled)
  * - Auto-close after 1.5s success display
  */
@@ -45,6 +47,13 @@ import { useOwnershipTransferDialog } from '../../hooks/useOwnershipTransferDial
 import type { TransferOwnershipFormData } from '../../hooks/useOwnershipTransferDialog';
 import { useSelectedContract } from '../../hooks/useSelectedContract';
 import { calculateBlockExpiration, formatTimeEstimateDisplay } from '../../utils/block-time';
+import {
+  getContractManagedDescription,
+  getCurrentValueLabel,
+  getExpirationLabel,
+  getExpirationPlaceholder,
+  isContractManagedExpiration,
+} from '../../utils/expiration';
 import {
   ConfirmCloseDialog,
   DialogCancelledState,
@@ -117,6 +126,7 @@ export function TransferOwnershipDialog({
     requiresExpiration,
     currentBlock,
     isNetworkError,
+    expirationMetadata,
     submit,
     retry,
     reset,
@@ -268,6 +278,7 @@ export function TransferOwnershipDialog({
             isWalletConnected={isWalletConnected}
             requiresExpiration={requiresExpiration}
             currentBlock={currentBlock}
+            expirationMetadata={expirationMetadata}
             hasPendingTransfer={hasPendingTransfer}
             onCancel={handleCancel}
             onSubmit={handleSubmit}
@@ -320,6 +331,8 @@ interface TransferOwnershipFormContentProps {
   isWalletConnected: boolean;
   requiresExpiration: boolean;
   currentBlock: number | null;
+  /** Adapter-driven expiration metadata for labels and mode */
+  expirationMetadata: ReturnType<typeof useOwnershipTransferDialog>['expirationMetadata'];
   /** T033: Whether there is an existing pending transfer to replace */
   hasPendingTransfer: boolean;
   onCancel: () => void;
@@ -333,6 +346,7 @@ function TransferOwnershipFormContent({
   isWalletConnected,
   requiresExpiration,
   currentBlock,
+  expirationMetadata,
   hasPendingTransfer,
   onCancel,
   onSubmit,
@@ -365,14 +379,14 @@ function TransferOwnershipFormContent({
     return calculateBlockExpiration(expNum, currentBlock, formatBlocksToTime);
   }, [requiresExpiration, debouncedExpiration, currentBlock, formatBlocksToTime]);
 
-  // Validate expiration is greater than current block
+  // Validate expiration is greater than current value
   const expirationError = useMemo(() => {
     if (!requiresExpiration || !expirationValue || currentBlock === null) {
       return null;
     }
     const expNum = parseInt(expirationValue, 10);
     if (isNaN(expNum) || expNum <= currentBlock) {
-      return `Must be greater than current block (${currentBlock.toLocaleString()})`;
+      return `Must be greater than current value (${currentBlock.toLocaleString()})`;
     }
     return null;
   }, [requiresExpiration, expirationValue, currentBlock]);
@@ -417,21 +431,23 @@ function TransferOwnershipFormContent({
         />
       </div>
 
-      {/* Expiration Block Field (Two-Step Only) */}
+      {/* Expiration Field — shown only when adapter requires user input (mode: 'required') */}
       {requiresExpiration && (
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <Label htmlFor="transfer-ownership-expiration">Expiration Block</Label>
+            <Label htmlFor="transfer-ownership-expiration">
+              {getExpirationLabel(expirationMetadata, 'Expiration Block')}
+            </Label>
             {currentBlock !== null && (
               <span className="text-xs text-muted-foreground">
-                Current: {currentBlock.toLocaleString()}
+                {getCurrentValueLabel(expirationMetadata)}: {currentBlock.toLocaleString()}
               </span>
             )}
           </div>
           <Input
             id="transfer-ownership-expiration"
             type="number"
-            placeholder="Enter block number"
+            placeholder={getExpirationPlaceholder(expirationMetadata)}
             {...register('expirationBlock', { required: requiresExpiration })}
             className={cn(expirationError && 'border-destructive')}
           />
@@ -449,10 +465,19 @@ function TransferOwnershipFormContent({
             </div>
           ) : !expirationError ? (
             <p className="text-xs text-muted-foreground">
-              The transfer must be accepted before this block.
+              The transfer must be accepted before this {expirationMetadata?.unit ?? 'block'}.
             </p>
           ) : null}
           {expirationError && <p className="text-xs text-destructive">{expirationError}</p>}
+        </div>
+      )}
+
+      {/* Contract-managed expiration info (mode: 'contract-managed') — read-only display */}
+      {isContractManagedExpiration(expirationMetadata) && (
+        <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
+          <p className="text-sm text-blue-800">
+            {getContractManagedDescription(expirationMetadata)}
+          </p>
         </div>
       )}
 

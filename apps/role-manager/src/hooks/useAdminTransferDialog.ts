@@ -1,24 +1,32 @@
 /**
  * useAdminTransferDialog hook
  * Feature: 016-two-step-admin-assignment
+ * Updated by: 017-evm-access-control (Phase 6 — US5, T037)
  *
  * Hook that manages the state and logic for the Transfer Admin dialog.
  * Implements:
  * - Form validation (address, self-transfer, expiration)
  * - Transaction execution via useTransferAdminRole
  * - Dialog step transitions
- * - Current ledger polling
+ * - Adapter-driven expiration handling (required / none / contract-managed)
  *
  * Follows the useOwnershipTransferDialog pattern from spec 015.
  */
 import { useCallback, useRef, useState } from 'react';
 
 import { useDerivedAccountStatus } from '@openzeppelin/ui-react';
-import type { ExecutionConfig, OperationResult, TxStatus } from '@openzeppelin/ui-types';
+import type {
+  ExecutionConfig,
+  ExpirationMetadata,
+  OperationResult,
+  TxStatus,
+} from '@openzeppelin/ui-types';
 
 import type { DialogTransactionStep } from '../types/role-dialogs';
+import { requiresExpirationInput } from '../utils/expiration';
 import { useTransferAdminRole, type TransferAdminRoleArgs } from './useAccessControlMutations';
 import { useCurrentBlock } from './useCurrentBlock';
+import { useExpirationMetadata } from './useExpirationMetadata';
 import { useSelectedContract } from './useSelectedContract';
 import { isUserRejectionError } from './useTransactionExecution';
 
@@ -32,7 +40,7 @@ import { isUserRejectionError } from './useTransactionExecution';
 export interface TransferAdminFormData {
   /** The new admin's address */
   newAdminAddress: string;
-  /** The block number at which the transfer expires (string for form input) */
+  /** The expiration value as string (form input) — ledger number, block number, etc. */
   expirationBlock: string;
 }
 
@@ -60,10 +68,14 @@ export interface UseAdminTransferDialogReturn {
   txStatus: TxStatus;
   /** Whether wallet is connected */
   isWalletConnected: boolean;
+  /** Whether expiration input is required (adapter says mode: 'required') */
+  requiresExpiration: boolean;
   /** Current block for validation */
   currentBlock: number | null;
   /** Whether the error is a network disconnection error */
   isNetworkError: boolean;
+  /** Adapter-driven expiration metadata for UI rendering decisions */
+  expirationMetadata: ExpirationMetadata | undefined;
   /** Submit the transfer */
   submit: (data: TransferAdminFormData) => Promise<void>;
   /** Retry after error */
@@ -87,7 +99,7 @@ function validateSelfTransfer(newAdmin: string, currentAdmin: string): string | 
 }
 
 /**
- * Validate expiration block (must be strictly greater than current)
+ * Validate expiration value (must be strictly greater than current)
  * Note: currentBlock is guaranteed non-null when this is called (caller validates first)
  */
 function validateExpiration(expirationBlock: number, currentBlock: number): string | null {
@@ -106,28 +118,14 @@ function validateExpiration(expirationBlock: number, currentBlock: number): stri
  *
  * Features:
  * - Validates address (self-transfer prevention)
- * - Validates expiration (must be in the future)
+ * - Validates expiration (must be in the future, only when mode is 'required')
  * - Handles transaction execution with proper state transitions
  * - Auto-closes dialog 1.5s after successful transaction
- * - Polls current ledger for expiration validation
+ * - Polls current block only when expiration input is required
+ * - Adapter-driven expiration: 'required' | 'none' | 'contract-managed'
  *
  * @param options - Configuration including currentAdmin and callbacks
  * @returns Dialog state, actions, and derived values
- *
- * @example
- * ```tsx
- * const {
- *   step,
- *   currentBlock,
- *   submit,
- *   retry,
- *   reset,
- * } = useAdminTransferDialog({
- *   currentAdmin: adminInfo.admin,
- *   onClose: () => setDialogOpen(false),
- *   onSuccess: () => refetchAdminInfo(),
- * });
- * ```
  */
 export function useAdminTransferDialog(
   options: UseAdminTransferDialogOptions
@@ -146,9 +144,15 @@ export function useAdminTransferDialog(
   // Mutation hook for admin transfer
   const transferAdminRole = useTransferAdminRole(adapter, contractAddress);
 
-  // Current block polling (always enabled for two-step admin transfer)
+  // Adapter-driven expiration metadata (T037)
+  const { metadata: expirationMetadata } = useExpirationMetadata(adapter, contractAddress, 'admin');
+
+  // Derive whether expiration input is required from adapter metadata.
+  const needsExpirationInput = requiresExpirationInput(expirationMetadata);
+
+  // Current block polling — only when expiration input is needed for validation
   const { currentBlock } = useCurrentBlock(adapter, {
-    enabled: true,
+    enabled: needsExpirationInput,
     pollInterval: 5000,
   });
 
@@ -226,47 +230,49 @@ export function useAdminTransferDialog(
       // Validate self-transfer
       const selfTransferError = validateSelfTransfer(data.newAdminAddress, currentAdmin);
       if (selfTransferError) {
-        // Set error state for validation errors (don't throw)
         setStep('error');
         setErrorMessage(selfTransferError);
         return;
       }
 
-      // Parse expiration
-      const expirationBlock = parseInt(data.expirationBlock, 10) || 0;
+      // Parse expiration (0 when not required — e.g., EVM contract-managed)
+      const expirationBlock = needsExpirationInput ? parseInt(data.expirationBlock, 10) || 0 : 0;
 
-      // Check if expiration is provided (form-level validation)
-      if (!data.expirationBlock || !data.expirationBlock.trim()) {
-        setStep('error');
-        setErrorMessage('Expiration block is required');
-        return;
-      }
+      // Validate expiration only when the adapter requires user input
+      if (needsExpirationInput) {
+        // Check if expiration is provided (form-level validation)
+        if (!data.expirationBlock || !data.expirationBlock.trim()) {
+          setStep('error');
+          setErrorMessage('Expiration is required for this transfer');
+          return;
+        }
 
-      // Ensure current block is available for validation
-      if (currentBlock === null) {
-        setStep('error');
-        setErrorMessage(
-          'Unable to validate expiration: current block not available. Please try again.'
-        );
-        return;
-      }
+        // Ensure current block is available for validation
+        if (currentBlock === null) {
+          setStep('error');
+          setErrorMessage(
+            'Unable to validate expiration: current block not available. Please try again.'
+          );
+          return;
+        }
 
-      // Validate expiration is in the future (business logic validation)
-      const expirationError = validateExpiration(expirationBlock, currentBlock);
-      if (expirationError) {
-        setStep('error');
-        setErrorMessage(expirationError);
-        return;
+        // Validate expiration is in the future (business logic validation)
+        const expirationError = validateExpiration(expirationBlock, currentBlock);
+        if (expirationError) {
+          setStep('error');
+          setErrorMessage(expirationError);
+          return;
+        }
       }
 
       // Execute the transaction
       await executeTransaction({
         newAdmin: data.newAdminAddress,
         expirationBlock,
-        executionConfig: { method: 'eoa' } as ExecutionConfig,
+        executionConfig: { method: 'eoa', allowAny: true } as ExecutionConfig,
       });
     },
-    [currentAdmin, currentBlock, executeTransaction]
+    [currentAdmin, needsExpirationInput, currentBlock, executeTransaction]
   );
 
   // =============================================================================
@@ -280,32 +286,34 @@ export function useAdminTransferDialog(
     if (!formData) return;
 
     // Parse expiration
-    const expirationBlock = parseInt(formData.expirationBlock, 10) || 0;
+    const expirationBlock = needsExpirationInput ? parseInt(formData.expirationBlock, 10) || 0 : 0;
 
     // FR-028b: Re-validate expiration against current block before retry
-    // Must have currentBlock available (consistent with submit validation)
-    if (currentBlock === null) {
-      setStep('error');
-      setErrorMessage(
-        'Unable to validate expiration: current block not available. Please try again.'
-      );
-      return;
-    }
+    // Only when expiration input is required
+    if (needsExpirationInput) {
+      if (currentBlock === null) {
+        setStep('error');
+        setErrorMessage(
+          'Unable to validate expiration: current block not available. Please try again.'
+        );
+        return;
+      }
 
-    const expirationError = validateExpiration(expirationBlock, currentBlock);
-    if (expirationError) {
-      setStep('error');
-      setErrorMessage(expirationError);
-      return;
+      const expirationError = validateExpiration(expirationBlock, currentBlock);
+      if (expirationError) {
+        setStep('error');
+        setErrorMessage(expirationError);
+        return;
+      }
     }
 
     // Re-execute the transaction
     await executeTransaction({
       newAdmin: formData.newAdminAddress,
       expirationBlock,
-      executionConfig: { method: 'eoa' } as ExecutionConfig,
+      executionConfig: { method: 'eoa', allowAny: true } as ExecutionConfig,
     });
-  }, [currentBlock, executeTransaction]);
+  }, [needsExpirationInput, currentBlock, executeTransaction]);
 
   // =============================================================================
   // Reset Function
@@ -331,7 +339,6 @@ export function useAdminTransferDialog(
   const isWalletConnected = !!connectedAddress;
 
   // Network error detection
-  // Uses the isNetworkError flag from the underlying mutation hook
   const isNetworkError = transferAdminRole.isNetworkError;
 
   // =============================================================================
@@ -344,8 +351,10 @@ export function useAdminTransferDialog(
     errorMessage,
     txStatus,
     isWalletConnected,
-    currentBlock,
+    requiresExpiration: needsExpirationInput,
+    currentBlock: needsExpirationInput ? currentBlock : null,
     isNetworkError,
+    expirationMetadata,
 
     // Actions
     submit,

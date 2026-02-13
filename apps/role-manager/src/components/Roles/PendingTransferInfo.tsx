@@ -1,6 +1,7 @@
 /**
  * PendingTransferInfo Component
  * Feature: 015-ownership-transfer Phase 6 (T026, T027, T028)
+ * Updated by: 017-evm-access-control (Phase 6 — US5, T039)
  *
  * Generic component for displaying pending transfer information.
  * Reusable for:
@@ -11,17 +12,19 @@
  *
  * Displays:
  * - Pending recipient address
- * - Expiration block/ledger number
+ * - Expiration info with adapter-driven labels (no hardcoded "Block"/"Ledger")
  * - Expired status when applicable
  */
 
 import { AlertTriangle, Clock, Info, User } from 'lucide-react';
 
 import { AddressDisplay } from '@openzeppelin/ui-components';
+import type { ExpirationMetadata } from '@openzeppelin/ui-types';
 import { cn } from '@openzeppelin/ui-utils';
 
 import { useBlockTime } from '../../context/useBlockTime';
 import { calculateBlockExpiration, formatTimeEstimateDisplay } from '../../utils/block-time';
+import { getExpirationStatusLabel } from '../../utils/expiration';
 import { AcceptTransferButton } from '../Shared/AcceptTransferButton';
 
 /**
@@ -49,6 +52,8 @@ export interface PendingTransferInfoProps {
   recipientLabel?: string;
   /** Optional: Current block/ledger for context display */
   currentBlock?: number | null;
+  /** Adapter-driven expiration metadata for display labels */
+  expirationMetadata?: ExpirationMetadata;
   /** Whether the connected user can accept this transfer */
   canAccept?: boolean;
   /** Callback when Accept button is clicked */
@@ -92,6 +97,7 @@ export function PendingTransferInfo({
   transferLabel = 'Ownership',
   recipientLabel = 'Owner',
   currentBlock,
+  expirationMetadata,
   canAccept,
   onAccept,
   className,
@@ -146,12 +152,12 @@ export function PendingTransferInfo({
         />
       </div>
 
-      {/* Expiration info — only shown when chain has expiration (e.g., Stellar) */}
+      {/* Expiration info — only shown when chain has expiration (e.g., Stellar ledger, EVM schedule) */}
       {expirationBlock != null && (
         <div className="flex items-center gap-2 flex-wrap">
           <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
           <span className="text-xs text-muted-foreground shrink-0">
-            {isExpired ? 'Expired at Block:' : 'Expires at Block:'}
+            {getExpirationStatusLabel(isExpired, expirationMetadata)}
           </span>
           <span
             className={cn('text-xs font-mono', isExpired ? 'text-amber-700' : 'text-foreground')}

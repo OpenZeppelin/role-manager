@@ -136,8 +136,8 @@
 
 **Phases 6-9 require the updated `@openzeppelin/ui-types`, `@openzeppelin/ui-builder-adapter-evm`, and `@openzeppelin/ui-builder-adapter-stellar` packages.**
 
-- [ ] T030 Update `@openzeppelin/ui-types`, `@openzeppelin/ui-builder-adapter-evm`, `@openzeppelin/ui-builder-adapter-stellar` to new minimum versions in `apps/role-manager/package.json`
-- [ ] T031 Run `pnpm install` and verify TypeScript compilation succeeds with new types
+- [x] T030 Update `@openzeppelin/ui-types`, `@openzeppelin/ui-builder-adapter-evm`, `@openzeppelin/ui-builder-adapter-stellar` to new minimum versions in `apps/role-manager/package.json`
+- [x] T031 Run `pnpm install` and verify TypeScript compilation succeeds with new types
 
 ---
 
@@ -149,23 +149,23 @@
 
 ### Tests for User Story 5
 
-- [ ] T032 [P] [US5] Write unit test for `formatExpiration` utility covering all 3 modes (required, none, contract-managed) in `apps/role-manager/src/utils/__tests__/expiration.test.ts`
-- [ ] T033 [P] [US5] Write unit test for `useOwnershipTransferDialog` with conditional expiration based on adapter metadata in `apps/role-manager/src/hooks/__tests__/useOwnershipTransferDialog.test.tsx`
+- [x] T032 [P] [US5] Write unit test for `formatExpiration` utility covering all 3 modes (required, none, contract-managed) in `apps/role-manager/src/utils/__tests__/expiration.test.ts`
+- [x] T033 [P] [US5] Write unit test for `useOwnershipTransferDialog` with conditional expiration based on adapter metadata in `apps/role-manager/src/hooks/__tests__/useOwnershipTransferDialog.test.tsx`
 
 ### Implementation for User Story 5
 
-- [ ] T034 [US5] Create `utils/expiration.ts` with adapter-driven expiration formatting utilities (format timestamp, display label, check mode) in `apps/role-manager/src/utils/expiration.ts`
-- [ ] T035 [US5] Refactor `useOwnershipTransferDialog` to conditionally show/hide expiration input based on `getExpirationMetadata` response in `apps/role-manager/src/hooks/useOwnershipTransferDialog.ts`
-- [ ] T036 [US5] Update `TransferOwnershipDialog` to omit expiration input for EVM Ownable2Step (mode: 'none') and show adapter label for Stellar (mode: 'required') in `apps/role-manager/src/components/Ownership/TransferOwnershipDialog.tsx`
-- [ ] T037 [US5] Refactor `useAdminTransferDialog` to conditionally handle expiration based on adapter metadata in `apps/role-manager/src/hooks/useAdminTransferDialog.ts`
-- [ ] T038 [US5] Update `TransferAdminDialog` to show accept schedule info for EVM AccessControlDefaultAdminRules (mode: 'contract-managed') in `apps/role-manager/src/components/Admin/TransferAdminDialog.tsx`
-- [ ] T039 [US5] Update `PendingTransferInfo` to use adapter-driven labels instead of hardcoded "Expiration Ledger" in `apps/role-manager/src/components/Roles/PendingTransferInfo.tsx`
-- [ ] T040 [US5] Update `PendingTransferRow` to use adapter-driven expiration labels in `apps/role-manager/src/components/Dashboard/PendingTransferRow.tsx`
-- [ ] T041 [US5] Update `usePendingTransfers` to include `expirationMetadata` from adapter in `apps/role-manager/src/hooks/usePendingTransfers.ts`
-- [ ] T041a [US5] Refactor `useCurrentBlock` to adapt polling label and display to adapter-driven expiration metadata (plan Phase 4 step 4) in `apps/role-manager/src/hooks/useCurrentBlock.ts`
-- [ ] T042 [US5] Search-and-replace all hardcoded "expiration ledger" / "Expiration Ledger" strings in display labels, comments, and tests across `apps/role-manager/src/`
-- [ ] T042a [US5] Verify single-step Ownable contracts (no Ownable2Step) support direct `transferOwnership` without acceptance step (FR-024). Manual E2E test.
-- [ ] T043 [US5] Verify Stellar ownership/admin transfers still work identically (regression test). Manual E2E test.
+- [x] T034 [US5] Create `utils/expiration.ts` with adapter-driven expiration formatting utilities (format timestamp, display label, check mode) in `apps/role-manager/src/utils/expiration.ts`
+- [x] T035 [US5] Refactor `useOwnershipTransferDialog` to conditionally show/hide expiration input based on `getExpirationMetadata` response in `apps/role-manager/src/hooks/useOwnershipTransferDialog.ts`
+- [x] T036 [US5] Update `TransferOwnershipDialog` to omit expiration input for EVM Ownable2Step (mode: 'none') and show adapter label for Stellar (mode: 'required') in `apps/role-manager/src/components/Ownership/TransferOwnershipDialog.tsx`
+- [x] T037 [US5] Refactor `useAdminTransferDialog` to conditionally handle expiration based on adapter metadata in `apps/role-manager/src/hooks/useAdminTransferDialog.ts`
+- [x] T038 [US5] Update `TransferAdminDialog` to show accept schedule info for EVM AccessControlDefaultAdminRules (mode: 'contract-managed') in `apps/role-manager/src/components/Admin/TransferAdminDialog.tsx`
+- [x] T039 [US5] Update `PendingTransferInfo` to use adapter-driven labels instead of hardcoded "Expiration Ledger" in `apps/role-manager/src/components/Roles/PendingTransferInfo.tsx`
+- [x] T040 [US5] Update `PendingTransferRow` to use adapter-driven expiration labels in `apps/role-manager/src/components/Dashboard/PendingTransferRow.tsx`
+- [x] T041 [US5] Update `usePendingTransfers` to include `expirationMetadata` from adapter in `apps/role-manager/src/hooks/usePendingTransfers.ts`
+- [x] T041a [US5] Refactor `useCurrentBlock` to adapt polling label and display to adapter-driven expiration metadata (plan Phase 4 step 4) in `apps/role-manager/src/hooks/useCurrentBlock.ts`
+- [x] T042 [US5] Search-and-replace all hardcoded "expiration ledger" / "Expiration Ledger" strings in display labels, comments, and tests across `apps/role-manager/src/`
+- [x] T042a [US5] Verify single-step Ownable contracts (no Ownable2Step) support direct `transferOwnership` without acceptance step (FR-024). Manual E2E test.
+- [x] T043 [US5] Verify Stellar ownership/admin transfers still work identically (regression test). Manual E2E test.
 
 **Checkpoint**: Transfer dialogs adapt to ecosystem. EVM has no expiration / shows schedule. Stellar unchanged. No hardcoded "ledger" strings.
 
