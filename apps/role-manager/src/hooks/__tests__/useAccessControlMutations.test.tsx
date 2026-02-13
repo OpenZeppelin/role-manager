@@ -1903,7 +1903,7 @@ describe('EVM Adapter: useGrantRole', () => {
             ) => {
               if (onStatusChange) {
                 onStatusChange('pendingSignature', { title: 'Sign in MetaMask' });
-                onStatusChange('pendingExecution', {
+                onStatusChange('pendingRelayer', {
                   txHash: '0xabc123def456',
                   title: 'Broadcasting to Sepolia',
                 });
@@ -1943,7 +1943,7 @@ describe('EVM Adapter: useGrantRole', () => {
       expect(statusChanges).toHaveLength(4);
       expect(statusChanges[0].status).toBe('pendingSignature');
       expect(statusChanges[0].details.title).toBe('Sign in MetaMask');
-      expect(statusChanges[1].status).toBe('pendingExecution');
+      expect(statusChanges[1].status).toBe('pendingRelayer');
       expect(statusChanges[2].status).toBe('pendingConfirmation');
       expect(statusChanges[3].status).toBe('success');
       expect(statusChanges[3].details.txHash).toBe('0xabc123def456');
