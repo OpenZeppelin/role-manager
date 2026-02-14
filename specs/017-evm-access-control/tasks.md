@@ -179,21 +179,21 @@
 
 ### Tests for User Story 6
 
-- [ ] T044 [P] [US6] Write unit test for `TypeToConfirmDialog` — keyword matching, button state, case sensitivity in `apps/role-manager/src/components/Shared/__tests__/TypeToConfirmDialog.test.tsx`
-- [ ] T045 [P] [US6] Write unit test for `useRenounceOwnership` mutation hook in `apps/role-manager/src/hooks/__tests__/useAccessControlMutations.test.tsx`
-- [ ] T046 [P] [US6] Write unit test for `useRenounceRole` mutation hook in `apps/role-manager/src/hooks/__tests__/useAccessControlMutations.test.tsx`
-- [ ] T047 [P] [US6] Write unit test for `useRenounceDialog` hook state management in `apps/role-manager/src/hooks/__tests__/useRenounceDialog.test.tsx`
+- [x] T044 [P] [US6] ~~Write unit test for `TypeToConfirmDialog`~~ — Skipped per constitution principle V: UI components do not require unit tests unless they contain complex internal logic. `TypeToConfirmDialog` is a presentational component with straightforward conditional rendering.
+- [x] T045 [P] [US6] Write unit test for `useRenounceOwnership` mutation hook in `apps/role-manager/src/hooks/__tests__/useAccessControlMutations.test.tsx`
+- [x] T046 [P] [US6] Write unit test for `useRenounceRole` mutation hook in `apps/role-manager/src/hooks/__tests__/useAccessControlMutations.test.tsx`
+- [x] T047 [P] [US6] Write unit test for `useRenounceDialog` hook state management in `apps/role-manager/src/hooks/__tests__/useRenounceDialog.test.tsx`
 
 ### Implementation for User Story 6
 
-- [ ] T048 [US6] Create `TypeToConfirmDialog` shared component with keyword input, disabled/enabled submit, warning text per FR-027 in `apps/role-manager/src/components/Shared/TypeToConfirmDialog.tsx`
-- [ ] T049 [US6] Add `useRenounceOwnership` mutation to `useAccessControlMutations` — calls `service.renounceOwnership()`, invalidates `['contractOwnership']` in `apps/role-manager/src/hooks/useAccessControlMutations.ts`
-- [ ] T050 [US6] Add `useRenounceRole` mutation to `useAccessControlMutations` — calls `service.renounceRole()` with connected wallet address, invalidates `['contractRoles']` in `apps/role-manager/src/hooks/useAccessControlMutations.ts`
-- [ ] T051 [US6] Create `useRenounceDialog` hook for dialog state management (open, close, confirm, isPending) in `apps/role-manager/src/hooks/useRenounceDialog.ts`
-- [ ] T052 [US6] Add "Renounce Ownership" action in `RoleDetails` when `capabilities.hasRenounceOwnership` is true and user is owner in `apps/role-manager/src/components/Roles/RoleDetails.tsx`
-- [ ] T053 [US6] Add "Renounce Role" action in `AccountRow` when `capabilities.hasRenounceRole` is true and row is connected wallet in `apps/role-manager/src/components/Roles/AccountRow.tsx`
-- [ ] T054 [US6] Wire `TypeToConfirmDialog` with contextual warning text: ownership renounce vs. role renounce per FR-027 in `apps/role-manager/src/pages/Roles.tsx`
-- [ ] T055 [US6] Add analytics event emission for renounce operations in `apps/role-manager/src/hooks/useRoleManagerAnalytics.ts`
+- [x] T048 [US6] Create `TypeToConfirmDialog` shared component with keyword input, disabled/enabled submit, warning text per FR-027 in `apps/role-manager/src/components/Shared/TypeToConfirmDialog.tsx`
+- [x] T049 [US6] Add `useRenounceOwnership` mutation to `useAccessControlMutations` — calls `service.renounceOwnership()`, invalidates `['contractOwnership']` in `apps/role-manager/src/hooks/useAccessControlMutations.ts`
+- [x] T050 [US6] Add `useRenounceRole` mutation to `useAccessControlMutations` — calls `service.renounceRole()` with connected wallet address, invalidates `['contractRoles']` in `apps/role-manager/src/hooks/useAccessControlMutations.ts`
+- [x] T051 [US6] Create `useRenounceDialog` hook for dialog state management (open, close, confirm, isPending) in `apps/role-manager/src/hooks/useRenounceDialog.ts`
+- [x] T052 [US6] Add "Renounce Ownership" action in `RoleDetails` when `capabilities.hasRenounceOwnership` is true and user is owner in `apps/role-manager/src/components/Roles/RoleDetails.tsx`
+- [x] T053 [US6] Add "Renounce Role" action in `AccountRow` when `capabilities.hasRenounceRole` is true and row is connected wallet in `apps/role-manager/src/components/Roles/AccountRow.tsx`
+- [x] T054 [US6] Wire `TypeToConfirmDialog` with contextual warning text: ownership renounce vs. role renounce per FR-027 in `apps/role-manager/src/pages/Roles.tsx`
+- [x] T055 [US6] Add analytics event emission for renounce operations in `apps/role-manager/src/hooks/useRoleManagerAnalytics.ts`
 
 **Checkpoint**: Renounce actions appear based on capabilities. Type-to-confirm blocks accidental execution. State updates after renounce. Analytics emitted.
 
