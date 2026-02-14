@@ -284,14 +284,34 @@ export function useOwnershipTransferDialog(
 
   // =============================================================================
   // Retry with Stored Form Data
+  // Re-validate expiration against current block before retry (same as FR-028b in useAdminTransferDialog)
   // =============================================================================
 
   const retry = useCallback(async () => {
     const formData = lastFormDataRef.current;
     if (!formData) return;
 
-    // Parse expiration (validation already passed once)
+    // Parse expiration
     const expirationBlock = needsExpirationInput ? parseInt(formData.expirationBlock, 10) || 0 : 0;
+
+    // Re-validate expiration against current block before retry when expiration input is required.
+    // Time may have passed since initial submit; stored value could now be in the past.
+    if (needsExpirationInput) {
+      if (currentBlock === null) {
+        setStep('error');
+        setErrorMessage(
+          'Unable to validate expiration: current block not available. Please try again.'
+        );
+        return;
+      }
+
+      const expirationError = validateExpiration(expirationBlock, currentBlock);
+      if (expirationError) {
+        setStep('error');
+        setErrorMessage(expirationError);
+        return;
+      }
+    }
 
     // Re-execute the transaction
     await executeTransaction({
@@ -299,7 +319,7 @@ export function useOwnershipTransferDialog(
       expirationBlock,
       executionConfig: { method: 'eoa', allowAny: true } as ExecutionConfig,
     });
-  }, [needsExpirationInput, executeTransaction]);
+  }, [needsExpirationInput, currentBlock, executeTransaction]);
 
   // =============================================================================
   // Reset Function
