@@ -24,6 +24,7 @@ import {
 } from '@openzeppelin/ui-components';
 import type {
   AdminState,
+  ExpirationMetadata,
   OwnershipState,
   PendingAdminTransfer,
   PendingOwnershipTransfer,
@@ -262,6 +263,11 @@ export function RoleDetails({
                 canAccept={canAcceptOwnership}
                 onAccept={onAcceptOwnership}
                 currentBlock={currentBlock}
+                expirationMetadata={
+                  'expirationMetadata' in pendingTransfer
+                    ? (pendingTransfer.expirationMetadata as ExpirationMetadata | undefined)
+                    : undefined
+                }
               />
             )}
 
@@ -277,6 +283,11 @@ export function RoleDetails({
                 canAccept={canAcceptAdminTransfer}
                 onAccept={onAcceptAdminTransfer}
                 currentBlock={currentBlock}
+                expirationMetadata={
+                  'expirationMetadata' in pendingAdminTransfer
+                    ? (pendingAdminTransfer.expirationMetadata as ExpirationMetadata | undefined)
+                    : undefined
+                }
                 transferLabel="Admin Role"
                 recipientLabel="Admin"
               />
