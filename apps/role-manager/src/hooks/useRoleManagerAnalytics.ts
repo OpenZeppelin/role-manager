@@ -120,6 +120,25 @@ export function useRoleManagerAnalytics() {
       },
 
       /**
+       * Track when ownership is renounced (Feature: 017-evm-access-control, T055)
+       */
+      trackOwnershipRenounced: (ecosystem: string) => {
+        analytics.trackEvent('ownership_renounced', {
+          ecosystem,
+        });
+      },
+
+      /**
+       * Track when a role is renounced (Feature: 017-evm-access-control, T055)
+       */
+      trackRoleRenounced: (roleName: string, ecosystem: string) => {
+        analytics.trackEvent('role_renounced', {
+          role_name: roleName,
+          ecosystem,
+        });
+      },
+
+      /**
        * Track when a snapshot is exported
        */
       trackSnapshotExported: (format: string, ecosystem: string) => {

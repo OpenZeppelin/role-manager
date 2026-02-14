@@ -39,6 +39,9 @@ export { AcceptTransferButton } from './AcceptTransferButton';
 // Role Display Components (Feature: 017-evm-access-control)
 export { RoleNameDisplay } from './RoleNameDisplay';
 
+// Type-to-Confirm Dialog (Feature: 017-evm-access-control)
+export { TypeToConfirmDialog } from './TypeToConfirmDialog';
+
 // Filter Dropdown Components
 export { RoleFilterItem } from './RoleFilterItem';
 
@@ -73,6 +76,9 @@ export type { AcceptTransferButtonProps } from './AcceptTransferButton';
 
 // Role Display Component Types (Feature: 017-evm-access-control)
 export type { RoleNameDisplayProps } from './RoleNameDisplay';
+
+// Type-to-Confirm Dialog Types (Feature: 017-evm-access-control)
+export type { TypeToConfirmDialogProps } from './TypeToConfirmDialog';
 
 // Filter Dropdown Component Types
 export type { RoleFilterItemProps } from './RoleFilterItem';

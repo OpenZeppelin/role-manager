@@ -109,6 +109,19 @@ export interface RoleDetailsProps {
   /** Feature 016: Transfer admin action */
   onTransferAdmin?: () => void;
 
+  // =============================================================================
+  // Feature 017: Renounce Operations
+  // =============================================================================
+
+  /** Feature 017 (T052): Whether contract supports renouncing ownership */
+  hasRenounceOwnership?: boolean;
+  /** Feature 017 (T052): Renounce ownership handler */
+  onRenounceOwnership?: () => void;
+  /** Feature 017 (T053): Whether contract supports renouncing roles */
+  hasRenounceRole?: boolean;
+  /** Feature 017 (T053): Renounce role handler */
+  onRenounceRole?: (roleId: string, roleName: string) => void;
+
   /** Additional CSS classes */
   className?: string;
 }
@@ -137,6 +150,11 @@ export function RoleDetails({
   canAcceptAdminTransfer,
   pendingAdminRecipientUrl,
   onTransferAdmin,
+  // Feature 017: Renounce props
+  hasRenounceOwnership,
+  onRenounceOwnership,
+  hasRenounceRole,
+  onRenounceRole,
   className,
 }: RoleDetailsProps) {
   const hasAccounts = accounts.length > 0;
@@ -214,6 +232,12 @@ export function RoleDetails({
                   onRevoke={onRevoke ? () => onRevoke(account.address) : undefined}
                   onTransferOwnership={onTransferOwnership}
                   onTransferAdmin={onTransferAdmin}
+                  hasRenounceOwnership={hasRenounceOwnership}
+                  onRenounceOwnership={onRenounceOwnership}
+                  hasRenounceRole={hasRenounceRole}
+                  onRenounceRole={
+                    onRenounceRole ? () => onRenounceRole(role.roleId, role.roleName) : undefined
+                  }
                 />
               ))
             ) : (

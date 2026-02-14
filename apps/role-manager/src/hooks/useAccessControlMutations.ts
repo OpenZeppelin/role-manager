@@ -190,6 +190,30 @@ export interface AcceptAdminTransferArgs {
 }
 
 /**
+ * Arguments for useRenounceOwnership mutation (Feature: 017-evm-access-control, T049)
+ */
+export interface RenounceOwnershipArgs {
+  /** Execution configuration (EOA, relayer, etc.) */
+  executionConfig: ExecutionConfig;
+  /** Optional runtime API key for relayer */
+  runtimeApiKey?: string;
+}
+
+/**
+ * Arguments for useRenounceRole mutation (Feature: 017-evm-access-control, T050)
+ */
+export interface RenounceRoleArgs {
+  /** The role identifier to renounce */
+  roleId: string;
+  /** The connected wallet address (self-revocation only) */
+  account: string;
+  /** Execution configuration (EOA, relayer, etc.) */
+  executionConfig: ExecutionConfig;
+  /** Optional runtime API key for relayer */
+  runtimeApiKey?: string;
+}
+
+/**
  * Options for mutation hooks
  */
 export interface MutationHookOptions {
@@ -910,6 +934,245 @@ export function useAcceptAdminTransfer(
   }, [mutation.error]);
 
   // Reset function
+  const reset = useCallback(() => {
+    mutation.reset();
+    setStatus('idle');
+    setStatusDetails(null);
+  }, [mutation]);
+
+  return {
+    mutate: mutation.mutate,
+    mutateAsync: mutation.mutateAsync,
+    isPending: mutation.isPending,
+    error: mutation.error as Error | null,
+    status,
+    statusDetails,
+    isReady,
+    isNetworkError: errorClassification.isNetworkError,
+    isUserRejection: errorClassification.isUserRejection,
+    reset,
+  };
+}
+
+// ============================================================================
+// useRenounceOwnership Hook (Feature: 017-evm-access-control, T049)
+// ============================================================================
+
+/**
+ * Hook for renouncing contract ownership. This is an irreversible operation.
+ *
+ * Provides mutation functionality with:
+ * - Transaction status tracking
+ * - Network disconnection detection (FR-010)
+ * - User rejection detection (FR-011)
+ * - Automatic query invalidation on success (FR-014)
+ * - Checks for optional `renounceOwnership` method on adapter service
+ *
+ * @param adapter - The contract adapter instance, or null if not loaded
+ * @param contractAddress - The contract address to operate on
+ * @param options - Optional callbacks for status changes and completion
+ * @returns Mutation controls and state
+ */
+export function useRenounceOwnership(
+  adapter: ContractAdapter | null,
+  contractAddress: string,
+  options?: MutationHookOptions
+): UseAccessControlMutationReturn<RenounceOwnershipArgs> {
+  const { service, isReady } = useAccessControlService(adapter);
+  const queryClient = useQueryClient();
+
+  // Track transaction status internally
+  const [status, setStatus] = useState<TxStatus>('idle');
+  const [statusDetails, setStatusDetails] = useState<TransactionStatusUpdate | null>(null);
+
+  // Status change handler
+  const handleStatusChange = useCallback(
+    (newStatus: TxStatus, details: TransactionStatusUpdate) => {
+      setStatus(newStatus);
+      setStatusDetails(details);
+      options?.onStatusChange?.(newStatus, details);
+    },
+    [options]
+  );
+
+  const mutation = useMutation({
+    mutationFn: async (args: RenounceOwnershipArgs): Promise<OperationResult> => {
+      if (!service) {
+        throw new Error('Access control service not available');
+      }
+
+      if (!service.renounceOwnership) {
+        throw new Error('Renounce ownership is not supported by this adapter');
+      }
+
+      // Reset status at start
+      setStatus('idle');
+      setStatusDetails(null);
+
+      return service.renounceOwnership(
+        contractAddress,
+        args.executionConfig,
+        handleStatusChange,
+        args.runtimeApiKey
+      );
+    },
+    onSuccess: async (result) => {
+      // Invalidate ownership query — owner is now null
+      await queryClient.invalidateQueries({
+        queryKey: ownershipQueryKey(contractAddress),
+      });
+      await queryClient.refetchQueries({
+        queryKey: ownershipQueryKey(contractAddress),
+        type: 'active',
+      });
+      // Also invalidate roles since the Owner role should disappear
+      queryClient.invalidateQueries({ queryKey: rolesQueryKey(contractAddress) });
+      queryClient.invalidateQueries({ queryKey: enrichedRolesQueryKey(contractAddress) });
+
+      try {
+        options?.onSuccess?.(result);
+      } catch {
+        // Error in callback shouldn't fail mutation
+      }
+    },
+    onError: (error: Error) => {
+      setStatus('error');
+      options?.onError?.(error);
+    },
+  });
+
+  const errorClassification = useMemo(() => {
+    const error = mutation.error;
+    return {
+      isNetworkError: isNetworkDisconnectionError(error),
+      isUserRejection: isUserRejectionError(error),
+    };
+  }, [mutation.error]);
+
+  const reset = useCallback(() => {
+    mutation.reset();
+    setStatus('idle');
+    setStatusDetails(null);
+  }, [mutation]);
+
+  return {
+    mutate: mutation.mutate,
+    mutateAsync: mutation.mutateAsync,
+    isPending: mutation.isPending,
+    error: mutation.error as Error | null,
+    status,
+    statusDetails,
+    isReady,
+    isNetworkError: errorClassification.isNetworkError,
+    isUserRejection: errorClassification.isUserRejection,
+    reset,
+  };
+}
+
+// ============================================================================
+// useRenounceRole Hook (Feature: 017-evm-access-control, T050)
+// ============================================================================
+
+/**
+ * Hook for renouncing a role held by the connected account (self-revocation).
+ *
+ * Provides mutation functionality with:
+ * - Transaction status tracking
+ * - Network disconnection detection (FR-010)
+ * - User rejection detection (FR-011)
+ * - Automatic query invalidation on success (FR-014)
+ * - Checks for optional `renounceRole` method on adapter service
+ *
+ * @param adapter - The contract adapter instance, or null if not loaded
+ * @param contractAddress - The contract address to operate on
+ * @param options - Optional callbacks for status changes and completion
+ * @returns Mutation controls and state
+ */
+export function useRenounceRole(
+  adapter: ContractAdapter | null,
+  contractAddress: string,
+  options?: MutationHookOptions
+): UseAccessControlMutationReturn<RenounceRoleArgs> {
+  const { service, isReady } = useAccessControlService(adapter);
+  const queryClient = useQueryClient();
+
+  // Track transaction status internally
+  const [status, setStatus] = useState<TxStatus>('idle');
+  const [statusDetails, setStatusDetails] = useState<TransactionStatusUpdate | null>(null);
+
+  // Status change handler
+  const handleStatusChange = useCallback(
+    (newStatus: TxStatus, details: TransactionStatusUpdate) => {
+      setStatus(newStatus);
+      setStatusDetails(details);
+      options?.onStatusChange?.(newStatus, details);
+    },
+    [options]
+  );
+
+  // Smart invalidation logic (same as grant/revoke)
+  const invalidateRolesQueries = useCallback(() => {
+    const enrichedQuery = queryClient
+      .getQueryCache()
+      .find({ queryKey: enrichedRolesQueryKey(contractAddress), exact: true });
+
+    const hasEnrichedObservers = (enrichedQuery?.getObserversCount() ?? 0) > 0;
+
+    if (hasEnrichedObservers) {
+      queryClient.cancelQueries({ queryKey: rolesQueryKey(contractAddress) });
+      queryClient.invalidateQueries({ queryKey: rolesQueryKey(contractAddress) });
+      queryClient.invalidateQueries({ queryKey: enrichedRolesQueryKey(contractAddress) });
+    } else {
+      queryClient.invalidateQueries({ queryKey: rolesQueryKey(contractAddress) });
+      queryClient.invalidateQueries({ queryKey: enrichedRolesQueryKey(contractAddress) });
+    }
+  }, [queryClient, contractAddress]);
+
+  const mutation = useMutation({
+    mutationFn: async (args: RenounceRoleArgs): Promise<OperationResult> => {
+      if (!service) {
+        throw new Error('Access control service not available');
+      }
+
+      if (!service.renounceRole) {
+        throw new Error('Renounce role is not supported by this adapter');
+      }
+
+      // Reset status at start
+      setStatus('idle');
+      setStatusDetails(null);
+
+      return service.renounceRole(
+        contractAddress,
+        args.roleId,
+        args.account,
+        args.executionConfig,
+        handleStatusChange,
+        args.runtimeApiKey
+      );
+    },
+    onSuccess: (result) => {
+      invalidateRolesQueries();
+      try {
+        options?.onSuccess?.(result);
+      } catch {
+        // Error in callback shouldn't fail mutation
+      }
+    },
+    onError: (error: Error) => {
+      setStatus('error');
+      options?.onError?.(error);
+    },
+  });
+
+  const errorClassification = useMemo(() => {
+    const error = mutation.error;
+    return {
+      isNetworkError: isNetworkDisconnectionError(error),
+      isUserRejection: isUserRejectionError(error),
+    };
+  }, [mutation.error]);
+
   const reset = useCallback(() => {
     mutation.reset();
     setStatus('idle');

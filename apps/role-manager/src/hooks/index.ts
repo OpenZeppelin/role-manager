@@ -60,6 +60,8 @@ export {
   useAcceptOwnership,
   useTransferAdminRole,
   useAcceptAdminTransfer,
+  useRenounceOwnership,
+  useRenounceRole,
   useExportSnapshot,
 } from './useAccessControlMutations';
 export type {
@@ -69,6 +71,8 @@ export type {
   AcceptOwnershipArgs,
   TransferAdminRoleArgs,
   AcceptAdminTransferArgs,
+  RenounceOwnershipArgs,
+  RenounceRoleArgs,
   MutationHookOptions,
   UseAccessControlMutationReturn,
   AccessSnapshot,
@@ -172,6 +176,14 @@ export type {
 // Pending Transfers Hook (Feature: 015-ownership-transfer Phase 6.5)
 export { usePendingTransfers } from './usePendingTransfers';
 export type { UsePendingTransfersOptions } from './usePendingTransfers';
+
+// Renounce Dialog Hook (Feature: 017-evm-access-control)
+export { useRenounceDialog } from './useRenounceDialog';
+export type {
+  RenounceType,
+  UseRenounceDialogOptions,
+  UseRenounceDialogReturn,
+} from './useRenounceDialog';
 
 // Utility hooks
 export { useDebounce } from './useDebounce';

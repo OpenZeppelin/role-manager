@@ -24,6 +24,8 @@ import {
   useAcceptOwnership,
   useExportSnapshot,
   useGrantRole,
+  useRenounceOwnership,
+  useRenounceRole,
   useRevokeRole,
   useTransferOwnership,
   type AccessSnapshot,
@@ -2471,5 +2473,610 @@ describe('Cross-ecosystem: EVM and Stellar interoperability', () => {
     // Both should succeed
     expect(evmService.revokeRole).toHaveBeenCalledTimes(1);
     expect(stellarService.revokeRole).toHaveBeenCalledTimes(1);
+  });
+});
+
+// ============================================================================
+// useRenounceOwnership Tests (Feature: 017-evm-access-control, T045)
+// ============================================================================
+
+describe('useRenounceOwnership', () => {
+  let mockService: AccessControlService;
+  let mockAdapter: ContractAdapter;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockService = createMockAccessControlService({
+      renounceOwnership: vi.fn().mockResolvedValue(mockOperationResult),
+    });
+    mockAdapter = createMockAdapter(mockService);
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('initialization', () => {
+    it('should return idle state initially', () => {
+      const { result } = renderHook(() => useRenounceOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      expect(result.current.isPending).toBe(false);
+      expect(result.current.error).toBeNull();
+      expect(result.current.status).toBe('idle');
+      expect(result.current.statusDetails).toBeNull();
+    });
+
+    it('should not be ready when adapter is null', () => {
+      const { result } = renderHook(() => useRenounceOwnership(null, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      expect(result.current.isReady).toBe(false);
+    });
+
+    it('should not be ready when adapter does not support access control', () => {
+      const adapterWithoutAC = createMockAdapter(null);
+      const { result } = renderHook(
+        () => useRenounceOwnership(adapterWithoutAC, 'CONTRACT_ADDRESS'),
+        {
+          wrapper: createWrapper(),
+        }
+      );
+
+      expect(result.current.isReady).toBe(false);
+    });
+
+    it('should be ready when adapter supports renounceOwnership', () => {
+      const { result } = renderHook(() => useRenounceOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      expect(result.current.isReady).toBe(true);
+    });
+  });
+
+  describe('successful renounce ownership', () => {
+    it('should call renounceOwnership on the service with correct parameters', async () => {
+      const { result } = renderHook(() => useRenounceOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        await result.current.mutateAsync({
+          executionConfig: mockExecutionConfig,
+        });
+      });
+
+      expect(mockService.renounceOwnership).toHaveBeenCalledWith(
+        'CONTRACT_ADDRESS',
+        mockExecutionConfig,
+        expect.any(Function),
+        undefined
+      );
+    });
+
+    it('should return operation result on success', async () => {
+      const { result } = renderHook(() => useRenounceOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      let operationResult: OperationResult | undefined;
+      await act(async () => {
+        operationResult = await result.current.mutateAsync({
+          executionConfig: mockExecutionConfig,
+        });
+      });
+
+      expect(operationResult).toEqual(mockOperationResult);
+    });
+
+    it('should support runtime API key', async () => {
+      const { result } = renderHook(() => useRenounceOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        await result.current.mutateAsync({
+          executionConfig: mockExecutionConfig,
+          runtimeApiKey: 'my-api-key',
+        });
+      });
+
+      expect(mockService.renounceOwnership).toHaveBeenCalledWith(
+        'CONTRACT_ADDRESS',
+        mockExecutionConfig,
+        expect.any(Function),
+        'my-api-key'
+      );
+    });
+  });
+
+  describe('error handling', () => {
+    it('should throw error when service is not available', async () => {
+      const adapterWithoutAC = createMockAdapter(null);
+      const { result } = renderHook(
+        () => useRenounceOwnership(adapterWithoutAC, 'CONTRACT_ADDRESS'),
+        {
+          wrapper: createWrapper(),
+        }
+      );
+
+      await act(async () => {
+        try {
+          await result.current.mutateAsync({
+            executionConfig: mockExecutionConfig,
+          });
+        } catch {
+          // Expected to throw
+        }
+      });
+
+      expect(result.current.error).toBeInstanceOf(Error);
+      expect(result.current.error?.message).toContain('not available');
+    });
+
+    it('should throw error when adapter does not support renounceOwnership', async () => {
+      const serviceWithoutRenounce = createMockAccessControlService({
+        renounceOwnership: undefined,
+      } as Partial<AccessControlService>);
+      const adapter = createMockAdapter(serviceWithoutRenounce);
+
+      const { result } = renderHook(() => useRenounceOwnership(adapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        try {
+          await result.current.mutateAsync({
+            executionConfig: mockExecutionConfig,
+          });
+        } catch {
+          // Expected to throw
+        }
+      });
+
+      expect(result.current.error).toBeInstanceOf(Error);
+      expect(result.current.error?.message).toContain('not supported by this adapter');
+    });
+
+    it('should detect network error', async () => {
+      const mockServiceWithNetworkError = createMockAccessControlService({
+        renounceOwnership: vi.fn().mockRejectedValue(new NetworkDisconnectedError()),
+      });
+      const adapter = createMockAdapter(mockServiceWithNetworkError);
+
+      const { result } = renderHook(() => useRenounceOwnership(adapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        try {
+          await result.current.mutateAsync({
+            executionConfig: mockExecutionConfig,
+          });
+        } catch {
+          // Expected to throw
+        }
+      });
+
+      expect(result.current.error).toBeInstanceOf(Error);
+      expect(result.current.isNetworkError).toBe(true);
+    });
+
+    it('should detect user rejection', async () => {
+      const mockServiceWithRejection = createMockAccessControlService({
+        renounceOwnership: vi.fn().mockRejectedValue(new UserRejectedError()),
+      });
+      const adapter = createMockAdapter(mockServiceWithRejection);
+
+      const { result } = renderHook(() => useRenounceOwnership(adapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        try {
+          await result.current.mutateAsync({
+            executionConfig: mockExecutionConfig,
+          });
+        } catch {
+          // Expected to throw
+        }
+      });
+
+      expect(result.current.error).toBeInstanceOf(Error);
+      expect(result.current.isUserRejection).toBe(true);
+    });
+  });
+
+  describe('query invalidation', () => {
+    it('should invalidate ownership and roles queries on success', async () => {
+      const queryClient = new QueryClient({
+        defaultOptions: {
+          queries: { retry: false, gcTime: 0 },
+          mutations: { retry: false },
+        },
+      });
+
+      const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
+
+      const { result } = renderHook(() => useRenounceOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(queryClient),
+      });
+
+      await act(async () => {
+        await result.current.mutateAsync({
+          executionConfig: mockExecutionConfig,
+        });
+      });
+
+      expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+        queryKey: ['contractOwnership', 'CONTRACT_ADDRESS'],
+      });
+      expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+        queryKey: ['contractRoles', 'CONTRACT_ADDRESS'],
+      });
+      expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+        queryKey: ['contractRolesEnriched', 'CONTRACT_ADDRESS'],
+      });
+    });
+
+    it('should not invalidate queries on failed mutation', async () => {
+      const queryClient = new QueryClient({
+        defaultOptions: {
+          queries: { retry: false, gcTime: 0 },
+          mutations: { retry: false },
+        },
+      });
+
+      const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
+
+      const mockServiceWithError = createMockAccessControlService({
+        renounceOwnership: vi.fn().mockRejectedValue(new Error('Failed')),
+      });
+      const adapter = createMockAdapter(mockServiceWithError);
+
+      const { result } = renderHook(() => useRenounceOwnership(adapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(queryClient),
+      });
+
+      await act(async () => {
+        try {
+          await result.current.mutateAsync({
+            executionConfig: mockExecutionConfig,
+          });
+        } catch {
+          // Expected
+        }
+      });
+
+      expect(invalidateQueriesSpy).not.toHaveBeenCalled();
+    });
+  });
+});
+
+// ============================================================================
+// useRenounceRole Tests (Feature: 017-evm-access-control, T046)
+// ============================================================================
+
+describe('useRenounceRole', () => {
+  let mockService: AccessControlService;
+  let mockAdapter: ContractAdapter;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockService = createMockAccessControlService({
+      renounceRole: vi.fn().mockResolvedValue(mockOperationResult),
+    });
+    mockAdapter = createMockAdapter(mockService);
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('initialization', () => {
+    it('should return idle state initially', () => {
+      const { result } = renderHook(() => useRenounceRole(mockAdapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      expect(result.current.isPending).toBe(false);
+      expect(result.current.error).toBeNull();
+      expect(result.current.status).toBe('idle');
+      expect(result.current.statusDetails).toBeNull();
+    });
+
+    it('should not be ready when adapter is null', () => {
+      const { result } = renderHook(() => useRenounceRole(null, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      expect(result.current.isReady).toBe(false);
+    });
+
+    it('should not be ready when adapter does not support access control', () => {
+      const adapterWithoutAC = createMockAdapter(null);
+      const { result } = renderHook(() => useRenounceRole(adapterWithoutAC, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      expect(result.current.isReady).toBe(false);
+    });
+
+    it('should be ready when adapter supports renounceRole', () => {
+      const { result } = renderHook(() => useRenounceRole(mockAdapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      expect(result.current.isReady).toBe(true);
+    });
+  });
+
+  describe('successful renounce role', () => {
+    it('should call renounceRole on the service with correct parameters (roleId, account)', async () => {
+      const { result } = renderHook(() => useRenounceRole(mockAdapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        await result.current.mutateAsync({
+          roleId: 'MINTER_ROLE',
+          account: '0x2222222222222222222222222222222222222222',
+          executionConfig: mockExecutionConfig,
+        });
+      });
+
+      expect(mockService.renounceRole).toHaveBeenCalledWith(
+        'CONTRACT_ADDRESS',
+        'MINTER_ROLE',
+        '0x2222222222222222222222222222222222222222',
+        mockExecutionConfig,
+        expect.any(Function),
+        undefined
+      );
+    });
+
+    it('should return operation result on success', async () => {
+      const { result } = renderHook(() => useRenounceRole(mockAdapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      let operationResult: OperationResult | undefined;
+      await act(async () => {
+        operationResult = await result.current.mutateAsync({
+          roleId: 'MINTER_ROLE',
+          account: '0x2222222222222222222222222222222222222222',
+          executionConfig: mockExecutionConfig,
+        });
+      });
+
+      expect(operationResult).toEqual(mockOperationResult);
+    });
+
+    it('should support runtime API key', async () => {
+      const { result } = renderHook(() => useRenounceRole(mockAdapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        await result.current.mutateAsync({
+          roleId: 'MINTER_ROLE',
+          account: '0x2222222222222222222222222222222222222222',
+          executionConfig: mockExecutionConfig,
+          runtimeApiKey: 'my-api-key',
+        });
+      });
+
+      expect(mockService.renounceRole).toHaveBeenCalledWith(
+        'CONTRACT_ADDRESS',
+        'MINTER_ROLE',
+        '0x2222222222222222222222222222222222222222',
+        mockExecutionConfig,
+        expect.any(Function),
+        'my-api-key'
+      );
+    });
+  });
+
+  describe('error handling', () => {
+    it('should throw error when service is not available', async () => {
+      const adapterWithoutAC = createMockAdapter(null);
+      const { result } = renderHook(() => useRenounceRole(adapterWithoutAC, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        try {
+          await result.current.mutateAsync({
+            roleId: 'MINTER_ROLE',
+            account: '0x2222222222222222222222222222222222222222',
+            executionConfig: mockExecutionConfig,
+          });
+        } catch {
+          // Expected to throw
+        }
+      });
+
+      expect(result.current.error).toBeInstanceOf(Error);
+      expect(result.current.error?.message).toContain('not available');
+    });
+
+    it('should throw error when adapter does not support renounceRole', async () => {
+      const serviceWithoutRenounce = createMockAccessControlService({
+        renounceRole: undefined,
+      } as Partial<AccessControlService>);
+      const adapter = createMockAdapter(serviceWithoutRenounce);
+
+      const { result } = renderHook(() => useRenounceRole(adapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        try {
+          await result.current.mutateAsync({
+            roleId: 'MINTER_ROLE',
+            account: '0x2222222222222222222222222222222222222222',
+            executionConfig: mockExecutionConfig,
+          });
+        } catch {
+          // Expected to throw
+        }
+      });
+
+      expect(result.current.error).toBeInstanceOf(Error);
+      expect(result.current.error?.message).toContain('not supported by this adapter');
+    });
+
+    it('should detect network error', async () => {
+      const mockServiceWithNetworkError = createMockAccessControlService({
+        renounceRole: vi.fn().mockRejectedValue(new NetworkDisconnectedError()),
+      });
+      const adapter = createMockAdapter(mockServiceWithNetworkError);
+
+      const { result } = renderHook(() => useRenounceRole(adapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        try {
+          await result.current.mutateAsync({
+            roleId: 'MINTER_ROLE',
+            account: '0x2222222222222222222222222222222222222222',
+            executionConfig: mockExecutionConfig,
+          });
+        } catch {
+          // Expected to throw
+        }
+      });
+
+      expect(result.current.isNetworkError).toBe(true);
+    });
+
+    it('should detect user rejection', async () => {
+      const mockServiceWithRejection = createMockAccessControlService({
+        renounceRole: vi.fn().mockRejectedValue(new UserRejectedError()),
+      });
+      const adapter = createMockAdapter(mockServiceWithRejection);
+
+      const { result } = renderHook(() => useRenounceRole(adapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        try {
+          await result.current.mutateAsync({
+            roleId: 'MINTER_ROLE',
+            account: '0x2222222222222222222222222222222222222222',
+            executionConfig: mockExecutionConfig,
+          });
+        } catch {
+          // Expected to throw
+        }
+      });
+
+      expect(result.current.isUserRejection).toBe(true);
+    });
+  });
+
+  describe('query invalidation', () => {
+    it('should invalidate roles queries on successful renounce', async () => {
+      const queryClient = new QueryClient({
+        defaultOptions: {
+          queries: { retry: false, gcTime: 0 },
+          mutations: { retry: false },
+        },
+      });
+
+      const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
+
+      const { result } = renderHook(() => useRenounceRole(mockAdapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(queryClient),
+      });
+
+      await act(async () => {
+        await result.current.mutateAsync({
+          roleId: 'MINTER_ROLE',
+          account: '0x2222222222222222222222222222222222222222',
+          executionConfig: mockExecutionConfig,
+        });
+      });
+
+      expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+        queryKey: ['contractRoles', 'CONTRACT_ADDRESS'],
+      });
+      expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+        queryKey: ['contractRolesEnriched', 'CONTRACT_ADDRESS'],
+      });
+    });
+
+    it('should not invalidate queries on failed mutation', async () => {
+      const queryClient = new QueryClient({
+        defaultOptions: {
+          queries: { retry: false, gcTime: 0 },
+          mutations: { retry: false },
+        },
+      });
+
+      const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
+
+      const mockServiceWithError = createMockAccessControlService({
+        renounceRole: vi.fn().mockRejectedValue(new Error('Failed')),
+      });
+      const adapter = createMockAdapter(mockServiceWithError);
+
+      const { result } = renderHook(() => useRenounceRole(adapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(queryClient),
+      });
+
+      await act(async () => {
+        try {
+          await result.current.mutateAsync({
+            roleId: 'MINTER_ROLE',
+            account: '0x2222222222222222222222222222222222222222',
+            executionConfig: mockExecutionConfig,
+          });
+        } catch {
+          // Expected
+        }
+      });
+
+      expect(invalidateQueriesSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('reset functionality', () => {
+    it('should reset state after error', async () => {
+      const mockServiceWithError = createMockAccessControlService({
+        renounceRole: vi.fn().mockRejectedValue(new Error('Renounce failed')),
+      });
+      const adapter = createMockAdapter(mockServiceWithError);
+
+      const { result } = renderHook(() => useRenounceRole(adapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        try {
+          await result.current.mutateAsync({
+            roleId: 'MINTER_ROLE',
+            account: '0x2222222222222222222222222222222222222222',
+            executionConfig: mockExecutionConfig,
+          });
+        } catch {
+          // Expected
+        }
+      });
+
+      expect(result.current.error).toBeTruthy();
+
+      act(() => {
+        result.current.reset();
+      });
+
+      expect(result.current.error).toBeNull();
+      expect(result.current.status).toBe('idle');
+    });
   });
 });

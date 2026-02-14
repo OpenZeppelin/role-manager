@@ -45,7 +45,9 @@ import {
 import type { AccountData } from '../components/Roles/RoleDetails';
 import { PageEmptyState } from '../components/Shared/PageEmptyState';
 import { PageHeader } from '../components/Shared/PageHeader';
+import { TypeToConfirmDialog } from '../components/Shared/TypeToConfirmDialog';
 import { useAllNetworks, useRolesPageData } from '../hooks';
+import { useRenounceDialog, type RenounceType } from '../hooks/useRenounceDialog';
 import { useSelectedContract } from '../hooks/useSelectedContract';
 import { createGetAccountUrl } from '../utils/explorer-urls';
 
@@ -124,6 +126,14 @@ export function Roles() {
 
   // Spec 016 (T037): Accept Admin Transfer dialog state
   const [isAcceptAdminTransferDialogOpen, setIsAcceptAdminTransferDialogOpen] = useState(false);
+
+  // Feature 017 (T054): Renounce dialog state
+  const [renounceDialogOpen, setRenounceDialogOpen] = useState(false);
+  const [renounceConfig, setRenounceConfig] = useState<{
+    type: RenounceType;
+    roleId?: string;
+    roleName?: string;
+  }>({ type: 'ownership' });
 
   // Get contract info for display
   const { selectedContract, adapter } = useSelectedContract();
@@ -205,6 +215,18 @@ export function Roles() {
     setIsAcceptAdminTransferDialogOpen(true);
   }, []);
 
+  // Feature 017 (T054): Open renounce ownership dialog
+  const handleRenounceOwnership = useCallback(() => {
+    setRenounceConfig({ type: 'ownership' });
+    setRenounceDialogOpen(true);
+  }, []);
+
+  // Feature 017 (T054): Open renounce role dialog
+  const handleRenounceRole = useCallback((roleId: string, roleName: string) => {
+    setRenounceConfig({ type: 'role', roleId, roleName });
+    setRenounceDialogOpen(true);
+  }, []);
+
   // Spec 015 (T021): Check if connected wallet can accept ownership (is the pending owner)
   const canAcceptOwnership = useMemo(() => {
     if (!pendingOwner || !connectedAddress) return false;
@@ -216,6 +238,17 @@ export function Roles() {
     if (!pendingAdminTransfer?.pendingAdmin || !connectedAddress) return false;
     return pendingAdminTransfer.pendingAdmin.toLowerCase() === connectedAddress.toLowerCase();
   }, [pendingAdminTransfer, connectedAddress]);
+
+  // Feature 017 (T054): Renounce dialog hook
+  const renounceDialog = useRenounceDialog({
+    type: renounceConfig.type,
+    roleId: renounceConfig.roleId,
+    roleName: renounceConfig.roleName,
+    onClose: () => setRenounceDialogOpen(false),
+    onSuccess: () => {
+      refetch();
+    },
+  });
 
   // Phase 6: Handle description save from dialog
   const handleSaveDescription = useCallback(
@@ -351,6 +384,11 @@ export function Roles() {
                 // Phase 5 (T036): Accept admin transfer props
                 canAcceptAdminTransfer={canAcceptAdminTransfer}
                 onAcceptAdminTransfer={handleAcceptAdminTransfer}
+                // Feature 017 (T054): Renounce props
+                hasRenounceOwnership={capabilities?.hasRenounceOwnership ?? false}
+                onRenounceOwnership={handleRenounceOwnership}
+                hasRenounceRole={capabilities?.hasRenounceRole ?? false}
+                onRenounceRole={handleRenounceRole}
               />
             ) : (
               <div className="flex items-center justify-center h-full p-6 text-muted-foreground">
@@ -445,6 +483,25 @@ export function Roles() {
         open={isAcceptAdminTransferDialogOpen}
         onOpenChange={setIsAcceptAdminTransferDialogOpen}
         onSuccess={refetch}
+      />
+
+      {/* Feature 017 (T054): Renounce Confirmation Dialog */}
+      <TypeToConfirmDialog
+        open={renounceDialogOpen}
+        onOpenChange={setRenounceDialogOpen}
+        title={renounceDialog.title}
+        warningText={renounceDialog.warningText}
+        confirmKeyword={renounceDialog.confirmKeyword}
+        submitLabel={renounceDialog.submitLabel}
+        successMessage={renounceDialog.successMessage}
+        step={renounceDialog.step}
+        errorMessage={renounceDialog.errorMessage}
+        txStatus={renounceDialog.txStatus}
+        isWalletConnected={renounceDialog.isWalletConnected}
+        isPending={renounceDialog.isPending}
+        onSubmit={renounceDialog.submit}
+        onRetry={renounceDialog.retry}
+        onReset={renounceDialog.reset}
       />
     </div>
   );
