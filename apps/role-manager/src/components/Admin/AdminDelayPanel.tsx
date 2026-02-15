@@ -9,10 +9,10 @@
 import { Clock, RotateCcw, Settings } from 'lucide-react';
 
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@openzeppelin/ui-components';
-import { cn } from '@openzeppelin/ui-utils';
+import { cn, formatSecondsToReadable } from '@openzeppelin/ui-utils';
 
 import type { AdminDelayInfo } from '../../types/admin';
-import { formatEffectAtDate, formatSecondsToReadable } from '../../utils/delay-format';
+import { formatEffectAtDate } from '../../utils/delay-format';
 
 export interface AdminDelayPanelProps {
   /** Delay info from adapter (adminInfo.delayInfo) */
