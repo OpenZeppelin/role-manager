@@ -75,9 +75,12 @@ export interface UseContractOwnershipReturn {
 /**
  * Return type for useContractAdminInfo hook
  * Feature: 016-two-step-admin-assignment
+ *
+ * adminInfo may include optional delayInfo (Feature 017, T068) when the adapter
+ * supports admin delay management (e.g. EVM AccessControlDefaultAdminRules).
  */
 export interface UseContractAdminInfoReturn {
-  /** Admin information from adapter */
+  /** Admin information from adapter (may include delayInfo for delay management) */
   adminInfo: AdminInfo | null;
   /** Whether the query is currently loading (initial fetch) */
   isLoading: boolean;

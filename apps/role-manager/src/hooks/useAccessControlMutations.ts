@@ -214,6 +214,38 @@ export interface RenounceRoleArgs {
 }
 
 /**
+ * Arguments for useCancelAdminTransfer mutation (Feature: 017-evm-access-control, T060)
+ */
+export interface CancelAdminTransferArgs {
+  /** Execution configuration (EOA, relayer, etc.) */
+  executionConfig: ExecutionConfig;
+  /** Optional runtime API key for relayer */
+  runtimeApiKey?: string;
+}
+
+/**
+ * Arguments for useChangeAdminDelay mutation (Feature: 017-evm-access-control, T061)
+ */
+export interface ChangeAdminDelayArgs {
+  /** New admin transfer delay in seconds */
+  newDelay: number;
+  /** Execution configuration (EOA, relayer, etc.) */
+  executionConfig: ExecutionConfig;
+  /** Optional runtime API key for relayer */
+  runtimeApiKey?: string;
+}
+
+/**
+ * Arguments for useRollbackAdminDelay mutation (Feature: 017-evm-access-control, T062)
+ */
+export interface RollbackAdminDelayArgs {
+  /** Execution configuration (EOA, relayer, etc.) */
+  executionConfig: ExecutionConfig;
+  /** Optional runtime API key for relayer */
+  runtimeApiKey?: string;
+}
+
+/**
  * Options for mutation hooks
  */
 export interface MutationHookOptions {
@@ -1153,6 +1185,313 @@ export function useRenounceRole(
     },
     onSuccess: (result) => {
       invalidateRolesQueries();
+      try {
+        options?.onSuccess?.(result);
+      } catch {
+        // Error in callback shouldn't fail mutation
+      }
+    },
+    onError: (error: Error) => {
+      setStatus('error');
+      options?.onError?.(error);
+    },
+  });
+
+  const errorClassification = useMemo(() => {
+    const error = mutation.error;
+    return {
+      isNetworkError: isNetworkDisconnectionError(error),
+      isUserRejection: isUserRejectionError(error),
+    };
+  }, [mutation.error]);
+
+  const reset = useCallback(() => {
+    mutation.reset();
+    setStatus('idle');
+    setStatusDetails(null);
+  }, [mutation]);
+
+  return {
+    mutate: mutation.mutate,
+    mutateAsync: mutation.mutateAsync,
+    isPending: mutation.isPending,
+    error: mutation.error as Error | null,
+    status,
+    statusDetails,
+    isReady,
+    isNetworkError: errorClassification.isNetworkError,
+    isUserRejection: errorClassification.isUserRejection,
+    reset,
+  };
+}
+
+// ============================================================================
+// useCancelAdminTransfer Hook (Feature: 017-evm-access-control, T060)
+// ============================================================================
+
+/**
+ * Hook for canceling a pending admin transfer.
+ *
+ * Provides mutation functionality with:
+ * - Transaction status tracking
+ * - Network disconnection detection (FR-010)
+ * - User rejection detection (FR-011)
+ * - Automatic query invalidation on success (contractAdminInfo)
+ *
+ * @param adapter - The contract adapter instance, or null if not loaded
+ * @param contractAddress - The contract address to operate on
+ * @param options - Optional callbacks for status changes and completion
+ * @returns Mutation controls and state
+ */
+export function useCancelAdminTransfer(
+  adapter: ContractAdapter | null,
+  contractAddress: string,
+  options?: MutationHookOptions
+): UseAccessControlMutationReturn<CancelAdminTransferArgs> {
+  const { service, isReady } = useAccessControlService(adapter);
+  const queryClient = useQueryClient();
+
+  const [status, setStatus] = useState<TxStatus>('idle');
+  const [statusDetails, setStatusDetails] = useState<TransactionStatusUpdate | null>(null);
+
+  const handleStatusChange = useCallback(
+    (newStatus: TxStatus, details: TransactionStatusUpdate) => {
+      setStatus(newStatus);
+      setStatusDetails(details);
+      options?.onStatusChange?.(newStatus, details);
+    },
+    [options]
+  );
+
+  const mutation = useMutation({
+    mutationFn: async (args: CancelAdminTransferArgs): Promise<OperationResult> => {
+      if (!service) {
+        throw new Error('Access control service not available');
+      }
+
+      if (!service.cancelAdminTransfer) {
+        throw new Error('Cancel admin transfer is not supported by this adapter');
+      }
+
+      setStatus('idle');
+      setStatusDetails(null);
+
+      return service.cancelAdminTransfer(
+        contractAddress,
+        args.executionConfig,
+        handleStatusChange,
+        args.runtimeApiKey
+      );
+    },
+    onSuccess: async (result) => {
+      await queryClient.invalidateQueries({
+        queryKey: adminInfoQueryKey(contractAddress),
+      });
+      await queryClient.refetchQueries({
+        queryKey: adminInfoQueryKey(contractAddress),
+        type: 'active',
+      });
+      try {
+        options?.onSuccess?.(result);
+      } catch {
+        // Error in callback shouldn't fail mutation
+      }
+    },
+    onError: (error: Error) => {
+      setStatus('error');
+      options?.onError?.(error);
+    },
+  });
+
+  const errorClassification = useMemo(() => {
+    const error = mutation.error;
+    return {
+      isNetworkError: isNetworkDisconnectionError(error),
+      isUserRejection: isUserRejectionError(error),
+    };
+  }, [mutation.error]);
+
+  const reset = useCallback(() => {
+    mutation.reset();
+    setStatus('idle');
+    setStatusDetails(null);
+  }, [mutation]);
+
+  return {
+    mutate: mutation.mutate,
+    mutateAsync: mutation.mutateAsync,
+    isPending: mutation.isPending,
+    error: mutation.error as Error | null,
+    status,
+    statusDetails,
+    isReady,
+    isNetworkError: errorClassification.isNetworkError,
+    isUserRejection: errorClassification.isUserRejection,
+    reset,
+  };
+}
+
+// ============================================================================
+// useChangeAdminDelay Hook (Feature: 017-evm-access-control, T061)
+// ============================================================================
+
+/**
+ * Hook for changing the admin transfer delay. The change is itself delayed.
+ *
+ * @param adapter - The contract adapter instance, or null if not loaded
+ * @param contractAddress - The contract address to operate on
+ * @param options - Optional callbacks for status changes and completion
+ * @returns Mutation controls and state
+ */
+export function useChangeAdminDelay(
+  adapter: ContractAdapter | null,
+  contractAddress: string,
+  options?: MutationHookOptions
+): UseAccessControlMutationReturn<ChangeAdminDelayArgs> {
+  const { service, isReady } = useAccessControlService(adapter);
+  const queryClient = useQueryClient();
+
+  const [status, setStatus] = useState<TxStatus>('idle');
+  const [statusDetails, setStatusDetails] = useState<TransactionStatusUpdate | null>(null);
+
+  const handleStatusChange = useCallback(
+    (newStatus: TxStatus, details: TransactionStatusUpdate) => {
+      setStatus(newStatus);
+      setStatusDetails(details);
+      options?.onStatusChange?.(newStatus, details);
+    },
+    [options]
+  );
+
+  const mutation = useMutation({
+    mutationFn: async (args: ChangeAdminDelayArgs): Promise<OperationResult> => {
+      if (!service) {
+        throw new Error('Access control service not available');
+      }
+
+      if (!service.changeAdminDelay) {
+        throw new Error('Change admin delay is not supported by this adapter');
+      }
+
+      setStatus('idle');
+      setStatusDetails(null);
+
+      return service.changeAdminDelay(
+        contractAddress,
+        args.newDelay,
+        args.executionConfig,
+        handleStatusChange,
+        args.runtimeApiKey
+      );
+    },
+    onSuccess: async (result) => {
+      await queryClient.invalidateQueries({
+        queryKey: adminInfoQueryKey(contractAddress),
+      });
+      await queryClient.refetchQueries({
+        queryKey: adminInfoQueryKey(contractAddress),
+        type: 'active',
+      });
+      try {
+        options?.onSuccess?.(result);
+      } catch {
+        // Error in callback shouldn't fail mutation
+      }
+    },
+    onError: (error: Error) => {
+      setStatus('error');
+      options?.onError?.(error);
+    },
+  });
+
+  const errorClassification = useMemo(() => {
+    const error = mutation.error;
+    return {
+      isNetworkError: isNetworkDisconnectionError(error),
+      isUserRejection: isUserRejectionError(error),
+    };
+  }, [mutation.error]);
+
+  const reset = useCallback(() => {
+    mutation.reset();
+    setStatus('idle');
+    setStatusDetails(null);
+  }, [mutation]);
+
+  return {
+    mutate: mutation.mutate,
+    mutateAsync: mutation.mutateAsync,
+    isPending: mutation.isPending,
+    error: mutation.error as Error | null,
+    status,
+    statusDetails,
+    isReady,
+    isNetworkError: errorClassification.isNetworkError,
+    isUserRejection: errorClassification.isUserRejection,
+    reset,
+  };
+}
+
+// ============================================================================
+// useRollbackAdminDelay Hook (Feature: 017-evm-access-control, T062)
+// ============================================================================
+
+/**
+ * Hook for rolling back a pending admin delay change.
+ *
+ * @param adapter - The contract adapter instance, or null if not loaded
+ * @param contractAddress - The contract address to operate on
+ * @param options - Optional callbacks for status changes and completion
+ * @returns Mutation controls and state
+ */
+export function useRollbackAdminDelay(
+  adapter: ContractAdapter | null,
+  contractAddress: string,
+  options?: MutationHookOptions
+): UseAccessControlMutationReturn<RollbackAdminDelayArgs> {
+  const { service, isReady } = useAccessControlService(adapter);
+  const queryClient = useQueryClient();
+
+  const [status, setStatus] = useState<TxStatus>('idle');
+  const [statusDetails, setStatusDetails] = useState<TransactionStatusUpdate | null>(null);
+
+  const handleStatusChange = useCallback(
+    (newStatus: TxStatus, details: TransactionStatusUpdate) => {
+      setStatus(newStatus);
+      setStatusDetails(details);
+      options?.onStatusChange?.(newStatus, details);
+    },
+    [options]
+  );
+
+  const mutation = useMutation({
+    mutationFn: async (args: RollbackAdminDelayArgs): Promise<OperationResult> => {
+      if (!service) {
+        throw new Error('Access control service not available');
+      }
+
+      if (!service.rollbackAdminDelay) {
+        throw new Error('Rollback admin delay is not supported by this adapter');
+      }
+
+      setStatus('idle');
+      setStatusDetails(null);
+
+      return service.rollbackAdminDelay(
+        contractAddress,
+        args.executionConfig,
+        handleStatusChange,
+        args.runtimeApiKey
+      );
+    },
+    onSuccess: async (result) => {
+      await queryClient.invalidateQueries({
+        queryKey: adminInfoQueryKey(contractAddress),
+      });
+      await queryClient.refetchQueries({
+        queryKey: adminInfoQueryKey(contractAddress),
+        type: 'active',
+      });
       try {
         options?.onSuccess?.(result);
       } catch {

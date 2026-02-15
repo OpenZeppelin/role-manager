@@ -32,6 +32,7 @@ import type {
 import { cn } from '@openzeppelin/ui-utils';
 
 import type { RoleWithDescription } from '../../types/roles';
+import { AdminDelayPanel } from '../Admin/AdminDelayPanel';
 import { RoleNameDisplay } from '../Shared/RoleNameDisplay';
 import { AccountRow } from './AccountRow';
 import { PendingTransferInfo } from './PendingTransferInfo';
@@ -123,6 +124,27 @@ export interface RoleDetailsProps {
   /** Feature 017 (T053): Renounce role handler */
   onRenounceRole?: (roleId: string, roleName: string) => void;
 
+  // =============================================================================
+  // Feature 017: Cancel Admin Transfer & Admin Delay (US7)
+  // =============================================================================
+
+  /** Feature 017 (T066): Whether contract supports canceling pending admin transfer */
+  hasCancelAdminTransfer?: boolean;
+  /** Feature 017 (T066): Cancel admin transfer handler (only when pending) */
+  onCancelAdminTransfer?: () => void;
+  /** Feature 017 (T067): Whether contract supports admin delay management */
+  hasAdminDelayManagement?: boolean;
+  /** Feature 017 (T067, T068): Delay info for AdminDelayPanel (from adminInfo.delayInfo) */
+  delayInfo?: { currentDelay: number; pendingDelay?: { newDelay: number; effectAt: number } };
+  /** Feature 017 (T067): Open change-delay dialog */
+  onChangeDelayClick?: () => void;
+  /** Feature 017 (T067): Open rollback dialog */
+  onRollbackClick?: () => void;
+  /** Feature 017: Whether change delay mutation is pending */
+  isChangeDelayPending?: boolean;
+  /** Feature 017: Whether rollback mutation is pending */
+  isRollbackPending?: boolean;
+
   /** Additional CSS classes */
   className?: string;
 }
@@ -156,6 +178,15 @@ export function RoleDetails({
   onRenounceOwnership,
   hasRenounceRole,
   onRenounceRole,
+  // Feature 017 US7: Cancel admin transfer & admin delay
+  hasCancelAdminTransfer,
+  onCancelAdminTransfer,
+  hasAdminDelayManagement,
+  delayInfo,
+  onChangeDelayClick,
+  onRollbackClick,
+  isChangeDelayPending,
+  isRollbackPending,
   className,
 }: RoleDetailsProps) {
   const hasAccounts = accounts.length > 0;
@@ -275,22 +306,54 @@ export function RoleDetails({
           {role.isAdminRole &&
             pendingAdminTransfer &&
             (adminState === 'pending' || adminState === 'expired') && (
-              <PendingTransferInfo
-                pendingRecipient={pendingAdminTransfer.pendingAdmin}
-                pendingRecipientUrl={pendingAdminRecipientUrl}
-                expirationBlock={pendingAdminTransfer.expirationBlock}
-                isExpired={adminState === 'expired'}
-                canAccept={canAcceptAdminTransfer}
-                onAccept={onAcceptAdminTransfer}
-                currentBlock={currentBlock}
-                expirationMetadata={
-                  'expirationMetadata' in pendingAdminTransfer
-                    ? (pendingAdminTransfer.expirationMetadata as ExpirationMetadata | undefined)
-                    : undefined
-                }
-                transferLabel="Admin Role"
-                recipientLabel="Admin"
-              />
+              <>
+                <PendingTransferInfo
+                  pendingRecipient={pendingAdminTransfer.pendingAdmin}
+                  pendingRecipientUrl={pendingAdminRecipientUrl}
+                  expirationBlock={pendingAdminTransfer.expirationBlock}
+                  isExpired={adminState === 'expired'}
+                  canAccept={canAcceptAdminTransfer}
+                  onAccept={onAcceptAdminTransfer}
+                  currentBlock={currentBlock}
+                  expirationMetadata={
+                    'expirationMetadata' in pendingAdminTransfer
+                      ? (pendingAdminTransfer.expirationMetadata as ExpirationMetadata | undefined)
+                      : undefined
+                  }
+                  transferLabel="Admin Role"
+                  recipientLabel="Admin"
+                />
+                {/* Feature 017 (T066): Cancel Admin Transfer when pending */}
+                {adminState === 'pending' && hasCancelAdminTransfer && onCancelAdminTransfer && (
+                  <div className="mt-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={onCancelAdminTransfer}
+                      className="text-amber-700 border-amber-200 hover:bg-amber-50"
+                    >
+                      Cancel Admin Transfer
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
+
+          {/* Feature 017 (T067): Admin Delay Panel for Admin role when capability present */}
+          {role.isAdminRole &&
+            hasAdminDelayManagement &&
+            delayInfo &&
+            onChangeDelayClick &&
+            onRollbackClick && (
+              <div className="mt-4">
+                <AdminDelayPanel
+                  delayInfo={delayInfo}
+                  onChangeDelayClick={onChangeDelayClick}
+                  onRollbackClick={onRollbackClick}
+                  isChangePending={isChangeDelayPending}
+                  isRollbackPending={isRollbackPending}
+                />
+              </div>
             )}
         </div>
       </CardContent>

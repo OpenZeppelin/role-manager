@@ -22,11 +22,14 @@ import type {
 
 import {
   useAcceptOwnership,
+  useCancelAdminTransfer,
+  useChangeAdminDelay,
   useExportSnapshot,
   useGrantRole,
   useRenounceOwnership,
   useRenounceRole,
   useRevokeRole,
+  useRollbackAdminDelay,
   useTransferOwnership,
   type AccessSnapshot,
 } from '../useAccessControlMutations';
@@ -3077,6 +3080,351 @@ describe('useRenounceRole', () => {
 
       expect(result.current.error).toBeNull();
       expect(result.current.status).toBe('idle');
+    });
+  });
+});
+
+// ============================================================================
+// useCancelAdminTransfer Tests (Feature: 017-evm-access-control, T056)
+// ============================================================================
+
+describe('useCancelAdminTransfer', () => {
+  let mockService: AccessControlService;
+  let mockAdapter: ContractAdapter;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockService = createMockAccessControlService({
+      cancelAdminTransfer: vi.fn().mockResolvedValue(mockOperationResult),
+    });
+    mockAdapter = createMockAdapter(mockService);
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('initialization', () => {
+    it('should return idle state initially', () => {
+      const { result } = renderHook(() => useCancelAdminTransfer(mockAdapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      expect(result.current.isPending).toBe(false);
+      expect(result.current.error).toBeNull();
+      expect(result.current.status).toBe('idle');
+    });
+
+    it('should not be ready when adapter is null', () => {
+      const { result } = renderHook(() => useCancelAdminTransfer(null, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      expect(result.current.isReady).toBe(false);
+    });
+
+    it('should be ready when adapter supports cancelAdminTransfer', () => {
+      const { result } = renderHook(() => useCancelAdminTransfer(mockAdapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      expect(result.current.isReady).toBe(true);
+    });
+  });
+
+  describe('successful cancel admin transfer', () => {
+    it('should call cancelAdminTransfer on the service with correct parameters', async () => {
+      const { result } = renderHook(() => useCancelAdminTransfer(mockAdapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        await result.current.mutateAsync({
+          executionConfig: mockExecutionConfig,
+        });
+      });
+
+      expect(mockService.cancelAdminTransfer).toHaveBeenCalledWith(
+        'CONTRACT_ADDRESS',
+        mockExecutionConfig,
+        expect.any(Function),
+        undefined
+      );
+    });
+
+    it('should invalidate admin info query on success', async () => {
+      const queryClient = new QueryClient({
+        defaultOptions: {
+          queries: { retry: false, gcTime: 0 },
+          mutations: { retry: false },
+        },
+      });
+
+      const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
+
+      const { result } = renderHook(() => useCancelAdminTransfer(mockAdapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(queryClient),
+      });
+
+      await act(async () => {
+        await result.current.mutateAsync({
+          executionConfig: mockExecutionConfig,
+        });
+      });
+
+      expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+        queryKey: ['contractAdminInfo', 'CONTRACT_ADDRESS'],
+      });
+    });
+  });
+
+  describe('error handling', () => {
+    it('should throw error when adapter does not support cancelAdminTransfer', async () => {
+      const serviceWithoutCancel = createMockAccessControlService({
+        cancelAdminTransfer: undefined,
+      } as Partial<AccessControlService>);
+      const adapter = createMockAdapter(serviceWithoutCancel);
+
+      const { result } = renderHook(() => useCancelAdminTransfer(adapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        try {
+          await result.current.mutateAsync({
+            executionConfig: mockExecutionConfig,
+          });
+        } catch {
+          // Expected to throw
+        }
+      });
+
+      expect(result.current.error).toBeInstanceOf(Error);
+      expect(result.current.error?.message).toContain('not supported by this adapter');
+    });
+  });
+});
+
+// ============================================================================
+// useChangeAdminDelay and useRollbackAdminDelay Tests (Feature: 017-evm-access-control, T057)
+// ============================================================================
+
+describe('useChangeAdminDelay', () => {
+  let mockService: AccessControlService;
+  let mockAdapter: ContractAdapter;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockService = createMockAccessControlService({
+      changeAdminDelay: vi.fn().mockResolvedValue(mockOperationResult),
+    });
+    mockAdapter = createMockAdapter(mockService);
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('initialization', () => {
+    it('should return idle state initially', () => {
+      const { result } = renderHook(() => useChangeAdminDelay(mockAdapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      expect(result.current.isPending).toBe(false);
+      expect(result.current.status).toBe('idle');
+    });
+
+    it('should be ready when adapter supports changeAdminDelay', () => {
+      const { result } = renderHook(() => useChangeAdminDelay(mockAdapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      expect(result.current.isReady).toBe(true);
+    });
+  });
+
+  describe('successful change admin delay', () => {
+    it('should call changeAdminDelay on the service with correct parameters', async () => {
+      const { result } = renderHook(() => useChangeAdminDelay(mockAdapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        await result.current.mutateAsync({
+          newDelay: 86400,
+          executionConfig: mockExecutionConfig,
+        });
+      });
+
+      expect(mockService.changeAdminDelay).toHaveBeenCalledWith(
+        'CONTRACT_ADDRESS',
+        86400,
+        mockExecutionConfig,
+        expect.any(Function),
+        undefined
+      );
+    });
+
+    it('should invalidate admin info query on success', async () => {
+      const queryClient = new QueryClient({
+        defaultOptions: {
+          queries: { retry: false, gcTime: 0 },
+          mutations: { retry: false },
+        },
+      });
+
+      const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
+
+      const { result } = renderHook(() => useChangeAdminDelay(mockAdapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(queryClient),
+      });
+
+      await act(async () => {
+        await result.current.mutateAsync({
+          newDelay: 86400,
+          executionConfig: mockExecutionConfig,
+        });
+      });
+
+      expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+        queryKey: ['contractAdminInfo', 'CONTRACT_ADDRESS'],
+      });
+    });
+  });
+
+  describe('error handling', () => {
+    it('should throw error when adapter does not support changeAdminDelay', async () => {
+      const serviceWithoutChange = createMockAccessControlService({
+        changeAdminDelay: undefined,
+      } as Partial<AccessControlService>);
+      const adapter = createMockAdapter(serviceWithoutChange);
+
+      const { result } = renderHook(() => useChangeAdminDelay(adapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        try {
+          await result.current.mutateAsync({
+            newDelay: 86400,
+            executionConfig: mockExecutionConfig,
+          });
+        } catch {
+          // Expected to throw
+        }
+      });
+
+      expect(result.current.error).toBeInstanceOf(Error);
+      expect(result.current.error?.message).toContain('not supported by this adapter');
+    });
+  });
+});
+
+describe('useRollbackAdminDelay', () => {
+  let mockService: AccessControlService;
+  let mockAdapter: ContractAdapter;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockService = createMockAccessControlService({
+      rollbackAdminDelay: vi.fn().mockResolvedValue(mockOperationResult),
+    });
+    mockAdapter = createMockAdapter(mockService);
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('initialization', () => {
+    it('should return idle state initially', () => {
+      const { result } = renderHook(() => useRollbackAdminDelay(mockAdapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      expect(result.current.isPending).toBe(false);
+      expect(result.current.status).toBe('idle');
+    });
+
+    it('should be ready when adapter supports rollbackAdminDelay', () => {
+      const { result } = renderHook(() => useRollbackAdminDelay(mockAdapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      expect(result.current.isReady).toBe(true);
+    });
+  });
+
+  describe('successful rollback admin delay', () => {
+    it('should call rollbackAdminDelay on the service with correct parameters', async () => {
+      const { result } = renderHook(() => useRollbackAdminDelay(mockAdapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        await result.current.mutateAsync({
+          executionConfig: mockExecutionConfig,
+        });
+      });
+
+      expect(mockService.rollbackAdminDelay).toHaveBeenCalledWith(
+        'CONTRACT_ADDRESS',
+        mockExecutionConfig,
+        expect.any(Function),
+        undefined
+      );
+    });
+
+    it('should invalidate admin info query on success', async () => {
+      const queryClient = new QueryClient({
+        defaultOptions: {
+          queries: { retry: false, gcTime: 0 },
+          mutations: { retry: false },
+        },
+      });
+
+      const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
+
+      const { result } = renderHook(() => useRollbackAdminDelay(mockAdapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(queryClient),
+      });
+
+      await act(async () => {
+        await result.current.mutateAsync({
+          executionConfig: mockExecutionConfig,
+        });
+      });
+
+      expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+        queryKey: ['contractAdminInfo', 'CONTRACT_ADDRESS'],
+      });
+    });
+  });
+
+  describe('error handling', () => {
+    it('should throw error when adapter does not support rollbackAdminDelay', async () => {
+      const serviceWithoutRollback = createMockAccessControlService({
+        rollbackAdminDelay: undefined,
+      } as Partial<AccessControlService>);
+      const adapter = createMockAdapter(serviceWithoutRollback);
+
+      const { result } = renderHook(() => useRollbackAdminDelay(adapter, 'CONTRACT_ADDRESS'), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        try {
+          await result.current.mutateAsync({
+            executionConfig: mockExecutionConfig,
+          });
+        } catch {
+          // Expected to throw
+        }
+      });
+
+      expect(result.current.error).toBeInstanceOf(Error);
+      expect(result.current.error?.message).toContain('not supported by this adapter');
     });
   });
 });

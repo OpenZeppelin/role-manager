@@ -207,23 +207,23 @@
 
 ### Tests for User Story 7
 
-- [ ] T056 [P] [US7] Write unit test for `useCancelAdminTransfer` mutation hook in `apps/role-manager/src/hooks/__tests__/useAccessControlMutations.test.tsx`
-- [ ] T057 [P] [US7] Write unit test for `useChangeAdminDelay` and `useRollbackAdminDelay` mutation hooks in `apps/role-manager/src/hooks/__tests__/useAccessControlMutations.test.tsx`
-- [ ] T058 [P] [US7] Write unit test for `useAdminDelayDialog` hook state management in `apps/role-manager/src/hooks/__tests__/useAdminDelayDialog.test.tsx`
+- [x] T056 [P] [US7] Write unit test for `useCancelAdminTransfer` mutation hook in `apps/role-manager/src/hooks/__tests__/useAccessControlMutations.test.tsx`
+- [x] T057 [P] [US7] Write unit test for `useChangeAdminDelay` and `useRollbackAdminDelay` mutation hooks in `apps/role-manager/src/hooks/__tests__/useAccessControlMutations.test.tsx`
+- [x] T058 [P] [US7] Write unit test for `useAdminDelayDialog` hook state management in `apps/role-manager/src/hooks/__tests__/useAdminDelayDialog.test.tsx`
 
 ### Implementation for User Story 7
 
-- [ ] T059 [US7] Create admin delay types (`AdminDelayInfo` view model) in `apps/role-manager/src/types/admin.ts`
-- [ ] T060 [US7] Add `useCancelAdminTransfer` mutation to `useAccessControlMutations` — calls `service.cancelAdminTransfer()`, invalidates `['contractAdminInfo']` in `apps/role-manager/src/hooks/useAccessControlMutations.ts`
-- [ ] T061 [US7] Add `useChangeAdminDelay` mutation — calls `service.changeAdminDelay(address, newDelay)` with delay in seconds, invalidates admin info in `apps/role-manager/src/hooks/useAccessControlMutations.ts`
-- [ ] T062 [US7] Add `useRollbackAdminDelay` mutation — calls `service.rollbackAdminDelay()`, invalidates admin info in `apps/role-manager/src/hooks/useAccessControlMutations.ts`
-- [ ] T063 [US7] Create `useCancelAdminTransferDialog` hook for cancel confirmation dialog state in `apps/role-manager/src/hooks/useCancelAdminTransferDialog.ts`
-- [ ] T064 [US7] Create `useAdminDelayDialog` hook for delay change/rollback dialog state in `apps/role-manager/src/hooks/useAdminDelayDialog.ts`
-- [ ] T065 [US7] Create `AdminDelayPanel` component showing current delay, pending change, schedule timestamp, and change/rollback actions in `apps/role-manager/src/components/Admin/AdminDelayPanel.tsx`
-- [ ] T066 [US7] Add "Cancel Admin Transfer" action in Admin role details when `hasCancelAdminTransfer` + pending transfer in `apps/role-manager/src/components/Roles/RoleDetails.tsx`
-- [ ] T067 [US7] Add delay management UI in Admin role details when `hasAdminDelayManagement` — mount `AdminDelayPanel` in `apps/role-manager/src/components/Roles/RoleDetails.tsx`
-- [ ] T068 [US7] Update `useContractData` to expose `adminInfo.delayInfo` for Admin delay display in `apps/role-manager/src/hooks/useContractData.ts`
-- [ ] T069 [US7] Add analytics event emission for cancel and delay operations in `apps/role-manager/src/hooks/useRoleManagerAnalytics.ts`
+- [x] T059 [US7] Create admin delay types (`AdminDelayInfo` view model) in `apps/role-manager/src/types/admin.ts`
+- [x] T060 [US7] Add `useCancelAdminTransfer` mutation to `useAccessControlMutations` — calls `service.cancelAdminTransfer()`, invalidates `['contractAdminInfo']` in `apps/role-manager/src/hooks/useAccessControlMutations.ts`
+- [x] T061 [US7] Add `useChangeAdminDelay` mutation — calls `service.changeAdminDelay(address, newDelay)` with delay in seconds, invalidates admin info in `apps/role-manager/src/hooks/useAccessControlMutations.ts`
+- [x] T062 [US7] Add `useRollbackAdminDelay` mutation — calls `service.rollbackAdminDelay()`, invalidates admin info in `apps/role-manager/src/hooks/useAccessControlMutations.ts`
+- [x] T063 [US7] Create `useCancelAdminTransferDialog` hook for cancel confirmation dialog state in `apps/role-manager/src/hooks/useCancelAdminTransferDialog.ts`
+- [x] T064 [US7] Create `useAdminDelayDialog` hook for delay change/rollback dialog state in `apps/role-manager/src/hooks/useAdminDelayDialog.ts`
+- [x] T065 [US7] Create `AdminDelayPanel` component showing current delay, pending change, schedule timestamp, and change/rollback actions in `apps/role-manager/src/components/Admin/AdminDelayPanel.tsx`
+- [x] T066 [US7] Add "Cancel Admin Transfer" action in Admin role details when `hasCancelAdminTransfer` + pending transfer in `apps/role-manager/src/components/Roles/RoleDetails.tsx`
+- [x] T067 [US7] Add delay management UI in Admin role details when `hasAdminDelayManagement` — mount `AdminDelayPanel` in `apps/role-manager/src/components/Roles/RoleDetails.tsx`
+- [x] T068 [US7] Update `useContractData` to expose `adminInfo.delayInfo` for Admin delay display in `apps/role-manager/src/hooks/useContractData.ts`
+- [x] T069 [US7] Add analytics event emission for cancel and delay operations in `apps/role-manager/src/hooks/useRoleManagerAnalytics.ts`
 
 **Checkpoint**: Cancel clears pending admin transfer. Delay panel shows current/pending. Change/rollback work. Analytics emitted.
 

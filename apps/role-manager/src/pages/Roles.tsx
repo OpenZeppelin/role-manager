@@ -25,10 +25,22 @@ import { toast } from 'sonner';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
-import { Button, Card } from '@openzeppelin/ui-components';
+import {
+  Button,
+  Card,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@openzeppelin/ui-components';
 import { cn } from '@openzeppelin/ui-utils';
 
-import { AcceptAdminTransferDialog, TransferAdminDialog } from '../components/Admin';
+import {
+  AcceptAdminTransferDialog,
+  CancelAdminTransferDialog,
+  TransferAdminDialog,
+} from '../components/Admin';
 import { AcceptOwnershipDialog, TransferOwnershipDialog } from '../components/Ownership';
 import {
   AssignRoleDialog,
@@ -47,6 +59,7 @@ import { PageEmptyState } from '../components/Shared/PageEmptyState';
 import { PageHeader } from '../components/Shared/PageHeader';
 import { TypeToConfirmDialog } from '../components/Shared/TypeToConfirmDialog';
 import { useAllNetworks, useRolesPageData } from '../hooks';
+import { useAdminDelayDialog } from '../hooks/useAdminDelayDialog';
 import { useRenounceDialog, type RenounceType } from '../hooks/useRenounceDialog';
 import { useSelectedContract } from '../hooks/useSelectedContract';
 import { createGetAccountUrl } from '../utils/explorer-urls';
@@ -134,6 +147,9 @@ export function Roles() {
     roleId?: string;
     roleName?: string;
   }>({ type: 'ownership' });
+
+  // Feature 017 (T066): Cancel admin transfer dialog state
+  const [isCancelAdminTransferDialogOpen, setIsCancelAdminTransferDialogOpen] = useState(false);
 
   // Get contract info for display
   const { selectedContract, adapter } = useSelectedContract();
@@ -226,6 +242,29 @@ export function Roles() {
     setRenounceConfig({ type: 'role', roleId, roleName });
     setRenounceDialogOpen(true);
   }, []);
+
+  // Feature 017 (T066): Open cancel admin transfer dialog
+  const handleCancelAdminTransfer = useCallback(() => {
+    setIsCancelAdminTransferDialogOpen(true);
+  }, []);
+
+  // Feature 017 (T064, T067): Admin delay change/rollback dialog
+  const adminDelayDialog = useAdminDelayDialog({
+    onSuccess: refetch,
+  });
+
+  // Feature 017 (T068): delayInfo from adminInfo for AdminDelayPanel
+  const delayInfo =
+    adminInfo && 'delayInfo' in adminInfo
+      ? (
+          adminInfo as {
+            delayInfo: {
+              currentDelay: number;
+              pendingDelay?: { newDelay: number; effectAt: number };
+            };
+          }
+        ).delayInfo
+      : undefined;
 
   // Spec 015 (T021): Check if connected wallet can accept ownership (is the pending owner)
   const canAcceptOwnership = useMemo(() => {
@@ -389,6 +428,15 @@ export function Roles() {
                 onRenounceOwnership={handleRenounceOwnership}
                 hasRenounceRole={capabilities?.hasRenounceRole ?? false}
                 onRenounceRole={handleRenounceRole}
+                // Feature 017 (T066, T067): Cancel admin transfer & admin delay
+                hasCancelAdminTransfer={capabilities?.hasCancelAdminTransfer ?? false}
+                onCancelAdminTransfer={handleCancelAdminTransfer}
+                hasAdminDelayManagement={capabilities?.hasAdminDelayManagement ?? false}
+                delayInfo={delayInfo}
+                onChangeDelayClick={adminDelayDialog.openChangeDialog}
+                onRollbackClick={adminDelayDialog.openRollbackDialog}
+                isChangeDelayPending={adminDelayDialog.isChangePending}
+                isRollbackPending={adminDelayDialog.isRollbackPending}
               />
             ) : (
               <div className="flex items-center justify-center h-full p-6 text-muted-foreground">
@@ -484,6 +532,126 @@ export function Roles() {
         onOpenChange={setIsAcceptAdminTransferDialogOpen}
         onSuccess={refetch}
       />
+
+      {/* Feature 017 (T066): Cancel Admin Transfer Dialog */}
+      <CancelAdminTransferDialog
+        open={isCancelAdminTransferDialogOpen}
+        onOpenChange={setIsCancelAdminTransferDialogOpen}
+        onSuccess={refetch}
+      />
+
+      {/* Feature 017 (T064): Change Admin Delay Dialog */}
+      {adminDelayDialog.isChangeDialogOpen && (
+        <Dialog
+          open={adminDelayDialog.isChangeDialogOpen}
+          onOpenChange={(open) => !open && adminDelayDialog.closeChangeDialog()}
+        >
+          <DialogContent className="sm:max-w-[400px]">
+            <DialogHeader>
+              <DialogTitle>Change Admin Delay</DialogTitle>
+              <DialogDescription>
+                Enter the new admin transfer delay in seconds. The change will take effect after the
+                current delay period.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label htmlFor="admin-delay-input" className="text-sm font-medium">
+                  New delay (seconds)
+                </label>
+                <input
+                  id="admin-delay-input"
+                  type="number"
+                  min={1}
+                  value={adminDelayDialog.newDelayInput}
+                  onChange={(e) => adminDelayDialog.setNewDelayInput(e.target.value)}
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                />
+              </div>
+              {adminDelayDialog.changeStep === 'error' && adminDelayDialog.changeErrorMessage && (
+                <p className="text-sm text-destructive">{adminDelayDialog.changeErrorMessage}</p>
+              )}
+              {(adminDelayDialog.changeStep === 'pending' ||
+                adminDelayDialog.changeStep === 'confirming') && (
+                <p className="text-sm text-muted-foreground">Confirm in your wallet...</p>
+              )}
+              {adminDelayDialog.changeStep === 'success' && (
+                <p className="text-sm text-green-700">Delay change scheduled successfully.</p>
+              )}
+              <div className="flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={adminDelayDialog.closeChangeDialog}
+                  disabled={adminDelayDialog.isChangePending}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  onClick={adminDelayDialog.submitChangeDelay}
+                  disabled={
+                    adminDelayDialog.isChangePending ||
+                    !adminDelayDialog.newDelayInput ||
+                    parseInt(adminDelayDialog.newDelayInput, 10) <= 0
+                  }
+                >
+                  {adminDelayDialog.isChangePending ? 'Submitting...' : 'Submit'}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Feature 017 (T064): Rollback Admin Delay Dialog */}
+      {adminDelayDialog.isRollbackDialogOpen && (
+        <Dialog
+          open={adminDelayDialog.isRollbackDialogOpen}
+          onOpenChange={(open) => !open && adminDelayDialog.closeRollbackDialog()}
+        >
+          <DialogContent className="sm:max-w-[400px]">
+            <DialogHeader>
+              <DialogTitle>Rollback Delay Change</DialogTitle>
+              <DialogDescription>
+                This will cancel the pending delay change. The current delay will remain in effect.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              {adminDelayDialog.rollbackStep === 'error' &&
+                adminDelayDialog.rollbackErrorMessage && (
+                  <p className="text-sm text-destructive">
+                    {adminDelayDialog.rollbackErrorMessage}
+                  </p>
+                )}
+              {(adminDelayDialog.rollbackStep === 'pending' ||
+                adminDelayDialog.rollbackStep === 'confirming') && (
+                <p className="text-sm text-muted-foreground">Confirm in your wallet...</p>
+              )}
+              {adminDelayDialog.rollbackStep === 'success' && (
+                <p className="text-sm text-green-700">Rollback successful.</p>
+              )}
+              <div className="flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={adminDelayDialog.closeRollbackDialog}
+                  disabled={adminDelayDialog.isRollbackPending}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  onClick={adminDelayDialog.submitRollback}
+                  disabled={adminDelayDialog.isRollbackPending}
+                >
+                  {adminDelayDialog.isRollbackPending ? 'Submitting...' : 'Rollback'}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Feature 017 (T054): Renounce Confirmation Dialog */}
       <TypeToConfirmDialog
