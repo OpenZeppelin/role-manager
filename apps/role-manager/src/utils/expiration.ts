@@ -12,6 +12,8 @@
  * like "ledger" or "block" — all labels come from the adapter.
  */
 
+import pluralize from 'pluralize';
+
 import type { ExpirationMetadata } from '@openzeppelin/ui-types';
 
 // =============================================================================
@@ -151,6 +153,33 @@ export function getContractManagedDescription(
 // =============================================================================
 // Expiration Display Label for Pending Transfers
 // =============================================================================
+
+/**
+ * Get the plural unit label for counts (e.g. "X ledgers remaining", "X blocks remaining").
+ * Uses adapter-provided unit text, with light normalization, and pluralizes it via library.
+ *
+ * Examples:
+ * - "ledger number" -> "ledgers"
+ * - "block number" -> "blocks"
+ * - "slot" -> "slots"
+ *
+ * @param metadata - Expiration metadata from the adapter
+ * @param fallback - Fallback when unit is unavailable (default: "units")
+ * @returns Pluralized unit label suitable for "<count> <unit> remaining"
+ */
+export function getExpirationUnitPlural(
+  metadata: ExpirationMetadata | undefined,
+  fallback = 'units'
+): string {
+  const rawUnit = metadata?.unit?.toLowerCase().trim();
+  if (!rawUnit) return fallback;
+
+  // Normalize known verbose suffixes without hardcoding specific chains.
+  const normalizedUnit = rawUnit.replace(/\s+numbers?$/i, '').trim();
+  if (!normalizedUnit) return fallback;
+
+  return pluralize(normalizedUnit);
+}
 
 /**
  * Get the "expires at" / "expired at" label for pending transfer displays.

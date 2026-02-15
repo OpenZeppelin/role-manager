@@ -24,7 +24,7 @@ import { cn } from '@openzeppelin/ui-utils';
 
 import { useBlockTime } from '../../context/useBlockTime';
 import { calculateBlockExpiration, formatTimeEstimateDisplay } from '../../utils/block-time';
-import { getExpirationStatusLabel } from '../../utils/expiration';
+import { getExpirationStatusLabel, getExpirationUnitPlural } from '../../utils/expiration';
 import { AcceptTransferButton } from '../Shared/AcceptTransferButton';
 
 /**
@@ -166,7 +166,8 @@ export function PendingTransferInfo({
           </span>
           {expirationEstimate && (
             <span className="text-xs text-muted-foreground">
-              ({expirationEstimate.blocksRemaining.toLocaleString()} blocks
+              ({expirationEstimate.blocksRemaining.toLocaleString()}{' '}
+              {getExpirationUnitPlural(expirationMetadata)}
               {expirationEstimate.timeEstimate
                 ? ` · ${formatTimeEstimateDisplay(expirationEstimate.timeEstimate)}`
                 : ''}

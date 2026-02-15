@@ -21,6 +21,7 @@ import {
   getExpirationLabel,
   getExpirationPlaceholder,
   getExpirationStatusLabel,
+  getExpirationUnitPlural,
   hasNoExpiration,
   isContractManagedExpiration,
   requiresExpirationInput,
@@ -311,6 +312,40 @@ describe('getContractManagedDescription', () => {
 
     const result = getContractManagedDescription(noLabelMetadata);
     expect(result).toBe('Accept schedule is determined by the contract.');
+  });
+});
+
+// =============================================================================
+// Expiration Unit Plural Tests
+// =============================================================================
+
+describe('getExpirationUnitPlural', () => {
+  it('should return "ledgers" for Stellar (ledger number)', () => {
+    expect(getExpirationUnitPlural(stellarMetadata)).toBe('ledgers');
+  });
+
+  it('should return "blocks" for block number unit', () => {
+    const metadata: ExpirationMetadata = {
+      mode: 'required',
+      label: 'Expiration Block',
+      unit: 'block number',
+    };
+    expect(getExpirationUnitPlural(metadata)).toBe('blocks');
+  });
+
+  it('should return fallback for undefined metadata', () => {
+    expect(getExpirationUnitPlural(undefined)).toBe('units');
+    expect(getExpirationUnitPlural(undefined, 'units')).toBe('units');
+  });
+
+  it('should pluralize unknown/adapter-specific units', () => {
+    const metadata: ExpirationMetadata = {
+      mode: 'required',
+      label: 'Expiration',
+      unit: 'slot',
+    };
+    expect(getExpirationUnitPlural(metadata)).toBe('slots');
+    expect(getExpirationUnitPlural(metadata, 'units')).toBe('slots');
   });
 });
 
