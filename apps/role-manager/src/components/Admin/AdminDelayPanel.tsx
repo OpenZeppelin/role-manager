@@ -13,6 +13,7 @@ import { cn, formatSecondsToReadable } from '@openzeppelin/ui-utils';
 
 import type { AdminDelayInfo } from '../../types/admin';
 import { formatEffectAtDate } from '../../utils/delay-format';
+import { GhostPendingDelay } from '../Shared/MutationPreviews';
 
 export interface AdminDelayPanelProps {
   /** Delay info from adapter (adminInfo.delayInfo) */
@@ -21,10 +22,8 @@ export interface AdminDelayPanelProps {
   onChangeDelayClick: () => void;
   /** Open rollback dialog (only shown when pendingDelay exists) */
   onRollbackClick: () => void;
-  /** Whether change delay mutation is pending */
-  isChangePending?: boolean;
-  /** Whether rollback mutation is pending */
-  isRollbackPending?: boolean;
+  /** Ghost preview: new delay (seconds) for a pending changeAdminDelay mutation */
+  ghostNewDelay?: number | null;
   /** Additional CSS classes */
   className?: string;
 }
@@ -33,8 +32,7 @@ export function AdminDelayPanel({
   delayInfo,
   onChangeDelayClick,
   onRollbackClick,
-  isChangePending = false,
-  isRollbackPending = false,
+  ghostNewDelay,
   className,
 }: AdminDelayPanelProps) {
   const { currentDelay, pendingDelay } = delayInfo;
@@ -64,12 +62,16 @@ export function AdminDelayPanel({
           </div>
         )}
 
+        {/* Ghost preview: shimmer placeholder while RPC confirms the delay change */}
+        {!hasPendingChange && ghostNewDelay != null && (
+          <GhostPendingDelay newDelay={ghostNewDelay} />
+        )}
+
         <div className="flex flex-wrap gap-2">
           <Button
             size="sm"
             variant="outline"
             onClick={onChangeDelayClick}
-            disabled={isChangePending || isRollbackPending}
             aria-label="Change admin transfer delay"
           >
             <Settings className="h-3.5 w-3.5 mr-1.5" aria-hidden="true" />
@@ -80,7 +82,6 @@ export function AdminDelayPanel({
               size="sm"
               variant="outline"
               onClick={onRollbackClick}
-              disabled={isChangePending || isRollbackPending}
               className="text-amber-700 border-amber-200 hover:bg-amber-50"
               aria-label="Rollback pending delay change"
             >
