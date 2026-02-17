@@ -401,8 +401,9 @@ export function RoleDetails({
                 {isCancelAdminPreview && <FadingOverlay />}
                 {/* Fading overlay when accept admin is pending */}
                 {isAcceptAdminPreview && <FadingOverlay variant="info" />}
-                {/* Feature 017 (T066): Cancel Admin Transfer when pending */}
-                {adminState === 'pending' &&
+                {/* Feature 017 (T066): Cancel Admin Transfer — only current admin can cancel */}
+                {isConnected &&
+                  adminState === 'pending' &&
                   hasCancelAdminTransfer &&
                   onCancelAdminTransfer &&
                   !isCancelAdminPreview && (
@@ -428,8 +429,9 @@ export function RoleDetails({
             />
           )}
 
-          {/* Feature 017 (T067): Admin Delay Panel for Admin role when capability present */}
-          {role.isAdminRole &&
+          {/* Feature 017 (T067): Admin Delay Panel — only current admin can manage delay */}
+          {isConnected &&
+            role.isAdminRole &&
             hasAdminDelayManagement &&
             delayInfo &&
             onChangeDelayClick &&
