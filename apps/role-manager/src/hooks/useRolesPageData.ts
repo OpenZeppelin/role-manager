@@ -24,6 +24,7 @@ import type {
   AccessControlCapabilities,
   AdminInfo,
   AdminState,
+  ExpirationMetadata,
   OwnershipState,
   PendingAdminTransfer,
   PendingOwnershipTransfer,
@@ -44,6 +45,7 @@ import { useContractCapabilities } from './useContractCapabilities';
 import { useContractAdminInfo, useContractOwnership, useContractRoles } from './useContractData';
 import { useCurrentBlock } from './useCurrentBlock';
 import { useCustomRoleDescriptions } from './useCustomRoleDescriptions';
+import { useExpirationMetadata } from './useExpirationMetadata';
 import { useSelectedContract } from './useSelectedContract';
 
 // =============================================================================
@@ -117,6 +119,11 @@ export interface UseRolesPageDataReturn {
    * Polled automatically when a pending transfer exists
    */
   currentBlock: number | null;
+
+  /** Adapter-driven expiration metadata for ownership pending transfers */
+  ownershipExpirationMetadata: ExpirationMetadata | undefined;
+  /** Adapter-driven expiration metadata for admin pending transfers */
+  adminExpirationMetadata: ExpirationMetadata | undefined;
 
   // =============================================================================
   // Feature 016: Two-Step Admin Assignment
@@ -257,6 +264,20 @@ export function useRolesPageData(): UseRolesPageDataReturn {
     enabled: hasPendingTransfer,
     pollInterval: blockPollInterval,
   });
+
+  // Expiration metadata for pending transfer display labels (adapter-driven)
+  const { metadata: ownershipExpirationMetadata } = useExpirationMetadata(
+    adapter,
+    contractAddress,
+    'ownership',
+    { enabled: hasOwnableCapability }
+  );
+  const { metadata: adminExpirationMetadata } = useExpirationMetadata(
+    adapter,
+    contractAddress,
+    'admin',
+    { enabled: hasTwoStepAdmin }
+  );
 
   // =============================================================================
   // Computed Values
@@ -500,6 +521,8 @@ export function useRolesPageData(): UseRolesPageDataReturn {
       pendingTransfer: null,
       ownershipState: null,
       currentBlock: null,
+      ownershipExpirationMetadata: undefined,
+      adminExpirationMetadata: undefined,
       // Feature 016: Admin-related properties
       adminInfo: null,
       pendingAdminTransfer: null,
@@ -538,6 +561,8 @@ export function useRolesPageData(): UseRolesPageDataReturn {
     pendingTransfer,
     ownershipState,
     currentBlock,
+    ownershipExpirationMetadata,
+    adminExpirationMetadata,
     // Feature 016: Admin-related properties
     adminInfo,
     pendingAdminTransfer,

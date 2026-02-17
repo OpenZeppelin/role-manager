@@ -89,6 +89,10 @@ export interface RoleDetailsProps {
   pendingRecipientUrl?: string;
   /** Current block/ledger number for expiration countdown */
   currentBlock?: number | null;
+  /** Adapter-driven expiration metadata for ownership pending transfers */
+  ownershipExpirationMetadata?: ExpirationMetadata;
+  /** Adapter-driven expiration metadata for admin pending transfers */
+  adminExpirationMetadata?: ExpirationMetadata;
 
   // =============================================================================
   // Feature 016: Two-Step Admin Assignment
@@ -167,6 +171,8 @@ export function RoleDetails({
   ownershipState,
   pendingRecipientUrl,
   currentBlock,
+  ownershipExpirationMetadata,
+  adminExpirationMetadata,
   // Feature 016: Admin-related props
   pendingAdminTransfer,
   adminState,
@@ -359,11 +365,7 @@ export function RoleDetails({
                   canAccept={canAcceptOwnership}
                   onAccept={onAcceptOwnership}
                   currentBlock={currentBlock}
-                  expirationMetadata={
-                    'expirationMetadata' in pendingTransfer
-                      ? (pendingTransfer.expirationMetadata as ExpirationMetadata | undefined)
-                      : undefined
-                  }
+                  expirationMetadata={ownershipExpirationMetadata}
                 />
                 {/* Fading overlay when accept ownership is pending */}
                 {isAcceptOwnershipPreview && <FadingOverlay variant="info" />}
@@ -391,11 +393,7 @@ export function RoleDetails({
                   canAccept={canAcceptAdminTransfer}
                   onAccept={onAcceptAdminTransfer}
                   currentBlock={currentBlock}
-                  expirationMetadata={
-                    'expirationMetadata' in pendingAdminTransfer
-                      ? (pendingAdminTransfer.expirationMetadata as ExpirationMetadata | undefined)
-                      : undefined
-                  }
+                  expirationMetadata={adminExpirationMetadata}
                   transferLabel="Admin Role"
                   recipientLabel="Admin"
                 />

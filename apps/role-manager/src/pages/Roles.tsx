@@ -85,6 +85,8 @@ export function Roles() {
     pendingTransfer, // Feature 015 Phase 6 (T026, T027): for pending transfer display
     ownershipState, // Feature 015 Phase 6 (T028): for expired status display
     currentBlock, // For expiration countdown
+    ownershipExpirationMetadata,
+    adminExpirationMetadata,
     // Feature 016: Admin-related data
     adminInfo,
     pendingAdminTransfer,
@@ -416,6 +418,8 @@ export function Roles() {
                     : undefined
                 }
                 currentBlock={currentBlock}
+                ownershipExpirationMetadata={ownershipExpirationMetadata}
+                adminExpirationMetadata={adminExpirationMetadata}
                 // Feature 016: Admin-related props
                 onTransferAdmin={handleTransferAdmin}
                 pendingAdminTransfer={pendingAdminTransfer}
