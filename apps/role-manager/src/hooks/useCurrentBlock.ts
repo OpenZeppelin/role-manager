@@ -16,6 +16,8 @@ import { useCallback } from 'react';
 
 import type { ContractAdapter } from '@openzeppelin/ui-types';
 
+import { queryKeys } from './queryKeys';
+
 // =============================================================================
 // Constants
 // =============================================================================
@@ -56,13 +58,6 @@ export interface UseCurrentBlockReturn {
 }
 
 // =============================================================================
-// Query Key
-// =============================================================================
-
-const currentBlockQueryKey = (networkId: string | undefined) =>
-  ['currentBlock', networkId] as const;
-
-// =============================================================================
 // Hook Implementation
 // =============================================================================
 
@@ -98,7 +93,7 @@ export function useCurrentBlock(
   const pollMs = typeof pollInterval === 'number' ? pollInterval : undefined;
 
   const query = useQuery({
-    queryKey: currentBlockQueryKey(networkId),
+    queryKey: queryKeys.currentBlock(networkId),
     queryFn: async () => {
       if (!adapter) {
         throw new Error('Adapter not available');

@@ -15,6 +15,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import type { ContractAdapter, ExpirationMetadata } from '@openzeppelin/ui-types';
 
+import { queryKeys } from './queryKeys';
 import { useAccessControlService } from './useAccessControlService';
 
 // =============================================================================
@@ -37,15 +38,8 @@ export interface UseExpirationMetadataReturn {
   error: Error | null;
 }
 
-// =============================================================================
-// Query Key
-// =============================================================================
-
-export const expirationMetadataQueryKey = (
-  contractAddress: string,
-  transferType: TransferType,
-  networkId: string | undefined
-) => ['expirationMetadata', contractAddress, transferType, networkId] as const;
+// Re-export for backwards compatibility
+export const expirationMetadataQueryKey = queryKeys.expirationMetadata;
 
 // =============================================================================
 // Hook
@@ -87,7 +81,7 @@ export function useExpirationMetadata(
   const hasMethod = !!service?.getExpirationMetadata;
 
   const query = useQuery({
-    queryKey: expirationMetadataQueryKey(contractAddress, transferType, networkId),
+    queryKey: queryKeys.expirationMetadata(contractAddress, transferType, networkId),
     queryFn: async (): Promise<ExpirationMetadata> => {
       // Safe to assert: query is only enabled when hasMethod is true
       return service!.getExpirationMetadata!(contractAddress, transferType);

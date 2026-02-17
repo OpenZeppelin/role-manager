@@ -17,6 +17,7 @@ import { logger } from '@openzeppelin/ui-utils';
 
 import type { EnrichedRoleAssignment } from '../types/authorized-accounts';
 import { DataError, ErrorCategory, wrapError } from '../utils/errors';
+import { queryKeys } from './queryKeys';
 import { useAccessControlService } from './useAccessControlService';
 
 /**
@@ -43,15 +44,7 @@ export interface UseContractRolesEnrichedReturn {
   refetch: () => Promise<void>;
 }
 
-/**
- * Query key factory for enriched roles
- */
-const enrichedRolesQueryKey = (address: string) => ['contractRolesEnriched', address] as const;
-
-/**
- * Query key factory for contract roles (matches useContractData.ts)
- */
-const rolesQueryKey = (address: string) => ['contractRoles', address] as const;
+// Use centralized query keys
 
 /**
  * Hook that fetches enriched role assignments with timestamps.
@@ -94,7 +87,7 @@ export function useContractRolesEnriched(
     error: rawError,
     refetch: queryRefetch,
   } = useQuery({
-    queryKey: enrichedRolesQueryKey(contractAddress),
+    queryKey: queryKeys.contractRolesEnriched(contractAddress),
     queryFn: async (): Promise<EnrichedRoleAssignment[]> => {
       if (!service) {
         throw new DataError(
@@ -114,7 +107,7 @@ export function useContractRolesEnriched(
           role: er.role,
           members: er.members.map((m) => m.address),
         }));
-        queryClient.setQueryData(rolesQueryKey(contractAddress), basicRoles);
+        queryClient.setQueryData(queryKeys.contractRoles(contractAddress), basicRoles);
 
         return enrichedRoles;
       } catch (enrichedErr) {
@@ -129,7 +122,7 @@ export function useContractRolesEnriched(
           const basicRoles = await service.getCurrentRoles(contractAddress);
 
           // Populate the basic roles cache
-          queryClient.setQueryData(rolesQueryKey(contractAddress), basicRoles);
+          queryClient.setQueryData(queryKeys.contractRoles(contractAddress), basicRoles);
 
           // Convert to enriched format (no grant metadata available)
           const enrichedFromBasic: EnrichedRoleAssignment[] = basicRoles.map((role) => ({
