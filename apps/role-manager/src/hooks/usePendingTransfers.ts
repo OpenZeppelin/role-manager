@@ -214,9 +214,13 @@ export function usePendingTransfers(
     { enabled: hasTwoStepAdmin }
   );
 
-  // Get current block for expiration calculation
+  // Get current block for expiration calculation.
+  // Polling disabled — the Dashboard is a summary view and doesn't need a live
+  // countdown.  The block is fetched once on mount; subsequent updates come from
+  // the manual `refetch()` action or when the query is invalidated by mutations.
   const { currentBlock, isLoading: isBlockLoading } = useCurrentBlock(adapter, {
     enabled: !!selectedContract,
+    pollInterval: false,
   });
 
   // =============================================================================

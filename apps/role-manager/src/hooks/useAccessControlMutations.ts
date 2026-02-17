@@ -1390,7 +1390,6 @@ export function useChangeAdminDelay(
       });
       await queryClient.refetchQueries({
         queryKey: adminInfoQueryKey(contractAddress),
-        type: 'active',
       });
       try {
         options?.onSuccess?.(result);
@@ -1490,7 +1489,6 @@ export function useRollbackAdminDelay(
       });
       await queryClient.refetchQueries({
         queryKey: adminInfoQueryKey(contractAddress),
-        type: 'active',
       });
       try {
         options?.onSuccess?.(result);

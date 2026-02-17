@@ -176,9 +176,13 @@ export function useBlockTimeEstimate(
   const samplesRef = useRef<BlockSample[]>([]);
   const [sampleCount, setSampleCount] = useState(0);
 
-  // Get current block with polling
+  // Stop polling once we have enough samples — the estimate is well-calibrated
+  // and continuing to poll would waste RPC requests.
+  const isFullyCalibrated = sampleCount >= maxSamples;
+
+  // Get current block with polling (stops when fully calibrated)
   const { currentBlock } = useCurrentBlock(adapter, {
-    pollInterval,
+    pollInterval: isFullyCalibrated ? false : pollInterval,
     enabled,
   });
 

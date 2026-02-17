@@ -39,6 +39,7 @@ import {
 } from '../constants';
 import type { RoleIdentifier, RoleWithDescription } from '../types/roles';
 import { getRoleName, isRoleDisplayHash } from '../utils/role-name';
+import { useBlockPollInterval } from './useBlockPollInterval';
 import { useContractCapabilities } from './useContractCapabilities';
 import { useContractAdminInfo, useContractOwnership, useContractRoles } from './useContractData';
 import { useCurrentBlock } from './useCurrentBlock';
@@ -248,9 +249,13 @@ export function useRolesPageData(): UseRolesPageDataReturn {
   const hasPendingOwnershipTransfer = ownership?.state === 'pending';
   const hasPendingAdminTransfer = adminInfo?.state === 'pending';
   const hasPendingTransfer = hasPendingOwnershipTransfer || hasPendingAdminTransfer;
+
+  // Chain-agnostic poll interval derived from calibrated block/ledger time
+  const blockPollInterval = useBlockPollInterval();
+
   const { currentBlock } = useCurrentBlock(adapter, {
     enabled: hasPendingTransfer,
-    pollInterval: 5000, // Poll every 5 seconds for real-time countdown
+    pollInterval: blockPollInterval,
   });
 
   // =============================================================================
@@ -431,14 +436,11 @@ export function useRolesPageData(): UseRolesPageDataReturn {
   // =============================================================================
 
   // Combined refetch function (Feature 016: include admin refetch)
+  // Always include admin info refetch — React Query handles disabled queries gracefully,
+  // and contracts with hasAdminDelayManagement also need admin data refreshed.
   const refetch = useCallback(async (): Promise<void> => {
-    const refetchPromises = [refetchRoles(), refetchOwnership()];
-    // Only refetch admin if the capability is enabled
-    if (hasTwoStepAdmin) {
-      refetchPromises.push(refetchAdminInfo());
-    }
-    await Promise.all(refetchPromises);
-  }, [refetchRoles, refetchOwnership, refetchAdminInfo, hasTwoStepAdmin]);
+    await Promise.all([refetchRoles(), refetchOwnership(), refetchAdminInfo()]);
+  }, [refetchRoles, refetchOwnership, refetchAdminInfo]);
 
   // Wrapped refetchAdminInfo for external use
   const refetchAdminInfoCallback = useCallback(async (): Promise<void> => {

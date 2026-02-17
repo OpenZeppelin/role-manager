@@ -31,8 +31,12 @@ export const DEFAULT_POLL_INTERVAL_MS = 5000;
  * Options for useCurrentBlock hook
  */
 export interface UseCurrentBlockOptions {
-  /** Polling interval in milliseconds (default: 5000) */
-  pollInterval?: number;
+  /**
+   * Polling interval in milliseconds, or `false` to disable polling.
+   * When `false`, the block is fetched once and only refreshed on demand.
+   * @default 5000
+   */
+  pollInterval?: number | false;
   /** Whether polling is enabled (default: true) */
   enabled?: boolean;
 }
@@ -90,6 +94,9 @@ export function useCurrentBlock(
 
   const networkId = adapter?.networkConfig?.id;
 
+  // Resolve polling configuration: `false` disables polling entirely
+  const pollMs = typeof pollInterval === 'number' ? pollInterval : undefined;
+
   const query = useQuery({
     queryKey: currentBlockQueryKey(networkId),
     queryFn: async () => {
@@ -99,11 +106,11 @@ export function useCurrentBlock(
       return adapter.getCurrentBlock();
     },
     enabled: !!adapter && enabled,
-    refetchInterval: enabled ? pollInterval : false,
+    refetchInterval: enabled && pollMs ? pollMs : false,
     // Don't retry on error - let polling handle recovery
     retry: false,
-    // Keep stale data while refetching
-    staleTime: pollInterval / 2,
+    // Keep stale data while refetching; when no polling, data is never auto-stale
+    staleTime: pollMs ? pollMs / 2 : Infinity,
   });
 
   // Wrap refetch to handle void return

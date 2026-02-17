@@ -84,6 +84,9 @@ export type {
 export { useCurrentBlock, DEFAULT_POLL_INTERVAL_MS } from './useCurrentBlock';
 export type { UseCurrentBlockOptions, UseCurrentBlockReturn } from './useCurrentBlock';
 
+// Chain-agnostic block poll interval (Feature: 017-evm-access-control)
+export { useBlockPollInterval, computeBlockPollInterval } from './useBlockPollInterval';
+
 // Block Time Estimation Hook (Feature: 015-ownership-transfer)
 export { useBlockTimeEstimate } from './useBlockTimeEstimate';
 export type {

@@ -100,6 +100,11 @@ vi.mock('@openzeppelin/ui-react', () => ({
   useDerivedAccountStatus: () => mockUseDerivedAccountStatus(),
 }));
 
+// Mock useBlockPollInterval (used for chain-agnostic poll interval derivation)
+vi.mock('../useBlockPollInterval', () => ({
+  useBlockPollInterval: () => 10_000,
+}));
+
 // =============================================================================
 // Test Utilities
 // =============================================================================
