@@ -70,12 +70,16 @@ export function transformHistoryEntry(
   const timestamp = entry.timestamp ?? new Date().toISOString();
 
   // Determine role ID and name - override for admin-related events
-  // Admin transfers and admin renounce should use CONTRACT_ADMIN role ID and "Admin" name
-  // This ensures filtering works correctly (matches SYNTHETIC_ADMIN_ROLE in filter-roles.ts)
+  // Admin transfers, admin renounce, and admin delay changes should use
+  // CONTRACT_ADMIN role ID and "Admin" name for consistent filtering
+  // (matches SYNTHETIC_ADMIN_ROLE in filter-roles.ts)
   const isAdminEvent =
     entry.changeType === 'ADMIN_TRANSFER_INITIATED' ||
     entry.changeType === 'ADMIN_TRANSFER_COMPLETED' ||
-    entry.changeType === 'ADMIN_RENOUNCED';
+    entry.changeType === 'ADMIN_TRANSFER_CANCELED' ||
+    entry.changeType === 'ADMIN_RENOUNCED' ||
+    entry.changeType === 'ADMIN_DELAY_CHANGE_SCHEDULED' ||
+    entry.changeType === 'ADMIN_DELAY_CHANGE_CANCELED';
   const roleId = isAdminEvent ? ADMIN_ROLE_ID : entry.role.id;
   const roleName = isAdminEvent ? 'Admin' : getRoleName(entry.role.label, entry.role.id);
 

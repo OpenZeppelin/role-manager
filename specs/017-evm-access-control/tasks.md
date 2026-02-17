@@ -237,12 +237,12 @@
 
 ### Implementation for User Story 8
 
-- [ ] T070 [US8] Add new `RoleChangeAction` types (`'renounce'`, `'admin-delay'`) and update `CHANGE_TYPE_TO_ACTION` mappings in `apps/role-manager/src/types/role-changes.ts`
-- [ ] T071 [US8] Add display config for new action types (renounce: red/error, admin-delay: yellow/warning) in `apps/role-manager/src/types/role-changes.ts`
-- [ ] T072 [US8] Update `ChangeRow` to render new event type labels and badges in `apps/role-manager/src/components/RoleChanges/ChangeRow.tsx`
-- [ ] T073 [US8] Update `history-transformer.ts` if needed for new event shapes from EVM indexer in `apps/role-manager/src/utils/history-transformer.ts`
-- [ ] T074 [US8] Verify history pagination works with EVM indexer. Manual E2E test.
-- [ ] T075 [US8] Verify graceful degradation when indexer unavailable — "History unavailable" message shown. Manual E2E test.
+- [x] T070 [US8] Add new `RoleChangeAction` types (`'renounce'`, `'admin-delay'`) and update `CHANGE_TYPE_TO_ACTION` mappings in `apps/role-manager/src/types/role-changes.ts`
+- [x] T071 [US8] Add display config for new action types (renounce: red/error, admin-delay: yellow/warning) in `apps/role-manager/src/types/role-changes.ts`
+- [x] T072 [US8] Update `ChangeRow` to render new event type labels and badges in `apps/role-manager/src/components/RoleChanges/ChangeRow.tsx`
+- [x] T073 [US8] Update `history-transformer.ts` if needed for new event shapes from EVM indexer in `apps/role-manager/src/utils/history-transformer.ts`
+- [x] T074 [US8] Verify history pagination works with EVM indexer. Manual E2E test.
+- [x] T075 [US8] Verify graceful degradation when indexer unavailable — "History unavailable" message shown. Manual E2E test.
 
 **Checkpoint**: New event types display correctly. History works with and without indexer.
 

@@ -45,11 +45,14 @@ export function ChangeRow({ event, onRoleClick }: ChangeRowProps) {
 
   // Map action to role type for special icon display
   // - ownership-transfer/ownership-renounced → 'ownership' (crown icon)
-  // - admin-transfer/admin-renounced → 'admin' (shield icon for Contract Admin only)
+  // - admin-transfer/admin-transfer-canceled/admin-renounced/admin-delay → 'admin' (shield icon)
   const roleType =
     event.action === 'ownership-transfer' || event.action === 'ownership-renounced'
       ? 'ownership'
-      : event.action === 'admin-transfer' || event.action === 'admin-renounced'
+      : event.action === 'admin-transfer' ||
+          event.action === 'admin-transfer-canceled' ||
+          event.action === 'admin-renounced' ||
+          event.action === 'admin-delay'
         ? 'admin'
         : undefined;
 
