@@ -15,6 +15,7 @@
 import pluralize from 'pluralize';
 
 import type { ExpirationMetadata } from '@openzeppelin/ui-types';
+import { formatSecondsToReadable } from '@openzeppelin/ui-utils';
 
 // =============================================================================
 // Mode Checks
@@ -201,4 +202,46 @@ export function getExpirationStatusLabel(
   else if (unit?.includes('timestamp')) suffix = '';
 
   return isExpired ? `Expired at${suffix}:` : `Expires at${suffix}:`;
+}
+
+// =============================================================================
+// Timestamp-Based Expiration (Contract-Managed)
+// =============================================================================
+
+/**
+ * Whether the metadata indicates a timestamp-based contract-managed expiration.
+ * True when the mode is 'contract-managed' AND the unit contains "timestamp".
+ *
+ * @param metadata - Expiration metadata from the adapter
+ * @returns true if this is a timestamp-based contract-managed expiration
+ */
+export function isTimestampBasedExpiration(metadata: ExpirationMetadata | undefined): boolean {
+  return (
+    metadata?.mode === 'contract-managed' && !!metadata.unit?.toLowerCase().includes('timestamp')
+  );
+}
+
+/**
+ * Format a Unix timestamp (seconds since epoch) as a human-readable date string.
+ * Returns '—' for non-positive values.
+ *
+ * @param timestampSeconds - Unix timestamp in seconds
+ * @returns Formatted date string or '—'
+ */
+export function formatExpirationTimestamp(timestampSeconds: number): string {
+  if (timestampSeconds <= 0) return '—';
+  return new Date(timestampSeconds * 1000).toLocaleString();
+}
+
+/**
+ * Compute the time remaining from now until the given timestamp and format it
+ * as a human-readable duration using `formatSecondsToReadable`.
+ *
+ * @param timestampSeconds - Unix timestamp in seconds
+ * @returns Formatted duration string, or null if the timestamp is already past
+ */
+export function getTimestampTimeRemaining(timestampSeconds: number): string | null {
+  const remaining = timestampSeconds - Math.floor(Date.now() / 1000);
+  if (remaining <= 0) return null;
+  return formatSecondsToReadable(remaining);
 }

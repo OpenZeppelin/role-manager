@@ -20,7 +20,12 @@ import { cn } from '@openzeppelin/ui-utils';
 import { useBlockTime } from '../../context/useBlockTime';
 import type { PendingTransfer } from '../../types/pending-transfers';
 import { calculateBlockExpiration, formatTimeEstimateDisplay } from '../../utils/block-time';
-import { hasNoExpiration } from '../../utils/expiration';
+import {
+  formatExpirationTimestamp,
+  getTimestampTimeRemaining,
+  hasNoExpiration,
+  isTimestampBasedExpiration,
+} from '../../utils/expiration';
 import { AcceptTransferButton, RoleTypeBadge, StatusBadge } from '../Shared';
 
 // =============================================================================
@@ -59,9 +64,12 @@ export function PendingTransferRow({ transfer, currentBlock, onAccept }: Pending
   // Whether this transfer has no expiration concept (e.g., EVM Ownable2Step)
   const noExpiration = hasNoExpiration(transfer.expirationMetadata);
 
-  // Calculate blocks remaining and time estimate (only when expiration is meaningful)
+  // Whether this is a timestamp-based expiration (e.g., EVM AccessControlDefaultAdminRules)
+  const isTimestamp = isTimestampBasedExpiration(transfer.expirationMetadata);
+
+  // Calculate blocks remaining and time estimate (only when expiration is meaningful and not timestamp-based)
   const expirationEstimate =
-    !transfer.isExpired && !noExpiration
+    !transfer.isExpired && !noExpiration && !isTimestamp
       ? calculateBlockExpiration(transfer.expirationBlock, currentBlock, formatBlocksToTime)
       : null;
 
@@ -105,6 +113,17 @@ export function PendingTransferRow({ transfer, currentBlock, onAccept }: Pending
       <td className="p-4 text-sm whitespace-nowrap">
         {noExpiration ? (
           <span className="text-muted-foreground">—</span>
+        ) : isTimestamp ? (
+          <div className="flex flex-col">
+            <span className="font-mono">{formatExpirationTimestamp(transfer.expirationBlock)}</span>
+            {!transfer.isExpired &&
+              (() => {
+                const remaining = getTimestampTimeRemaining(transfer.expirationBlock);
+                return remaining ? (
+                  <span className="text-xs text-muted-foreground">~{remaining} remaining</span>
+                ) : null;
+              })()}
+          </div>
         ) : transfer.isExpired ? (
           <StatusBadge variant="error">Expired</StatusBadge>
         ) : (

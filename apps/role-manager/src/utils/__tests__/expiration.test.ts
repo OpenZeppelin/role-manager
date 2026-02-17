@@ -16,14 +16,17 @@ import type { ExpirationMetadata } from '@openzeppelin/ui-types';
 
 import {
   formatContractManagedExpiration,
+  formatExpirationTimestamp,
   getContractManagedDescription,
   getCurrentValueLabel,
   getExpirationLabel,
   getExpirationPlaceholder,
   getExpirationStatusLabel,
   getExpirationUnitPlural,
+  getTimestampTimeRemaining,
   hasNoExpiration,
   isContractManagedExpiration,
+  isTimestampBasedExpiration,
   requiresExpirationInput,
 } from '../expiration';
 
@@ -385,5 +388,81 @@ describe('getExpirationStatusLabel', () => {
       unit: 'block number',
     };
     expect(getExpirationStatusLabel(false, metadata)).toBe('Expires at Block:');
+  });
+});
+
+// =============================================================================
+// Timestamp-Based Expiration (Contract-Managed) Tests
+// =============================================================================
+
+describe('isTimestampBasedExpiration', () => {
+  it('should return true for contract-managed with "UNIX timestamp" unit', () => {
+    const metadata: ExpirationMetadata = {
+      mode: 'contract-managed',
+      unit: 'UNIX timestamp',
+    };
+    expect(isTimestampBasedExpiration(metadata)).toBe(true);
+  });
+
+  it('should return true for contract-managed with "Timestamp in seconds" unit', () => {
+    const metadata: ExpirationMetadata = {
+      mode: 'contract-managed',
+      unit: 'Timestamp in seconds',
+    };
+    expect(isTimestampBasedExpiration(metadata)).toBe(true);
+  });
+
+  it('should return false for contract-managed with "block number" unit', () => {
+    const metadata: ExpirationMetadata = {
+      mode: 'contract-managed',
+      unit: 'block number',
+    };
+    expect(isTimestampBasedExpiration(metadata)).toBe(false);
+  });
+
+  it('should return false for required mode even with "timestamp" unit', () => {
+    const metadata: ExpirationMetadata = {
+      mode: 'required',
+      unit: 'timestamp',
+    };
+    expect(isTimestampBasedExpiration(metadata)).toBe(false);
+  });
+
+  it('should return false for undefined metadata', () => {
+    expect(isTimestampBasedExpiration(undefined)).toBe(false);
+  });
+});
+
+describe('formatExpirationTimestamp', () => {
+  it('should format a real timestamp as a non-empty string containing "2026"', () => {
+    const result = formatExpirationTimestamp(1771235892);
+    expect(result).toBeTruthy();
+    expect(result).toContain('2026');
+  });
+
+  it('should return "—" for 0', () => {
+    expect(formatExpirationTimestamp(0)).toBe('—');
+  });
+
+  it('should return "—" for negative values', () => {
+    expect(formatExpirationTimestamp(-100)).toBe('—');
+  });
+});
+
+describe('getTimestampTimeRemaining', () => {
+  it('should return null for a timestamp in the past', () => {
+    const past = Math.floor(Date.now() / 1000) - 100;
+    expect(getTimestampTimeRemaining(past)).toBeNull();
+  });
+
+  it('should return a non-null string for a timestamp in the future', () => {
+    const future = Math.floor(Date.now() / 1000) + 3600;
+    const result = getTimestampTimeRemaining(future);
+    expect(result).not.toBeNull();
+    expect(result).toMatch(/hour|minute/i);
+  });
+
+  it('should return null for 0', () => {
+    expect(getTimestampTimeRemaining(0)).toBeNull();
   });
 });

@@ -24,7 +24,13 @@ import { cn } from '@openzeppelin/ui-utils';
 
 import { useBlockTime } from '../../context/useBlockTime';
 import { calculateBlockExpiration, formatTimeEstimateDisplay } from '../../utils/block-time';
-import { getExpirationStatusLabel, getExpirationUnitPlural } from '../../utils/expiration';
+import {
+  formatExpirationTimestamp,
+  getExpirationStatusLabel,
+  getExpirationUnitPlural,
+  getTimestampTimeRemaining,
+  isTimestampBasedExpiration,
+} from '../../utils/expiration';
 import { AcceptTransferButton } from '../Shared/AcceptTransferButton';
 
 /**
@@ -105,9 +111,12 @@ export function PendingTransferInfo({
   // Get block time estimation for human-readable time display
   const { formatBlocksToTime } = useBlockTime();
 
-  // Calculate blocks remaining and time estimate (only when expiration is defined)
+  // Whether this is a timestamp-based expiration (e.g., EVM AccessControlDefaultAdminRules)
+  const isTimestamp = isTimestampBasedExpiration(expirationMetadata);
+
+  // Calculate blocks remaining and time estimate (only when expiration is defined and not timestamp-based)
   const expirationEstimate =
-    !isExpired && expirationBlock != null
+    !isExpired && expirationBlock != null && !isTimestamp
       ? calculateBlockExpiration(expirationBlock, currentBlock, formatBlocksToTime)
       : null;
 
@@ -159,20 +168,45 @@ export function PendingTransferInfo({
           <span className="text-xs text-muted-foreground shrink-0">
             {getExpirationStatusLabel(isExpired, expirationMetadata)}
           </span>
-          <span
-            className={cn('text-xs font-mono', isExpired ? 'text-amber-700' : 'text-foreground')}
-          >
-            {expirationBlock.toLocaleString()}
-          </span>
-          {expirationEstimate && (
-            <span className="text-xs text-muted-foreground">
-              ({expirationEstimate.blocksRemaining.toLocaleString()}{' '}
-              {getExpirationUnitPlural(expirationMetadata)}
-              {expirationEstimate.timeEstimate
-                ? ` · ${formatTimeEstimateDisplay(expirationEstimate.timeEstimate)}`
-                : ''}
-              )
-            </span>
+          {isTimestamp ? (
+            <>
+              <span
+                className={cn(
+                  'text-xs font-mono',
+                  isExpired ? 'text-amber-700' : 'text-foreground'
+                )}
+              >
+                {formatExpirationTimestamp(expirationBlock)}
+              </span>
+              {!isExpired &&
+                (() => {
+                  const remaining = getTimestampTimeRemaining(expirationBlock);
+                  return remaining ? (
+                    <span className="text-xs text-muted-foreground">(~{remaining} remaining)</span>
+                  ) : null;
+                })()}
+            </>
+          ) : (
+            <>
+              <span
+                className={cn(
+                  'text-xs font-mono',
+                  isExpired ? 'text-amber-700' : 'text-foreground'
+                )}
+              >
+                {expirationBlock.toLocaleString()}
+              </span>
+              {expirationEstimate && (
+                <span className="text-xs text-muted-foreground">
+                  ({expirationEstimate.blocksRemaining.toLocaleString()}{' '}
+                  {getExpirationUnitPlural(expirationMetadata)}
+                  {expirationEstimate.timeEstimate
+                    ? ` · ${formatTimeEstimateDisplay(expirationEstimate.timeEstimate)}`
+                    : ''}
+                  )
+                </span>
+              )}
+            </>
           )}
         </div>
       )}
