@@ -38,6 +38,12 @@ export interface MutationHook<TArgs> {
   status: TxStatus;
   statusDetails: TransactionStatusUpdate | null;
   isPending: boolean;
+  /**
+   * Explicit post-mutation query invalidation.
+   * Called after mutateAsync resolves to guarantee cache freshness
+   * before the dialog transitions to the success state.
+   */
+  invalidate?: () => Promise<void>;
 }
 
 /**
@@ -160,6 +166,15 @@ export function useTransactionExecution<TArgs>(
       try {
         const result = await mutation.mutateAsync(args);
 
+        // Explicit cache invalidation — TanStack Query v5 fires
+        // useMutation.onSuccess as fire-and-forget so we cannot rely on
+        // it for awaited invalidation.
+        try {
+          await mutation.invalidate?.();
+        } catch {
+          // Invalidation failure should not fail the transaction
+        }
+
         setStep('success');
         onSuccess?.(result);
 
@@ -194,6 +209,12 @@ export function useTransactionExecution<TArgs>(
 
     try {
       const result = await mutation.mutateAsync(args);
+
+      try {
+        await mutation.invalidate?.();
+      } catch {
+        // Invalidation failure should not fail the transaction
+      }
 
       setStep('success');
       onSuccess?.(result);
@@ -261,6 +282,12 @@ export function useTransactionExecution<TArgs>(
 export interface UseMultiMutationExecutionOptions extends UseTransactionExecutionOptions {
   /** Reset functions for all mutations */
   resetMutations?: (() => void)[];
+  /**
+   * Post-mutation invalidation functions for all mutations.
+   * Called after the mutation promise resolves to guarantee cache freshness.
+   * All functions are called (idempotent) regardless of which mutation ran.
+   */
+  invalidateFns?: (() => Promise<void>)[];
 }
 
 /**
@@ -325,6 +352,7 @@ export function useMultiMutationExecution(
     onSuccess,
     autoCloseDelay = SUCCESS_AUTO_CLOSE_DELAY,
     resetMutations = [],
+    invalidateFns = [],
   } = options;
 
   // =============================================================================
@@ -363,6 +391,15 @@ export function useMultiMutationExecution(
       try {
         const result = await fn();
 
+        // Explicit cache invalidation
+        for (const inv of invalidateFns) {
+          try {
+            await inv();
+          } catch {
+            // Invalidation failure should not fail the transaction
+          }
+        }
+
         setStep('success');
         onSuccess?.(result);
 
@@ -382,7 +419,7 @@ export function useMultiMutationExecution(
         }
       }
     },
-    [onSuccess, onClose, autoCloseDelay, reset]
+    [onSuccess, onClose, autoCloseDelay, reset, invalidateFns]
   );
 
   // =============================================================================
@@ -398,6 +435,14 @@ export function useMultiMutationExecution(
 
     try {
       const result = await fn();
+
+      for (const inv of invalidateFns) {
+        try {
+          await inv();
+        } catch {
+          // Invalidation failure should not fail the transaction
+        }
+      }
 
       setStep('success');
       onSuccess?.(result);
@@ -417,7 +462,7 @@ export function useMultiMutationExecution(
         setErrorMessage(err.message);
       }
     }
-  }, [onSuccess, onClose, autoCloseDelay, reset]);
+  }, [onSuccess, onClose, autoCloseDelay, reset, invalidateFns]);
 
   // =============================================================================
   // Derived State

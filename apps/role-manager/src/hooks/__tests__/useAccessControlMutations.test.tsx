@@ -432,9 +432,11 @@ describe('useGrantRole', () => {
       // In production, smart invalidation may behave differently based on active observers.
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
         queryKey: ['contractRoles', 'CONTRACT_ADDRESS'],
+        refetchType: 'all',
       });
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
         queryKey: ['contractRolesEnriched', 'CONTRACT_ADDRESS'],
+        refetchType: 'all',
       });
     });
 
@@ -507,9 +509,11 @@ describe('useGrantRole', () => {
       });
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
         queryKey: ['contractRoles', 'CONTRACT_ADDRESS'],
+        refetchType: 'all',
       });
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
         queryKey: ['contractRolesEnriched', 'CONTRACT_ADDRESS'],
+        refetchType: 'all',
       });
     });
 
@@ -544,9 +548,11 @@ describe('useGrantRole', () => {
       expect(cancelQueriesSpy).not.toHaveBeenCalled();
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
         queryKey: ['contractRoles', 'CONTRACT_ADDRESS'],
+        refetchType: 'all',
       });
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
         queryKey: ['contractRolesEnriched', 'CONTRACT_ADDRESS'],
+        refetchType: 'all',
       });
     });
   });
@@ -741,9 +747,11 @@ describe('useRevokeRole', () => {
       // In production, smart invalidation may behave differently based on active observers.
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
         queryKey: ['contractRoles', 'CONTRACT_ADDRESS'],
+        refetchType: 'all',
       });
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
         queryKey: ['contractRolesEnriched', 'CONTRACT_ADDRESS'],
+        refetchType: 'all',
       });
     });
   });
@@ -951,6 +959,7 @@ describe('useTransferOwnership', () => {
 
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
         queryKey: ['contractOwnership', 'CONTRACT_ADDRESS'],
+        refetchType: 'all',
       });
     });
   });
@@ -1667,6 +1676,7 @@ describe('useAcceptOwnership', () => {
 
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
         queryKey: ['contractOwnership', 'CONTRACT_ADDRESS'],
+        refetchType: 'all',
       });
     });
 
@@ -2071,9 +2081,11 @@ describe('EVM Adapter: useGrantRole', () => {
 
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
         queryKey: ['contractRoles', EVM_CONTRACT],
+        refetchType: 'all',
       });
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
         queryKey: ['contractRolesEnriched', EVM_CONTRACT],
+        refetchType: 'all',
       });
     });
   });
@@ -2287,9 +2299,11 @@ describe('EVM Adapter: useRevokeRole', () => {
 
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
         queryKey: ['contractRoles', EVM_CONTRACT],
+        refetchType: 'all',
       });
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
         queryKey: ['contractRolesEnriched', EVM_CONTRACT],
+        refetchType: 'all',
       });
     });
   });
@@ -2716,12 +2730,15 @@ describe('useRenounceOwnership', () => {
 
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
         queryKey: ['contractOwnership', 'CONTRACT_ADDRESS'],
+        refetchType: 'all',
       });
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
         queryKey: ['contractRoles', 'CONTRACT_ADDRESS'],
+        refetchType: 'all',
       });
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
         queryKey: ['contractRolesEnriched', 'CONTRACT_ADDRESS'],
+        refetchType: 'all',
       });
     });
 
@@ -3008,9 +3025,11 @@ describe('useRenounceRole', () => {
 
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
         queryKey: ['contractRoles', 'CONTRACT_ADDRESS'],
+        refetchType: 'all',
       });
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
         queryKey: ['contractRolesEnriched', 'CONTRACT_ADDRESS'],
+        refetchType: 'all',
       });
     });
 
@@ -3174,6 +3193,7 @@ describe('useCancelAdminTransfer', () => {
 
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
         queryKey: ['contractAdminInfo', 'CONTRACT_ADDRESS'],
+        refetchType: 'all',
       });
     });
   });
@@ -3289,6 +3309,7 @@ describe('useChangeAdminDelay', () => {
 
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
         queryKey: ['contractAdminInfo', 'CONTRACT_ADDRESS'],
+        refetchType: 'all',
       });
     });
   });
@@ -3398,6 +3419,7 @@ describe('useRollbackAdminDelay', () => {
 
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
         queryKey: ['contractAdminInfo', 'CONTRACT_ADDRESS'],
+        refetchType: 'all',
       });
     });
   });

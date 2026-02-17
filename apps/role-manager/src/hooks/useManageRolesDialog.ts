@@ -155,6 +155,7 @@ export function useManageRolesDialog(
     onClose,
     onSuccess,
     resetMutations: [grantRole.reset, revokeRole.reset],
+    invalidateFns: [grantRole.invalidate, revokeRole.invalidate],
   });
 
   // =============================================================================
