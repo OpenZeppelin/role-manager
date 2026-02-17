@@ -42,6 +42,20 @@ export { RoleNameDisplay } from './RoleNameDisplay';
 // Type-to-Confirm Dialog (Feature: 017-evm-access-control)
 export { TypeToConfirmDialog } from './TypeToConfirmDialog';
 
+// Context-specific mutation preview components (Reactivity feedback)
+export {
+  FadingOverlay,
+  GhostAccountRow,
+  GhostPendingDelay,
+  GhostPendingTransfer,
+} from './MutationPreviews';
+export type {
+  FadingOverlayProps,
+  GhostAccountRowProps,
+  GhostPendingDelayProps,
+  GhostPendingTransferProps,
+} from './MutationPreviews';
+
 // Filter Dropdown Components
 export { RoleFilterItem } from './RoleFilterItem';
 
