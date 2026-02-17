@@ -252,15 +252,15 @@
 
 **Purpose**: Regression testing, cleanup, and validation across all stories.
 
-- [ ] T076 Verify all existing Stellar flows still work — add contract, view roles, grant, revoke, transfer ownership, transfer admin. Regression E2E test.
-- [ ] T077 Verify seamless ecosystem switching: Stellar → EVM → Stellar — no page reloads, no flashes, app state preserved. E2E test.
-- [ ] T078 Verify no hardcoded "ledger" or "block" labels in UI display strings: run `grep -rn "expiration ledger\|Expiration Ledger" --include="*.tsx" --include="*.ts" apps/role-manager/src/` — expect zero matches.
-- [ ] T079 Verify graceful degradation: no indexer, non-enumerable contracts, missing capabilities — appropriate messages shown.
-- [ ] T079a Verify `getAdminInfo()` failure handling: when service throws or is unavailable, Admin role MUST NOT be displayed and no error is shown (FR-050). Test with mock adapter.
-- [ ] T079b Verify backward compatibility with older adapters: when new optional methods (`renounceOwnership`, `renounceRole`, etc.) are missing from the service, corresponding UI actions MUST NOT appear — no crash, no error (FR-051). Test with mock adapter missing optional methods.
-- [ ] T080 [P] Code cleanup: remove any TODO/FIXME markers introduced during implementation.
-- [ ] T081 [P] Run full test suite: `pnpm test` — all tests pass.
-- [ ] T082 Run quickstart.md validation — follow the quickstart guide end-to-end to confirm it works.
+- [x] T076 Verify all existing Stellar flows still work — add contract, view roles, grant, revoke, transfer ownership, transfer admin. Regression E2E test.
+- [x] T077 Verify seamless ecosystem switching: Stellar → EVM → Stellar — no page reloads, no flashes, app state preserved. E2E test.
+- [x] T078 Verify no hardcoded "ledger" or "block" labels in UI display strings: run `grep -rn "expiration ledger\|Expiration Ledger" --include="*.tsx" --include="*.ts" apps/role-manager/src/` — expect zero matches.
+- [x] T079 Verify graceful degradation: no indexer, non-enumerable contracts, missing capabilities — appropriate messages shown.
+- [x] T079a Verify `getAdminInfo()` failure handling: when service throws or is unavailable, Admin role MUST NOT be displayed and no error is shown (FR-050). Test with mock adapter.
+- [x] T079b Verify backward compatibility with older adapters: when new optional methods (`renounceOwnership`, `renounceRole`, etc.) are missing from the service, corresponding UI actions MUST NOT appear — no crash, no error (FR-051). Test with mock adapter missing optional methods.
+- [x] T080 [P] Code cleanup: remove any TODO/FIXME markers introduced during implementation.
+- [x] T081 [P] Run full test suite: `pnpm test` — all tests pass.
+- [x] T082 Run quickstart.md validation — follow the quickstart guide end-to-end to confirm it works.
 
 ---
 

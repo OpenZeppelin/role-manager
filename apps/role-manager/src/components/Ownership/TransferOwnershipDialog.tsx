@@ -436,7 +436,7 @@ function TransferOwnershipFormContent({
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="transfer-ownership-expiration">
-              {getExpirationLabel(expirationMetadata, 'Expiration Block')}
+              {getExpirationLabel(expirationMetadata)}
             </Label>
             {currentBlock !== null && (
               <span className="text-xs text-muted-foreground">
