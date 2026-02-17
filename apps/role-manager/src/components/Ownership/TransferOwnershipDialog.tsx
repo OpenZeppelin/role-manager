@@ -433,7 +433,7 @@ function TransferOwnershipFormContent({
 
       {/* Expiration Field — shown only when adapter requires user input (mode: 'required') */}
       {requiresExpiration && (
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="transfer-ownership-expiration">
               {getExpirationLabel(expirationMetadata, 'Expiration Block')}
@@ -449,11 +449,15 @@ function TransferOwnershipFormContent({
             type="number"
             placeholder={getExpirationPlaceholder(expirationMetadata)}
             {...register('expirationBlock', { required: requiresExpiration })}
-            className={cn(expirationError && 'border-destructive')}
+            className={cn(
+              expirationError &&
+                'border-destructive focus:border-destructive focus:ring-destructive/30'
+            )}
+            data-slot="input"
           />
           {/* Helper text or time estimate */}
           {expirationEstimate && !expirationError ? (
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
               <span>{expirationEstimate.blocksRemaining.toLocaleString()} blocks</span>
               {expirationEstimate.timeEstimate ? (
                 <span className="text-blue-600 font-medium">
@@ -464,11 +468,15 @@ function TransferOwnershipFormContent({
               ) : null}
             </div>
           ) : !expirationError ? (
-            <p className="text-xs text-muted-foreground">
+            <div className="text-sm text-muted-foreground">
               The transfer must be accepted before this {expirationMetadata?.unit ?? 'block'}.
-            </p>
+            </div>
           ) : null}
-          {expirationError && <p className="text-xs text-destructive">{expirationError}</p>}
+          {expirationError && (
+            <div className="text-sm text-destructive" role="alert">
+              {expirationError}
+            </div>
+          )}
         </div>
       )}
 

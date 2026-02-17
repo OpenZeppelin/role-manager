@@ -222,7 +222,7 @@ export function TypeToConfirmDialog({
               {!isWalletConnected && <WalletDisconnectedAlert />}
 
               {/* Confirmation input */}
-              <div className="space-y-2">
+              <div className="flex flex-col gap-2">
                 <Label htmlFor="confirm-keyword">
                   {inputLabel ?? `Type "${confirmKeyword}" to confirm`}
                 </Label>
@@ -232,6 +232,7 @@ export function TypeToConfirmDialog({
                   onChange={handleInputChange}
                   placeholder={inputPlaceholder ?? confirmKeyword}
                   autoComplete="off"
+                  data-slot="input"
                   data-testid="confirm-keyword-input"
                 />
               </div>
