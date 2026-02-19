@@ -6,8 +6,6 @@
 // Feature: 004-add-contract-record (with 005 schema loading integrated)
 export { AddContractDialog } from './AddContractDialog';
 export { AddContractForm } from './AddContractForm';
-export { CompactEcosystemSelector } from './CompactEcosystemSelector';
-
 // Feature: 006-access-control-service - Dialog state components
 export { AccessControlCapabilitiesSummary } from './AccessControlCapabilitiesSummary';
 export { ContractUnsupportedState } from './ContractUnsupportedState';

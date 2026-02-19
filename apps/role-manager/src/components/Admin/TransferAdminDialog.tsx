@@ -42,7 +42,7 @@ import {
 } from '@openzeppelin/ui-components';
 import { cn } from '@openzeppelin/ui-utils';
 
-import { getEcosystemAddressExample } from '@/core/ecosystems/registry';
+import { getEcosystemMetadata } from '@/core/ecosystems/ecosystemManager';
 
 import { useBlockTime } from '../../context/useBlockTime';
 import { useAdminTransferDialog } from '../../hooks/useAdminTransferDialog';
@@ -422,7 +422,9 @@ function TransferAdminFormContent({
           name="newAdminAddress"
           label="New Admin Address"
           placeholder={
-            adapter ? getEcosystemAddressExample(adapter.networkConfig.ecosystem) : '0x...'
+            adapter
+              ? (getEcosystemMetadata(adapter.networkConfig.ecosystem)?.addressExample ?? '0x...')
+              : '0x...'
           }
           helperText="The address that will become the new admin of this contract."
           control={control}

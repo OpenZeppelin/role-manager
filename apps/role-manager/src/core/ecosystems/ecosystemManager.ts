@@ -1,92 +1,59 @@
 /**
  * Ecosystem Manager for Role Manager
  *
- * This is a local implementation adapted from the UI Builder's builder package.
- * It provides functions to dynamically load adapter packages and get network configurations.
- *
- * The UI Builder's ecosystemManager is part of the private @openzeppelin/ui-builder-builder
- * package and cannot be imported directly. This local implementation provides the
- * subset of functionality needed for the Role Manager app.
- *
- * TODO: Consider proposing extraction to a shared @openzeppelin/ui-builder-ecosystem
- * package upstream to avoid duplication across consuming applications.
- *
- * Feature: 004-add-contract-record
+ * Two-tier loading strategy:
+ * - Lightweight metadata (name, icon, description) is statically imported from
+ *   each adapter's /metadata entry point. Available synchronously from the
+ *   first render — no loading state for ecosystem pickers.
+ * - Full adapter (networks, createAdapter) is lazy-loaded only when needed.
  */
 
-import type { ContractAdapter, Ecosystem, NetworkConfig } from '@openzeppelin/ui-types';
+// Static metadata imports — tiny (~500 B each), available synchronously
+import { ecosystemMetadata as evmMetadata } from '@openzeppelin/ui-builder-adapter-evm/metadata';
+import { ecosystemMetadata as polkadotMetadata } from '@openzeppelin/ui-builder-adapter-polkadot/metadata';
+import { ecosystemMetadata as stellarMetadata } from '@openzeppelin/ui-builder-adapter-stellar/metadata';
+import type {
+  ContractAdapter,
+  Ecosystem,
+  EcosystemExport,
+  EcosystemMetadata,
+  NetworkConfig,
+} from '@openzeppelin/ui-types';
+import { logger } from '@openzeppelin/ui-utils';
 
 // =============================================================================
-// Ecosystem Registry (mirrors UI Builder's ecosystemRegistry pattern)
+// Metadata Registry (synchronous — available from first render)
 // =============================================================================
 
-/**
- * Metadata for each ecosystem's adapter package
- */
-interface EcosystemMetadata {
-  networksExportName: string;
-  adapterClassName: string;
-}
-
-/**
- * Centralized configuration for each ecosystem
- * Mirrors the pattern from UI Builder's ecosystemRegistry
- */
-const ecosystemRegistry: Record<Ecosystem, EcosystemMetadata> = {
-  evm: {
-    networksExportName: 'evmNetworks',
-    adapterClassName: 'EvmAdapter',
-  },
-  stellar: {
-    networksExportName: 'stellarNetworks',
-    adapterClassName: 'StellarAdapter',
-  },
-  midnight: {
-    networksExportName: 'midnightNetworks',
-    adapterClassName: 'MidnightAdapter',
-  },
-  solana: {
-    networksExportName: 'solanaNetworks',
-    adapterClassName: 'SolanaAdapter',
-  },
-  polkadot: {
-    networksExportName: 'polkadotNetworks',
-    adapterClassName: 'PolkadotAdapter',
-  },
+const ecosystemMetadataRegistry: Partial<Record<Ecosystem, EcosystemMetadata>> = {
+  evm: evmMetadata,
+  stellar: stellarMetadata,
+  polkadot: polkadotMetadata,
 };
 
 // =============================================================================
-// Module Loading
+// Full Adapter Module Loading (lazy — static switch required by Vite)
 // =============================================================================
 
-/**
- * Cache for loaded networks by ecosystem
- */
-const networksByEcosystemCache: Partial<Record<Ecosystem, NetworkConfig[]>> = {};
+const ecosystemCache: Partial<Record<Ecosystem, EcosystemExport>> = {};
 
-/**
- * Dynamically load the adapter package module for a given ecosystem.
- * Uses static imports for Vite compatibility.
- *
- * Note: These adapter packages are installed via the tarball workflow during
- * local development. TypeScript errors for these imports are expected if the
- * adapter packages are not yet installed - they will be resolved at runtime
- * when the packages are properly configured.
- *
- * @param ecosystem - The ecosystem to load the adapter package for
- * @returns The loaded module containing networks and adapter class
- */
-async function loadAdapterPackageModule(ecosystem: Ecosystem): Promise<Record<string, unknown>> {
-  // Static switch for Vite compatibility (dynamic imports require static paths)
+async function loadAdapterModule(ecosystem: Ecosystem): Promise<EcosystemExport> {
+  const cached = ecosystemCache[ecosystem];
+  if (cached) return cached;
+
+  let mod: { ecosystemDefinition: EcosystemExport };
   switch (ecosystem) {
     case 'evm':
-      return import('@openzeppelin/ui-builder-adapter-evm');
+      mod = await import('@openzeppelin/ui-builder-adapter-evm');
+      break;
     case 'stellar':
-      return import('@openzeppelin/ui-builder-adapter-stellar');
+      mod = await import('@openzeppelin/ui-builder-adapter-stellar');
+      break;
+    case 'polkadot':
+      mod = await import('@openzeppelin/ui-builder-adapter-polkadot');
+      break;
     case 'solana':
     case 'midnight':
-    case 'polkadot':
-      // These adapters are not yet available in role-manager
       throw new Error(`${ecosystem} adapter is not available in role-manager`);
     default: {
       const _exhaustiveCheck: never = ecosystem;
@@ -95,51 +62,46 @@ async function loadAdapterPackageModule(ecosystem: Ecosystem): Promise<Record<st
       );
     }
   }
+
+  const def = mod.ecosystemDefinition;
+  ecosystemCache[ecosystem] = def;
+  return def;
+}
+
+// =============================================================================
+// Ecosystem Metadata (synchronous — no loading required)
+// =============================================================================
+
+export function getEcosystemMetadata(ecosystem: Ecosystem): EcosystemMetadata | undefined {
+  return ecosystemMetadataRegistry[ecosystem];
 }
 
 // =============================================================================
 // Network Discovery
 // =============================================================================
 
-/**
- * Get all network configurations for a given ecosystem.
- * Results are cached to avoid redundant module loading.
- *
- * @param ecosystem - The ecosystem to get networks for
- * @returns Array of network configurations for the ecosystem
- */
+const networksByEcosystemCache: Partial<Record<Ecosystem, NetworkConfig[]>> = {};
+
 export async function getNetworksByEcosystem(ecosystem: Ecosystem): Promise<NetworkConfig[]> {
-  // Check cache first
   if (networksByEcosystemCache[ecosystem]) {
     return networksByEcosystemCache[ecosystem]!;
   }
 
-  const meta = ecosystemRegistry[ecosystem];
-  if (!meta) {
-    // eslint-disable-next-line no-console -- Expected warning for debugging adapter package issues
-    console.warn(`[EcosystemManager] No metadata registered for ecosystem: ${ecosystem}`);
-    return [];
-  }
-
   try {
-    const module = await loadAdapterPackageModule(ecosystem);
-    const networks = (module[meta.networksExportName] as NetworkConfig[]) || [];
-
+    const def = await loadAdapterModule(ecosystem);
+    const networks = def.networks;
     if (!Array.isArray(networks)) {
-      // eslint-disable-next-line no-console -- Expected error for debugging adapter package issues
-      console.error(
-        `[EcosystemManager] Expected an array for ${meta.networksExportName} in ${ecosystem}, received: ${typeof networks}`
+      logger.error(
+        'EcosystemManager',
+        `Expected an array of networks for ${ecosystem}, received: ${typeof networks}`
       );
       networksByEcosystemCache[ecosystem] = [];
       return [];
     }
-
-    // Cache the networks
     networksByEcosystemCache[ecosystem] = networks;
     return networks;
   } catch (error) {
-    // eslint-disable-next-line no-console -- Expected error for debugging adapter package issues
-    console.error(`[EcosystemManager] Error loading networks for ${ecosystem}:`, error);
+    logger.error('EcosystemManager', `Error loading networks for ${ecosystem}:`, error);
     networksByEcosystemCache[ecosystem] = [];
     return [];
   }
@@ -149,46 +111,28 @@ export async function getNetworksByEcosystem(ecosystem: Ecosystem): Promise<Netw
 // Network Lookup
 // =============================================================================
 
-/**
- * Get a network configuration by its ID.
- * Ported from UI Builder's ecosystemManager pattern.
- *
- * Uses two-step lookup:
- * 1. Check already-cached ecosystems first (performance optimization)
- * 2. Load ecosystems on-demand if not found in cache
- *
- * @param id - The unique network identifier
- * @returns NetworkConfig if found, undefined otherwise
- *
- * Feature: 013-wallet-connect-header
- */
 export async function getNetworkById(id: string): Promise<NetworkConfig | undefined> {
-  // 1. Check existing cached ecosystems first
   for (const ecosystemKey of Object.keys(networksByEcosystemCache)) {
     const ecosystem = ecosystemKey as Ecosystem;
-    const cachedNetworks = networksByEcosystemCache[ecosystem];
-    if (cachedNetworks) {
-      const network = cachedNetworks.find((n) => n.id === id);
+    const cached = networksByEcosystemCache[ecosystem];
+    if (cached) {
+      const network = cached.find((n) => n.id === id);
       if (network) return network;
     }
   }
 
-  // 2. If not found, iterate through all registered ecosystems and load on-demand
-  const allEcosystems = Object.keys(ecosystemRegistry) as Ecosystem[];
-
+  const allEcosystems: Ecosystem[] = ['evm', 'stellar', 'polkadot', 'solana', 'midnight'];
   for (const ecosystem of allEcosystems) {
-    let networksForEcosystem = networksByEcosystemCache[ecosystem];
-
-    if (!networksForEcosystem) {
+    let networks = networksByEcosystemCache[ecosystem];
+    if (!networks) {
       try {
-        networksForEcosystem = await getNetworksByEcosystem(ecosystem);
+        networks = await getNetworksByEcosystem(ecosystem);
       } catch {
-        continue; // Skip ecosystems that fail to load
+        continue;
       }
     }
-
-    const foundNetwork = networksForEcosystem?.find((n) => n.id === id);
-    if (foundNetwork) return foundNetwork;
+    const found = networks?.find((n) => n.id === id);
+    if (found) return found;
   }
 
   return undefined;
@@ -198,34 +142,15 @@ export async function getNetworkById(id: string): Promise<NetworkConfig | undefi
 // Adapter Instantiation
 // =============================================================================
 
-/**
- * Get an adapter instance for a given network configuration.
- * Lazily loads the adapter package and instantiates the adapter class.
- *
- * @param networkConfig - The network configuration to create an adapter for
- * @returns A ContractAdapter instance for the network
- * @throws Error if the adapter cannot be loaded or instantiated
- */
 export async function getAdapter(networkConfig: NetworkConfig): Promise<ContractAdapter> {
-  const { ecosystem } = networkConfig;
+  const def = await loadAdapterModule(networkConfig.ecosystem);
+  return def.createAdapter(networkConfig);
+}
 
-  const meta = ecosystemRegistry[ecosystem];
-  if (!meta) {
-    throw new Error(
-      `[EcosystemManager] No adapter metadata registered for ecosystem: ${ecosystem}`
-    );
-  }
+// =============================================================================
+// Full Ecosystem Definition (async)
+// =============================================================================
 
-  const module = await loadAdapterPackageModule(ecosystem);
-  const AdapterClass = module[meta.adapterClassName] as
-    | (new (config: NetworkConfig) => ContractAdapter)
-    | undefined;
-
-  if (!AdapterClass) {
-    throw new Error(
-      `[EcosystemManager] Adapter class '${meta.adapterClassName}' not found in ${ecosystem} package`
-    );
-  }
-
-  return new AdapterClass(networkConfig);
+export async function getEcosystemDefinition(ecosystem: Ecosystem): Promise<EcosystemExport> {
+  return loadAdapterModule(ecosystem);
 }

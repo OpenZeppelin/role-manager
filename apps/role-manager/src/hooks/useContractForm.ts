@@ -11,7 +11,7 @@ import { useForm } from 'react-hook-form';
 
 import type { NetworkConfig } from '@openzeppelin/ui-types';
 
-import { getEcosystemAddressExample, getEcosystemName } from '@/core/ecosystems/registry';
+import { getEcosystemMetadata } from '@/core/ecosystems/ecosystemManager';
 import type { AddContractFormData, UseContractFormReturn } from '@/types/contracts';
 import { ADDRESS_PLACEHOLDERS, ERROR_MESSAGES } from '@/types/contracts';
 
@@ -118,14 +118,13 @@ export function useContractForm(): UseContractFormReturn {
       return ADDRESS_PLACEHOLDERS.LOADING;
     }
 
-    const example = getEcosystemAddressExample(selectedNetwork.ecosystem);
-    if (example) {
-      const ecosystemName = getEcosystemName(selectedNetwork.ecosystem);
-      // Extract short prefix from ecosystem name (e.g., "Ethereum (EVM)" -> "EVM")
-      const shortName = ecosystemName.includes('(')
-        ? (ecosystemName.match(/\(([^)]+)\)/)?.[1] ?? ecosystemName.split(' ')[0])
-        : ecosystemName.split(' ')[0];
-      return ADDRESS_PLACEHOLDERS.DEFAULT(shortName, example);
+    const meta = getEcosystemMetadata(selectedNetwork.ecosystem);
+    if (meta?.addressExample) {
+      const name = meta.name;
+      const shortName = name.includes('(')
+        ? (name.match(/\(([^)]+)\)/)?.[1] ?? name.split(' ')[0])
+        : name.split(' ')[0];
+      return ADDRESS_PLACEHOLDERS.DEFAULT(shortName, meta.addressExample);
     }
 
     return `Enter ${selectedNetwork.ecosystem} address`;
@@ -155,8 +154,9 @@ export function useContractForm(): UseContractFormReturn {
 
       const trimmedValue = value.trim();
       if (!adapter.isValidAddress(trimmedValue)) {
-        const ecosystemName = getEcosystemName(selectedNetwork.ecosystem);
-        return ERROR_MESSAGES.ADDRESS_INVALID(ecosystemName);
+        return ERROR_MESSAGES.ADDRESS_INVALID(
+          getEcosystemMetadata(selectedNetwork.ecosystem)?.name ?? selectedNetwork.ecosystem
+        );
       }
 
       return true;

@@ -41,7 +41,7 @@ import {
   SelectField,
 } from '@openzeppelin/ui-components';
 
-import { getEcosystemAddressExample } from '@/core/ecosystems/registry';
+import { getEcosystemMetadata } from '@/core/ecosystems/ecosystemManager';
 
 import { useAssignRoleDialog } from '../../hooks/useAssignRoleDialog';
 import type { AssignRoleFormData } from '../../hooks/useAssignRoleDialog';
@@ -371,7 +371,9 @@ function AssignRoleFormContent({
           name="address"
           label="Account Address"
           placeholder={
-            adapter ? getEcosystemAddressExample(adapter.networkConfig.ecosystem) : '0x...'
+            adapter
+              ? (getEcosystemMetadata(adapter.networkConfig.ecosystem)?.addressExample ?? '0x...')
+              : '0x...'
           }
           helperText="The account address that will receive this role."
           control={control}

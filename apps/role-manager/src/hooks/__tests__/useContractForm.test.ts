@@ -9,7 +9,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ContractAdapter, NetworkConfig } from '@openzeppelin/ui-types';
 
-import { getEcosystemAddressExample, getEcosystemName } from '@/core/ecosystems/registry';
+import { getEcosystemMetadata } from '@/core/ecosystems/ecosystemManager';
 
 import { useContractForm } from '../useContractForm';
 // Import after mock setup
@@ -20,15 +20,13 @@ vi.mock('../useNetworkAdapter', () => ({
   useNetworkAdapter: vi.fn(),
 }));
 
-// Mock the registry module
-vi.mock('@/core/ecosystems/registry', () => ({
-  getEcosystemAddressExample: vi.fn(),
-  getEcosystemName: vi.fn(),
+// Mock the ecosystem manager module
+vi.mock('@/core/ecosystems/ecosystemManager', () => ({
+  getEcosystemMetadata: vi.fn(),
 }));
 
 const mockUseNetworkAdapter = vi.mocked(useNetworkAdapter);
-const mockGetEcosystemAddressExample = vi.mocked(getEcosystemAddressExample);
-const mockGetEcosystemName = vi.mocked(getEcosystemName);
+const mockGetEcosystemMetadata = vi.mocked(getEcosystemMetadata);
 
 // Test fixtures - use type assertion to avoid full NetworkConfig requirements
 const mockEvmNetwork = {
@@ -67,16 +65,24 @@ describe('useContractForm', () => {
       retry: vi.fn(),
     });
 
-    mockGetEcosystemAddressExample.mockImplementation((ecosystem) => {
-      if (ecosystem === 'evm') return '0xA1B2...';
-      if (ecosystem === 'stellar') return 'GCKF...MTGG';
+    mockGetEcosystemMetadata.mockImplementation((ecosystem) => {
+      if (ecosystem === 'evm')
+        return {
+          id: 'evm',
+          name: 'Ethereum (EVM)',
+          description: '',
+          explorerGuidance: '',
+          addressExample: '0xA1B2...',
+        };
+      if (ecosystem === 'stellar')
+        return {
+          id: 'stellar',
+          name: 'Stellar',
+          description: '',
+          explorerGuidance: '',
+          addressExample: 'GCKF...MTGG',
+        };
       return undefined;
-    });
-
-    mockGetEcosystemName.mockImplementation((ecosystem) => {
-      if (ecosystem === 'evm') return 'Ethereum (EVM)';
-      if (ecosystem === 'stellar') return 'Stellar';
-      return ecosystem;
     });
   });
 
@@ -506,7 +512,13 @@ describe('useContractForm', () => {
         error: null,
         retry: vi.fn(),
       });
-      mockGetEcosystemName.mockReturnValue('Ethereum (EVM)');
+      mockGetEcosystemMetadata.mockReturnValue({
+        id: 'evm',
+        name: 'Ethereum (EVM)',
+        description: '',
+        explorerGuidance: '',
+        addressExample: '0xA1B2...',
+      });
 
       const { result } = renderHook(() => useContractForm());
 
@@ -514,9 +526,7 @@ describe('useContractForm', () => {
         result.current.setSelectedNetwork(mockEvmNetwork);
       });
 
-      // The error message should reference the EVM ecosystem
-      // This is verified through the ERROR_MESSAGES.ADDRESS_INVALID pattern
-      expect(mockGetEcosystemName).toHaveBeenCalledWith('evm');
+      expect(mockGetEcosystemMetadata).toHaveBeenCalledWith('evm');
     });
 
     it('should show EVM-specific placeholder when EVM network is selected', () => {
@@ -526,8 +536,13 @@ describe('useContractForm', () => {
         error: null,
         retry: vi.fn(),
       });
-      mockGetEcosystemAddressExample.mockReturnValue('0xA1B2...');
-      mockGetEcosystemName.mockReturnValue('Ethereum (EVM)');
+      mockGetEcosystemMetadata.mockReturnValue({
+        id: 'evm',
+        name: 'Ethereum (EVM)',
+        description: '',
+        explorerGuidance: '',
+        addressExample: '0xA1B2...',
+      });
 
       const { result } = renderHook(() => useContractForm());
 
