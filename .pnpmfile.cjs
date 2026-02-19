@@ -46,6 +46,7 @@ const UI_BUILDER_PACKAGE_MAP = {
   '@openzeppelin/ui-builder-adapter-evm': 'packages/adapter-evm',
   '@openzeppelin/ui-builder-adapter-stellar': 'packages/adapter-stellar',
   '@openzeppelin/ui-builder-adapter-solana': 'packages/adapter-solana',
+  '@openzeppelin/ui-builder-adapter-polkadot': 'packages/adapter-polkadot',
 };
 
 /**
