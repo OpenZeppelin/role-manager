@@ -1,5 +1,5 @@
 # Build stage
-FROM node:25-slim@sha256:ee036ac49abf78c38be1ae0a622fb9aa2beeffe4d7b65eeca6fd2a90b685726d AS base
+FROM node:25-slim@sha256:32f45869cf02c26971de72c383d5f99cab002905ed8b515b56df925007941782 AS base
 
 WORKDIR /app
 
@@ -51,7 +51,7 @@ ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN pnpm build:app
 
 # Runtime stage - using a slim image for a smaller footprint
-FROM node:25-slim@sha256:ee036ac49abf78c38be1ae0a622fb9aa2beeffe4d7b65eeca6fd2a90b685726d AS runner
+FROM node:25-slim@sha256:32f45869cf02c26971de72c383d5f99cab002905ed8b515b56df925007941782 AS runner
 
 # Set NODE_ENV to production for the final runtime image
 ENV NODE_ENV=production
