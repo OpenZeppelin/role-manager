@@ -73,6 +73,7 @@ describe('useContractForm', () => {
           description: '',
           explorerGuidance: '',
           addressExample: '0xA1B2...',
+          defaultFeatureConfig: { enabled: true, showInUI: true },
         };
       if (ecosystem === 'stellar')
         return {
@@ -81,6 +82,7 @@ describe('useContractForm', () => {
           description: '',
           explorerGuidance: '',
           addressExample: 'GCKF...MTGG',
+          defaultFeatureConfig: { enabled: true, showInUI: true },
         };
       return undefined;
     });
@@ -518,6 +520,7 @@ describe('useContractForm', () => {
         description: '',
         explorerGuidance: '',
         addressExample: '0xA1B2...',
+        defaultFeatureConfig: { enabled: true, showInUI: true },
       });
 
       const { result } = renderHook(() => useContractForm());
@@ -542,6 +545,7 @@ describe('useContractForm', () => {
         description: '',
         explorerGuidance: '',
         addressExample: '0xA1B2...',
+        defaultFeatureConfig: { enabled: true, showInUI: true },
       });
 
       const { result } = renderHook(() => useContractForm());
