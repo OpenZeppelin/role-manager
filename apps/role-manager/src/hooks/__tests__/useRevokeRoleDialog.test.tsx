@@ -340,7 +340,7 @@ describe('useRevokeRoleDialog', () => {
         expect.objectContaining({
           roleId: MOCK_ROLE_ID,
           account: MOCK_TARGET_ADDRESS,
-          executionConfig: { method: 'eoa' },
+          executionConfig: { method: 'eoa', allowAny: true },
         })
       );
     });

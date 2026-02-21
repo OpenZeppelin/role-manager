@@ -28,7 +28,13 @@ import { useSearchParams } from 'react-router-dom';
 import { Button, Card } from '@openzeppelin/ui-components';
 import { cn } from '@openzeppelin/ui-utils';
 
-import { AcceptAdminTransferDialog, TransferAdminDialog } from '../components/Admin';
+import {
+  AcceptAdminTransferDialog,
+  CancelAdminTransferDialog,
+  ChangeAdminDelayDialog,
+  RollbackAdminDelayDialog,
+  TransferAdminDialog,
+} from '../components/Admin';
 import { AcceptOwnershipDialog, TransferOwnershipDialog } from '../components/Ownership';
 import {
   AssignRoleDialog,
@@ -45,7 +51,9 @@ import {
 import type { AccountData } from '../components/Roles/RoleDetails';
 import { PageEmptyState } from '../components/Shared/PageEmptyState';
 import { PageHeader } from '../components/Shared/PageHeader';
-import { useAllNetworks, useRolesPageData } from '../hooks';
+import { TypeToConfirmDialog } from '../components/Shared/TypeToConfirmDialog';
+import { useAllNetworks, useMutationPreview, useRolesPageData } from '../hooks';
+import { useRenounceDialog, type RenounceType } from '../hooks/useRenounceDialog';
 import { useSelectedContract } from '../hooks/useSelectedContract';
 import { createGetAccountUrl } from '../utils/explorer-urls';
 
@@ -77,6 +85,8 @@ export function Roles() {
     pendingTransfer, // Feature 015 Phase 6 (T026, T027): for pending transfer display
     ownershipState, // Feature 015 Phase 6 (T028): for expired status display
     currentBlock, // For expiration countdown
+    ownershipExpirationMetadata,
+    adminExpirationMetadata,
     // Feature 016: Admin-related data
     adminInfo,
     pendingAdminTransfer,
@@ -125,8 +135,22 @@ export function Roles() {
   // Spec 016 (T037): Accept Admin Transfer dialog state
   const [isAcceptAdminTransferDialogOpen, setIsAcceptAdminTransferDialogOpen] = useState(false);
 
+  // Feature 017 (T054): Renounce dialog state
+  const [renounceDialogOpen, setRenounceDialogOpen] = useState(false);
+  const [renounceConfig, setRenounceConfig] = useState<{
+    type: RenounceType;
+    roleId?: string;
+    roleName?: string;
+  }>({ type: 'ownership' });
+
+  // Feature 017 (T066): Cancel admin transfer dialog state
+  const [isCancelAdminTransferDialogOpen, setIsCancelAdminTransferDialogOpen] = useState(false);
+
   // Get contract info for display
   const { selectedContract, adapter } = useSelectedContract();
+
+  // Reactivity feedback: context-specific preview data while polling
+  const mutationPreview = useMutationPreview(selectedContract?.address ?? '');
   const contractLabel = selectedContract?.label || selectedContract?.address || 'Unknown Contract';
 
   // Create URL generator function for explorer links
@@ -205,6 +229,52 @@ export function Roles() {
     setIsAcceptAdminTransferDialogOpen(true);
   }, []);
 
+  // Feature 017 (T054): Open renounce ownership dialog
+  const handleRenounceOwnership = useCallback(() => {
+    setRenounceConfig({ type: 'ownership' });
+    setRenounceDialogOpen(true);
+  }, []);
+
+  // Feature 017 (T054): Open renounce role dialog
+  const handleRenounceRole = useCallback((roleId: string, roleName: string) => {
+    setRenounceConfig({ type: 'role', roleId, roleName });
+    setRenounceDialogOpen(true);
+  }, []);
+
+  // Feature 017 (T066): Open cancel admin transfer dialog
+  const handleCancelAdminTransfer = useCallback(() => {
+    setIsCancelAdminTransferDialogOpen(true);
+  }, []);
+
+  // Feature 017 (T064): Open change admin delay dialog
+  const handleChangeAdminDelay = useCallback(() => {
+    setIsChangeAdminDelayDialogOpen(true);
+  }, []);
+
+  // Feature 017 (T064): Open rollback admin delay dialog
+  const handleRollbackAdminDelay = useCallback(() => {
+    setIsRollbackAdminDelayDialogOpen(true);
+  }, []);
+
+  // Feature 017 (T064): Change admin delay dialog state
+  const [isChangeAdminDelayDialogOpen, setIsChangeAdminDelayDialogOpen] = useState(false);
+
+  // Feature 017 (T064): Rollback admin delay dialog state
+  const [isRollbackAdminDelayDialogOpen, setIsRollbackAdminDelayDialogOpen] = useState(false);
+
+  // Feature 017 (T068): delayInfo from adminInfo for AdminDelayPanel
+  const delayInfo =
+    adminInfo && 'delayInfo' in adminInfo
+      ? (
+          adminInfo as {
+            delayInfo: {
+              currentDelay: number;
+              pendingDelay?: { newDelay: number; effectAt: number };
+            };
+          }
+        ).delayInfo
+      : undefined;
+
   // Spec 015 (T021): Check if connected wallet can accept ownership (is the pending owner)
   const canAcceptOwnership = useMemo(() => {
     if (!pendingOwner || !connectedAddress) return false;
@@ -216,6 +286,15 @@ export function Roles() {
     if (!pendingAdminTransfer?.pendingAdmin || !connectedAddress) return false;
     return pendingAdminTransfer.pendingAdmin.toLowerCase() === connectedAddress.toLowerCase();
   }, [pendingAdminTransfer, connectedAddress]);
+
+  // Feature 017 (T054): Renounce dialog hook
+  // No onSuccess callback — centralized query invalidation in mutations handles data refresh
+  const renounceDialog = useRenounceDialog({
+    type: renounceConfig.type,
+    roleId: renounceConfig.roleId,
+    roleName: renounceConfig.roleName,
+    onClose: () => setRenounceDialogOpen(false),
+  });
 
   // Phase 6: Handle description save from dialog
   const handleSaveDescription = useCallback(
@@ -339,6 +418,8 @@ export function Roles() {
                     : undefined
                 }
                 currentBlock={currentBlock}
+                ownershipExpirationMetadata={ownershipExpirationMetadata}
+                adminExpirationMetadata={adminExpirationMetadata}
                 // Feature 016: Admin-related props
                 onTransferAdmin={handleTransferAdmin}
                 pendingAdminTransfer={pendingAdminTransfer}
@@ -351,6 +432,19 @@ export function Roles() {
                 // Phase 5 (T036): Accept admin transfer props
                 canAcceptAdminTransfer={canAcceptAdminTransfer}
                 onAcceptAdminTransfer={handleAcceptAdminTransfer}
+                // Feature 017 (T054): Renounce props
+                hasRenounceOwnership={capabilities?.hasRenounceOwnership ?? false}
+                onRenounceOwnership={handleRenounceOwnership}
+                hasRenounceRole={capabilities?.hasRenounceRole ?? false}
+                onRenounceRole={handleRenounceRole}
+                // Feature 017 (T066, T067): Cancel admin transfer & admin delay
+                hasCancelAdminTransfer={capabilities?.hasCancelAdminTransfer ?? false}
+                onCancelAdminTransfer={handleCancelAdminTransfer}
+                hasAdminDelayManagement={capabilities?.hasAdminDelayManagement ?? false}
+                delayInfo={delayInfo}
+                onChangeDelayClick={handleChangeAdminDelay}
+                onRollbackClick={handleRollbackAdminDelay}
+                mutationPreview={mutationPreview}
               />
             ) : (
               <div className="flex items-center justify-center h-full p-6 text-muted-foreground">
@@ -412,16 +506,15 @@ export function Roles() {
             currentOwner={currentOwner}
             hasTwoStepOwnable={capabilities?.hasTwoStepOwnable ?? false}
             hasPendingTransfer={hasPendingTransfer}
-            onSuccess={refetch}
           />
         );
       })()}
 
       {/* Spec 015 (T021): Accept Ownership Dialog */}
+      {/* Note: onSuccess removed — centralized query invalidation in mutations handles data refresh */}
       <AcceptOwnershipDialog
         open={isAcceptOwnershipDialogOpen}
         onOpenChange={setIsAcceptOwnershipDialogOpen}
-        onSuccess={refetch}
       />
 
       {/* Spec 016 (T027): Transfer Admin Dialog */}
@@ -435,7 +528,6 @@ export function Roles() {
             onOpenChange={setIsTransferAdminDialogOpen}
             currentAdmin={currentAdmin}
             hasPendingAdminTransfer={hasPendingAdminTransferFlag}
-            onSuccess={refetch}
           />
         );
       })()}
@@ -444,7 +536,43 @@ export function Roles() {
       <AcceptAdminTransferDialog
         open={isAcceptAdminTransferDialogOpen}
         onOpenChange={setIsAcceptAdminTransferDialogOpen}
-        onSuccess={refetch}
+      />
+
+      {/* Feature 017 (T066): Cancel Admin Transfer Dialog */}
+      <CancelAdminTransferDialog
+        open={isCancelAdminTransferDialogOpen}
+        onOpenChange={setIsCancelAdminTransferDialogOpen}
+      />
+
+      {/* Feature 017 (T064): Change Admin Delay Dialog */}
+      <ChangeAdminDelayDialog
+        open={isChangeAdminDelayDialogOpen}
+        onOpenChange={setIsChangeAdminDelayDialogOpen}
+      />
+
+      {/* Feature 017 (T064): Rollback Admin Delay Dialog */}
+      <RollbackAdminDelayDialog
+        open={isRollbackAdminDelayDialogOpen}
+        onOpenChange={setIsRollbackAdminDelayDialogOpen}
+      />
+
+      {/* Feature 017 (T054): Renounce Confirmation Dialog */}
+      <TypeToConfirmDialog
+        open={renounceDialogOpen}
+        onOpenChange={setRenounceDialogOpen}
+        title={renounceDialog.title}
+        warningText={renounceDialog.warningText}
+        confirmKeyword={renounceDialog.confirmKeyword}
+        submitLabel={renounceDialog.submitLabel}
+        successMessage={renounceDialog.successMessage}
+        step={renounceDialog.step}
+        errorMessage={renounceDialog.errorMessage}
+        txStatus={renounceDialog.txStatus}
+        isWalletConnected={renounceDialog.isWalletConnected}
+        isPending={renounceDialog.isPending}
+        onSubmit={renounceDialog.submit}
+        onRetry={renounceDialog.retry}
+        onReset={renounceDialog.reset}
       />
     </div>
   );

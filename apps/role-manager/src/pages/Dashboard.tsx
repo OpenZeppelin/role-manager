@@ -127,11 +127,12 @@ export function Dashboard() {
   }, []);
 
   // Phase 6.5: Handle successful acceptance
+  // No manual refetch needed — centralized query invalidation in mutations handles data refresh.
+  // The pending transfers hook refetches automatically via query invalidation of ownership/admin queries.
   const handleAcceptSuccess = useCallback(() => {
-    // Refresh data after successful acceptance
+    // Only refetch pending transfers which are aggregated locally (not a query the mutation map knows about)
     void refetchTransfers();
-    void refetch();
-  }, [refetchTransfers, refetch]);
+  }, [refetchTransfers]);
 
   // Combined loading state for stats cards (initial load OR manual refresh)
   const isDataLoading = isLoading || isRefreshing;

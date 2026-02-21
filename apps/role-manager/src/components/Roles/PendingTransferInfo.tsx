@@ -1,6 +1,7 @@
 /**
  * PendingTransferInfo Component
  * Feature: 015-ownership-transfer Phase 6 (T026, T027, T028)
+ * Updated by: 017-evm-access-control (Phase 6 — US5, T039)
  *
  * Generic component for displaying pending transfer information.
  * Reusable for:
@@ -11,17 +12,25 @@
  *
  * Displays:
  * - Pending recipient address
- * - Expiration block/ledger number
+ * - Expiration info with adapter-driven labels (no hardcoded "Block"/"Ledger")
  * - Expired status when applicable
  */
 
 import { AlertTriangle, Clock, Info, User } from 'lucide-react';
 
 import { AddressDisplay } from '@openzeppelin/ui-components';
+import type { ExpirationMetadata } from '@openzeppelin/ui-types';
 import { cn } from '@openzeppelin/ui-utils';
 
 import { useBlockTime } from '../../context/useBlockTime';
 import { calculateBlockExpiration, formatTimeEstimateDisplay } from '../../utils/block-time';
+import {
+  formatExpirationTimestamp,
+  getExpirationStatusLabel,
+  getExpirationUnitPlural,
+  getTimestampTimeRemaining,
+  isTimestampBasedExpiration,
+} from '../../utils/expiration';
 import { AcceptTransferButton } from '../Shared/AcceptTransferButton';
 
 /**
@@ -32,8 +41,8 @@ export interface PendingTransferInfoProps {
   pendingRecipient: string;
   /** Explorer URL for the pending recipient address */
   pendingRecipientUrl?: string;
-  /** Expiration block/ledger number */
-  expirationBlock: number;
+  /** Expiration block/ledger number (undefined when chain has no expiration, e.g., EVM Ownable2Step) */
+  expirationBlock?: number;
   /** Whether the transfer is expired */
   isExpired: boolean;
   /**
@@ -49,6 +58,8 @@ export interface PendingTransferInfoProps {
   recipientLabel?: string;
   /** Optional: Current block/ledger for context display */
   currentBlock?: number | null;
+  /** Adapter-driven expiration metadata for display labels */
+  expirationMetadata?: ExpirationMetadata;
   /** Whether the connected user can accept this transfer */
   canAccept?: boolean;
   /** Callback when Accept button is clicked */
@@ -92,6 +103,7 @@ export function PendingTransferInfo({
   transferLabel = 'Ownership',
   recipientLabel = 'Owner',
   currentBlock,
+  expirationMetadata,
   canAccept,
   onAccept,
   className,
@@ -99,10 +111,14 @@ export function PendingTransferInfo({
   // Get block time estimation for human-readable time display
   const { formatBlocksToTime } = useBlockTime();
 
-  // Calculate blocks remaining and time estimate
-  const expirationEstimate = !isExpired
-    ? calculateBlockExpiration(expirationBlock, currentBlock, formatBlocksToTime)
-    : null;
+  // Whether this is a timestamp-based expiration (e.g., EVM AccessControlDefaultAdminRules)
+  const isTimestamp = isTimestampBasedExpiration(expirationMetadata);
+
+  // Calculate blocks remaining and time estimate (only when expiration is defined and not timestamp-based)
+  const expirationEstimate =
+    !isExpired && expirationBlock != null && !isTimestamp
+      ? calculateBlockExpiration(expirationBlock, currentBlock, formatBlocksToTime)
+      : null;
 
   return (
     <div
@@ -145,25 +161,55 @@ export function PendingTransferInfo({
         />
       </div>
 
-      {/* Expiration info */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-        <span className="text-xs text-muted-foreground shrink-0">
-          {isExpired ? 'Expired at Block:' : 'Expires at Block:'}
-        </span>
-        <span className={cn('text-xs font-mono', isExpired ? 'text-amber-700' : 'text-foreground')}>
-          {expirationBlock.toLocaleString()}
-        </span>
-        {expirationEstimate && (
-          <span className="text-xs text-muted-foreground">
-            ({expirationEstimate.blocksRemaining.toLocaleString()} blocks
-            {expirationEstimate.timeEstimate
-              ? ` · ${formatTimeEstimateDisplay(expirationEstimate.timeEstimate)}`
-              : ''}
-            )
+      {/* Expiration info — only shown when chain has expiration (e.g., Stellar ledger, EVM schedule) */}
+      {expirationBlock != null && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+          <span className="text-xs text-muted-foreground shrink-0">
+            {getExpirationStatusLabel(isExpired, expirationMetadata)}
           </span>
-        )}
-      </div>
+          {isTimestamp ? (
+            <>
+              <span
+                className={cn(
+                  'text-xs font-mono',
+                  isExpired ? 'text-amber-700' : 'text-foreground'
+                )}
+              >
+                {formatExpirationTimestamp(expirationBlock)}
+              </span>
+              {!isExpired &&
+                (() => {
+                  const remaining = getTimestampTimeRemaining(expirationBlock);
+                  return remaining ? (
+                    <span className="text-xs text-muted-foreground">(~{remaining} remaining)</span>
+                  ) : null;
+                })()}
+            </>
+          ) : (
+            <>
+              <span
+                className={cn(
+                  'text-xs font-mono',
+                  isExpired ? 'text-amber-700' : 'text-foreground'
+                )}
+              >
+                {expirationBlock.toLocaleString()}
+              </span>
+              {expirationEstimate && (
+                <span className="text-xs text-muted-foreground">
+                  ({expirationEstimate.blocksRemaining.toLocaleString()}{' '}
+                  {getExpirationUnitPlural(expirationMetadata)}
+                  {expirationEstimate.timeEstimate
+                    ? ` · ${formatTimeEstimateDisplay(expirationEstimate.timeEstimate)}`
+                    : ''}
+                  )
+                </span>
+              )}
+            </>
+          )}
+        </div>
+      )}
 
       {/* Accept button - shown when user can accept and transfer is not expired */}
       {canAccept && !isExpired && onAccept && (

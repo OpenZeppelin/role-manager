@@ -53,6 +53,7 @@ const mockRoles: RoleWithDescription[] = [
     members: [MOCK_ACCOUNT_ADDRESS, MOCK_CONNECTED_ADDRESS],
     isOwnerRole: false,
     isAdminRole: true,
+    isHashDisplay: false,
   },
   {
     roleId: 'MINTER_ROLE_ID',
@@ -62,6 +63,7 @@ const mockRoles: RoleWithDescription[] = [
     members: ['0xOtherAddress'],
     isOwnerRole: false,
     isAdminRole: false,
+    isHashDisplay: false,
   },
   {
     roleId: 'PAUSER_ROLE_ID',
@@ -71,6 +73,7 @@ const mockRoles: RoleWithDescription[] = [
     members: [],
     isOwnerRole: false,
     isAdminRole: false,
+    isHashDisplay: false,
   },
 ];
 
@@ -647,7 +650,7 @@ describe('useManageRolesDialog', () => {
         expect.objectContaining({
           roleId: 'MINTER_ROLE_ID',
           account: MOCK_ACCOUNT_ADDRESS,
-          executionConfig: { method: 'eoa' },
+          executionConfig: { method: 'eoa', allowAny: true },
         })
       );
       expect(mockRevokeRoleMutateAsync).not.toHaveBeenCalled();
@@ -681,7 +684,7 @@ describe('useManageRolesDialog', () => {
         expect.objectContaining({
           roleId: 'ADMIN_ROLE_ID',
           account: MOCK_ACCOUNT_ADDRESS,
-          executionConfig: { method: 'eoa' },
+          executionConfig: { method: 'eoa', allowAny: true },
         })
       );
       expect(mockGrantRoleMutateAsync).not.toHaveBeenCalled();

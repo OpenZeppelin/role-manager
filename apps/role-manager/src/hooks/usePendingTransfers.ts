@@ -2,9 +2,11 @@
  * usePendingTransfers hook
  * Feature: 015-ownership-transfer (Phase 6.5)
  * Updated by: 016-two-step-admin-assignment (Phase 6)
+ * Updated by: 017-evm-access-control (Phase 6 — US5, T041)
  *
  * Aggregates pending transfers from multiple sources for Dashboard display.
  * Currently supports ownership transfers and admin role transfers.
+ * Includes adapter-driven ExpirationMetadata for chain-agnostic display.
  *
  * Tasks: T045, T040, T041
  */
@@ -13,16 +15,19 @@ import { useCallback, useMemo } from 'react';
 
 import type {
   ContractAdapter,
+  ExpirationMetadata,
   OwnershipInfo,
   PendingAdminTransfer,
   PendingOwnershipTransfer,
 } from '@openzeppelin/ui-types';
 
 import type { PendingTransfer, UsePendingTransfersReturn } from '../types/pending-transfers';
+import { hasNoExpiration } from '../utils/expiration';
 import { createGetAccountUrl } from '../utils/explorer-urls';
 import { useContractCapabilities } from './useContractCapabilities';
 import { useContractAdminInfo, useContractOwnership } from './useContractData';
 import { useCurrentBlock } from './useCurrentBlock';
+import { useExpirationMetadata } from './useExpirationMetadata';
 import { useSelectedContract } from './useSelectedContract';
 
 // =============================================================================
@@ -60,10 +65,13 @@ function transformOwnershipTransfer(
   pendingTransfer: PendingOwnershipTransfer,
   currentBlock: number | null,
   connectedAddress: string | null | undefined,
-  adapter: ContractAdapter | null
+  adapter: ContractAdapter | null,
+  expirationMetadata: ExpirationMetadata | undefined
 ): PendingTransfer {
   const expirationBlock = pendingTransfer.expirationBlock ?? 0;
-  const isExpired = currentBlock !== null && currentBlock >= expirationBlock;
+  // When there's no expiration concept (mode: 'none'), the transfer never expires
+  const noExpiration = hasNoExpiration(expirationMetadata);
+  const isExpired = !noExpiration && currentBlock !== null && currentBlock >= expirationBlock;
   const isPendingOwner = addressesEqual(connectedAddress, pendingTransfer.pendingOwner);
 
   // Generate explorer URLs for addresses
@@ -79,6 +87,7 @@ function transformOwnershipTransfer(
     pendingRecipientUrl: getAccountUrl(pendingTransfer.pendingOwner) ?? undefined,
     expirationBlock,
     isExpired,
+    expirationMetadata,
     step: { current: 1, total: 2 },
     canAccept: isPendingOwner && !isExpired,
     initiatedAt: undefined, // Not available in current API
@@ -95,10 +104,13 @@ function transformAdminTransfer(
   pendingTransfer: PendingAdminTransfer,
   currentBlock: number | null,
   connectedAddress: string | null | undefined,
-  adapter: ContractAdapter | null
+  adapter: ContractAdapter | null,
+  expirationMetadata: ExpirationMetadata | undefined
 ): PendingTransfer {
   const expirationBlock = pendingTransfer.expirationBlock ?? 0;
-  const isExpired = currentBlock !== null && currentBlock >= expirationBlock;
+  // When there's no expiration concept (mode: 'none'), the transfer never expires
+  const noExpiration = hasNoExpiration(expirationMetadata);
+  const isExpired = !noExpiration && currentBlock !== null && currentBlock >= expirationBlock;
   const isPendingAdmin = addressesEqual(connectedAddress, pendingTransfer.pendingAdmin);
 
   // Generate explorer URLs for addresses
@@ -114,6 +126,7 @@ function transformAdminTransfer(
     pendingRecipientUrl: getAccountUrl(pendingTransfer.pendingAdmin) ?? undefined,
     expirationBlock,
     isExpired,
+    expirationMetadata,
     step: { current: 1, total: 2 },
     canAccept: isPendingAdmin && !isExpired,
     initiatedAt: undefined, // Not available in current API
@@ -163,9 +176,11 @@ export function usePendingTransfers(
 
   // Feature 016: Get capabilities to check for two-step admin support
   const { capabilities } = useContractCapabilities(adapter, contractAddress, isContractRegistered);
+  const hasOwnable = capabilities?.hasOwnable ?? false;
   const hasTwoStepAdmin = capabilities?.hasTwoStepAdmin ?? false;
 
   // Fetch ownership data (includes pendingTransfer if available)
+  // Only fetch when contract has Ownable capability (prevents errors on AccessControl-only contracts)
   const {
     ownership,
     isLoading: isOwnershipLoading,
@@ -173,7 +188,7 @@ export function usePendingTransfers(
     hasError: ownershipHasError,
     errorMessage: ownershipErrorMessage,
     refetch: refetchOwnership,
-  } = useContractOwnership(adapter, contractAddress, isContractRegistered);
+  } = useContractOwnership(adapter, contractAddress, isContractRegistered, hasOwnable);
 
   // Feature 016: Fetch admin info (only when contract supports two-step admin)
   const {
@@ -185,9 +200,27 @@ export function usePendingTransfers(
     refetch: refetchAdminInfo,
   } = useContractAdminInfo(adapter, contractAddress, isContractRegistered, hasTwoStepAdmin);
 
-  // Get current block for expiration calculation
+  // Fetch expiration metadata for both transfer types (T041)
+  const { metadata: ownershipExpirationMetadata } = useExpirationMetadata(
+    adapter,
+    contractAddress,
+    'ownership',
+    { enabled: hasOwnable }
+  );
+  const { metadata: adminExpirationMetadata } = useExpirationMetadata(
+    adapter,
+    contractAddress,
+    'admin',
+    { enabled: hasTwoStepAdmin }
+  );
+
+  // Get current block for expiration calculation.
+  // Polling disabled — the Dashboard is a summary view and doesn't need a live
+  // countdown.  The block is fetched once on mount; subsequent updates come from
+  // the manual `refetch()` action or when the query is invalidated by mutations.
   const { currentBlock, isLoading: isBlockLoading } = useCurrentBlock(adapter, {
     enabled: !!selectedContract,
+    pollInterval: false,
   });
 
   // =============================================================================
@@ -215,7 +248,8 @@ export function usePendingTransfers(
           ownershipWithPending.pendingTransfer,
           currentBlock,
           connectedAddress,
-          adapter
+          adapter,
+          ownershipExpirationMetadata
         );
 
         // Filter expired unless includeExpired is true
@@ -238,7 +272,8 @@ export function usePendingTransfers(
         adminInfo.pendingTransfer,
         currentBlock,
         connectedAddress,
-        adapter
+        adapter,
+        adminExpirationMetadata
       );
 
       // Filter expired unless includeExpired is true
@@ -259,6 +294,8 @@ export function usePendingTransfers(
     connectedAddress,
     includeExpired,
     adapter,
+    ownershipExpirationMetadata,
+    adminExpirationMetadata,
   ]);
 
   // =============================================================================

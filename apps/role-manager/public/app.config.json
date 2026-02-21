@@ -1,11 +1,15 @@
 {
   "$comment": "Base configuration. For secrets (API keys), use .env.local with VITE_APP_CFG_* variables",
   "featureFlags": {
-    "analytics_enabled": true
+    "analytics_enabled": true,
+    "access_control_indexer": true
   },
   "rpcEndpoints": {},
   "indexerEndpoints": {},
   "globalServiceConfigs": {
+    "walletconnect": {
+      "projectId": "9f7100fc84f2327968f7bb11d38a4c2b"
+    },
     "walletui": {
       "stellar": {
         "kitName": "custom",
@@ -14,6 +18,14 @@
         }
       },
       "evm": {
+        "kitName": "custom",
+        "kitConfig": {
+          "components": {
+            "exclude": ["NetworkSwitcher"]
+          }
+        }
+      },
+      "polkadot": {
         "kitName": "custom",
         "kitConfig": {
           "components": {

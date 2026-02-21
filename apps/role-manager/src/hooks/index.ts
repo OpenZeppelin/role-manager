@@ -31,6 +31,9 @@ export { useRecentContracts } from './useRecentContracts';
 export { useContractSchema } from './useContractSchema';
 export { useContractSchemaLoader } from './useContractSchemaLoader';
 
+// Centralized query keys (used by mutation hooks, invalidation map, and tests)
+export { queryKeys } from './queryKeys';
+
 // Access Control hooks
 export { useAccessControlService } from './useAccessControlService';
 export type { UseAccessControlServiceReturn } from './useAccessControlService';
@@ -42,6 +45,7 @@ export {
   useContractAdminInfo,
   usePaginatedRoles,
   adminInfoQueryKey,
+  useMutationPreview,
 } from './useContractData';
 export { DataError, ErrorCategory } from '../utils/errors';
 export type {
@@ -60,6 +64,8 @@ export {
   useAcceptOwnership,
   useTransferAdminRole,
   useAcceptAdminTransfer,
+  useRenounceOwnership,
+  useRenounceRole,
   useExportSnapshot,
 } from './useAccessControlMutations';
 export type {
@@ -69,6 +75,8 @@ export type {
   AcceptOwnershipArgs,
   TransferAdminRoleArgs,
   AcceptAdminTransferArgs,
+  RenounceOwnershipArgs,
+  RenounceRoleArgs,
   MutationHookOptions,
   UseAccessControlMutationReturn,
   AccessSnapshot,
@@ -79,6 +87,9 @@ export type {
 // Current Block Hook (Feature: 015-ownership-transfer)
 export { useCurrentBlock, DEFAULT_POLL_INTERVAL_MS } from './useCurrentBlock';
 export type { UseCurrentBlockOptions, UseCurrentBlockReturn } from './useCurrentBlock';
+
+// Chain-agnostic block poll interval (Feature: 017-evm-access-control)
+export { useBlockPollInterval, computeBlockPollInterval } from './useBlockPollInterval';
 
 // Block Time Estimation Hook (Feature: 015-ownership-transfer)
 export { useBlockTimeEstimate } from './useBlockTimeEstimate';
@@ -172,6 +183,33 @@ export type {
 // Pending Transfers Hook (Feature: 015-ownership-transfer Phase 6.5)
 export { usePendingTransfers } from './usePendingTransfers';
 export type { UsePendingTransfersOptions } from './usePendingTransfers';
+
+// Admin Delay Dialog Hooks (Feature: 017-evm-access-control)
+export { useChangeAdminDelayDialog } from './useChangeAdminDelayDialog';
+export type {
+  UseChangeAdminDelayDialogOptions,
+  UseChangeAdminDelayDialogReturn,
+} from './useChangeAdminDelayDialog';
+export { useRollbackAdminDelayDialog } from './useRollbackAdminDelayDialog';
+export type {
+  UseRollbackAdminDelayDialogOptions,
+  UseRollbackAdminDelayDialogReturn,
+} from './useRollbackAdminDelayDialog';
+
+// Cancel Admin Transfer Dialog Hook (Feature: 017-evm-access-control)
+export { useCancelAdminTransferDialog } from './useCancelAdminTransferDialog';
+export type {
+  UseCancelAdminTransferDialogOptions,
+  UseCancelAdminTransferDialogReturn,
+} from './useCancelAdminTransferDialog';
+
+// Renounce Dialog Hook (Feature: 017-evm-access-control)
+export { useRenounceDialog } from './useRenounceDialog';
+export type {
+  RenounceType,
+  UseRenounceDialogOptions,
+  UseRenounceDialogReturn,
+} from './useRenounceDialog';
 
 // Utility hooks
 export { useDebounce } from './useDebounce';

@@ -12,7 +12,7 @@ import {
 } from '@openzeppelin/ui-components';
 import { logger } from '@openzeppelin/ui-utils';
 
-import { getEcosystemName } from '../../core/ecosystems/registry';
+import { getEcosystemMetadata } from '../../core/ecosystems/ecosystemManager';
 import { useAllNetworks } from '../../hooks/useAllNetworks';
 import { useRecentContracts } from '../../hooks/useRecentContracts';
 import { useSelectedContract } from '../../hooks/useSelectedContract';
@@ -107,7 +107,7 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps): React
         getNetworkIcon={(n) => <NetworkIcon network={n} />}
         getNetworkType={(n) => n.type}
         groupByEcosystem
-        getEcosystem={(n) => getEcosystemName(n.ecosystem)}
+        getEcosystem={(n) => getEcosystemMetadata(n.ecosystem)?.name ?? n.ecosystem}
         placeholder={isLoadingNetworks ? 'Loading networks...' : 'Select Network'}
       />
     </div>

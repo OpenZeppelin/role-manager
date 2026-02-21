@@ -24,13 +24,18 @@ import {
 } from '@openzeppelin/ui-components';
 import type {
   AdminState,
+  ExpirationMetadata,
   OwnershipState,
   PendingAdminTransfer,
   PendingOwnershipTransfer,
 } from '@openzeppelin/ui-types';
 import { cn } from '@openzeppelin/ui-utils';
 
+import type { MutationPreviewData } from '../../hooks/useContractData';
 import type { RoleWithDescription } from '../../types/roles';
+import { AdminDelayPanel } from '../Admin/AdminDelayPanel';
+import { FadingOverlay, GhostAccountRow, GhostPendingTransfer } from '../Shared/MutationPreviews';
+import { RoleNameDisplay } from '../Shared/RoleNameDisplay';
 import { AccountRow } from './AccountRow';
 import { PendingTransferInfo } from './PendingTransferInfo';
 
@@ -84,6 +89,10 @@ export interface RoleDetailsProps {
   pendingRecipientUrl?: string;
   /** Current block/ledger number for expiration countdown */
   currentBlock?: number | null;
+  /** Adapter-driven expiration metadata for ownership pending transfers */
+  ownershipExpirationMetadata?: ExpirationMetadata;
+  /** Adapter-driven expiration metadata for admin pending transfers */
+  adminExpirationMetadata?: ExpirationMetadata;
 
   // =============================================================================
   // Feature 016: Two-Step Admin Assignment
@@ -108,6 +117,39 @@ export interface RoleDetailsProps {
   /** Feature 016: Transfer admin action */
   onTransferAdmin?: () => void;
 
+  // =============================================================================
+  // Feature 017: Renounce Operations
+  // =============================================================================
+
+  /** Feature 017 (T052): Whether contract supports renouncing ownership */
+  hasRenounceOwnership?: boolean;
+  /** Feature 017 (T052): Renounce ownership handler */
+  onRenounceOwnership?: () => void;
+  /** Feature 017 (T053): Whether contract supports renouncing roles */
+  hasRenounceRole?: boolean;
+  /** Feature 017 (T053): Renounce role handler */
+  onRenounceRole?: (roleId: string, roleName: string) => void;
+
+  // =============================================================================
+  // Feature 017: Cancel Admin Transfer & Admin Delay (US7)
+  // =============================================================================
+
+  /** Feature 017 (T066): Whether contract supports canceling pending admin transfer */
+  hasCancelAdminTransfer?: boolean;
+  /** Feature 017 (T066): Cancel admin transfer handler (only when pending) */
+  onCancelAdminTransfer?: () => void;
+  /** Feature 017 (T067): Whether contract supports admin delay management */
+  hasAdminDelayManagement?: boolean;
+  /** Feature 017 (T067, T068): Delay info for AdminDelayPanel (from adminInfo.delayInfo) */
+  delayInfo?: { currentDelay: number; pendingDelay?: { newDelay: number; effectAt: number } };
+  /** Feature 017 (T067): Open change-delay dialog */
+  onChangeDelayClick?: () => void;
+  /** Feature 017 (T067): Open rollback dialog */
+  onRollbackClick?: () => void;
+
+  /** Active mutation preview data for context-specific inline indicators */
+  mutationPreview?: MutationPreviewData | null;
+
   /** Additional CSS classes */
   className?: string;
 }
@@ -129,6 +171,8 @@ export function RoleDetails({
   ownershipState,
   pendingRecipientUrl,
   currentBlock,
+  ownershipExpirationMetadata,
+  adminExpirationMetadata,
   // Feature 016: Admin-related props
   pendingAdminTransfer,
   adminState,
@@ -136,9 +180,72 @@ export function RoleDetails({
   canAcceptAdminTransfer,
   pendingAdminRecipientUrl,
   onTransferAdmin,
+  // Feature 017: Renounce props
+  hasRenounceOwnership,
+  onRenounceOwnership,
+  hasRenounceRole,
+  onRenounceRole,
+  // Feature 017 US7: Cancel admin transfer & admin delay
+  hasCancelAdminTransfer,
+  onCancelAdminTransfer,
+  hasAdminDelayManagement,
+  delayInfo,
+  onChangeDelayClick,
+  onRollbackClick,
+  // Reactivity feedback
+  mutationPreview,
   className,
 }: RoleDetailsProps) {
   const hasAccounts = accounts.length > 0;
+
+  // ---------------------------------------------------------------------------
+  // Mutation preview helpers — derive context-specific visibility from the
+  // central preview data. Each helper is only true when the preview matches
+  // the currently selected role.
+  // ---------------------------------------------------------------------------
+
+  const previewType = mutationPreview?.type;
+  const previewArgs = mutationPreview?.args;
+  const previewRoleId = previewArgs?.roleId as string | undefined;
+
+  // Grant: ghost row for a new member being added to THIS role
+  const isGrantPreview = previewType === 'grantRole' && previewRoleId === role.roleId;
+  const grantPreviewAddress = isGrantPreview ? (previewArgs?.account as string) : null;
+
+  // Revoke / renounce role: fading overlay on the specific member in THIS role
+  const isRemovePreview =
+    (previewType === 'revokeRole' || previewType === 'renounceRole') &&
+    previewRoleId === role.roleId;
+  const removePreviewAddress = isRemovePreview
+    ? (previewArgs?.account as string)?.toLowerCase()
+    : null;
+
+  // Renounce ownership: fading overlay on the owner row
+  const isRenounceOwnershipPreview = previewType === 'renounceOwnership' && role.isOwnerRole;
+
+  // Transfer ownership: ghost pending transfer (only when no real pending exists)
+  const isTransferOwnershipPreview =
+    previewType === 'transferOwnership' && role.isOwnerRole && !pendingTransfer;
+
+  // Transfer admin: ghost pending transfer (only when no real pending exists)
+  const isTransferAdminPreview =
+    previewType === 'transferAdmin' && role.isAdminRole && !pendingAdminTransfer;
+
+  // Change admin delay: ghost pending delay (only when no real pending exists)
+  const isChangeDelayPreview =
+    previewType === 'changeAdminDelay' && role.isAdminRole && !delayInfo?.pendingDelay;
+
+  // Rollback admin delay: fading overlay on the pending delay box
+  const isRollbackDelayPreview = previewType === 'rollbackAdminDelay' && role.isAdminRole;
+
+  // Cancel admin transfer: fading overlay on the pending transfer section
+  const isCancelAdminPreview = previewType === 'cancelAdmin' && role.isAdminRole;
+
+  // Accept ownership: fading overlay on the pending ownership transfer
+  const isAcceptOwnershipPreview = previewType === 'acceptOwnership' && role.isOwnerRole;
+
+  // Accept admin: fading overlay on the pending admin transfer
+  const isAcceptAdminPreview = previewType === 'acceptAdmin' && role.isAdminRole;
 
   return (
     <div className={cn(className)}>
@@ -152,7 +259,13 @@ export function RoleDetails({
               {role.isAdminRole && (
                 <Shield className="h-4 w-4 text-purple-600" aria-label="Admin role" />
               )}
-              <CardTitle>{role.roleName}</CardTitle>
+              <CardTitle>
+                <RoleNameDisplay
+                  roleName={role.roleName}
+                  roleId={role.roleId}
+                  isHashDisplay={role.isHashDisplay}
+                />
+              </CardTitle>
               {isConnected && (
                 <span className="text-xs bg-blue-50 text-blue-700 border border-blue-300 rounded-full px-2 py-0.5">
                   Connected
@@ -193,22 +306,42 @@ export function RoleDetails({
               </Button>
             )}
           </div>
-          <div className="border rounded-lg divide-y max-h-[460px] overflow-y-auto">
+          <div className="border rounded-lg divide-y max-h-[460px] overflow-y-auto [clip-path:inset(0_round_0.5rem)]">
+            {/* Ghost row for grantRole — prepended because new accounts appear at the top */}
+            {grantPreviewAddress && <GhostAccountRow address={grantPreviewAddress} />}
+
             {hasAccounts ? (
-              accounts.map((account) => (
-                <AccountRow
-                  key={account.address}
-                  address={account.address}
-                  assignedAt={account.assignedAt}
-                  isCurrentUser={account.isCurrentUser}
-                  isOwnerRole={role.isOwnerRole}
-                  isAdminRole={role.isAdminRole}
-                  explorerUrl={account.explorerUrl}
-                  onRevoke={onRevoke ? () => onRevoke(account.address) : undefined}
-                  onTransferOwnership={onTransferOwnership}
-                  onTransferAdmin={onTransferAdmin}
-                />
-              ))
+              accounts.map((account) => {
+                const isFading =
+                  (removePreviewAddress !== null &&
+                    account.address.toLowerCase() === removePreviewAddress) ||
+                  (isRenounceOwnershipPreview && account.isCurrentUser);
+
+                return (
+                  <div key={account.address} className="relative">
+                    <AccountRow
+                      address={account.address}
+                      assignedAt={account.assignedAt}
+                      isCurrentUser={account.isCurrentUser}
+                      isOwnerRole={role.isOwnerRole}
+                      isAdminRole={role.isAdminRole}
+                      explorerUrl={account.explorerUrl}
+                      onRevoke={onRevoke ? () => onRevoke(account.address) : undefined}
+                      onTransferOwnership={onTransferOwnership}
+                      onTransferAdmin={onTransferAdmin}
+                      hasRenounceOwnership={hasRenounceOwnership}
+                      onRenounceOwnership={onRenounceOwnership}
+                      hasRenounceRole={hasRenounceRole}
+                      onRenounceRole={
+                        onRenounceRole
+                          ? () => onRenounceRole(role.roleId, role.roleName)
+                          : undefined
+                      }
+                    />
+                    {isFading && <FadingOverlay />}
+                  </div>
+                );
+              })
             ) : (
               <div className="p-6 text-center text-sm text-muted-foreground">
                 {/* T055: Show "No Admin (Renounced)" for renounced admin state */}
@@ -223,32 +356,100 @@ export function RoleDetails({
           {role.isOwnerRole &&
             pendingTransfer &&
             (ownershipState === 'pending' || ownershipState === 'expired') && (
-              <PendingTransferInfo
-                pendingRecipient={pendingTransfer.pendingOwner}
-                pendingRecipientUrl={pendingRecipientUrl}
-                expirationBlock={pendingTransfer.expirationBlock}
-                isExpired={ownershipState === 'expired'}
-                canAccept={canAcceptOwnership}
-                onAccept={onAcceptOwnership}
-                currentBlock={currentBlock}
-              />
+              <div className="relative rounded-lg [clip-path:inset(0_round_0.5rem)]">
+                <PendingTransferInfo
+                  pendingRecipient={pendingTransfer.pendingOwner}
+                  pendingRecipientUrl={pendingRecipientUrl}
+                  expirationBlock={pendingTransfer.expirationBlock}
+                  isExpired={ownershipState === 'expired'}
+                  canAccept={canAcceptOwnership}
+                  onAccept={onAcceptOwnership}
+                  currentBlock={currentBlock}
+                  expirationMetadata={ownershipExpirationMetadata}
+                />
+                {/* Fading overlay when accept ownership is pending */}
+                {isAcceptOwnershipPreview && <FadingOverlay variant="info" />}
+              </div>
             )}
+
+          {/* Ghost preview: ownership transfer being confirmed */}
+          {isTransferOwnershipPreview && (
+            <GhostPendingTransfer
+              recipient={previewArgs?.newOwner as string}
+              transferLabel="Ownership"
+            />
+          )}
 
           {/* Feature 016: Pending Transfer Info for Admin role */}
           {role.isAdminRole &&
             pendingAdminTransfer &&
             (adminState === 'pending' || adminState === 'expired') && (
-              <PendingTransferInfo
-                pendingRecipient={pendingAdminTransfer.pendingAdmin}
-                pendingRecipientUrl={pendingAdminRecipientUrl}
-                expirationBlock={pendingAdminTransfer.expirationBlock}
-                isExpired={adminState === 'expired'}
-                canAccept={canAcceptAdminTransfer}
-                onAccept={onAcceptAdminTransfer}
-                currentBlock={currentBlock}
-                transferLabel="Admin Role"
-                recipientLabel="Admin"
-              />
+              <div className="relative rounded-lg [clip-path:inset(0_round_0.5rem)]">
+                <PendingTransferInfo
+                  pendingRecipient={pendingAdminTransfer.pendingAdmin}
+                  pendingRecipientUrl={pendingAdminRecipientUrl}
+                  expirationBlock={pendingAdminTransfer.expirationBlock}
+                  isExpired={adminState === 'expired'}
+                  canAccept={canAcceptAdminTransfer}
+                  onAccept={onAcceptAdminTransfer}
+                  currentBlock={currentBlock}
+                  expirationMetadata={adminExpirationMetadata}
+                  transferLabel="Admin Role"
+                  recipientLabel="Admin"
+                />
+                {/* Fading overlay when cancel is pending */}
+                {isCancelAdminPreview && <FadingOverlay />}
+                {/* Fading overlay when accept admin is pending */}
+                {isAcceptAdminPreview && <FadingOverlay variant="info" />}
+                {/* Feature 017 (T066): Cancel Admin Transfer — only current admin can cancel */}
+                {isConnected &&
+                  adminState === 'pending' &&
+                  hasCancelAdminTransfer &&
+                  onCancelAdminTransfer &&
+                  !isCancelAdminPreview && (
+                    <div className="mt-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={onCancelAdminTransfer}
+                        className="text-amber-700 border-amber-200 hover:bg-amber-50"
+                      >
+                        Cancel Admin Transfer
+                      </Button>
+                    </div>
+                  )}
+              </div>
+            )}
+
+          {/* Ghost preview: admin transfer being confirmed */}
+          {isTransferAdminPreview && (
+            <GhostPendingTransfer
+              recipient={previewArgs?.newAdmin as string}
+              transferLabel="Admin Role"
+            />
+          )}
+
+          {/* Feature 017 (T067): Admin Delay Panel — only current admin can manage delay */}
+          {isConnected &&
+            role.isAdminRole &&
+            hasAdminDelayManagement &&
+            delayInfo &&
+            onChangeDelayClick &&
+            onRollbackClick && (
+              <div className="mt-4 relative rounded-lg [clip-path:inset(0_round_0.5rem)]">
+                <AdminDelayPanel
+                  delayInfo={delayInfo}
+                  onChangeDelayClick={onChangeDelayClick}
+                  onRollbackClick={onRollbackClick}
+                  ghostNewDelay={
+                    isChangeDelayPreview ? (previewArgs?.newDelay as number) : undefined
+                  }
+                />
+                {/* Fading overlay on existing pending delay when rollback is in progress */}
+                {isRollbackDelayPreview && delayInfo.pendingDelay && (
+                  <FadingOverlay className="rounded-lg" />
+                )}
+              </div>
             )}
         </div>
       </CardContent>

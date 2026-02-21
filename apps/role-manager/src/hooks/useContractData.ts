@@ -20,7 +20,19 @@ import type {
 } from '@openzeppelin/ui-types';
 
 import { DataError, ErrorCategory, wrapError } from '../utils/errors';
+import { computeAdminRefetchInterval, postMutationRefetchInterval } from './mutationPolling';
+import { queryKeys } from './queryKeys';
 import { useAccessControlService } from './useAccessControlService';
+
+// Re-export polling API so existing consumers continue to work
+export {
+  recordMutationTimestamp,
+  useMutationPreview,
+  useIsAwaitingUpdate,
+  postMutationRefetchInterval,
+  computeAdminRefetchInterval,
+} from './mutationPolling';
+export type { MutationPreviewData } from './mutationPolling';
 
 /**
  * Return type for useContractRoles hook
@@ -75,9 +87,12 @@ export interface UseContractOwnershipReturn {
 /**
  * Return type for useContractAdminInfo hook
  * Feature: 016-two-step-admin-assignment
+ *
+ * adminInfo may include optional delayInfo (Feature 017, T068) when the adapter
+ * supports admin delay management (e.g. EVM AccessControlDefaultAdminRules).
  */
 export interface UseContractAdminInfoReturn {
-  /** Admin information from adapter */
+  /** Admin information from adapter (may include delayInfo for delay management) */
   adminInfo: AdminInfo | null;
   /** Whether the query is currently loading (initial fetch) */
   isLoading: boolean;
@@ -129,21 +144,8 @@ export interface UsePaginatedRolesReturn extends UseContractRolesReturn {
   pageSize: number;
 }
 
-/**
- * Query key factory for contract roles
- */
-const rolesQueryKey = (address: string) => ['contractRoles', address] as const;
-
-/**
- * Query key factory for contract ownership
- */
-const ownershipQueryKey = (address: string) => ['contractOwnership', address] as const;
-
-/**
- * Query key factory for contract admin info
- * Feature: 016-two-step-admin-assignment
- */
-export const adminInfoQueryKey = (address: string) => ['contractAdminInfo', address] as const;
+// Re-export for backwards compatibility (barrel index.ts re-exports adminInfoQueryKey)
+export const adminInfoQueryKey = queryKeys.contractAdminInfo;
 
 /**
  * Hook that fetches role assignments for a given contract.
@@ -180,7 +182,7 @@ export function useContractRoles(
     error: rawError,
     refetch: queryRefetch,
   } = useQuery({
-    queryKey: rolesQueryKey(contractAddress),
+    queryKey: queryKeys.contractRoles(contractAddress),
     queryFn: async (): Promise<RoleAssignment[]> => {
       if (!service) {
         throw new DataError(
@@ -200,6 +202,14 @@ export function useContractRoles(
     staleTime: 1 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     retry: false,
+    // Post-mutation smart polling — polls until data changes, then stops
+    refetchInterval: (query) =>
+      postMutationRefetchInterval(
+        contractAddress,
+        'roles',
+        query.state.data,
+        query.state.dataUpdatedAt
+      ),
   });
 
   const error = useMemo(() => {
@@ -257,7 +267,8 @@ export function useContractRoles(
 export function useContractOwnership(
   adapter: ContractAdapter | null,
   contractAddress: string,
-  isContractRegistered: boolean = true
+  isContractRegistered: boolean = true,
+  enabled: boolean = true
 ): UseContractOwnershipReturn {
   const { service, isReady } = useAccessControlService(adapter);
 
@@ -268,7 +279,7 @@ export function useContractOwnership(
     error: rawError,
     refetch: queryRefetch,
   } = useQuery({
-    queryKey: ownershipQueryKey(contractAddress),
+    queryKey: queryKeys.contractOwnership(contractAddress),
     queryFn: async (): Promise<OwnershipInfo> => {
       if (!service) {
         throw new DataError(
@@ -283,11 +294,19 @@ export function useContractOwnership(
         throw wrapError(err, 'ownership');
       }
     },
-    // Wait for contract to be registered before fetching
-    enabled: isReady && !!contractAddress && isContractRegistered,
+    // Wait for contract to be registered before fetching; skip if not enabled (e.g., contract lacks Ownable)
+    enabled: isReady && !!contractAddress && isContractRegistered && enabled,
     staleTime: 1 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     retry: false,
+    // Post-mutation smart polling — polls until data changes, then stops
+    refetchInterval: (query) =>
+      postMutationRefetchInterval(
+        contractAddress,
+        'ownership',
+        query.state.data,
+        query.state.dataUpdatedAt
+      ),
   });
 
   const error = useMemo(() => {
@@ -353,7 +372,7 @@ export function useContractAdminInfo(
     error: rawError,
     refetch: queryRefetch,
   } = useQuery({
-    queryKey: adminInfoQueryKey(contractAddress),
+    queryKey: queryKeys.contractAdminInfo(contractAddress),
     queryFn: async (): Promise<AdminInfo | null> => {
       if (!service) {
         throw new DataError(
@@ -384,6 +403,10 @@ export function useContractAdminInfo(
     retry: false,
     // FR-026a: Refresh admin state when browser window regains focus
     refetchOnWindowFocus: true,
+    // Auto-poll when time-sensitive pending states exist or a recent
+    // mutation needs RPC propagation time. See computeAdminRefetchInterval.
+    refetchInterval: (query) =>
+      computeAdminRefetchInterval(query.state.data, contractAddress, query.state.dataUpdatedAt),
   });
 
   const error = useMemo(() => {

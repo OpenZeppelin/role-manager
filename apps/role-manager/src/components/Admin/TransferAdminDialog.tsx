@@ -1,13 +1,15 @@
 /**
  * TransferAdminDialog Component
  * Feature: 016-two-step-admin-assignment
+ * Updated by: 017-evm-access-control (Phase 6 — US5, T038)
  *
  * Dialog for initiating admin role transfers.
  * Accessible from the Roles page via the "Transfer Admin" button.
  *
  * Implements:
- * - T024: Dialog with address input, expiration input
- * - Current block display for expiration validation
+ * - T024: Dialog with address input, expiration input (adapter-driven)
+ * - Adapter-driven expiration handling (required / none / contract-managed)
+ * - Current block display for expiration validation (only when mode: 'required')
  * - Transaction state rendering using DialogTransactionStates
  * - Close-during-transaction confirmation prompt
  * - Wallet disconnection handling
@@ -15,7 +17,8 @@
  * Key behaviors:
  * - Address validation via adapter.isValidAddress()
  * - Self-transfer prevention
- * - Expiration validation (must be greater than current block)
+ * - Expiration validation (must be greater than current value, only when required)
+ * - Accept schedule info for EVM AccessControlDefaultAdminRules (contract-managed)
  * - Transaction state feedback (pending, success, error, cancelled)
  * - Auto-close after 1.5s success display
  *
@@ -39,7 +42,7 @@ import {
 } from '@openzeppelin/ui-components';
 import { cn } from '@openzeppelin/ui-utils';
 
-import { getEcosystemAddressExample } from '@/core/ecosystems/registry';
+import { getEcosystemMetadata } from '@/core/ecosystems/ecosystemManager';
 
 import { useBlockTime } from '../../context/useBlockTime';
 import { useAdminTransferDialog } from '../../hooks/useAdminTransferDialog';
@@ -47,6 +50,13 @@ import type { TransferAdminFormData } from '../../hooks/useAdminTransferDialog';
 import { useDebounce } from '../../hooks/useDebounce';
 import { useSelectedContract } from '../../hooks/useSelectedContract';
 import { calculateBlockExpiration, formatTimeEstimateDisplay } from '../../utils/block-time';
+import {
+  getContractManagedDescription,
+  getCurrentValueLabel,
+  getExpirationLabel,
+  getExpirationPlaceholder,
+  isContractManagedExpiration,
+} from '../../utils/expiration';
 import {
   ConfirmCloseDialog,
   DialogCancelledState,
@@ -113,8 +123,10 @@ export function TransferAdminDialog({
     errorMessage,
     txStatus,
     isWalletConnected,
+    requiresExpiration,
     currentBlock,
     isNetworkError,
+    expirationMetadata,
     submit,
     retry,
     reset,
@@ -196,10 +208,11 @@ export function TransferAdminDialog({
     [submit]
   );
 
-  // Dialog title and description
+  // Dialog title and description — adapt to expiration mode
   const dialogTitle = 'Initiate Admin Transfer';
-  const dialogDescription =
-    'Initiate a two-step admin role transfer. The new admin must accept before the expiration.';
+  const dialogDescription = requiresExpiration
+    ? 'Initiate a two-step admin role transfer. The new admin must accept before the expiration.'
+    : 'Initiate an admin role transfer. The new admin must accept the transfer to complete it.';
 
   // =============================================================================
   // Render Content Based on Step
@@ -221,7 +234,11 @@ export function TransferAdminDialog({
         return (
           <DialogSuccessState
             title="Admin Transfer Initiated!"
-            description="The new admin must accept the transfer before expiration."
+            description={
+              requiresExpiration
+                ? 'The new admin must accept the transfer before expiration.'
+                : 'The new admin must accept the transfer to complete it.'
+            }
           />
         );
 
@@ -258,7 +275,9 @@ export function TransferAdminDialog({
             adapter={adapter}
             isAdapterLoading={isAdapterLoading}
             isWalletConnected={isWalletConnected}
+            requiresExpiration={requiresExpiration}
             currentBlock={currentBlock}
+            expirationMetadata={expirationMetadata}
             hasPendingAdminTransfer={hasPendingAdminTransfer}
             onCancel={handleCancel}
             onSubmit={handleSubmit}
@@ -309,7 +328,11 @@ interface TransferAdminFormContentProps {
   adapter: ReturnType<typeof useSelectedContract>['adapter'];
   isAdapterLoading: boolean;
   isWalletConnected: boolean;
+  /** Whether expiration input is required (adapter says mode: 'required') */
+  requiresExpiration: boolean;
   currentBlock: number | null;
+  /** Adapter-driven expiration metadata for labels and mode */
+  expirationMetadata: ReturnType<typeof useAdminTransferDialog>['expirationMetadata'];
   /** Whether there is an existing pending transfer to replace */
   hasPendingAdminTransfer: boolean;
   onCancel: () => void;
@@ -321,7 +344,9 @@ function TransferAdminFormContent({
   adapter,
   isAdapterLoading,
   isWalletConnected,
+  requiresExpiration,
   currentBlock,
+  expirationMetadata,
   hasPendingAdminTransfer,
   onCancel,
   onSubmit,
@@ -342,9 +367,9 @@ function TransferAdminFormContent({
   // Get block time estimation
   const { formatBlocksToTime, isCalibrating } = useBlockTime();
 
-  // Calculate blocks until expiration and time estimate
+  // Calculate blocks until expiration and time estimate (only when expiration is required)
   const expirationEstimate = useMemo(() => {
-    if (!debouncedExpiration || currentBlock === null) {
+    if (!requiresExpiration || !debouncedExpiration || currentBlock === null) {
       return null;
     }
     const expNum = parseInt(debouncedExpiration, 10);
@@ -352,19 +377,19 @@ function TransferAdminFormContent({
       return null;
     }
     return calculateBlockExpiration(expNum, currentBlock, formatBlocksToTime);
-  }, [debouncedExpiration, currentBlock, formatBlocksToTime]);
+  }, [requiresExpiration, debouncedExpiration, currentBlock, formatBlocksToTime]);
 
-  // Validate expiration is greater than current block
+  // Validate expiration is greater than current value (only when required)
   const expirationError = useMemo(() => {
-    if (!expirationValue || currentBlock === null) {
+    if (!requiresExpiration || !expirationValue || currentBlock === null) {
       return null;
     }
     const expNum = parseInt(expirationValue, 10);
     if (isNaN(expNum) || expNum <= currentBlock) {
-      return `Must be greater than current block (${currentBlock.toLocaleString()})`;
+      return `Must be greater than current value (${currentBlock.toLocaleString()})`;
     }
     return null;
-  }, [expirationValue, currentBlock]);
+  }, [requiresExpiration, expirationValue, currentBlock]);
 
   // Disable submit if adapter is not loaded, wallet not connected, or form invalid
   const canSubmit =
@@ -397,7 +422,9 @@ function TransferAdminFormContent({
           name="newAdminAddress"
           label="New Admin Address"
           placeholder={
-            adapter ? getEcosystemAddressExample(adapter.networkConfig.ecosystem) : '0x...'
+            adapter
+              ? (getEcosystemMetadata(adapter.networkConfig.ecosystem)?.addressExample ?? '0x...')
+              : '0x...'
           }
           helperText="The address that will become the new admin of this contract."
           control={control}
@@ -406,42 +433,63 @@ function TransferAdminFormContent({
         />
       </div>
 
-      {/* Expiration Block Field */}
-      <div className="space-y-1.5">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="transfer-admin-expiration">Expiration Block</Label>
-          {currentBlock !== null && (
-            <span className="text-xs text-muted-foreground">
-              Current: {currentBlock.toLocaleString()}
-            </span>
+      {/* Expiration Field — shown only when adapter requires user input (mode: 'required') */}
+      {requiresExpiration && (
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="transfer-admin-expiration">
+              {getExpirationLabel(expirationMetadata)}
+            </Label>
+            {currentBlock !== null && (
+              <span className="text-xs text-muted-foreground">
+                {getCurrentValueLabel(expirationMetadata)}: {currentBlock.toLocaleString()}
+              </span>
+            )}
+          </div>
+          <Input
+            id="transfer-admin-expiration"
+            type="number"
+            placeholder={getExpirationPlaceholder(expirationMetadata)}
+            {...register('expirationBlock', { required: requiresExpiration })}
+            className={cn(
+              expirationError &&
+                'border-destructive focus:border-destructive focus:ring-destructive/30'
+            )}
+            data-slot="input"
+          />
+          {/* Helper text or time estimate */}
+          {expirationEstimate && !expirationError ? (
+            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <span>{expirationEstimate.blocksRemaining.toLocaleString()} blocks</span>
+              {expirationEstimate.timeEstimate ? (
+                <span className="text-blue-600 font-medium">
+                  ≈ {formatTimeEstimateDisplay(expirationEstimate.timeEstimate)}
+                </span>
+              ) : isCalibrating ? (
+                <span className="text-muted-foreground/60">estimating...</span>
+              ) : null}
+            </div>
+          ) : !expirationError ? (
+            <div className="text-sm text-muted-foreground">
+              The transfer must be accepted before this {expirationMetadata?.unit ?? 'block'}.
+            </div>
+          ) : null}
+          {expirationError && (
+            <div className="text-sm text-destructive" role="alert">
+              {expirationError}
+            </div>
           )}
         </div>
-        <Input
-          id="transfer-admin-expiration"
-          type="number"
-          placeholder="Enter block number"
-          {...register('expirationBlock', { required: true })}
-          className={cn(expirationError && 'border-destructive')}
-        />
-        {/* Helper text or time estimate */}
-        {expirationEstimate && !expirationError ? (
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <span>{expirationEstimate.blocksRemaining.toLocaleString()} blocks</span>
-            {expirationEstimate.timeEstimate ? (
-              <span className="text-blue-600 font-medium">
-                ≈ {formatTimeEstimateDisplay(expirationEstimate.timeEstimate)}
-              </span>
-            ) : isCalibrating ? (
-              <span className="text-muted-foreground/60">estimating...</span>
-            ) : null}
-          </div>
-        ) : !expirationError ? (
-          <p className="text-xs text-muted-foreground">
-            The transfer must be accepted before this block.
+      )}
+
+      {/* Contract-managed expiration info (mode: 'contract-managed') — read-only display */}
+      {isContractManagedExpiration(expirationMetadata) && (
+        <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
+          <p className="text-sm text-blue-800">
+            {getContractManagedDescription(expirationMetadata)}
           </p>
-        ) : null}
-        {expirationError && <p className="text-xs text-destructive">{expirationError}</p>}
-      </div>
+        </div>
+      )}
 
       {/* Action Buttons */}
       <DialogFooter className="gap-2 sm:gap-0 pt-2">

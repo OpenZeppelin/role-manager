@@ -69,14 +69,19 @@ export function transformHistoryEntry(
   const action = CHANGE_TYPE_MAP[entry.changeType] ?? 'grant';
   const timestamp = entry.timestamp ?? new Date().toISOString();
 
-  // Determine role ID and name - override for admin transfer events
-  // Admin transfers should use CONTRACT_ADMIN role ID and "Admin" name
-  // This ensures filtering works correctly (matches SYNTHETIC_ADMIN_ROLE in filter-roles.ts)
-  const isAdminTransfer =
+  // Determine role ID and name - override for admin-related events
+  // Admin transfers, admin renounce, and admin delay changes should use
+  // CONTRACT_ADMIN role ID and "Admin" name for consistent filtering
+  // (matches SYNTHETIC_ADMIN_ROLE in filter-roles.ts)
+  const isAdminEvent =
     entry.changeType === 'ADMIN_TRANSFER_INITIATED' ||
-    entry.changeType === 'ADMIN_TRANSFER_COMPLETED';
-  const roleId = isAdminTransfer ? ADMIN_ROLE_ID : entry.role.id;
-  const roleName = isAdminTransfer ? 'Admin' : getRoleName(undefined, entry.role.id);
+    entry.changeType === 'ADMIN_TRANSFER_COMPLETED' ||
+    entry.changeType === 'ADMIN_TRANSFER_CANCELED' ||
+    entry.changeType === 'ADMIN_RENOUNCED' ||
+    entry.changeType === 'ADMIN_DELAY_CHANGE_SCHEDULED' ||
+    entry.changeType === 'ADMIN_DELAY_CHANGE_CANCELED';
+  const roleId = isAdminEvent ? ADMIN_ROLE_ID : entry.role.id;
+  const roleName = isAdminEvent ? 'Admin' : getRoleName(entry.role.label, entry.role.id);
 
   return {
     id: `${timestamp}-${entry.changeType}-${roleId}-${entry.account}`,

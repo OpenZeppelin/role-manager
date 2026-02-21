@@ -174,11 +174,14 @@ export function AddContractDialog({
         networkId: pendingFormData.networkId,
         ecosystem: pendingFormData.network.ecosystem,
         schema: result.schema,
-        source: 'fetched',
+        source: result.source ?? 'fetched',
         label: pendingFormData.name,
+        definitionOriginal: result.contractDefinitionOriginal,
+        definitionArtifacts: pendingFormData.adapterArtifacts,
         schemaMetadata: {
           fetchTimestamp: Date.now(),
           contractName: result.schema.name,
+          ...result.metadata,
         },
         capabilities,
       });

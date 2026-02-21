@@ -32,3 +32,24 @@
 @layer utilities {
   /* Example: Add app-specific utility classes */
 }
+
+/* Shimmer animation for mutation preview components */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Subtle overlay breathe — narrow opacity range so content behind stays barely visible */
+@keyframes overlay-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.93;
+  }
+}

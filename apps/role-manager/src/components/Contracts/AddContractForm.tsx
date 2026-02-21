@@ -15,24 +15,22 @@ import type { Control } from 'react-hook-form';
 
 import {
   Button,
+  EcosystemDropdown,
+  EcosystemIcon,
   Label,
   NetworkIcon,
   NetworkSelector,
   TextField,
 } from '@openzeppelin/ui-components';
+import type { EcosystemDropdownOption } from '@openzeppelin/ui-components';
 import { DynamicFormField } from '@openzeppelin/ui-renderer';
 import type { Ecosystem, FormFieldType, FormValues, NetworkConfig } from '@openzeppelin/ui-types';
 
-import {
-  ECOSYSTEM_ORDER,
-  getEcosystemDefaultFeatureConfig,
-  getEcosystemName,
-} from '@/core/ecosystems/registry';
+import { getEcosystemMetadata } from '@/core/ecosystems/ecosystemManager';
+import { ECOSYSTEM_ORDER, getEcosystemDefaultFeatureConfig } from '@/core/ecosystems/registry';
 import { recentContractsStorage } from '@/core/storage/RecentContractsStorage';
 import { useNetworkAdapter, useNetworksByEcosystem } from '@/hooks';
 import type { AddContractFormProps } from '@/types/contracts';
-
-import { CompactEcosystemSelector } from './CompactEcosystemSelector';
 
 /**
  * Extended form data that includes adapter-specific fields
@@ -82,6 +80,22 @@ export function AddContractForm({
     }
     return firstEnabledEcosystem;
   }, [defaultNetwork, firstEnabledEcosystem]);
+
+  // Build ecosystem options for the dropdown (metadata is statically imported — no loading)
+  const ecosystemOptions = useMemo<EcosystemDropdownOption[]>(() => {
+    return ECOSYSTEM_ORDER.reduce<EcosystemDropdownOption[]>((acc, eco) => {
+      const config = getEcosystemDefaultFeatureConfig(eco);
+      if (config.showInUI !== false) {
+        acc.push({
+          value: eco,
+          label: getEcosystemMetadata(eco)?.name ?? eco,
+          enabled: config.enabled,
+          disabledLabel: config.disabledLabel,
+        });
+      }
+      return acc;
+    }, []);
+  }, []);
 
   // Two-step state: ecosystem selection before network
   const [selectedEcosystem, setSelectedEcosystem] = useState<Ecosystem | null>(initialEcosystem);
@@ -259,9 +273,15 @@ export function AddContractForm({
       {/* Section 1: Ecosystem Selector */}
       <div className="flex flex-col gap-2">
         <Label id="blockchain-label">Blockchain</Label>
-        <CompactEcosystemSelector
-          selectedEcosystem={selectedEcosystem}
-          onSelectEcosystem={handleEcosystemSelect}
+        <EcosystemDropdown
+          options={ecosystemOptions}
+          value={selectedEcosystem}
+          onValueChange={handleEcosystemSelect}
+          getEcosystemIcon={(eco) => (
+            <EcosystemIcon
+              ecosystem={{ id: eco, iconComponent: getEcosystemMetadata(eco)?.iconComponent }}
+            />
+          )}
           disabled={isSubmitting}
           aria-labelledby="blockchain-label"
         />
@@ -274,7 +294,10 @@ export function AddContractForm({
           {isLoadingNetworks ? (
             <div className="flex items-center gap-2 rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Loading {getEcosystemName(selectedEcosystem)} networks...</span>
+              <span>
+                Loading {getEcosystemMetadata(selectedEcosystem)?.name ?? selectedEcosystem}{' '}
+                networks...
+              </span>
             </div>
           ) : networksError ? (
             <div
@@ -302,7 +325,8 @@ export function AddContractForm({
               role="status"
               aria-live="polite"
             >
-              No networks available for {getEcosystemName(selectedEcosystem)}.
+              No networks available for{' '}
+              {getEcosystemMetadata(selectedEcosystem)?.name ?? selectedEcosystem}.
             </div>
           ) : (
             <NetworkSelector
@@ -314,7 +338,9 @@ export function AddContractForm({
               getNetworkIcon={(n: NetworkConfig) => <NetworkIcon network={n} />}
               getNetworkType={(n: NetworkConfig) => n.type}
               groupByEcosystem={true}
-              getEcosystem={(n: NetworkConfig) => getEcosystemName(n.ecosystem)}
+              getEcosystem={(n: NetworkConfig) =>
+                getEcosystemMetadata(n.ecosystem)?.name ?? n.ecosystem
+              }
               filterNetwork={(n: NetworkConfig, query: string) => {
                 const q = query.toLowerCase();
                 return n.name.toLowerCase().includes(q) || n.type.toLowerCase().includes(q);

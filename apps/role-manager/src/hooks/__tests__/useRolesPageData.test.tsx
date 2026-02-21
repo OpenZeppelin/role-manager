@@ -100,6 +100,11 @@ vi.mock('@openzeppelin/ui-react', () => ({
   useDerivedAccountStatus: () => mockUseDerivedAccountStatus(),
 }));
 
+// Mock useBlockPollInterval (used for chain-agnostic poll interval derivation)
+vi.mock('../useBlockPollInterval', () => ({
+  useBlockPollInterval: () => 10_000,
+}));
+
 // =============================================================================
 // Test Utilities
 // =============================================================================
@@ -326,7 +331,8 @@ describe('useRolesPageData', () => {
       expect(mockUseContractOwnership).toHaveBeenCalledWith(
         { id: 'test-adapter' },
         '0xcontract123',
-        true // isContractRegistered
+        true, // isContractRegistered
+        true // enabled (hasOwnable from capabilities)
       );
     });
 

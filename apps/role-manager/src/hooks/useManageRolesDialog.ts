@@ -155,6 +155,7 @@ export function useManageRolesDialog(
     onClose,
     onSuccess,
     resetMutations: [grantRole.reset, revokeRole.reset],
+    invalidateFns: [grantRole.invalidate, revokeRole.invalidate],
   });
 
   // =============================================================================
@@ -276,7 +277,7 @@ export function useManageRolesDialog(
     const mutationArgs = {
       roleId: pendingChange.roleId,
       account: accountAddress,
-      executionConfig: { method: 'eoa' } as ExecutionConfig,
+      executionConfig: { method: 'eoa', allowAny: true } as ExecutionConfig,
     };
 
     await execute(() =>
