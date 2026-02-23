@@ -373,11 +373,8 @@ export function RoleDetails({
             )}
 
           {/* Ghost preview: ownership transfer being confirmed */}
-          {isTransferOwnershipPreview && (
-            <GhostPendingTransfer
-              recipient={previewArgs?.newOwner as string}
-              transferLabel="Ownership"
-            />
+          {isTransferOwnershipPreview && typeof previewArgs?.newOwner === 'string' && (
+            <GhostPendingTransfer recipient={previewArgs.newOwner} transferLabel="Ownership" />
           )}
 
           {/* Feature 016: Pending Transfer Info for Admin role */}
@@ -422,11 +419,8 @@ export function RoleDetails({
             )}
 
           {/* Ghost preview: admin transfer being confirmed */}
-          {isTransferAdminPreview && (
-            <GhostPendingTransfer
-              recipient={previewArgs?.newAdmin as string}
-              transferLabel="Admin Role"
-            />
+          {isTransferAdminPreview && typeof previewArgs?.newAdmin === 'string' && (
+            <GhostPendingTransfer recipient={previewArgs.newAdmin} transferLabel="Admin Role" />
           )}
 
           {/* Feature 017 (T067): Admin Delay Panel — only current admin can manage delay */}
@@ -442,7 +436,9 @@ export function RoleDetails({
                   onChangeDelayClick={onChangeDelayClick}
                   onRollbackClick={onRollbackClick}
                   ghostNewDelay={
-                    isChangeDelayPreview ? (previewArgs?.newDelay as number) : undefined
+                    isChangeDelayPreview && typeof previewArgs?.newDelay === 'number'
+                      ? previewArgs.newDelay
+                      : undefined
                   }
                 />
                 {/* Fading overlay on existing pending delay when rollback is in progress */}
