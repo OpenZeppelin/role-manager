@@ -216,9 +216,9 @@ export function RoleDetails({
   const isRemovePreview =
     (previewType === 'revokeRole' || previewType === 'renounceRole') &&
     previewRoleId === role.roleId;
-  const removePreviewAddress = isRemovePreview
-    ? (previewArgs?.account as string)?.toLowerCase()
-    : null;
+  const rawRemoveAccount = isRemovePreview ? (previewArgs?.account as string | undefined) : null;
+  const removePreviewAddress =
+    typeof rawRemoveAccount === 'string' ? rawRemoveAccount.toLowerCase() : null;
 
   // Renounce ownership: fading overlay on the owner row
   const isRenounceOwnershipPreview = previewType === 'renounceOwnership' && role.isOwnerRole;
