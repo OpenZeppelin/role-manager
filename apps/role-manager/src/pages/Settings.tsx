@@ -36,13 +36,18 @@ export function Settings() {
   const resolveExplorerUrl = useCallback(
     (address: string, networkId?: string) => {
       if (!networkId) return undefined;
+
+      if (adapter && selectedNetwork?.id === networkId) {
+        return adapter.getExplorerUrl(address) ?? undefined;
+      }
+
       const net = networks.find((n) => n.id === networkId);
       if (!net?.explorerUrl) return undefined;
       const baseUrl = net.explorerUrl.replace(/\/+$/, '');
       const segment = ECOSYSTEM_ADDRESS_PATH[net.ecosystem] ?? 'address';
       return `${baseUrl}/${segment}/${address}`;
     },
-    [networks]
+    [adapter, networks, selectedNetwork]
   );
 
   const addressPlaceholder = useMemo(
