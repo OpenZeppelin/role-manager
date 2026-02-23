@@ -698,6 +698,13 @@ export interface SnapshotRole {
   members: string[];
 }
 
+/** Portable alias entry embedded in a snapshot for round-trip import/export. */
+export interface SnapshotAlias {
+  address: string;
+  alias: string;
+  networkId?: string;
+}
+
 export interface AccessSnapshot {
   version: '1.0';
   exportedAt: string;
@@ -717,6 +724,8 @@ export interface AccessSnapshot {
     owner: string | null;
     pendingOwner?: string | null;
   };
+  /** Embedded aliases for self-contained round-trip import/export. */
+  aliases?: SnapshotAlias[];
 }
 
 export interface UseExportSnapshotReturn {
@@ -731,6 +740,8 @@ export interface ExportSnapshotOptions {
   networkId: string;
   networkName: string;
   label?: string | null;
+  /** Aliases to embed in the snapshot for self-contained round-trip export/import. */
+  aliases?: SnapshotAlias[];
   filename?: string;
   onSuccess?: (snapshot: AccessSnapshot) => void;
   onError?: (error: Error) => void;
@@ -820,6 +831,7 @@ export function useExportSnapshot(
         ownership: {
           owner: ownership?.owner ?? null,
         },
+        ...(options.aliases?.length ? { aliases: options.aliases } : {}),
       };
 
       const filename = generateFilename(contractAddress, options.filename);

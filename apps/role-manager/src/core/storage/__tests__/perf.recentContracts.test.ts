@@ -66,7 +66,6 @@ describe('RecentContractsStorage Performance', () => {
           await storage.addOrUpdate({
             networkId,
             address: generateAddress(i),
-            label: `Contract ${i}`,
           });
         }
 
@@ -128,7 +127,6 @@ describe('RecentContractsStorage Performance', () => {
         await storage.addOrUpdate({
           networkId,
           address: generateAddress(i),
-          label: `Contract ${i}`,
         });
       }
     });
@@ -209,7 +207,6 @@ describe('RecentContractsStorage Performance', () => {
       await storage.addOrUpdate({
         networkId,
         address: existingAddress,
-        label: 'Updated Label',
       });
       const endTime = performance.now();
 
@@ -301,7 +298,6 @@ describe('RecentContractsStorage Performance', () => {
         await storage.addOrUpdate({
           networkId,
           address: generateAddress(i),
-          label: `Contract with a reasonably long label for testing ${i}`,
         });
       }
 

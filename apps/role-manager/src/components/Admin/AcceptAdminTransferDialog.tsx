@@ -32,6 +32,7 @@ import {
 } from '@openzeppelin/ui-components';
 
 import { useAcceptAdminTransferDialog } from '../../hooks/useAcceptAdminTransferDialog';
+import { useContractDisplayName } from '../../hooks/useContractDisplayName';
 import { useSelectedContract } from '../../hooks/useSelectedContract';
 import {
   ConfirmCloseDialog,
@@ -91,7 +92,7 @@ export function AcceptAdminTransferDialog({
 
   // Get contract info for display
   const { selectedContract } = useSelectedContract();
-  const contractLabel = selectedContract?.label || selectedContract?.address || 'Unknown Contract';
+  const contractLabel = useContractDisplayName(selectedContract);
 
   // Reset state when dialog opens
   const wasOpenRef = useRef(open);

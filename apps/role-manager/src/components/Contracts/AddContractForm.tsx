@@ -186,7 +186,7 @@ export function AddContractForm({
         if (existing) {
           setError('contractAddress', {
             type: 'duplicate',
-            message: `This contract is already added${existing.label ? ` as "${existing.label}"` : ''}`,
+            message: 'This contract is already added',
           });
         } else {
           clearDuplicateError();

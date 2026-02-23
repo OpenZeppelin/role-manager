@@ -195,7 +195,6 @@ describe('useContractSchema', () => {
 
     it('should restore full record including metadata from storage', async () => {
       const mockRecord = createMockRecord({
-        label: 'My Token',
         schemaMetadata: {
           fetchedFrom: 'https://soroban-testnet.stellar.org',
           fetchTimestamp: 1234567890,
@@ -212,7 +211,6 @@ describe('useContractSchema', () => {
         await result.current.load('CTEST123ABC...', 'stellar-testnet');
       });
 
-      expect(result.current.record?.label).toBe('My Token');
       expect(result.current.record?.schemaMetadata?.fetchedFrom).toBe(
         'https://soroban-testnet.stellar.org'
       );

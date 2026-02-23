@@ -30,6 +30,7 @@ import {
 } from '@openzeppelin/ui-components';
 
 import { useAcceptOwnershipDialog } from '../../hooks/useAcceptOwnershipDialog';
+import { useContractDisplayName } from '../../hooks/useContractDisplayName';
 import { useSelectedContract } from '../../hooks/useSelectedContract';
 import {
   ConfirmCloseDialog,
@@ -89,7 +90,7 @@ export function AcceptOwnershipDialog({
 
   // Get contract info for display
   const { selectedContract } = useSelectedContract();
-  const contractLabel = selectedContract?.label || selectedContract?.address || 'Unknown Contract';
+  const contractLabel = useContractDisplayName(selectedContract);
 
   // Reset state when dialog opens
   const wasOpenRef = useRef(open);

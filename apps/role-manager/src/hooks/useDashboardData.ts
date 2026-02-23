@@ -18,6 +18,7 @@ import type { ContractAdapter } from '@openzeppelin/ui-types';
 import type { UseDashboardDataReturn } from '../types/dashboard';
 import { getUniqueAccountsCount } from '../utils/deduplication';
 import { generateSnapshotFilename } from '../utils/snapshot';
+import type { SnapshotAlias } from './useAccessControlMutations';
 import { useExportSnapshot } from './useAccessControlMutations';
 import { useContractCapabilities } from './useContractCapabilities';
 import { useContractOwnership } from './useContractData';
@@ -31,8 +32,10 @@ export interface UseDashboardDataOptions {
   networkId: string;
   /** Human-readable network name for export metadata */
   networkName: string;
-  /** User-defined contract label for export metadata (optional) */
+  /** Alias-resolved display label for export metadata */
   label?: string | null;
+  /** Aliases to embed in the exported snapshot for round-trip import/export */
+  aliases?: SnapshotAlias[];
   /** Whether the contract has been registered with the service (required for Stellar) */
   isContractRegistered?: boolean;
 }
@@ -62,7 +65,7 @@ export interface UseDashboardDataOptions {
  * } = useDashboardData(adapter, contractAddress, {
  *   networkId: 'stellar-testnet',
  *   networkName: 'Stellar Testnet',
- *   label: 'My Token Contract',
+ *   label: 'My Token Contract', // resolved from alias system
  *   isContractRegistered: true,
  * });
  *
@@ -84,7 +87,7 @@ export function useDashboardData(
   contractAddress: string,
   options: UseDashboardDataOptions
 ): UseDashboardDataReturn {
-  const { networkId, networkName, label, isContractRegistered = true } = options;
+  const { networkId, networkName, label, aliases, isContractRegistered = true } = options;
   // Track refreshing state separately from initial load
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -212,6 +215,7 @@ export function useDashboardData(
     networkId,
     networkName,
     label,
+    aliases,
     filename: snapshotFilename,
   });
 

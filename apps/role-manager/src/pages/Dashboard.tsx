@@ -23,12 +23,11 @@
 
 import { Download, Loader2, RefreshCw, Shield, Users } from 'lucide-react';
 import { toast } from 'sonner';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { Button } from '@openzeppelin/ui-components';
 import { useDerivedAccountStatus } from '@openzeppelin/ui-react';
-import { truncateMiddle } from '@openzeppelin/ui-utils';
 
 import { AcceptAdminTransferDialog } from '../components/Admin/AcceptAdminTransferDialog';
 import { ContractInfoCard } from '../components/Dashboard/ContractInfoCard';
@@ -37,13 +36,50 @@ import { DashboardStatsCard } from '../components/Dashboard/DashboardStatsCard';
 import { PendingChangesCard } from '../components/Dashboard/PendingChangesCard';
 import { AcceptOwnershipDialog } from '../components/Ownership/AcceptOwnershipDialog';
 import { PageHeader } from '../components/Shared/PageHeader';
-import { useDashboardData, usePendingTransfers, useSelectedContract } from '../hooks';
+import { useAliasStorage } from '../core/storage/aliasStorage';
+import {
+  useContractDisplayName,
+  useDashboardData,
+  usePendingTransfers,
+  useSelectedContract,
+} from '../hooks';
+import type { SnapshotAlias } from '../hooks';
 import type { PendingTransfer } from '../types/pending-transfers';
 
 export function Dashboard() {
   const navigate = useNavigate();
   const { selectedContract, selectedNetwork, adapter, isContractRegistered } =
     useSelectedContract();
+
+  // Resolve contract display name from alias (single source of truth)
+  const contractName = useContractDisplayName(selectedContract);
+
+  // Load alias data for embedding in snapshot export (round-trip import/export)
+  const { getByAddressAndNetwork } = useAliasStorage();
+  const [snapshotAliases, setSnapshotAliases] = useState<SnapshotAlias[]>([]);
+  const contractAddress = selectedContract?.address ?? '';
+  const networkId = selectedNetwork?.id ?? '';
+
+  useEffect(() => {
+    if (!contractAddress) {
+      setSnapshotAliases([]);
+      return;
+    }
+    let cancelled = false;
+    void getByAddressAndNetwork(contractAddress, networkId).then((record) => {
+      if (cancelled) return;
+      if (record) {
+        setSnapshotAliases([
+          { address: record.address, alias: record.alias, networkId: record.networkId },
+        ]);
+      } else {
+        setSnapshotAliases([]);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [contractAddress, networkId, getByAddressAndNetwork]);
 
   // Get connected wallet address for pending transfers
   const { address: connectedAddress } = useDerivedAccountStatus();
@@ -62,10 +98,11 @@ export function Dashboard() {
     refetch,
     exportSnapshot,
     isExporting,
-  } = useDashboardData(adapter, selectedContract?.address ?? '', {
-    networkId: selectedNetwork?.id ?? '',
+  } = useDashboardData(adapter, contractAddress, {
+    networkId,
     networkName: selectedNetwork?.name ?? '',
-    label: selectedContract?.label,
+    label: contractName,
+    aliases: snapshotAliases,
     isContractRegistered,
   });
 
@@ -89,15 +126,8 @@ export function Dashboard() {
   // Determine if we have a contract selected
   const hasContract = selectedContract !== null;
 
-  // Compute derived values for the selected contract
   const explorerUrl =
     adapter && selectedContract ? adapter.getExplorerUrl(selectedContract.address) : null;
-  // Use label if available, otherwise truncate the address to avoid UI overflow
-  const contractName =
-    selectedContract?.label ||
-    (selectedContract?.address
-      ? truncateMiddle(selectedContract.address, 4, 4)
-      : 'Unknown Contract');
 
   // Determine if buttons should be disabled
   const actionsDisabled = !hasContract || isLoading || isRefreshing;
@@ -193,7 +223,6 @@ export function Dashboard() {
         {/* Left Column */}
         <div className="lg:col-span-2 space-y-6">
           <ContractInfoCard
-            contractName={contractName}
             capabilities={selectedContract.capabilities}
             address={selectedContract.address}
             network={selectedNetwork}

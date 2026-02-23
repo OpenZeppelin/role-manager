@@ -52,7 +52,12 @@ import type { AccountData } from '../components/Roles/RoleDetails';
 import { PageEmptyState } from '../components/Shared/PageEmptyState';
 import { PageHeader } from '../components/Shared/PageHeader';
 import { TypeToConfirmDialog } from '../components/Shared/TypeToConfirmDialog';
-import { useAllNetworks, useMutationPreview, useRolesPageData } from '../hooks';
+import {
+  useAllNetworks,
+  useContractDisplayName,
+  useMutationPreview,
+  useRolesPageData,
+} from '../hooks';
 import { useRenounceDialog, type RenounceType } from '../hooks/useRenounceDialog';
 import { useSelectedContract } from '../hooks/useSelectedContract';
 import { createGetAccountUrl } from '../utils/explorer-urls';
@@ -151,7 +156,7 @@ export function Roles() {
 
   // Reactivity feedback: context-specific preview data while polling
   const mutationPreview = useMutationPreview(selectedContract?.address ?? '');
-  const contractLabel = selectedContract?.label || selectedContract?.address || 'Unknown Contract';
+  const contractLabel = useContractDisplayName(selectedContract);
 
   // Create URL generator function for explorer links
   const getAccountUrl = useMemo(() => createGetAccountUrl(adapter), [adapter]);

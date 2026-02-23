@@ -27,6 +27,7 @@ export { useDashboardData } from './useDashboardData';
 
 // Contract hooks
 export { useContractForm } from './useContractForm';
+export { useContractDisplayName } from './useContractDisplayName';
 export { useRecentContracts } from './useRecentContracts';
 export { useContractSchema } from './useContractSchema';
 export { useContractSchemaLoader } from './useContractSchemaLoader';
@@ -80,6 +81,7 @@ export type {
   MutationHookOptions,
   UseAccessControlMutationReturn,
   AccessSnapshot,
+  SnapshotAlias,
   UseExportSnapshotReturn,
   ExportSnapshotOptions,
 } from './useAccessControlMutations';

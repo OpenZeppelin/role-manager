@@ -19,6 +19,7 @@ import type {
 } from '@openzeppelin/ui-types';
 import { logger } from '@openzeppelin/ui-utils';
 
+import { useAliasStorage } from '@/core/storage/aliasStorage';
 import { recentContractsStorage } from '@/core/storage/RecentContractsStorage';
 import {
   isContractSupported,
@@ -93,6 +94,9 @@ export function AddContractDialog({
   // Track if we've started loading to prevent double-loading
   const loadStartedRef = useRef(false);
 
+  // Alias storage for auto-creating alias when a contract is added
+  const { save: saveAlias } = useAliasStorage();
+
   // Network adapter for schema loading (set after form submission)
   const [selectedNetwork, setSelectedNetwork] = useState<NetworkConfig | null>(null);
   const { adapter, isLoading: isAdapterLoading } = useNetworkAdapter(selectedNetwork);
@@ -161,7 +165,8 @@ export function AddContractDialog({
   }, [adapter, pendingFormData, schemaLoader]);
 
   /**
-   * Save contract with schema and capabilities to storage
+   * Save contract with schema and capabilities to storage,
+   * then auto-create an address alias so AddressDisplay resolves the name.
    */
   const saveContractWithSchema = useCallback(
     async (result: SchemaLoadResult, capabilities: AccessControlCapabilities): Promise<string> => {
@@ -175,7 +180,6 @@ export function AddContractDialog({
         ecosystem: pendingFormData.network.ecosystem,
         schema: result.schema,
         source: result.source ?? 'fetched',
-        label: pendingFormData.name,
         definitionOriginal: result.contractDefinitionOriginal,
         definitionArtifacts: pendingFormData.adapterArtifacts,
         schemaMetadata: {
@@ -186,9 +190,20 @@ export function AddContractDialog({
         capabilities,
       });
 
+      // Auto-create alias so the contract name appears in AddressDisplay everywhere
+      try {
+        await saveAlias({
+          address: pendingFormData.address,
+          alias: pendingFormData.name,
+          networkId: pendingFormData.networkId,
+        });
+      } catch (error) {
+        logger.warn('AddContractDialog', 'Failed to auto-create alias', error);
+      }
+
       return contractId;
     },
-    [pendingFormData]
+    [pendingFormData, saveAlias]
   );
 
   /**
