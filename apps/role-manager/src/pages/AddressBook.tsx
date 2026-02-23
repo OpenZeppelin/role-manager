@@ -7,6 +7,7 @@ import type { NetworkConfig } from '@openzeppelin/ui-types';
 
 import { getAdapter, getEcosystemMetadata } from '@/core/ecosystems/ecosystemManager';
 
+import { PageHeader } from '../components/Shared/PageHeader';
 import { db } from '../core/storage/database';
 import { useAllNetworks } from '../hooks/useAllNetworks';
 import { useSelectedContract } from '../hooks/useSelectedContract';
@@ -17,7 +18,7 @@ const ECOSYSTEM_ADDRESS_PATH: Record<string, string> = {
   stellar: 'account',
 };
 
-export function Settings() {
+export function AddressBook() {
   const { selectedNetwork, adapter } = useSelectedContract();
   const { networks } = useAllNetworks();
   const [filterNetworkIds, setFilterNetworkIds] = useState<string[]>([]);
@@ -66,8 +67,11 @@ export function Settings() {
   );
 
   return (
-    <div className="space-y-6 p-6">
-      <h1 className="text-2xl font-semibold">Settings</h1>
+    <div className="p-6 space-y-6">
+      <PageHeader
+        title="Address Book"
+        subtitle="Manage saved addresses and aliases across networks."
+      />
       <AddressBookWidget
         {...widgetProps}
         resolveNetwork={resolveNetwork}
@@ -79,6 +83,8 @@ export function Settings() {
         networks={networks}
         filterNetworkIds={filterNetworkIds}
         onFilterNetworkIdsChange={setFilterNetworkIds}
+        title="Saved Addresses"
+        className="shadow-none"
       />
     </div>
   );

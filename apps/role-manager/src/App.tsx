@@ -17,11 +17,11 @@ import { BlockTimeProvider } from './context/BlockTimeContext';
 import { ContractProvider } from './context/ContractContext';
 import { WalletSyncProvider } from './context/WalletSyncProvider';
 import { getAdapter, getNetworkById } from './core/ecosystems/ecosystemManager';
+import { AddressBook } from './pages/AddressBook';
 import { AuthorizedAccounts } from './pages/AuthorizedAccounts';
 import { Dashboard } from './pages/Dashboard';
 import { RoleChanges } from './pages/RoleChanges';
 import { Roles } from './pages/Roles';
-import { Settings } from './pages/Settings';
 
 /**
  * Vite glob import for wallet UI kit configuration files.
@@ -169,10 +169,10 @@ function App() {
                                 }
                               />
                               <Route
-                                path="/settings"
+                                path="/address-book"
                                 element={
-                                  <TrackedRoute name="Settings">
-                                    <Settings />
+                                  <TrackedRoute name="Address Book">
+                                    <AddressBook />
                                   </TrackedRoute>
                                 }
                               />
