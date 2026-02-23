@@ -1,4 +1,4 @@
-import { ArrowRightLeft, Key, LayoutDashboard, Users } from 'lucide-react';
+import { ArrowRightLeft, Key, LayoutDashboard, Settings, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import React, { useCallback, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -155,6 +155,15 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps): React
             onClick={() => handleNavigation('/role-changes')}
           >
             Role Changes
+          </SidebarButton>
+        </SidebarSection>
+        <SidebarSection>
+          <SidebarButton
+            icon={<Settings className="size-4" />}
+            isSelected={location.pathname === '/settings'}
+            onClick={() => handleNavigation('/settings')}
+          >
+            Settings
           </SidebarButton>
         </SidebarSection>
       </SidebarLayout>

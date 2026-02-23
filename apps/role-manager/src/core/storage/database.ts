@@ -1,4 +1,4 @@
-import { createDexieDatabase } from '@openzeppelin/ui-storage';
+import { ALIAS_SCHEMA, createDexieDatabase } from '@openzeppelin/ui-storage';
 
 export const db = createDexieDatabase('RoleManager', [
   {
@@ -16,6 +16,14 @@ export const db = createDexieDatabase('RoleManager', [
       // Version 2: Add source index for filtering refreshable schemas
       recentContracts: '++id, &[networkId+address], [networkId+lastAccessed], source',
       userPreferences: '&key',
+    },
+  },
+  {
+    version: 3,
+    stores: {
+      recentContracts: '++id, &[networkId+address], [networkId+lastAccessed], source',
+      userPreferences: '&key',
+      ...ALIAS_SCHEMA,
     },
   },
 ]);
