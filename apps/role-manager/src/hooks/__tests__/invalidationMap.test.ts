@@ -76,11 +76,6 @@ describe('invalidationMap', () => {
       expect(keys).not.toContainEqual(queryKeys.contractRoles(TEST_ADDRESS));
     });
 
-    it('transferOwnership should await-refetch ownership', () => {
-      const awaitKeys = invalidationMap.transferOwnership.awaitRefetch!(TEST_ADDRESS);
-      expect(awaitKeys).toContainEqual(queryKeys.contractOwnership(TEST_ADDRESS));
-    });
-
     it('acceptOwnership should invalidate ownership, roles, enrichedRoles, and history', () => {
       const keys = invalidationMap.acceptOwnership.keys(TEST_ADDRESS);
 
@@ -137,14 +132,6 @@ describe('invalidationMap', () => {
         expect(keys).toContainEqual(queryKeys.contractHistory(TEST_ADDRESS));
       }
     );
-
-    it.each<MutationType>(['cancelAdmin', 'changeAdminDelay', 'rollbackAdminDelay'])(
-      '%s should await-refetch adminInfo',
-      (mutationType) => {
-        const awaitKeys = invalidationMap[mutationType].awaitRefetch!(TEST_ADDRESS);
-        expect(awaitKeys).toContainEqual(queryKeys.contractAdminInfo(TEST_ADDRESS));
-      }
-    );
   });
 
   // =========================================================================
@@ -174,7 +161,7 @@ describe('invalidationMap', () => {
       expect(queryKeys.contractOwnership(addr)).toEqual(['contractOwnership', addr]);
       expect(queryKeys.contractAdminInfo(addr)).toEqual(['contractAdminInfo', addr]);
       expect(queryKeys.contractCapabilities(addr)).toEqual(['contractCapabilities', addr]);
-      expect(queryKeys.contractHistory(addr)).toEqual(['contract-history', addr]);
+      expect(queryKeys.contractHistory(addr)).toEqual(['contractHistory', addr]);
       expect(queryKeys.currentBlock('net-1')).toEqual(['currentBlock', 'net-1']);
       expect(queryKeys.expirationMetadata(addr, 'ownership', 'net-1')).toEqual([
         'expirationMetadata',

@@ -120,6 +120,11 @@ export function PendingTransferInfo({
       ? calculateBlockExpiration(expirationBlock, currentBlock, formatBlocksToTime)
       : null;
 
+  const timestampRemaining =
+    !isExpired && isTimestamp && expirationBlock != null
+      ? getTimestampTimeRemaining(expirationBlock)
+      : null;
+
   return (
     <div
       className={cn(
@@ -178,13 +183,11 @@ export function PendingTransferInfo({
               >
                 {formatExpirationTimestamp(expirationBlock)}
               </span>
-              {!isExpired &&
-                (() => {
-                  const remaining = getTimestampTimeRemaining(expirationBlock);
-                  return remaining ? (
-                    <span className="text-xs text-muted-foreground">(~{remaining} remaining)</span>
-                  ) : null;
-                })()}
+              {timestampRemaining && (
+                <span className="text-xs text-muted-foreground">
+                  (~{timestampRemaining} remaining)
+                </span>
+              )}
             </>
           ) : (
             <>

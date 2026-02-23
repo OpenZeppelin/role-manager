@@ -7,6 +7,7 @@
  */
 import { useCallback } from 'react';
 
+import { useDerivedAccountStatus } from '@openzeppelin/ui-react';
 import type {
   ExecutionConfig,
   OperationResult,
@@ -69,6 +70,7 @@ export function useCancelAdminTransferDialog(
 
   const { selectedContract, adapter } = useSelectedContract();
   const contractAddress = selectedContract?.address ?? '';
+  const { address: connectedAddress } = useDerivedAccountStatus();
   const { trackAdminTransferCancelled } = useRoleManagerAnalytics();
 
   const cancelMutation = useCancelAdminTransfer(adapter, contractAddress);
@@ -91,7 +93,7 @@ export function useCancelAdminTransferDialog(
     errorMessage: execution.errorMessage,
     txStatus: cancelMutation.status,
     txStatusDetails: cancelMutation.statusDetails,
-    isWalletConnected: true,
+    isWalletConnected: !!connectedAddress,
     isPending: cancelMutation.isPending,
     submit,
     retry: execution.retry,

@@ -52,13 +52,6 @@ export interface InvalidationConfig {
    * propagated at the time of the initial invalidation.
    */
   deferredRefetchMs?: number;
-
-  /**
-   * Query key factories whose results should be awaited (force refetch)
-   * rather than just invalidated. This ensures the UI has fresh data
-   * before the mutation is considered "done". Called with contractAddress.
-   */
-  awaitRefetch?: (address: string) => readonly (readonly string[])[];
 }
 
 // =============================================================================
@@ -70,8 +63,6 @@ export interface InvalidationConfig {
  *
  * Convention:
  * - `keys` lists everything that *might* be stale after this mutation.
- * - `awaitRefetch` lists the keys whose fresh data is critical for the
- *   immediate UI update (e.g. ownership after transferOwnership).
  * - `deferredRefetchMs` is used when the RPC might not yet reflect the
  *   new state (e.g. after admin delay changes on EVM).
  */
@@ -106,7 +97,6 @@ export const invalidationMap: Record<MutationType, InvalidationConfig> = {
 
   transferOwnership: {
     keys: (addr) => [queryKeys.contractOwnership(addr), queryKeys.contractHistory(addr)],
-    awaitRefetch: (addr) => [queryKeys.contractOwnership(addr)],
   },
 
   acceptOwnership: {
@@ -116,7 +106,6 @@ export const invalidationMap: Record<MutationType, InvalidationConfig> = {
       queryKeys.contractRolesEnriched(addr),
       queryKeys.contractHistory(addr),
     ],
-    awaitRefetch: (addr) => [queryKeys.contractOwnership(addr)],
   },
 
   renounceOwnership: {
@@ -126,14 +115,12 @@ export const invalidationMap: Record<MutationType, InvalidationConfig> = {
       queryKeys.contractRolesEnriched(addr),
       queryKeys.contractHistory(addr),
     ],
-    awaitRefetch: (addr) => [queryKeys.contractOwnership(addr)],
   },
 
   // ---- Admin mutations ----
 
   transferAdmin: {
     keys: (addr) => [queryKeys.contractAdminInfo(addr), queryKeys.contractHistory(addr)],
-    awaitRefetch: (addr) => [queryKeys.contractAdminInfo(addr)],
   },
 
   acceptAdmin: {
@@ -143,24 +130,20 @@ export const invalidationMap: Record<MutationType, InvalidationConfig> = {
       queryKeys.contractRolesEnriched(addr),
       queryKeys.contractHistory(addr),
     ],
-    awaitRefetch: (addr) => [queryKeys.contractAdminInfo(addr)],
   },
 
   cancelAdmin: {
     keys: (addr) => [queryKeys.contractAdminInfo(addr), queryKeys.contractHistory(addr)],
-    awaitRefetch: (addr) => [queryKeys.contractAdminInfo(addr)],
     deferredRefetchMs: 3000,
   },
 
   changeAdminDelay: {
     keys: (addr) => [queryKeys.contractAdminInfo(addr), queryKeys.contractHistory(addr)],
-    awaitRefetch: (addr) => [queryKeys.contractAdminInfo(addr)],
     deferredRefetchMs: 3000,
   },
 
   rollbackAdminDelay: {
     keys: (addr) => [queryKeys.contractAdminInfo(addr), queryKeys.contractHistory(addr)],
-    awaitRefetch: (addr) => [queryKeys.contractAdminInfo(addr)],
     deferredRefetchMs: 3000,
   },
 };

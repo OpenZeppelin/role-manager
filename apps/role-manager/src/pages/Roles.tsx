@@ -59,6 +59,7 @@ import {
   useRolesPageData,
 } from '../hooks';
 import { useRenounceDialog, type RenounceType } from '../hooks/useRenounceDialog';
+import type { AdminDelayInfo } from '../types/admin';
 import { useSelectedContract } from '../hooks/useSelectedContract';
 import { createGetAccountUrl } from '../utils/explorer-urls';
 
@@ -267,17 +268,9 @@ export function Roles() {
   // Feature 017 (T064): Rollback admin delay dialog state
   const [isRollbackAdminDelayDialogOpen, setIsRollbackAdminDelayDialogOpen] = useState(false);
 
-  // Feature 017 (T068): delayInfo from adminInfo for AdminDelayPanel
-  const delayInfo =
+  const delayInfo: AdminDelayInfo | undefined =
     adminInfo && 'delayInfo' in adminInfo
-      ? (
-          adminInfo as {
-            delayInfo: {
-              currentDelay: number;
-              pendingDelay?: { newDelay: number; effectAt: number };
-            };
-          }
-        ).delayInfo
+      ? (adminInfo as { delayInfo: AdminDelayInfo }).delayInfo
       : undefined;
 
   // Spec 015 (T021): Check if connected wallet can accept ownership (is the pending owner)

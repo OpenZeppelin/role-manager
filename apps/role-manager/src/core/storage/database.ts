@@ -35,24 +35,26 @@ export const db = createDexieDatabase('RoleManager', [
       const aliases = trans.table('aliases');
       const now = new Date();
 
-      await contracts
+      const labeled = await contracts
         .filter((c: { label?: string }) => !!c.label?.trim())
-        .each(async (contract: { address: string; networkId: string; label: string }) => {
-          const existing = await aliases
-            .where('[address+networkId]')
-            .equals([contract.address, contract.networkId])
-            .first();
+        .toArray();
 
-          if (!existing) {
-            await aliases.add({
-              address: contract.address,
-              networkId: contract.networkId,
-              alias: contract.label.trim(),
-              createdAt: now,
-              updatedAt: now,
-            });
-          }
-        });
+      for (const contract of labeled as { address: string; networkId: string; label: string }[]) {
+        const existing = await aliases
+          .where('[address+networkId]')
+          .equals([contract.address, contract.networkId])
+          .first();
+
+        if (!existing) {
+          await aliases.add({
+            address: contract.address,
+            networkId: contract.networkId,
+            alias: contract.label.trim(),
+            createdAt: now,
+            updatedAt: now,
+          });
+        }
+      }
     },
   },
 ]);

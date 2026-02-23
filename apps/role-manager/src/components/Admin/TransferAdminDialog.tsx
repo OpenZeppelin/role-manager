@@ -148,41 +148,41 @@ export function TransferAdminDialog({
     mode: 'onChange',
   });
 
+  const formReset = form.reset;
+
   // Reset state when dialog opens
   const wasOpenRef = useRef(open);
   useEffect(() => {
     if (open && !wasOpenRef.current) {
-      // Dialog just opened - reset to fresh state
       reset();
-      form.reset({ newAdminAddress: '', expirationBlock: '' });
+      formReset({ newAdminAddress: '', expirationBlock: '' });
     }
     wasOpenRef.current = open;
-  }, [open, reset, form]);
+  }, [open, reset, formReset]);
 
   // Handle dialog close with confirmation during transaction
   const handleClose = useCallback(
-    (open: boolean) => {
-      if (open) return;
+    (isOpen: boolean) => {
+      if (isOpen) return;
 
-      // Show confirmation prompt during pending/confirming states
       if (step === 'pending' || step === 'confirming') {
         setShowConfirmClose(true);
         return;
       }
       reset();
-      form.reset();
+      formReset();
       onOpenChange(false);
     },
-    [step, reset, form, onOpenChange]
+    [step, reset, formReset, onOpenChange]
   );
 
   // Confirm close during transaction
   const handleConfirmClose = useCallback(() => {
     setShowConfirmClose(false);
     reset();
-    form.reset();
+    formReset();
     onOpenChange(false);
-  }, [reset, form, onOpenChange]);
+  }, [reset, formReset, onOpenChange]);
 
   // Cancel confirmation and return to transaction
   const handleCancelConfirmClose = useCallback(() => {

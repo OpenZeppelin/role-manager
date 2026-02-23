@@ -38,7 +38,7 @@ export const queryKeys = {
    * `invalidateQueries({ queryKey: queryKeys.contractHistory(addr) })`
    * matches all filter variations via React Query's prefix matching.
    */
-  contractHistory: (address: string) => ['contract-history', address] as const,
+  contractHistory: (address: string) => ['contractHistory', address] as const,
 
   /** Current block/ledger number (keyed by network) */
   currentBlock: (networkId: string | undefined) => ['currentBlock', networkId] as const,

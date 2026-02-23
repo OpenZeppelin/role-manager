@@ -6,7 +6,7 @@
  * network-specific address validation via the adapter pattern.
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import type { NetworkConfig } from '@openzeppelin/ui-types';
@@ -222,32 +222,39 @@ export function useContractForm(): UseContractFormReturn {
     setSelectedNetworkState(null);
   }, [rhfReset]);
 
-  // Build errors object with validation messages
-  const formErrors = {
-    name:
-      errors.name ??
-      (validateName(watch('name') ?? '') !== true
-        ? { message: validateName(watch('name') ?? '') as string }
-        : undefined),
-    address:
-      errors.address ??
-      (addressValue && validateAddress(addressValue) !== true
-        ? { message: validateAddress(addressValue) as string }
-        : undefined),
-    networkId:
-      errors.networkId ??
-      (!selectedNetwork ? { message: ERROR_MESSAGES.NETWORK_REQUIRED } : undefined),
-  };
+  const nameValue = watch('name') ?? '';
+
+  const nameValidation = useMemo(() => validateName(nameValue), [validateName, nameValue]);
+  const addressValidation = useMemo(
+    () => (addressValue ? validateAddress(addressValue) : true),
+    [validateAddress, addressValue]
+  );
+
+  const formErrors = useMemo(
+    () => ({
+      name:
+        errors.name ??
+        (nameValidation !== true ? { message: nameValidation as string } : undefined),
+      address:
+        errors.address ??
+        (addressValue && addressValidation !== true
+          ? { message: addressValidation as string }
+          : undefined),
+      networkId:
+        errors.networkId ??
+        (!selectedNetwork ? { message: ERROR_MESSAGES.NETWORK_REQUIRED } : undefined),
+    }),
+    [errors, nameValidation, addressValidation, addressValue, selectedNetwork]
+  );
+
+  const computedIsValid =
+    isValid && !!selectedNetwork && nameValidation === true && addressValidation === true;
 
   return {
     control,
     handleSubmit,
     errors: formErrors,
-    isValid:
-      isValid &&
-      !!selectedNetwork &&
-      validateName(watch('name') ?? '') === true &&
-      validateAddress(addressValue ?? '') === true,
+    isValid: computedIsValid,
     selectedNetwork,
     setSelectedNetwork,
     adapter,

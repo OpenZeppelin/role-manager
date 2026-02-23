@@ -87,7 +87,7 @@ export function useChangeAdminDelayDialog(
 
   const submit = useCallback(
     async (newDelay: number) => {
-      if (isNaN(newDelay) || newDelay <= 0) {
+      if (isNaN(newDelay) || newDelay < 0) {
         return;
       }
       const executionConfig = { method: 'eoa', allowAny: true } as ExecutionConfig;

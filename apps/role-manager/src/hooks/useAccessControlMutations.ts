@@ -22,7 +22,7 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type {
   AccessControlService,
@@ -238,6 +238,14 @@ function useAccessControlMutationFactory<TArgs>(
 
   const [status, setStatus] = useState<TxStatus>('idle');
   const [statusDetails, setStatusDetails] = useState<TransactionStatusUpdate | null>(null);
+  const deferredTimerIds = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  useEffect(() => {
+    return () => {
+      for (const id of deferredTimerIds.current) clearTimeout(id);
+      deferredTimerIds.current = [];
+    };
+  }, []);
 
   const handleStatusChange = useCallback(
     (newStatus: TxStatus, details: TransactionStatusUpdate) => {
@@ -305,11 +313,13 @@ function useAccessControlMutationFactory<TArgs>(
       if (mapConfig.deferredRefetchMs) {
         const base = mapConfig.deferredRefetchMs;
         for (const delay of [base, base * 3, base * 5]) {
-          setTimeout(() => {
+          const id = setTimeout(() => {
+            deferredTimerIds.current = deferredTimerIds.current.filter((t) => t !== id);
             for (const key of allKeys) {
               queryClient.invalidateQueries({ queryKey: key, refetchType: 'all' }).catch(() => {});
             }
           }, delay);
+          deferredTimerIds.current.push(id);
         }
       }
 
@@ -763,14 +773,16 @@ function downloadJson(data: unknown, filename: string): void {
   const blob = new Blob([json], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
 
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-
-  URL.revokeObjectURL(url);
+  try {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
 }
 
 export function useExportSnapshot(
@@ -782,18 +794,28 @@ export function useExportSnapshot(
   const [isExporting, setIsExporting] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
+  const {
+    networkId,
+    networkName,
+    label,
+    aliases,
+    filename: customFilename,
+    onSuccess,
+    onError,
+  } = options;
+
   const exportSnapshot = useCallback(async (): Promise<void> => {
     if (!service) {
       const err = new Error('Access control service not available');
       setError(err);
-      options.onError?.(err);
+      onError?.(err);
       return;
     }
 
     if (!contractAddress) {
       const err = new Error('Contract address is required');
       setError(err);
-      options.onError?.(err);
+      onError?.(err);
       return;
     }
 
@@ -818,9 +840,9 @@ export function useExportSnapshot(
         exportedAt: new Date().toISOString(),
         contract: {
           address: contractAddress,
-          label: options.label ?? null,
-          networkId: options.networkId,
-          networkName: options.networkName,
+          label: label ?? null,
+          networkId,
+          networkName,
         },
         capabilities: {
           hasAccessControl: capabilities.hasAccessControl,
@@ -831,21 +853,31 @@ export function useExportSnapshot(
         ownership: {
           owner: ownership?.owner ?? null,
         },
-        ...(options.aliases?.length ? { aliases: options.aliases } : {}),
+        ...(aliases?.length ? { aliases } : {}),
       };
 
-      const filename = generateFilename(contractAddress, options.filename);
+      const filename = generateFilename(contractAddress, customFilename);
       downloadJson(snapshot, filename);
 
-      options.onSuccess?.(snapshot);
+      onSuccess?.(snapshot);
     } catch (err) {
       const exportError = err instanceof Error ? err : new Error(String(err));
       setError(exportError);
-      options.onError?.(exportError);
+      onError?.(exportError);
     } finally {
       setIsExporting(false);
     }
-  }, [service, contractAddress, options]);
+  }, [
+    service,
+    contractAddress,
+    networkId,
+    networkName,
+    label,
+    aliases,
+    customFilename,
+    onSuccess,
+    onError,
+  ]);
 
   const reset = useCallback(() => {
     setError(null);

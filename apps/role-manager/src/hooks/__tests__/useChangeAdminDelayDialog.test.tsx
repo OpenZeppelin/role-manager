@@ -97,7 +97,7 @@ describe('useChangeAdminDelayDialog', () => {
     expect(result.current.isPending).toBe(false);
   });
 
-  it('does not call execute when delay is invalid (NaN or <= 0)', async () => {
+  it('does not call execute when delay is invalid (NaN or negative)', async () => {
     const mockExecute = vi.fn().mockResolvedValue(undefined);
     mockUseTransactionExecution.mockReturnValue({
       step: 'form',
@@ -117,17 +117,31 @@ describe('useChangeAdminDelayDialog', () => {
     });
     expect(mockExecute).not.toHaveBeenCalled();
 
-    // Zero
-    await act(async () => {
-      await result.current.submit(0);
-    });
-    expect(mockExecute).not.toHaveBeenCalled();
-
     // Negative
     await act(async () => {
       await result.current.submit(-5);
     });
     expect(mockExecute).not.toHaveBeenCalled();
+  });
+
+  it('accepts delay of zero (valid on-chain value for no delay)', async () => {
+    const mockExecute = vi.fn().mockResolvedValue(undefined);
+    mockUseTransactionExecution.mockReturnValue({
+      step: 'form',
+      errorMessage: null,
+      execute: mockExecute,
+      retry: vi.fn().mockResolvedValue(undefined),
+      reset: vi.fn(),
+    } as never);
+
+    const { result } = renderHook(() => useChangeAdminDelayDialog(), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      await result.current.submit(0);
+    });
+    expect(mockExecute).toHaveBeenCalledWith(expect.objectContaining({ newDelay: 0 }));
   });
 
   it('calls execute with delay when value is valid', async () => {

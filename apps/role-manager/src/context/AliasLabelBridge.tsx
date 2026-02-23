@@ -42,7 +42,8 @@ export function AliasLabelBridge({ children }: { children: ReactNode }) {
     (e: React.PointerEvent) => {
       lastClickRef.current = { x: e.clientX, y: e.clientY };
     },
-    [lastClickRef]
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- ref is stable
+    []
   );
 
   return (

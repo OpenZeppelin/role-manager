@@ -5,9 +5,10 @@
  * a pending confirmation (e.g. revoke, renounce, cancel, accept).
  * Content behind the overlay is barely visible — just a hint.
  *
- * Supports two visual variants:
+ * Supports three visual variants:
  * - "destructive" (default): red tones — removals, cancellations
  * - "info": blue tones — positive/confirmation actions (e.g. accept transfer)
+ * - "warning": amber tones — cautionary actions (e.g. delay changes)
  *
  * Usage: wrap the target element's container with a relative div
  * and place FadingOverlay as a sibling.

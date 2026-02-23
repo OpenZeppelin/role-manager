@@ -467,6 +467,12 @@ export function usePaginatedRoles(
     setCurrentPage(1);
   }, [contractAddress]);
 
+  useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
   const paginatedRoles = useMemo(() => {
     const startIndex = (currentPage - 1) * pageSize;
     return roles.slice(startIndex, startIndex + pageSize);

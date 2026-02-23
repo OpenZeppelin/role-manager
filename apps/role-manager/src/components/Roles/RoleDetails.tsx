@@ -32,6 +32,7 @@ import type {
 import { cn } from '@openzeppelin/ui-utils';
 
 import type { MutationPreviewData } from '../../hooks/useContractData';
+import type { AdminDelayInfo } from '../../types/admin';
 import type { RoleWithDescription } from '../../types/roles';
 import { AdminDelayPanel } from '../Admin/AdminDelayPanel';
 import { FadingOverlay, GhostAccountRow, GhostPendingTransfer } from '../Shared/MutationPreviews';
@@ -141,7 +142,7 @@ export interface RoleDetailsProps {
   /** Feature 017 (T067): Whether contract supports admin delay management */
   hasAdminDelayManagement?: boolean;
   /** Feature 017 (T067, T068): Delay info for AdminDelayPanel (from adminInfo.delayInfo) */
-  delayInfo?: { currentDelay: number; pendingDelay?: { newDelay: number; effectAt: number } };
+  delayInfo?: AdminDelayInfo;
   /** Feature 017 (T067): Open change-delay dialog */
   onChangeDelayClick?: () => void;
   /** Feature 017 (T067): Open rollback dialog */
@@ -206,19 +207,21 @@ export function RoleDetails({
 
   const previewType = mutationPreview?.type;
   const previewArgs = mutationPreview?.args;
-  const previewRoleId = previewArgs?.roleId as string | undefined;
+  const previewRoleId = typeof previewArgs?.roleId === 'string' ? previewArgs.roleId : undefined;
 
   // Grant: ghost row for a new member being added to THIS role
   const isGrantPreview = previewType === 'grantRole' && previewRoleId === role.roleId;
-  const grantPreviewAddress = isGrantPreview ? (previewArgs?.account as string) : null;
+  const grantPreviewAddress =
+    isGrantPreview && typeof previewArgs?.account === 'string' ? previewArgs.account : null;
 
   // Revoke / renounce role: fading overlay on the specific member in THIS role
   const isRemovePreview =
     (previewType === 'revokeRole' || previewType === 'renounceRole') &&
     previewRoleId === role.roleId;
-  const rawRemoveAccount = isRemovePreview ? (previewArgs?.account as string | undefined) : null;
   const removePreviewAddress =
-    typeof rawRemoveAccount === 'string' ? rawRemoveAccount.toLowerCase() : null;
+    isRemovePreview && typeof previewArgs?.account === 'string'
+      ? previewArgs.account.toLowerCase()
+      : null;
 
   // Renounce ownership: fading overlay on the owner row
   const isRenounceOwnershipPreview = previewType === 'renounceOwnership' && role.isOwnerRole;

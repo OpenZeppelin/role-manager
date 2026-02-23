@@ -64,15 +64,12 @@ export interface TransformOptions {
  */
 export function transformHistoryEntry(
   entry: HistoryEntry,
-  options: TransformOptions
+  options: TransformOptions,
+  index?: number
 ): RoleChangeEventView {
-  const action = CHANGE_TYPE_MAP[entry.changeType] ?? 'grant';
+  const action = CHANGE_TYPE_MAP[entry.changeType] ?? 'unknown';
   const timestamp = entry.timestamp ?? new Date().toISOString();
 
-  // Determine role ID and name - override for admin-related events
-  // Admin transfers, admin renounce, and admin delay changes should use
-  // CONTRACT_ADMIN role ID and "Admin" name for consistent filtering
-  // (matches SYNTHETIC_ADMIN_ROLE in filter-roles.ts)
   const isAdminEvent =
     entry.changeType === 'ADMIN_TRANSFER_INITIATED' ||
     entry.changeType === 'ADMIN_TRANSFER_COMPLETED' ||
@@ -83,8 +80,11 @@ export function transformHistoryEntry(
   const roleId = isAdminEvent ? ADMIN_ROLE_ID : entry.role.id;
   const roleName = isAdminEvent ? 'Admin' : getRoleName(entry.role.label, entry.role.id);
 
+  const txSuffix = entry.txId ? `-${entry.txId}` : '';
+  const indexSuffix = index != null ? `-${index}` : '';
+
   return {
-    id: `${timestamp}-${entry.changeType}-${roleId}-${entry.account}`,
+    id: `${timestamp}-${entry.changeType}-${roleId}-${entry.account}${txSuffix}${indexSuffix}`,
     timestamp,
     action,
     roleId,
@@ -118,7 +118,7 @@ export function transformHistoryEntries(
   entries: HistoryEntry[],
   options: TransformOptions
 ): RoleChangeEventView[] {
-  const transformed = entries.map((entry) => transformHistoryEntry(entry, options));
+  const transformed = entries.map((entry, index) => transformHistoryEntry(entry, options, index));
   return sortHistoryEvents(transformed);
 }
 

@@ -202,8 +202,7 @@ export function useDashboardData(
   // Generate custom filename for snapshot export using truncated address and timestamp
   const snapshotFilename = useMemo(() => {
     if (!contractAddress) return undefined;
-    // Remove the .json extension since useExportSnapshot adds it
-    return generateSnapshotFilename(contractAddress).replace('.json', '');
+    return generateSnapshotFilename(contractAddress, { withExtension: false });
   }, [contractAddress]);
 
   // Export functionality using useExportSnapshot hook

@@ -30,8 +30,8 @@ import { isHash } from './hash';
 export function capitalizeRoleName(name: string): string {
   return (
     name
-      // Strip common _ROLE suffix (case-insensitive)
-      .replace(/_?[Rr][Oo][Ll][Ee]$/i, '')
+      // Strip trailing _ROLE or " ROLE" suffix only when preceded by content
+      .replace(/(?<=.)[_ ]?[Rr][Oo][Ll][Ee]$/i, '')
       // Insert space before uppercase letters (camelCase)
       .replace(/([a-z])([A-Z])/g, '$1 $2')
       // Replace underscores with spaces
