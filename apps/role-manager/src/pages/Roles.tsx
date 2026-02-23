@@ -59,8 +59,8 @@ import {
   useRolesPageData,
 } from '../hooks';
 import { useRenounceDialog, type RenounceType } from '../hooks/useRenounceDialog';
-import type { AdminDelayInfo } from '../types/admin';
 import { useSelectedContract } from '../hooks/useSelectedContract';
+import type { AdminDelayInfo } from '../types/admin';
 import { createGetAccountUrl } from '../utils/explorer-urls';
 
 export function Roles() {
