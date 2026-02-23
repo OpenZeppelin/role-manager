@@ -310,7 +310,7 @@ export function RoleDetails({
             {/* Ghost row for grantRole — prepended because new accounts appear at the top */}
             {grantPreviewAddress && <GhostAccountRow address={grantPreviewAddress} />}
 
-            {hasAccounts ? (
+            {hasAccounts || grantPreviewAddress ? (
               accounts.map((account) => {
                 const isFading =
                   (removePreviewAddress !== null &&
