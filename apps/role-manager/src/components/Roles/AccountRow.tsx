@@ -81,7 +81,6 @@ export function AccountRow({
       <div className="flex items-center gap-2">
         <AddressDisplay
           address={address}
-          truncate={true}
           startChars={10}
           endChars={8}
           showCopyButton={true}
