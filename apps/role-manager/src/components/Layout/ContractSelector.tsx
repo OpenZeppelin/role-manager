@@ -53,14 +53,12 @@ export function ContractSelector({
         <span className="truncate text-sm font-medium text-foreground">
           {selectedContract.label || 'Unknown Contract'}
         </span>
-        <span className="text-xs text-muted-foreground">
-          {/* IMPORTANT: Do NOT render a button inside the trigger button */}
-          <AddressDisplay
-            address={selectedContract.address}
-            className="font-normal text-muted-foreground"
-            truncate
-          />
-        </span>
+        <AddressDisplay
+          address={selectedContract.address}
+          className="text-xs font-normal text-muted-foreground"
+          disableLabel
+          truncate
+        />
       </div>
     </div>
   ) : (
