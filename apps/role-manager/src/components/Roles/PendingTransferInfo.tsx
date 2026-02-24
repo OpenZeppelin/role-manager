@@ -16,7 +16,7 @@
  * - Expired status when applicable
  */
 
-import { AlertTriangle, Clock, Info, User } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Clock, Info, User } from 'lucide-react';
 
 import { AddressDisplay } from '@openzeppelin/ui-components';
 import type { ExpirationMetadata } from '@openzeppelin/ui-types';
@@ -29,6 +29,7 @@ import {
   getExpirationStatusLabel,
   getExpirationUnitPlural,
   getTimestampTimeRemaining,
+  isScheduleTimestampReached,
   isTimestampBasedExpiration,
 } from '../../utils/expiration';
 import { AcceptTransferButton } from '../Shared/AcceptTransferButton';
@@ -114,6 +115,12 @@ export function PendingTransferInfo({
   // Whether this is a timestamp-based expiration (e.g., EVM AccessControlDefaultAdminRules)
   const isTimestamp = isTimestampBasedExpiration(expirationMetadata);
 
+  // For contract-managed timestamps, derive whether the schedule has been reached.
+  // This is computed locally so the Roles page (which doesn't use usePendingTransfers) also works.
+  const scheduleReached = isTimestamp
+    ? isScheduleTimestampReached(expirationBlock ?? undefined, expirationMetadata)
+    : false;
+
   // Calculate blocks remaining and time estimate (only when expiration is defined and not timestamp-based)
   const expirationEstimate =
     !isExpired && expirationBlock != null && !isTimestamp
@@ -121,7 +128,7 @@ export function PendingTransferInfo({
       : null;
 
   const timestampRemaining =
-    !isExpired && isTimestamp && expirationBlock != null
+    !isExpired && !scheduleReached && isTimestamp && expirationBlock != null
       ? getTimestampTimeRemaining(expirationBlock)
       : null;
 
@@ -129,7 +136,11 @@ export function PendingTransferInfo({
     <div
       className={cn(
         'rounded-lg border p-3 mt-3',
-        isExpired ? 'border-amber-300 bg-amber-50' : 'border-blue-200 bg-blue-50',
+        isExpired
+          ? 'border-amber-300 bg-amber-50'
+          : scheduleReached
+            ? 'border-green-200 bg-green-50'
+            : 'border-blue-200 bg-blue-50',
         className
       )}
     >
@@ -140,6 +151,13 @@ export function PendingTransferInfo({
             <AlertTriangle className="h-4 w-4 text-amber-600" />
             <span className="text-sm font-medium text-amber-700">
               {transferLabel} Transfer Expired
+            </span>
+          </>
+        ) : scheduleReached ? (
+          <>
+            <CheckCircle2 className="h-4 w-4 text-green-600" />
+            <span className="text-sm font-medium text-green-700">
+              {transferLabel} Transfer Ready
             </span>
           </>
         ) : (
@@ -171,14 +189,18 @@ export function PendingTransferInfo({
         <div className="flex items-center gap-2 flex-wrap">
           <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
           <span className="text-xs text-muted-foreground shrink-0">
-            {getExpirationStatusLabel(isExpired, expirationMetadata)}
+            {getExpirationStatusLabel(isExpired, expirationMetadata, scheduleReached)}
           </span>
           {isTimestamp ? (
             <>
               <span
                 className={cn(
                   'text-xs font-mono',
-                  isExpired ? 'text-amber-700' : 'text-foreground'
+                  isExpired
+                    ? 'text-amber-700'
+                    : scheduleReached
+                      ? 'text-green-700'
+                      : 'text-foreground'
                 )}
               >
                 {formatExpirationTimestamp(expirationBlock)}
@@ -214,19 +236,31 @@ export function PendingTransferInfo({
         </div>
       )}
 
-      {/* Accept button - shown when user can accept and transfer is not expired */}
-      {canAccept && !isExpired && onAccept && (
-        <div className="mt-3 pt-3 border-t border-blue-200 flex justify-end">
+      {/* Accept button - shown when user can accept, transfer is not expired, and schedule is reached (if applicable) */}
+      {canAccept && !isExpired && (!isTimestamp || scheduleReached) && onAccept && (
+        <div
+          className={cn(
+            'mt-3 pt-3 border-t flex justify-end',
+            scheduleReached ? 'border-green-200' : 'border-blue-200'
+          )}
+        >
           <AcceptTransferButton roleLabel={transferLabel} onClick={onAccept} />
         </div>
       )}
 
-      {/* T034: Wrong wallet connected message - shown when user cannot accept (not pending owner) and transfer is not expired */}
+      {/* Wrong wallet / waiting messages */}
       {!canAccept && !isExpired && (
-        <div className="mt-3 pt-3 border-t border-blue-200 flex items-center gap-2">
-          <Info className="h-4 w-4 text-blue-600 shrink-0" />
-          <p className="text-xs text-blue-700">
-            Connect the pending {recipientLabel.toLowerCase()} wallet to accept this transfer.
+        <div
+          className={cn(
+            'mt-3 pt-3 border-t flex items-center gap-2',
+            scheduleReached ? 'border-green-200' : 'border-blue-200'
+          )}
+        >
+          <Info className={cn('h-4 w-4 shrink-0', scheduleReached ? 'text-green-600' : 'text-blue-600')} />
+          <p className={cn('text-xs', scheduleReached ? 'text-green-700' : 'text-blue-700')}>
+            {isTimestamp && !scheduleReached
+              ? `The transfer will be ready to accept once the schedule is reached.`
+              : `Connect the pending ${recipientLabel.toLowerCase()} wallet to accept this transfer.`}
           </p>
         </div>
       )}

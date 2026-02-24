@@ -183,23 +183,30 @@ export function getExpirationUnitPlural(
 }
 
 /**
- * Get the "expires at" / "expired at" label for pending transfer displays.
- * Uses adapter-driven labels instead of hardcoded "Block" or "Ledger".
+ * Get the status label for pending transfer displays.
+ * Uses adapter-driven metadata to choose the correct semantics:
+ * - 'contract-managed' schedules: "Acceptable after:" (the value is when acceptance opens)
+ * - 'required' expirations: "Expires at Ledger:" / "Expired at Ledger:" (Stellar-style)
  *
- * @param isExpired - Whether the transfer has already expired
+ * @param isExpired - Whether the transfer has expired (always false for contract-managed)
  * @param metadata - Expiration metadata from the adapter
- * @returns Label like "Expires at Ledger:" or "Expired at Block:" etc.
+ * @param isScheduleReached - Whether the contract-managed schedule has been reached
+ * @returns Label like "Acceptable after:", "Expires at Ledger:", etc.
  */
 export function getExpirationStatusLabel(
   isExpired: boolean,
-  metadata: ExpirationMetadata | undefined
+  metadata: ExpirationMetadata | undefined,
+  isScheduleReached?: boolean
 ): string {
+  if (metadata?.mode === 'contract-managed') {
+    return isScheduleReached ? 'Acceptable since:' : 'Acceptable after:';
+  }
+
   const unit = metadata?.unit?.toLowerCase();
   let suffix = '';
 
   if (unit?.includes('ledger')) suffix = ' Ledger';
   else if (unit?.includes('block')) suffix = ' Block';
-  else if (unit?.includes('timestamp')) suffix = '';
 
   return isExpired ? `Expired at${suffix}:` : `Expires at${suffix}:`;
 }
@@ -219,6 +226,23 @@ export function isTimestampBasedExpiration(metadata: ExpirationMetadata | undefi
   return (
     metadata?.mode === 'contract-managed' && !!metadata.unit?.toLowerCase().includes('timestamp')
   );
+}
+
+/**
+ * Whether a contract-managed schedule timestamp has been reached.
+ * For 'contract-managed' mode with a timestamp unit, this checks if the
+ * current time is past the schedule, meaning acceptance is now possible.
+ *
+ * @param timestampSeconds - The schedule Unix timestamp in seconds
+ * @param metadata - Expiration metadata from the adapter
+ * @returns true if the schedule is reached (acceptance possible), false otherwise
+ */
+export function isScheduleTimestampReached(
+  timestampSeconds: number | undefined,
+  metadata: ExpirationMetadata | undefined
+): boolean {
+  if (!isTimestampBasedExpiration(metadata) || timestampSeconds == null) return false;
+  return Math.floor(Date.now() / 1000) >= timestampSeconds;
 }
 
 /**

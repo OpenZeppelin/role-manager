@@ -26,6 +26,7 @@ import {
   getTimestampTimeRemaining,
   hasNoExpiration,
   isContractManagedExpiration,
+  isScheduleTimestampReached,
   isTimestampBasedExpiration,
   requiresExpirationInput,
 } from '../expiration';
@@ -365,12 +366,16 @@ describe('getExpirationStatusLabel', () => {
     expect(getExpirationStatusLabel(true, stellarMetadata)).toBe('Expired at Ledger:');
   });
 
-  it('should return "Expires at:" for UNIX timestamp unit (not expired)', () => {
-    expect(getExpirationStatusLabel(false, evmAdminMetadata)).toBe('Expires at:');
+  it('should return "Acceptable after:" for contract-managed timestamp (schedule not reached)', () => {
+    expect(getExpirationStatusLabel(false, evmAdminMetadata, false)).toBe('Acceptable after:');
   });
 
-  it('should return "Expired at:" for UNIX timestamp unit (expired)', () => {
-    expect(getExpirationStatusLabel(true, evmAdminMetadata)).toBe('Expired at:');
+  it('should return "Acceptable since:" for contract-managed timestamp (schedule reached)', () => {
+    expect(getExpirationStatusLabel(false, evmAdminMetadata, true)).toBe('Acceptable since:');
+  });
+
+  it('should return "Acceptable after:" for contract-managed with no schedule flag', () => {
+    expect(getExpirationStatusLabel(false, evmAdminMetadata)).toBe('Acceptable after:');
   });
 
   it('should return "Expires at:" for undefined metadata (not expired)', () => {
@@ -430,6 +435,32 @@ describe('isTimestampBasedExpiration', () => {
 
   it('should return false for undefined metadata', () => {
     expect(isTimestampBasedExpiration(undefined)).toBe(false);
+  });
+});
+
+describe('isScheduleTimestampReached', () => {
+  it('should return true when current time is past the schedule', () => {
+    const pastTimestamp = Math.floor(Date.now() / 1000) - 100;
+    expect(isScheduleTimestampReached(pastTimestamp, evmAdminMetadata)).toBe(true);
+  });
+
+  it('should return false when current time is before the schedule', () => {
+    const futureTimestamp = Math.floor(Date.now() / 1000) + 3600;
+    expect(isScheduleTimestampReached(futureTimestamp, evmAdminMetadata)).toBe(false);
+  });
+
+  it('should return false for non-contract-managed metadata', () => {
+    const pastTimestamp = Math.floor(Date.now() / 1000) - 100;
+    expect(isScheduleTimestampReached(pastTimestamp, stellarMetadata)).toBe(false);
+  });
+
+  it('should return false for undefined metadata', () => {
+    const pastTimestamp = Math.floor(Date.now() / 1000) - 100;
+    expect(isScheduleTimestampReached(pastTimestamp, undefined)).toBe(false);
+  });
+
+  it('should return false for undefined timestamp', () => {
+    expect(isScheduleTimestampReached(undefined, evmAdminMetadata)).toBe(false);
   });
 });
 

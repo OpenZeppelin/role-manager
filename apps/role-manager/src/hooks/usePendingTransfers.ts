@@ -22,7 +22,7 @@ import type {
 } from '@openzeppelin/ui-types';
 
 import type { PendingTransfer, UsePendingTransfersReturn } from '../types/pending-transfers';
-import { hasNoExpiration } from '../utils/expiration';
+import { hasNoExpiration, isContractManagedExpiration, isScheduleTimestampReached } from '../utils/expiration';
 import { createGetAccountUrl } from '../utils/explorer-urls';
 import { useContractCapabilities } from './useContractCapabilities';
 import { useContractAdminInfo, useContractOwnership } from './useContractData';
@@ -69,12 +69,18 @@ function transformOwnershipTransfer(
   expirationMetadata: ExpirationMetadata | undefined
 ): PendingTransfer {
   const expirationBlock = pendingTransfer.expirationBlock ?? 0;
-  // When there's no expiration concept (mode: 'none'), the transfer never expires
   const noExpiration = hasNoExpiration(expirationMetadata);
-  const isExpired = !noExpiration && currentBlock !== null && currentBlock >= expirationBlock;
-  const isPendingOwner = addressesEqual(connectedAddress, pendingTransfer.pendingOwner);
+  const contractManaged = isContractManagedExpiration(expirationMetadata);
 
-  // Generate explorer URLs for addresses
+  // Contract-managed schedules never expire; the timestamp is when acceptance opens
+  const isExpired =
+    !noExpiration && !contractManaged && currentBlock !== null && currentBlock >= expirationBlock;
+
+  const isScheduleReached = contractManaged
+    ? isScheduleTimestampReached(expirationBlock, expirationMetadata)
+    : undefined;
+
+  const isPendingOwner = addressesEqual(connectedAddress, pendingTransfer.pendingOwner);
   const getAccountUrl = createGetAccountUrl(adapter);
 
   return {
@@ -87,10 +93,11 @@ function transformOwnershipTransfer(
     pendingRecipientUrl: getAccountUrl(pendingTransfer.pendingOwner) ?? undefined,
     expirationBlock,
     isExpired,
+    isScheduleReached,
     expirationMetadata,
     step: { current: 1, total: 2 },
     canAccept: isPendingOwner && !isExpired,
-    initiatedAt: undefined, // Not available in current API
+    initiatedAt: undefined,
   };
 }
 
@@ -108,12 +115,18 @@ function transformAdminTransfer(
   expirationMetadata: ExpirationMetadata | undefined
 ): PendingTransfer {
   const expirationBlock = pendingTransfer.expirationBlock ?? 0;
-  // When there's no expiration concept (mode: 'none'), the transfer never expires
   const noExpiration = hasNoExpiration(expirationMetadata);
-  const isExpired = !noExpiration && currentBlock !== null && currentBlock >= expirationBlock;
-  const isPendingAdmin = addressesEqual(connectedAddress, pendingTransfer.pendingAdmin);
+  const contractManaged = isContractManagedExpiration(expirationMetadata);
 
-  // Generate explorer URLs for addresses
+  // Contract-managed schedules never expire; the timestamp is when acceptance opens
+  const isExpired =
+    !noExpiration && !contractManaged && currentBlock !== null && currentBlock >= expirationBlock;
+
+  const isScheduleReached = contractManaged
+    ? isScheduleTimestampReached(expirationBlock, expirationMetadata)
+    : undefined;
+
+  const isPendingAdmin = addressesEqual(connectedAddress, pendingTransfer.pendingAdmin);
   const getAccountUrl = createGetAccountUrl(adapter);
 
   return {
@@ -126,10 +139,11 @@ function transformAdminTransfer(
     pendingRecipientUrl: getAccountUrl(pendingTransfer.pendingAdmin) ?? undefined,
     expirationBlock,
     isExpired,
+    isScheduleReached,
     expirationMetadata,
     step: { current: 1, total: 2 },
     canAccept: isPendingAdmin && !isExpired,
-    initiatedAt: undefined, // Not available in current API
+    initiatedAt: undefined,
   };
 }
 

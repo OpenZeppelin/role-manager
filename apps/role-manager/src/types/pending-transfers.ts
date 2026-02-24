@@ -59,11 +59,19 @@ export interface PendingTransfer {
   /** Explorer URL for pending recipient address */
   pendingRecipientUrl?: string;
 
-  /** Expiration value (block/ledger/timestamp) at which the transfer expires */
+  /** Expiration value (block/ledger/timestamp) — semantics depend on adapter mode */
   expirationBlock: number;
 
-  /** Whether the transfer has expired (derived from current block) */
+  /** Whether the transfer has expired (derived from current block). Always false for contract-managed schedules. */
   isExpired: boolean;
+
+  /**
+   * Whether the contract-managed schedule has been reached (transfer is now acceptable).
+   * Only meaningful when `expirationMetadata.mode === 'contract-managed'`.
+   * - false: schedule not yet reached, acceptance not yet possible
+   * - true: schedule reached, acceptance is now possible
+   */
+  isScheduleReached?: boolean;
 
   /** Adapter-driven expiration metadata for display labels and mode */
   expirationMetadata?: ExpirationMetadata;
