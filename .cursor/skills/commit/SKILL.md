@@ -237,8 +237,8 @@ pnpm dev:npm
 
 ## Branch Naming
 
-- Feature branches: `###-feature-name` (e.g., `003-data-store-service`)
+- Feature branches (spec workflow): `###-feature-name` (e.g., `003-data-store-service`)
 - Fix branches: `fix/short-description` (e.g., `fix/schedule-semantics-contract-managed`)
-- Feature branches (no spec): `feat/short-description` (e.g., `feat/add-dark-mode`)
+- Feature branches (non-spec): `feat/short-description` (e.g., `feat/add-dark-mode`)
 - Use kebab-case for branch names
-- Include feature number prefix when following spec workflow
+- When following the spec workflow, always use the numbered `###-feature-name` pattern; for non-spec work, use `feat/short-description`

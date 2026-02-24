@@ -1,6 +1,6 @@
 import type { AccessControlCapabilities } from '@openzeppelin/ui-types';
 
-import type { FeatureBadgeVariant } from '../components/Shared/FeatureBadge';
+export type FeatureBadgeVariant = 'blue' | 'purple' | 'green' | 'amber' | 'slate' | 'cyan' | 'teal';
 
 export interface CapabilityDescriptor {
   label: string;

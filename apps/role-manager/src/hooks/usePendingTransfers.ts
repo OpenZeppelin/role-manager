@@ -87,6 +87,12 @@ function transformOwnershipTransfer(
   const isPendingOwner = addressesEqual(connectedAddress, pendingTransfer.pendingOwner);
   const getAccountUrl = createGetAccountUrl(adapter);
 
+  // canAccept must reflect whether acceptance is actually possible right now:
+  // the connected wallet is the pending owner, the transfer hasn't expired,
+  // and for contract-managed schedules the schedule timestamp has been reached.
+  const canAccept =
+    isPendingOwner && !isExpired && (isScheduleReached === undefined || isScheduleReached);
+
   return {
     id: `ownership-${contractAddress}`,
     type: 'ownership',
@@ -100,7 +106,7 @@ function transformOwnershipTransfer(
     isScheduleReached,
     expirationMetadata,
     step: { current: 1, total: 2 },
-    canAccept: isPendingOwner && !isExpired,
+    canAccept,
     initiatedAt: undefined,
   };
 }
@@ -133,6 +139,9 @@ function transformAdminTransfer(
   const isPendingAdmin = addressesEqual(connectedAddress, pendingTransfer.pendingAdmin);
   const getAccountUrl = createGetAccountUrl(adapter);
 
+  const canAccept =
+    isPendingAdmin && !isExpired && (isScheduleReached === undefined || isScheduleReached);
+
   return {
     id: `admin-${contractAddress}`,
     type: 'admin',
@@ -146,7 +155,7 @@ function transformAdminTransfer(
     isScheduleReached,
     expirationMetadata,
     step: { current: 1, total: 2 },
-    canAccept: isPendingAdmin && !isExpired,
+    canAccept,
     initiatedAt: undefined,
   };
 }

@@ -145,15 +145,13 @@ export function PendingTransferRow({ transfer, currentBlock, onAccept }: Pending
 
       {/* Actions */}
       <td className="p-4">
-        {transfer.canAccept &&
-          !transfer.isExpired &&
-          (!isTimestamp || transfer.isScheduleReached) && (
-            <AcceptTransferButton
-              roleLabel={transfer.label || transfer.type}
-              shortLabel
-              onClick={handleAccept}
-            />
-          )}
+        {transfer.canAccept && !transfer.isExpired && (
+          <AcceptTransferButton
+            roleLabel={transfer.label || transfer.type}
+            shortLabel
+            onClick={handleAccept}
+          />
+        )}
       </td>
     </tr>
   );

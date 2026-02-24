@@ -38,7 +38,7 @@ export function useNetworkServiceHealthCheck(
   const [serviceStatuses, setServiceStatuses] = useState<ServiceHealthStatus[]>([]);
 
   const checkServices = useCallback(async () => {
-    if (!adapter || !networkConfig) {
+    if (!adapter || !networkConfig || !adapter.testNetworkServiceConnection) {
       setServiceStatuses([]);
       return;
     }
@@ -50,50 +50,56 @@ export function useNetworkServiceHealthCheck(
     }
 
     setIsChecking(true);
-    const statuses: ServiceHealthStatus[] = [];
+    try {
+      const testConnection = adapter.testNetworkServiceConnection.bind(adapter);
 
-    for (const serviceForm of serviceForms) {
-      try {
-        let serviceValues = getUserServiceConfigOverride(networkConfig.id, serviceForm.id);
+      const statusPromises = serviceForms.map(
+        async (serviceForm): Promise<ServiceHealthStatus | null> => {
+          try {
+            let serviceValues = getUserServiceConfigOverride(networkConfig.id, serviceForm.id);
 
-        if (!serviceValues) {
-          serviceValues = adapter.getDefaultServiceConfig(serviceForm.id);
+            if (!serviceValues) {
+              serviceValues = adapter.getDefaultServiceConfig(serviceForm.id);
+            }
+
+            if (!serviceValues || Object.keys(serviceValues).length === 0) {
+              logger.debug(
+                'useNetworkServiceHealthCheck',
+                `No configuration for service ${serviceForm.id}, skipping`
+              );
+              return null;
+            }
+
+            const result = await testConnection(serviceForm.id, serviceValues);
+
+            return {
+              serviceId: serviceForm.id,
+              serviceLabel: serviceForm.label,
+              isHealthy: result?.success ?? false,
+              error: result?.error,
+              latency: result?.latency,
+            };
+          } catch (error) {
+            logger.error(
+              'useNetworkServiceHealthCheck',
+              `Failed to test service ${serviceForm.id}:`,
+              error
+            );
+            return {
+              serviceId: serviceForm.id,
+              serviceLabel: serviceForm.label,
+              isHealthy: false,
+              error: error instanceof Error ? error.message : 'Health check failed',
+            };
+          }
         }
+      );
 
-        if (!serviceValues || Object.keys(serviceValues).length === 0) {
-          logger.debug(
-            'useNetworkServiceHealthCheck',
-            `No configuration for service ${serviceForm.id}, skipping`
-          );
-          continue;
-        }
-
-        const result = await adapter.testNetworkServiceConnection?.(serviceForm.id, serviceValues);
-
-        statuses.push({
-          serviceId: serviceForm.id,
-          serviceLabel: serviceForm.label,
-          isHealthy: result?.success ?? true,
-          error: result?.error,
-          latency: result?.latency,
-        });
-      } catch (error) {
-        logger.error(
-          'useNetworkServiceHealthCheck',
-          `Failed to test service ${serviceForm.id}:`,
-          error
-        );
-        statuses.push({
-          serviceId: serviceForm.id,
-          serviceLabel: serviceForm.label,
-          isHealthy: false,
-          error: error instanceof Error ? error.message : 'Health check failed',
-        });
-      }
+      const results = await Promise.all(statusPromises);
+      setServiceStatuses(results.filter((s): s is ServiceHealthStatus => s !== null));
+    } finally {
+      setIsChecking(false);
     }
-
-    setServiceStatuses(statuses);
-    setIsChecking(false);
   }, [adapter, networkConfig]);
 
   useEffect(() => {

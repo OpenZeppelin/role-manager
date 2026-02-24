@@ -8,7 +8,9 @@
 import { Tooltip, TooltipContent, TooltipTrigger } from '@openzeppelin/ui-components';
 import { cn } from '@openzeppelin/ui-utils';
 
-export type FeatureBadgeVariant = 'blue' | 'purple' | 'green' | 'amber' | 'slate' | 'cyan' | 'teal';
+import type { FeatureBadgeVariant } from '../../constants/capabilities';
+
+export type { FeatureBadgeVariant };
 
 interface FeatureBadgeProps {
   children: React.ReactNode;
@@ -38,8 +40,10 @@ export function FeatureBadge({
       className={cn(
         'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
         variantClasses[variant],
+        tooltip && 'cursor-default',
         className
       )}
+      {...(tooltip ? { tabIndex: 0, role: 'note' } : {})}
     >
       {children}
     </span>

@@ -237,7 +237,7 @@ export function PendingTransferInfo({
       )}
 
       {/* Accept button - shown when user can accept, transfer is not expired, and schedule is reached (if applicable) */}
-      {canAccept && !isExpired && (!isTimestamp || scheduleReached) && onAccept && (
+      {canAccept && !isExpired && onAccept && (
         <div
           className={cn(
             'mt-3 pt-3 border-t flex justify-end',
