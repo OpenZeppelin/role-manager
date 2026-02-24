@@ -18,7 +18,9 @@ import type { ContractAdapter } from '@openzeppelin/ui-types';
 import type { UseDashboardDataReturn } from '../types/dashboard';
 import { getUniqueAccountsCount } from '../utils/deduplication';
 import { generateSnapshotFilename } from '../utils/snapshot';
+import type { SnapshotAlias } from './useAccessControlMutations';
 import { useExportSnapshot } from './useAccessControlMutations';
+import { useContractCapabilities } from './useContractCapabilities';
 import { useContractOwnership } from './useContractData';
 import { useContractRolesEnriched } from './useContractRolesEnriched';
 
@@ -30,8 +32,10 @@ export interface UseDashboardDataOptions {
   networkId: string;
   /** Human-readable network name for export metadata */
   networkName: string;
-  /** User-defined contract label for export metadata (optional) */
+  /** Alias-resolved display label for export metadata */
   label?: string | null;
+  /** Aliases to embed in the exported snapshot for round-trip import/export */
+  aliases?: SnapshotAlias[];
   /** Whether the contract has been registered with the service (required for Stellar) */
   isContractRegistered?: boolean;
 }
@@ -61,7 +65,7 @@ export interface UseDashboardDataOptions {
  * } = useDashboardData(adapter, contractAddress, {
  *   networkId: 'stellar-testnet',
  *   networkName: 'Stellar Testnet',
- *   label: 'My Token Contract',
+ *   label: 'My Token Contract', // resolved from alias system
  *   isContractRegistered: true,
  * });
  *
@@ -83,9 +87,17 @@ export function useDashboardData(
   contractAddress: string,
   options: UseDashboardDataOptions
 ): UseDashboardDataReturn {
-  const { networkId, networkName, label, isContractRegistered = true } = options;
+  const { networkId, networkName, label, aliases, isContractRegistered = true } = options;
   // Track refreshing state separately from initial load
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Detect capabilities to gate ownership query (prevents errors on AccessControl-only contracts)
+  const { capabilities, isLoading: capabilitiesLoading } = useContractCapabilities(
+    adapter,
+    contractAddress,
+    isContractRegistered
+  );
+  const hasOwnableCapability = capabilities?.hasOwnable ?? false;
 
   // Fetch enriched roles data for cross-page cache sharing.
   // After fetching, useContractRolesEnriched populates the basic roles cache via setQueryData,
@@ -111,16 +123,14 @@ export function useDashboardData(
   );
 
   // Fetch ownership data
-  // Pass isContractRegistered to prevent fetching before registration is complete
+  // Only fetch when contract has Ownable capability (prevents errors on AccessControl-only contracts)
   const {
-    // Ownership data is used via hasOwner flag for capability detection
     isLoading: ownershipLoading,
     hasError: ownershipHasError,
     errorMessage: ownershipErrorMessage,
     canRetry: ownershipCanRetry,
     refetch: ownershipRefetch,
-    hasOwner,
-  } = useContractOwnership(adapter, contractAddress, isContractRegistered);
+  } = useContractOwnership(adapter, contractAddress, isContractRegistered, hasOwnableCapability);
 
   // Compute roles count
   const rolesCount = useMemo(() => {
@@ -136,20 +146,17 @@ export function useDashboardData(
     return getUniqueAccountsCount(roles);
   }, [adapter, contractAddress, rolesLoading, roles]);
 
-  // Determine capability flags
-  // hasAccessControl: true if we have roles data (even if empty, if no error)
-  // hasOwnable: true if ownership data shows an owner
+  // Determine capability flags from detected capabilities (more reliable than inference)
   const hasAccessControl = useMemo(() => {
-    // If roles loaded successfully (even empty), contract supports AccessControl
-    return !rolesLoading && !rolesHasError;
-  }, [rolesLoading, rolesHasError]);
+    return capabilities?.hasAccessControl ?? false;
+  }, [capabilities]);
 
   const hasOwnable = useMemo(() => {
-    return hasOwner;
-  }, [hasOwner]);
+    return hasOwnableCapability;
+  }, [hasOwnableCapability]);
 
-  // Combined loading state
-  const isLoading = rolesLoading || ownershipLoading;
+  // Combined loading state (include capabilities loading for initial state)
+  const isLoading = capabilitiesLoading || rolesLoading || ownershipLoading;
 
   // Combined error state
   const hasError = rolesHasError || ownershipHasError;
@@ -164,12 +171,17 @@ export function useDashboardData(
   // Can retry if either can be retried
   const canRetry = rolesCanRetry || ownershipCanRetry;
 
-  // Combined refetch function - refetches both in parallel
+  // Combined refetch function - refetches applicable queries in parallel
   // Throws on error to allow caller to handle (e.g., show toast notification)
   const refetch = useCallback(async (): Promise<void> => {
     setIsRefreshing(true);
     try {
-      const results = await Promise.allSettled([rolesRefetch(), ownershipRefetch()]);
+      const refetchPromises = [rolesRefetch()];
+      // Only refetch ownership if the contract has Ownable capability
+      if (hasOwnableCapability) {
+        refetchPromises.push(ownershipRefetch());
+      }
+      const results = await Promise.allSettled(refetchPromises);
       // Check if any refetch failed and throw an aggregated error
       const failures = results.filter(
         (result): result is PromiseRejectedResult => result.status === 'rejected'
@@ -185,13 +197,12 @@ export function useDashboardData(
     } finally {
       setIsRefreshing(false);
     }
-  }, [rolesRefetch, ownershipRefetch]);
+  }, [rolesRefetch, ownershipRefetch, hasOwnableCapability]);
 
   // Generate custom filename for snapshot export using truncated address and timestamp
   const snapshotFilename = useMemo(() => {
     if (!contractAddress) return undefined;
-    // Remove the .json extension since useExportSnapshot adds it
-    return generateSnapshotFilename(contractAddress).replace('.json', '');
+    return generateSnapshotFilename(contractAddress, { withExtension: false });
   }, [contractAddress]);
 
   // Export functionality using useExportSnapshot hook
@@ -203,6 +214,7 @@ export function useDashboardData(
     networkId,
     networkName,
     label,
+    aliases,
     filename: snapshotFilename,
   });
 

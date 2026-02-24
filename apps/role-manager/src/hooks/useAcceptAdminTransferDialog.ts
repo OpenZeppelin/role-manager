@@ -165,7 +165,7 @@ export function useAcceptAdminTransferDialog(
   const submit = useCallback(async () => {
     // Execute the transaction with EOA execution
     await executeTransaction({
-      executionConfig: { method: 'eoa' } as ExecutionConfig,
+      executionConfig: { method: 'eoa', allowAny: true } as ExecutionConfig,
     });
   }, [executeTransaction]);
 
@@ -176,7 +176,7 @@ export function useAcceptAdminTransferDialog(
   const retry = useCallback(async () => {
     // Re-execute the transaction
     await executeTransaction({
-      executionConfig: { method: 'eoa' } as ExecutionConfig,
+      executionConfig: { method: 'eoa', allowAny: true } as ExecutionConfig,
     });
   }, [executeTransaction]);
 

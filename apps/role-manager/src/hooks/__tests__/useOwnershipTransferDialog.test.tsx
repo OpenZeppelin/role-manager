@@ -135,6 +135,33 @@ vi.mock('../useCurrentBlock', () => ({
   }),
 }));
 
+// Mock useExpirationMetadata (T033)
+let mockExpirationMetadata:
+  | {
+      mode: 'required' | 'none' | 'contract-managed';
+      label?: string;
+      unit?: string;
+      currentValue?: number;
+    }
+  | undefined = {
+  mode: 'required',
+  label: 'Expiration Ledger',
+  unit: 'ledger number',
+};
+
+vi.mock('../useExpirationMetadata', () => ({
+  useExpirationMetadata: (
+    _adapter: unknown,
+    _address: string,
+    _type: string,
+    options?: { enabled?: boolean }
+  ) => ({
+    metadata: options?.enabled !== false ? mockExpirationMetadata : undefined,
+    isLoading: false,
+    error: null,
+  }),
+}));
+
 // =============================================================================
 // Test Utilities
 // =============================================================================
@@ -191,6 +218,13 @@ const setupDefaultMocks = () => {
 
   mockCurrentBlock = 1000;
   mockCurrentBlockLoading = false;
+
+  // Default: Stellar-like expiration metadata (mode: 'required')
+  mockExpirationMetadata = {
+    mode: 'required',
+    label: 'Expiration Ledger',
+    unit: 'ledger number',
+  };
 };
 
 // =============================================================================
@@ -556,7 +590,7 @@ describe('useOwnershipTransferDialog', () => {
         expect.objectContaining({
           newOwner: MOCK_NEW_OWNER_ADDRESS,
           expirationBlock: 2000,
-          executionConfig: { method: 'eoa' },
+          executionConfig: { method: 'eoa', allowAny: true },
         })
       );
     });
@@ -835,6 +869,200 @@ describe('useOwnershipTransferDialog', () => {
       );
 
       expect(result.current.txStatus).toBe('pendingConfirmation');
+    });
+  });
+
+  // =========================================================================
+  // T033: Adapter-driven expiration metadata tests
+  // =========================================================================
+
+  describe('expiration metadata (T033)', () => {
+    describe('mode: required (Stellar)', () => {
+      beforeEach(() => {
+        mockExpirationMetadata = {
+          mode: 'required',
+          label: 'Expiration Ledger',
+          unit: 'ledger number',
+        };
+      });
+
+      it('should require expiration input when metadata mode is required', () => {
+        const { result } = renderHook(
+          () =>
+            useOwnershipTransferDialog({
+              currentOwner: MOCK_CONNECTED_ADDRESS,
+              hasTwoStepOwnable: true,
+              onClose: vi.fn(),
+            }),
+          { wrapper: createWrapper() }
+        );
+
+        expect(result.current.requiresExpiration).toBe(true);
+        expect(result.current.expirationMetadata).toEqual(mockExpirationMetadata);
+      });
+
+      it('should expose current block for validation', () => {
+        const { result } = renderHook(
+          () =>
+            useOwnershipTransferDialog({
+              currentOwner: MOCK_CONNECTED_ADDRESS,
+              hasTwoStepOwnable: true,
+              onClose: vi.fn(),
+            }),
+          { wrapper: createWrapper() }
+        );
+
+        expect(result.current.currentBlock).toBe(1000);
+      });
+
+      it('should validate expiration is in the future', async () => {
+        mockTransferOwnershipMutateAsync.mockResolvedValue(mockOperationResult);
+
+        const { result } = renderHook(
+          () =>
+            useOwnershipTransferDialog({
+              currentOwner: MOCK_CONNECTED_ADDRESS,
+              hasTwoStepOwnable: true,
+              onClose: vi.fn(),
+            }),
+          { wrapper: createWrapper() }
+        );
+
+        // Submit with past expiration
+        await act(async () => {
+          await result.current.submit({
+            newOwnerAddress: MOCK_NEW_OWNER_ADDRESS,
+            expirationBlock: '500',
+          });
+        });
+
+        expect(result.current.step).toBe('error');
+        expect(result.current.errorMessage).toContain('Expiration must be greater');
+        expect(mockTransferOwnershipMutateAsync).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('mode: none (EVM Ownable2Step)', () => {
+      beforeEach(() => {
+        mockExpirationMetadata = { mode: 'none' };
+      });
+
+      it('should NOT require expiration input when metadata mode is none', () => {
+        const { result } = renderHook(
+          () =>
+            useOwnershipTransferDialog({
+              currentOwner: MOCK_CONNECTED_ADDRESS,
+              hasTwoStepOwnable: true, // Still two-step, but no expiration
+              onClose: vi.fn(),
+            }),
+          { wrapper: createWrapper() }
+        );
+
+        expect(result.current.requiresExpiration).toBe(false);
+        expect(result.current.currentBlock).toBeNull();
+      });
+
+      it('should submit successfully without expiration for EVM Ownable2Step', async () => {
+        mockTransferOwnershipMutateAsync.mockResolvedValue(mockOperationResult);
+
+        const { result } = renderHook(
+          () =>
+            useOwnershipTransferDialog({
+              currentOwner: MOCK_CONNECTED_ADDRESS,
+              hasTwoStepOwnable: true, // Two-step, but mode: none
+              onClose: vi.fn(),
+            }),
+          { wrapper: createWrapper() }
+        );
+
+        // Submit with empty expiration — should work for mode: 'none'
+        await act(async () => {
+          await result.current.submit({
+            newOwnerAddress: MOCK_NEW_OWNER_ADDRESS,
+            expirationBlock: '',
+          });
+        });
+
+        expect(result.current.step).not.toBe('error');
+        expect(mockTransferOwnershipMutateAsync).toHaveBeenCalledWith(
+          expect.objectContaining({
+            newOwner: MOCK_NEW_OWNER_ADDRESS,
+            expirationBlock: 0, // Default when not required
+          })
+        );
+      });
+    });
+
+    describe('mode: contract-managed (EVM admin)', () => {
+      beforeEach(() => {
+        mockExpirationMetadata = {
+          mode: 'contract-managed',
+          label: 'Accept Schedule',
+          unit: 'UNIX timestamp',
+          currentValue: 1739500000,
+        };
+      });
+
+      it('should NOT require expiration input when metadata mode is contract-managed', () => {
+        const { result } = renderHook(
+          () =>
+            useOwnershipTransferDialog({
+              currentOwner: MOCK_CONNECTED_ADDRESS,
+              hasTwoStepOwnable: true,
+              onClose: vi.fn(),
+            }),
+          { wrapper: createWrapper() }
+        );
+
+        expect(result.current.requiresExpiration).toBe(false);
+        expect(result.current.expirationMetadata?.mode).toBe('contract-managed');
+      });
+
+      it('should submit successfully without expiration for contract-managed mode', async () => {
+        mockTransferOwnershipMutateAsync.mockResolvedValue(mockOperationResult);
+
+        const { result } = renderHook(
+          () =>
+            useOwnershipTransferDialog({
+              currentOwner: MOCK_CONNECTED_ADDRESS,
+              hasTwoStepOwnable: true,
+              onClose: vi.fn(),
+            }),
+          { wrapper: createWrapper() }
+        );
+
+        await act(async () => {
+          await result.current.submit({
+            newOwnerAddress: MOCK_NEW_OWNER_ADDRESS,
+            expirationBlock: '',
+          });
+        });
+
+        expect(mockTransferOwnershipMutateAsync).toHaveBeenCalledWith(
+          expect.objectContaining({
+            expirationBlock: 0,
+          })
+        );
+      });
+    });
+
+    describe('metadata is sole source of truth (no fallback)', () => {
+      it('should derive requiresExpiration purely from metadata, not hasTwoStepOwnable', () => {
+        // Even with hasTwoStepOwnable=true, mode:'none' means no expiration
+        mockExpirationMetadata = { mode: 'none' };
+
+        const { result } = renderHook(
+          () =>
+            useOwnershipTransferDialog({
+              currentOwner: MOCK_CONNECTED_ADDRESS,
+              hasTwoStepOwnable: true,
+              onClose: vi.fn(),
+            }),
+          { wrapper: createWrapper() }
+        );
+
+        expect(result.current.requiresExpiration).toBe(false);
+      });
     });
   });
 });

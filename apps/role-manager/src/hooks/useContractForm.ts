@@ -6,12 +6,12 @@
  * network-specific address validation via the adapter pattern.
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import type { NetworkConfig } from '@openzeppelin/ui-types';
 
-import { getEcosystemAddressExample, getEcosystemName } from '@/core/ecosystems/registry';
+import { getEcosystemMetadata } from '@/core/ecosystems/ecosystemManager';
 import type { AddContractFormData, UseContractFormReturn } from '@/types/contracts';
 import { ADDRESS_PLACEHOLDERS, ERROR_MESSAGES } from '@/types/contracts';
 
@@ -118,14 +118,13 @@ export function useContractForm(): UseContractFormReturn {
       return ADDRESS_PLACEHOLDERS.LOADING;
     }
 
-    const example = getEcosystemAddressExample(selectedNetwork.ecosystem);
-    if (example) {
-      const ecosystemName = getEcosystemName(selectedNetwork.ecosystem);
-      // Extract short prefix from ecosystem name (e.g., "Ethereum (EVM)" -> "EVM")
-      const shortName = ecosystemName.includes('(')
-        ? (ecosystemName.match(/\(([^)]+)\)/)?.[1] ?? ecosystemName.split(' ')[0])
-        : ecosystemName.split(' ')[0];
-      return ADDRESS_PLACEHOLDERS.DEFAULT(shortName, example);
+    const meta = getEcosystemMetadata(selectedNetwork.ecosystem);
+    if (meta?.addressExample) {
+      const name = meta.name;
+      const shortName = name.includes('(')
+        ? (name.match(/\(([^)]+)\)/)?.[1] ?? name.split(' ')[0])
+        : name.split(' ')[0];
+      return ADDRESS_PLACEHOLDERS.DEFAULT(shortName, meta.addressExample);
     }
 
     return `Enter ${selectedNetwork.ecosystem} address`;
@@ -155,8 +154,9 @@ export function useContractForm(): UseContractFormReturn {
 
       const trimmedValue = value.trim();
       if (!adapter.isValidAddress(trimmedValue)) {
-        const ecosystemName = getEcosystemName(selectedNetwork.ecosystem);
-        return ERROR_MESSAGES.ADDRESS_INVALID(ecosystemName);
+        return ERROR_MESSAGES.ADDRESS_INVALID(
+          getEcosystemMetadata(selectedNetwork.ecosystem)?.name ?? selectedNetwork.ecosystem
+        );
       }
 
       return true;
@@ -222,32 +222,39 @@ export function useContractForm(): UseContractFormReturn {
     setSelectedNetworkState(null);
   }, [rhfReset]);
 
-  // Build errors object with validation messages
-  const formErrors = {
-    name:
-      errors.name ??
-      (validateName(watch('name') ?? '') !== true
-        ? { message: validateName(watch('name') ?? '') as string }
-        : undefined),
-    address:
-      errors.address ??
-      (addressValue && validateAddress(addressValue) !== true
-        ? { message: validateAddress(addressValue) as string }
-        : undefined),
-    networkId:
-      errors.networkId ??
-      (!selectedNetwork ? { message: ERROR_MESSAGES.NETWORK_REQUIRED } : undefined),
-  };
+  const nameValue = watch('name') ?? '';
+
+  const nameValidation = useMemo(() => validateName(nameValue), [validateName, nameValue]);
+  const addressValidation = useMemo(
+    () => (addressValue ? validateAddress(addressValue) : true),
+    [validateAddress, addressValue]
+  );
+
+  const formErrors = useMemo(
+    () => ({
+      name:
+        errors.name ??
+        (nameValidation !== true ? { message: nameValidation as string } : undefined),
+      address:
+        errors.address ??
+        (addressValue && addressValidation !== true
+          ? { message: addressValidation as string }
+          : undefined),
+      networkId:
+        errors.networkId ??
+        (!selectedNetwork ? { message: ERROR_MESSAGES.NETWORK_REQUIRED } : undefined),
+    }),
+    [errors, nameValidation, addressValidation, addressValue, selectedNetwork]
+  );
+
+  const computedIsValid =
+    isValid && !!selectedNetwork && nameValidation === true && addressValidation === true;
 
   return {
     control,
     handleSubmit,
     errors: formErrors,
-    isValid:
-      isValid &&
-      !!selectedNetwork &&
-      validateName(watch('name') ?? '') === true &&
-      validateAddress(addressValue ?? '') === true,
+    isValid: computedIsValid,
     selectedNetwork,
     setSelectedNetwork,
     adapter,

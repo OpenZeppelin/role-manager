@@ -32,7 +32,7 @@ import {
 } from '../components/AuthorizedAccounts';
 import { PageEmptyState } from '../components/Shared/PageEmptyState';
 import { PageHeader } from '../components/Shared/PageHeader';
-import { useAuthorizedAccountsPageData } from '../hooks';
+import { useAuthorizedAccountsPageData, useContractDisplayName } from '../hooks';
 import { useSelectedContract } from '../hooks/useSelectedContract';
 
 /**
@@ -72,7 +72,7 @@ export function AuthorizedAccounts() {
 
   // Get contract info for display
   const { selectedContract } = useSelectedContract();
-  const contractLabel = selectedContract?.label || 'Unknown Contract';
+  const contractLabel = useContractDisplayName(selectedContract);
 
   // Selection state for table rows (placeholder behavior - T069)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());

@@ -53,6 +53,7 @@ const mockRoles: RoleWithDescription[] = [
     members: [MOCK_CONNECTED_ADDRESS],
     isOwnerRole: false,
     isAdminRole: true,
+    isHashDisplay: false,
   },
   {
     roleId: 'MINTER_ROLE_ID',
@@ -62,6 +63,7 @@ const mockRoles: RoleWithDescription[] = [
     members: ['0xOtherAddress'],
     isOwnerRole: false,
     isAdminRole: false,
+    isHashDisplay: false,
   },
   {
     roleId: 'PAUSER_ROLE_ID',
@@ -71,6 +73,7 @@ const mockRoles: RoleWithDescription[] = [
     members: [],
     isOwnerRole: false,
     isAdminRole: false,
+    isHashDisplay: false,
   },
   {
     roleId: 'OWNER_ROLE_ID',
@@ -80,6 +83,7 @@ const mockRoles: RoleWithDescription[] = [
     members: [MOCK_CONNECTED_ADDRESS],
     isOwnerRole: true,
     isAdminRole: false,
+    isHashDisplay: false,
   },
 ];
 
@@ -348,7 +352,7 @@ describe('useAssignRoleDialog', () => {
         expect.objectContaining({
           roleId: 'MINTER_ROLE_ID',
           account: MOCK_TARGET_ADDRESS,
-          executionConfig: { method: 'eoa' },
+          executionConfig: { method: 'eoa', allowAny: true },
         })
       );
     });

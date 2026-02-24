@@ -52,7 +52,7 @@ import type { UseSelectedContractReturn } from '../types/dashboard';
  *           onClick={() => setSelectedContract(contract)}
  *           className={contract.id === selectedContract?.id ? 'selected' : ''}
  *         >
- *           {contract.label || contract.address}
+ *           {contract.address}
  *         </li>
  *       ))}
  *     </ul>

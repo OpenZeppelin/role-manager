@@ -1,6 +1,7 @@
 /**
  * Pending Transfers Type Definitions
  * Feature: 015-ownership-transfer (Phase 6.5)
+ * Updated by: 017-evm-access-control (Phase 6 — US5, T041)
  *
  * These types define the data structures for displaying pending transfers
  * in the Dashboard's Pending Role Changes table.
@@ -9,7 +10,10 @@
  * - Generic `PendingTransfer` model supports ownership, admin role, and multisig transfers
  * - Flat table design (no expandable rows)
  * - "Accept" button shown for transfers where connected wallet can accept
+ * - ExpirationMetadata drives adapter-driven labels (no hardcoded "Block"/"Ledger")
  */
+
+import type { ExpirationMetadata } from '@openzeppelin/ui-types';
 
 // =============================================================================
 // Transfer Types
@@ -55,11 +59,14 @@ export interface PendingTransfer {
   /** Explorer URL for pending recipient address */
   pendingRecipientUrl?: string;
 
-  /** Block/ledger number at which the transfer expires */
+  /** Expiration value (block/ledger/timestamp) at which the transfer expires */
   expirationBlock: number;
 
   /** Whether the transfer has expired (derived from current block) */
   isExpired: boolean;
+
+  /** Adapter-driven expiration metadata for display labels and mode */
+  expirationMetadata?: ExpirationMetadata;
 
   /** Progress indicator (e.g., { current: 1, total: 2 } for two-step) */
   step: {

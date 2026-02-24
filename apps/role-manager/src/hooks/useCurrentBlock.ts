@@ -1,16 +1,22 @@
 /**
  * useCurrentBlock hook
  * Feature: 015-ownership-transfer
+ * Updated by: 017-evm-access-control (Phase 6 — US5, T041a)
  *
- * Provides polling for current block number.
+ * Provides polling for current block/ledger number.
  * Used for:
- * - Displaying current block in transfer dialog
+ * - Displaying current block/ledger in transfer dialogs (label from adapter metadata)
  * - Validating expiration input is in the future
+ *
+ * Polling is only enabled when the adapter requires expiration input (mode: 'required').
+ * Callers use getCurrentValueLabel() from utils/expiration.ts for display labels.
  */
 import { useQuery } from '@tanstack/react-query';
 import { useCallback } from 'react';
 
 import type { ContractAdapter } from '@openzeppelin/ui-types';
+
+import { queryKeys } from './queryKeys';
 
 // =============================================================================
 // Constants
@@ -27,8 +33,12 @@ export const DEFAULT_POLL_INTERVAL_MS = 5000;
  * Options for useCurrentBlock hook
  */
 export interface UseCurrentBlockOptions {
-  /** Polling interval in milliseconds (default: 5000) */
-  pollInterval?: number;
+  /**
+   * Polling interval in milliseconds, or `false` to disable polling.
+   * When `false`, the block is fetched once and only refreshed on demand.
+   * @default 5000
+   */
+  pollInterval?: number | false;
   /** Whether polling is enabled (default: true) */
   enabled?: boolean;
 }
@@ -46,13 +56,6 @@ export interface UseCurrentBlockReturn {
   /** Manually trigger a refresh */
   refetch: () => void;
 }
-
-// =============================================================================
-// Query Key
-// =============================================================================
-
-const currentBlockQueryKey = (networkId: string | undefined) =>
-  ['currentBlock', networkId] as const;
 
 // =============================================================================
 // Hook Implementation
@@ -86,8 +89,11 @@ export function useCurrentBlock(
 
   const networkId = adapter?.networkConfig?.id;
 
+  // Resolve polling configuration: `false` disables polling entirely
+  const pollMs = typeof pollInterval === 'number' ? pollInterval : undefined;
+
   const query = useQuery({
-    queryKey: currentBlockQueryKey(networkId),
+    queryKey: queryKeys.currentBlock(networkId),
     queryFn: async () => {
       if (!adapter) {
         throw new Error('Adapter not available');
@@ -95,11 +101,11 @@ export function useCurrentBlock(
       return adapter.getCurrentBlock();
     },
     enabled: !!adapter && enabled,
-    refetchInterval: enabled ? pollInterval : false,
+    refetchInterval: enabled && pollMs ? pollMs : false,
     // Don't retry on error - let polling handle recovery
     retry: false,
-    // Keep stale data while refetching
-    staleTime: pollInterval / 2,
+    // Keep stale data while refetching; when no polling, data is never auto-stale
+    staleTime: pollMs ? pollMs / 2 : Infinity,
   });
 
   // Wrap refetch to handle void return

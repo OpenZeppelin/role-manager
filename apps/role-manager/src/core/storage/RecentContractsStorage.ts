@@ -14,7 +14,6 @@ import { db } from './database';
 export interface RecentContractInput {
   networkId: string;
   address: string;
-  label?: string;
 }
 
 type RecentContractsTable = Table<RecentContractRecord, string>;
@@ -24,11 +23,10 @@ function normalizeAddress(address: string): string {
 }
 
 function validateInput(input: RecentContractInput): void {
-  const { networkId, address, label } = input;
+  const { networkId, address } = input;
   if (!networkId || typeof networkId !== 'string' || networkId.trim().length === 0) {
     throw new Error('recentContracts/invalid-network-id');
   }
-  // Check address is a valid string before calling normalizeAddress to avoid TypeError
   if (!address || typeof address !== 'string') {
     throw new Error('recentContracts/invalid-address');
   }
@@ -36,13 +34,8 @@ function validateInput(input: RecentContractInput): void {
   if (normalized.length === 0) {
     throw new Error('recentContracts/invalid-address');
   }
-  // Basic sanity: extremely long addresses are suspicious; cap to reasonable length
   if (normalized.length > 256) {
     throw new Error('recentContracts/invalid-address-length');
-  }
-  // Validate label length if provided (ASSUMP-005: max 64 characters)
-  if (label !== undefined && typeof label === 'string' && label.trim().length > 64) {
-    throw new Error('recentContracts/invalid-label-length');
   }
 }
 
@@ -64,11 +57,8 @@ export class RecentContractsStorage extends EntityStorage<RecentContractRecord> 
     const now = Date.now();
     const networkId = input.networkId.trim();
     const address = normalizeAddress(input.address);
-    const label = input.label?.trim() || undefined;
 
     return await withQuotaHandling(this.tableName, async () => {
-      // Try to find existing by compound unique index [networkId+address]
-      // Use where+and to avoid type issues with compound equals typing
       const existing = await (this.table as RecentContractsTable)
         .where('networkId')
         .equals(networkId)
@@ -76,13 +66,7 @@ export class RecentContractsStorage extends EntityStorage<RecentContractRecord> 
         .first();
 
       if (existing) {
-        // Only include label in update if explicitly provided, to preserve existing value
         const updates: Partial<RecentContractRecord> = { lastAccessed: now };
-        if (label !== undefined) {
-          updates.label = label;
-        }
-        // Convert ID to string since database stores auto-increment IDs as numbers
-        // but EntityStorage.update() expects string IDs
         const idString = String(existing.id);
         await this.update(idString, updates);
         return idString;
@@ -91,7 +75,6 @@ export class RecentContractsStorage extends EntityStorage<RecentContractRecord> 
       const id = await this.save({
         networkId,
         address,
-        label,
         lastAccessed: now,
       });
       return id;
@@ -130,20 +113,16 @@ export class RecentContractsStorage extends EntityStorage<RecentContractRecord> 
     validateInput({
       networkId: input.networkId,
       address: input.address,
-      label: input.label,
     });
 
     const now = Date.now();
     const networkId = input.networkId.trim();
     const address = normalizeAddress(input.address);
-    const label = input.label?.trim() || undefined;
 
-    // Serialize schema and compute hash
     const schemaJson = JSON.stringify(input.schema);
     const schemaHash = simpleHash(schemaJson);
 
     return await withQuotaHandling(this.tableName, async () => {
-      // Try to find existing by compound unique index [networkId+address]
       const existing = await (this.table as RecentContractsTable)
         .where('networkId')
         .equals(networkId)
@@ -151,7 +130,6 @@ export class RecentContractsStorage extends EntityStorage<RecentContractRecord> 
         .first();
 
       if (existing) {
-        // Update existing record with schema data
         const updates: Partial<RecentContractRecord> = {
           lastAccessed: now,
           ecosystem: input.ecosystem,
@@ -160,12 +138,6 @@ export class RecentContractsStorage extends EntityStorage<RecentContractRecord> 
           source: input.source,
         };
 
-        // Only update label if explicitly provided
-        if (label !== undefined) {
-          updates.label = label;
-        }
-
-        // Optional fields
         if (input.definitionOriginal !== undefined) {
           updates.definitionOriginal = input.definitionOriginal;
         }
@@ -184,11 +156,9 @@ export class RecentContractsStorage extends EntityStorage<RecentContractRecord> 
         return idString;
       }
 
-      // Create new record with schema data
       const id = await this.save({
         networkId,
         address,
-        label,
         lastAccessed: now,
         ecosystem: input.ecosystem,
         schema: schemaJson,

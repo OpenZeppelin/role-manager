@@ -335,7 +335,7 @@ describe('useAcceptOwnershipDialog', () => {
 
       expect(mockAcceptOwnershipMutateAsync).toHaveBeenCalledWith(
         expect.objectContaining({
-          executionConfig: { method: 'eoa' },
+          executionConfig: { method: 'eoa', allowAny: true },
         })
       );
     });

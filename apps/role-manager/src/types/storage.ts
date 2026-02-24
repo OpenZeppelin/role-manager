@@ -29,8 +29,6 @@ export interface RecentContractRecord extends BaseRecord {
   networkId: string;
   /** Contract address/ID (e.g., C...) */
   address: string;
-  /** User-defined label (max 64 chars) */
-  label?: string;
   /** Unix timestamp (ms) of last access */
   lastAccessed: number;
 
@@ -87,8 +85,6 @@ export interface ContractSchemaInput {
   schema: ContractSchema;
   /** How the schema was obtained */
   source: ContractSchemaSource;
-  /** User-defined label (optional) */
-  label?: string;
   /** Original definition for re-parsing */
   definitionOriginal?: string;
   /** Additional adapter artifacts */

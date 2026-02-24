@@ -178,7 +178,7 @@ export function useAssignRoleDialog(
       await execute({
         roleId: data.roleId,
         account: data.address,
-        executionConfig: { method: 'eoa' } as ExecutionConfig,
+        executionConfig: { method: 'eoa', allowAny: true } as ExecutionConfig,
       });
     },
     [execute]

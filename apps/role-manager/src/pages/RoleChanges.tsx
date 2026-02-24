@@ -29,6 +29,7 @@ import {
 } from '../components/RoleChanges';
 import { PageEmptyState } from '../components/Shared/PageEmptyState';
 import { PageHeader } from '../components/Shared/PageHeader';
+import { useContractDisplayName } from '../hooks/useContractDisplayName';
 import { useRoleChangesPageData } from '../hooks/useRoleChangesPageData';
 import { useSelectedContract } from '../hooks/useSelectedContract';
 
@@ -67,7 +68,7 @@ export function RoleChanges() {
 
   // Get contract info for display
   const { selectedContract } = useSelectedContract();
-  const contractLabel = selectedContract?.label || 'Unknown Contract';
+  const contractLabel = useContractDisplayName(selectedContract);
 
   // Handler for navigating to Roles page with specific role pre-selected
   const handleRoleClick = useCallback(

@@ -19,6 +19,7 @@ import type {
   UseContractHistoryReturn,
 } from '../types/role-changes';
 import { DataError, ErrorCategory, wrapError } from '../utils/errors';
+import { queryKeys } from './queryKeys';
 import { useAccessControlService } from './useAccessControlService';
 
 /**
@@ -28,10 +29,10 @@ import { useAccessControlService } from './useAccessControlService';
 export const DEFAULT_PAGE_SIZE = 20;
 
 /**
- * Query key factory for contract history.
- * Includes all parameters that affect the query result.
+ * Full query key for a specific history page (includes filter params).
+ * Uses queryKeys.contractHistory(address) as prefix for invalidation.
  */
-const historyQueryKey = (
+const historyPageQueryKey = (
   address: string,
   cursor?: string,
   roleId?: string,
@@ -43,8 +44,7 @@ const historyQueryKey = (
   timestampTo?: string
 ) =>
   [
-    'contract-history',
-    address,
+    ...queryKeys.contractHistory(address),
     { cursor, roleId, changeType, limit, account, txId, timestampFrom, timestampTo },
   ] as const;
 
@@ -113,7 +113,7 @@ export function useContractHistory(
     error: rawError,
     refetch: queryRefetch,
   } = useQuery({
-    queryKey: historyQueryKey(
+    queryKey: historyPageQueryKey(
       contractAddress,
       queryOptions.cursor,
       queryOptions.roleId,

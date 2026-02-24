@@ -200,11 +200,46 @@ describe('useContractRolesEnriched', () => {
   });
 
   // ===========================================================================
-  // Note: Fallback tests removed (T021)
-  // getCurrentRolesEnriched is now a required method in the AccessControlService
-  // interface, so fallback behavior is no longer needed. The service itself
-  // handles graceful degradation when indexer data is unavailable.
+  // T022: Fallback to getCurrentRoles() when enriched API unavailable
   // ===========================================================================
+
+  describe('fallback to getCurrentRoles (T022)', () => {
+    it('should fall back to getCurrentRoles when getCurrentRolesEnriched fails', async () => {
+      mockService.getCurrentRolesEnriched.mockRejectedValue(new Error('Indexer unavailable'));
+      mockService.getCurrentRoles.mockResolvedValue(mockRegularRoles);
+
+      const { result } = renderHook(
+        () =>
+          useContractRolesEnriched(
+            { id: 'test' } as unknown as ContractAdapter,
+            '0xcontract',
+            true
+          ),
+        { wrapper: createWrapper() }
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Should succeed via fallback — no error
+      expect(result.current.hasError).toBe(false);
+      expect(result.current.isEmpty).toBe(false);
+
+      // Should have called both enriched (failed) and basic (succeeded)
+      expect(mockService.getCurrentRolesEnriched).toHaveBeenCalledWith('0xcontract');
+      expect(mockService.getCurrentRoles).toHaveBeenCalledWith('0xcontract');
+
+      // Should return roles converted from basic format (no grant metadata)
+      expect(result.current.roles).toHaveLength(2);
+      expect(result.current.roles[0].role.id).toBe('ADMIN_ROLE');
+      expect(result.current.roles[0].members[0].address).toBe(
+        '0x1234567890123456789012345678901234567890'
+      );
+      // No grantedAt in fallback mode
+      expect(result.current.roles[0].members[0].grantedAt).toBeUndefined();
+    });
+  });
 
   // ===========================================================================
   // T022: Test cases for error handling
@@ -236,8 +271,9 @@ describe('useContractRolesEnriched', () => {
       expect(result.current.canRetry).toBe(false);
     });
 
-    it('should return hasError=true when API call fails', async () => {
-      mockService.getCurrentRolesEnriched.mockRejectedValue(new Error('Network error'));
+    it('should return hasError=true when both enriched and basic API calls fail', async () => {
+      mockService.getCurrentRolesEnriched.mockRejectedValue(new Error('Indexer unavailable'));
+      mockService.getCurrentRoles.mockRejectedValue(new Error('Network error'));
 
       const { result } = renderHook(
         () =>

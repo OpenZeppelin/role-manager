@@ -122,7 +122,11 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
         grant: 'GRANTED',
         revoke: 'REVOKED',
         'ownership-transfer': 'OWNERSHIP_TRANSFER_COMPLETED',
+        'ownership-renounced': 'OWNERSHIP_RENOUNCED',
         'admin-transfer': 'ADMIN_TRANSFER_COMPLETED',
+        'admin-transfer-canceled': 'ADMIN_TRANSFER_CANCELED',
+        'admin-renounced': 'ADMIN_RENOUNCED',
+        'admin-delay': 'ADMIN_DELAY_CHANGE_SCHEDULED',
         unknown: 'UNKNOWN',
       };
       changeType = actionToChangeTypeMap[filters.actionFilter];

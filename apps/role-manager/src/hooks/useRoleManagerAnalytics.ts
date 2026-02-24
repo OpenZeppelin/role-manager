@@ -120,6 +120,52 @@ export function useRoleManagerAnalytics() {
       },
 
       /**
+       * Track when ownership is renounced (Feature: 017-evm-access-control, T055)
+       */
+      trackOwnershipRenounced: (ecosystem: string) => {
+        analytics.trackEvent('ownership_renounced', {
+          ecosystem,
+        });
+      },
+
+      /**
+       * Track when a role is renounced (Feature: 017-evm-access-control, T055)
+       */
+      trackRoleRenounced: (roleName: string, ecosystem: string) => {
+        analytics.trackEvent('role_renounced', {
+          role_name: roleName,
+          ecosystem,
+        });
+      },
+
+      /**
+       * Track when admin transfer is canceled (Feature: 017-evm-access-control, T069)
+       */
+      trackAdminTransferCancelled: (ecosystem: string) => {
+        analytics.trackEvent('admin_transfer_cancelled', {
+          ecosystem,
+        });
+      },
+
+      /**
+       * Track when admin delay change is scheduled (Feature: 017-evm-access-control, T069)
+       */
+      trackAdminDelayChangeScheduled: (ecosystem: string) => {
+        analytics.trackEvent('admin_delay_change_scheduled', {
+          ecosystem,
+        });
+      },
+
+      /**
+       * Track when admin delay change is rolled back (Feature: 017-evm-access-control, T069)
+       */
+      trackAdminDelayChangeRolledBack: (ecosystem: string) => {
+        analytics.trackEvent('admin_delay_change_rolled_back', {
+          ecosystem,
+        });
+      },
+
+      /**
        * Track when a snapshot is exported
        */
       trackSnapshotExported: (format: string, ecosystem: string) => {

@@ -16,8 +16,6 @@ import { FeatureBadge } from '../Shared/FeatureBadge';
  * Displays contract details on the Dashboard.
  */
 interface ContractInfoCardProps {
-  /** Contract display name/label */
-  contractName: string;
   /** Access control capabilities for badge display */
   capabilities?: AccessControlCapabilities | null;
   /** Full contract address */
@@ -31,7 +29,6 @@ interface ContractInfoCardProps {
 }
 
 export function ContractInfoCard({
-  contractName,
   capabilities,
   address,
   network,
@@ -50,8 +47,15 @@ export function ContractInfoCard({
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="flex justify-between items-center">
-          <span className="text-sm font-semibold text-slate-900">Contract Name</span>
-          <span className="text-sm text-slate-600">{contractName}</span>
+          <span className="text-sm font-semibold text-slate-900">Contract</span>
+          <AddressDisplay
+            address={address}
+            truncate={true}
+            startChars={6}
+            endChars={4}
+            showCopyButton={true}
+            explorerUrl={explorerUrl ?? undefined}
+          />
         </div>
 
         <div className="flex justify-between items-center">
@@ -61,18 +65,6 @@ export function ContractInfoCard({
             {hasOwnable && <FeatureBadge variant="blue">Ownable</FeatureBadge>}
             {!hasDetectedCapabilities && <FeatureBadge variant="slate">Unknown</FeatureBadge>}
           </div>
-        </div>
-
-        <div className="flex justify-between items-center">
-          <span className="text-sm font-semibold text-slate-900">Contract Address</span>
-          <AddressDisplay
-            address={address}
-            truncate={true}
-            startChars={6}
-            endChars={4}
-            showCopyButton={true}
-            explorerUrl={explorerUrl ?? undefined}
-          />
         </div>
 
         <div className="flex justify-between items-center">

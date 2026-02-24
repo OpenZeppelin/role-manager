@@ -1,15 +1,15 @@
 /**
  * PendingTransferRow Component
  * Feature: 015-ownership-transfer (Phase 6.5)
+ * Updated by: 017-evm-access-control (Phase 6 — US5, T040)
  *
  * Single row in the Pending Transfers table displaying:
  * - Type badge (e.g., "Owner")
  * - Current holder → Pending recipient addresses
- * - Expiration block with status
- * - Step progress indicator
+ * - Expiration with adapter-driven labels
  * - Accept button (when applicable)
  *
- * Tasks: T047
+ * Tasks: T047, T040
  */
 
 import { ArrowRight } from 'lucide-react';
@@ -20,6 +20,12 @@ import { cn } from '@openzeppelin/ui-utils';
 import { useBlockTime } from '../../context/useBlockTime';
 import type { PendingTransfer } from '../../types/pending-transfers';
 import { calculateBlockExpiration, formatTimeEstimateDisplay } from '../../utils/block-time';
+import {
+  formatExpirationTimestamp,
+  getTimestampTimeRemaining,
+  hasNoExpiration,
+  isTimestampBasedExpiration,
+} from '../../utils/expiration';
 import { AcceptTransferButton, RoleTypeBadge, StatusBadge } from '../Shared';
 
 // =============================================================================
@@ -55,10 +61,17 @@ export function PendingTransferRow({ transfer, currentBlock, onAccept }: Pending
   // Get block time estimation
   const { formatBlocksToTime } = useBlockTime();
 
-  // Calculate blocks remaining and time estimate
-  const expirationEstimate = !transfer.isExpired
-    ? calculateBlockExpiration(transfer.expirationBlock, currentBlock, formatBlocksToTime)
-    : null;
+  // Whether this transfer has no expiration concept (e.g., EVM Ownable2Step)
+  const noExpiration = hasNoExpiration(transfer.expirationMetadata);
+
+  // Whether this is a timestamp-based expiration (e.g., EVM AccessControlDefaultAdminRules)
+  const isTimestamp = isTimestampBasedExpiration(transfer.expirationMetadata);
+
+  // Calculate blocks remaining and time estimate (only when expiration is meaningful and not timestamp-based)
+  const expirationEstimate =
+    !transfer.isExpired && !noExpiration && !isTimestamp
+      ? calculateBlockExpiration(transfer.expirationBlock, currentBlock, formatBlocksToTime)
+      : null;
 
   return (
     <tr className={cn('border-b last:border-b-0 transition-colors', 'hover:bg-accent/50')}>
@@ -98,7 +111,20 @@ export function PendingTransferRow({ transfer, currentBlock, onAccept }: Pending
 
       {/* Expiration */}
       <td className="p-4 text-sm whitespace-nowrap">
-        {transfer.isExpired ? (
+        {noExpiration ? (
+          <span className="text-muted-foreground">—</span>
+        ) : isTimestamp ? (
+          <div className="flex flex-col">
+            <span className="font-mono">{formatExpirationTimestamp(transfer.expirationBlock)}</span>
+            {!transfer.isExpired &&
+              (() => {
+                const remaining = getTimestampTimeRemaining(transfer.expirationBlock);
+                return remaining ? (
+                  <span className="text-xs text-muted-foreground">~{remaining} remaining</span>
+                ) : null;
+              })()}
+          </div>
+        ) : transfer.isExpired ? (
           <StatusBadge variant="error">Expired</StatusBadge>
         ) : (
           <div className="flex flex-col">

@@ -10,7 +10,7 @@
  * - Assignment date display/hide logic (hide when unavailable)
  */
 
-import { Trash2 } from 'lucide-react';
+import { Ban, Trash2 } from 'lucide-react';
 
 import { AddressDisplay, Button } from '@openzeppelin/ui-components';
 import { cn } from '@openzeppelin/ui-utils';
@@ -41,6 +41,14 @@ export interface AccountRowProps {
   onTransferOwnership?: () => void;
   /** Feature 016 (T026): Transfer admin handler (admin role only) */
   onTransferAdmin?: () => void;
+  /** Feature 017 (T052): Whether contract supports renouncing ownership */
+  hasRenounceOwnership?: boolean;
+  /** Feature 017 (T052): Renounce ownership handler (owner role only) */
+  onRenounceOwnership?: () => void;
+  /** Feature 017 (T053): Whether contract supports renouncing roles */
+  hasRenounceRole?: boolean;
+  /** Feature 017 (T053): Renounce role handler (only shown when isCurrentUser + hasRenounceRole) */
+  onRenounceRole?: () => void;
   /** Additional CSS classes */
   className?: string;
 }
@@ -62,6 +70,10 @@ export function AccountRow({
   onRevoke,
   onTransferOwnership,
   onTransferAdmin,
+  hasRenounceOwnership = false,
+  onRenounceOwnership,
+  hasRenounceRole = false,
+  onRenounceRole,
   className,
 }: AccountRowProps) {
   return (
@@ -81,6 +93,18 @@ export function AccountRow({
       <div className="flex items-center gap-2">
         {isOwnerRole ? (
           <>
+            {/* Feature 017 (T052): Renounce Ownership button - inline next to Transfer */}
+            {isCurrentUser && hasRenounceOwnership && onRenounceOwnership && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={onRenounceOwnership}
+                className="h-7 px-2 text-xs text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+              >
+                <Ban className="h-3 w-3 mr-1" />
+                Renounce
+              </Button>
+            )}
             {/* FR-006: Transfer Ownership button only visible when connected wallet is current owner */}
             {isCurrentUser && onTransferOwnership && (
               <TransferRoleButton roleType="ownership" onClick={onTransferOwnership} />
@@ -101,6 +125,18 @@ export function AccountRow({
               <span className="text-xs text-muted-foreground whitespace-nowrap">
                 {formatDateTime(assignedAt instanceof Date ? assignedAt.toISOString() : assignedAt)}
               </span>
+            )}
+            {/* Feature 017 (T053): Renounce Role button - only for connected wallet when capability present */}
+            {isCurrentUser && hasRenounceRole && onRenounceRole && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={onRenounceRole}
+                className="h-7 px-2 text-xs text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+              >
+                <Ban className="h-3 w-3 mr-1" />
+                Renounce
+              </Button>
             )}
             <Button
               size="sm"

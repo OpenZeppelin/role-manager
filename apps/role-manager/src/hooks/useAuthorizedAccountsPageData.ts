@@ -180,12 +180,14 @@ export function useAuthorizedAccountsPageData(): UseAuthorizedAccountsPageDataRe
   } = useContractRolesEnriched(adapter, contractAddress, isContractRegistered);
 
   // Ownership fetching
+  // Only fetch when contract has Ownable capability (prevents errors on AccessControl-only contracts)
+  const hasOwnableCapability = capabilities?.hasOwnable ?? false;
   const {
     ownership,
     isLoading: isOwnershipLoading,
     isFetching: isOwnershipFetching,
     refetch: refetchOwnership,
-  } = useContractOwnership(adapter, contractAddress, isContractRegistered);
+  } = useContractOwnership(adapter, contractAddress, isContractRegistered, hasOwnableCapability);
 
   // =============================================================================
   // Computed Values

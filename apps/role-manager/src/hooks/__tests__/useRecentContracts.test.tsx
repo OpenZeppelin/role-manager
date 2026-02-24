@@ -116,14 +116,12 @@ describe('useRecentContracts', () => {
         await result.current.addOrUpdate({
           networkId: 'stellar-testnet',
           address: 'ADDR1',
-          label: 'Test Contract',
         });
       });
 
       expect(mocks.addOrUpdate).toHaveBeenCalledWith({
         networkId: 'stellar-testnet',
         address: 'ADDR1',
-        label: 'Test Contract',
       });
     });
 

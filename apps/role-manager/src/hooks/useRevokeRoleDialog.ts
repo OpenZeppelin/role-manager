@@ -160,7 +160,7 @@ export function useRevokeRoleDialog(
     await execute({
       roleId,
       account: accountAddress,
-      executionConfig: { method: 'eoa' } as ExecutionConfig,
+      executionConfig: { method: 'eoa', allowAny: true } as ExecutionConfig,
     });
   }, [execute, roleId, accountAddress]);
 

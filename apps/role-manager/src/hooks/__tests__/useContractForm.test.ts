@@ -9,7 +9,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ContractAdapter, NetworkConfig } from '@openzeppelin/ui-types';
 
-import { getEcosystemAddressExample, getEcosystemName } from '@/core/ecosystems/registry';
+import { getEcosystemMetadata } from '@/core/ecosystems/ecosystemManager';
 
 import { useContractForm } from '../useContractForm';
 // Import after mock setup
@@ -20,15 +20,13 @@ vi.mock('../useNetworkAdapter', () => ({
   useNetworkAdapter: vi.fn(),
 }));
 
-// Mock the registry module
-vi.mock('@/core/ecosystems/registry', () => ({
-  getEcosystemAddressExample: vi.fn(),
-  getEcosystemName: vi.fn(),
+// Mock the ecosystem manager module
+vi.mock('@/core/ecosystems/ecosystemManager', () => ({
+  getEcosystemMetadata: vi.fn(),
 }));
 
 const mockUseNetworkAdapter = vi.mocked(useNetworkAdapter);
-const mockGetEcosystemAddressExample = vi.mocked(getEcosystemAddressExample);
-const mockGetEcosystemName = vi.mocked(getEcosystemName);
+const mockGetEcosystemMetadata = vi.mocked(getEcosystemMetadata);
 
 // Test fixtures - use type assertion to avoid full NetworkConfig requirements
 const mockEvmNetwork = {
@@ -67,16 +65,26 @@ describe('useContractForm', () => {
       retry: vi.fn(),
     });
 
-    mockGetEcosystemAddressExample.mockImplementation((ecosystem) => {
-      if (ecosystem === 'evm') return '0xA1B2...';
-      if (ecosystem === 'stellar') return 'GCKF...MTGG';
+    mockGetEcosystemMetadata.mockImplementation((ecosystem) => {
+      if (ecosystem === 'evm')
+        return {
+          id: 'evm',
+          name: 'Ethereum (EVM)',
+          description: '',
+          explorerGuidance: '',
+          addressExample: '0xA1B2...',
+          defaultFeatureConfig: { enabled: true, showInUI: true },
+        };
+      if (ecosystem === 'stellar')
+        return {
+          id: 'stellar',
+          name: 'Stellar',
+          description: '',
+          explorerGuidance: '',
+          addressExample: 'GCKF...MTGG',
+          defaultFeatureConfig: { enabled: true, showInUI: true },
+        };
       return undefined;
-    });
-
-    mockGetEcosystemName.mockImplementation((ecosystem) => {
-      if (ecosystem === 'evm') return 'Ethereum (EVM)';
-      if (ecosystem === 'stellar') return 'Stellar';
-      return ecosystem;
     });
   });
 
@@ -412,6 +420,221 @@ describe('useContractForm', () => {
       expect(result.current).toHaveProperty('isAdapterLoading');
       expect(result.current).toHaveProperty('addressPlaceholder');
       expect(result.current).toHaveProperty('reset');
+    });
+  });
+
+  // T008: EVM-specific address validation and error handling
+  describe('EVM address validation', () => {
+    const mockEvmAdapter: ContractAdapter = {
+      networkConfig: mockEvmNetwork,
+      isValidAddress: vi.fn(),
+      getContract: vi.fn(),
+    } as unknown as ContractAdapter;
+
+    it('should accept valid EVM address (0x-prefixed, 42 chars)', () => {
+      const validAddress = '0x1234567890abcdef1234567890abcdef12345678';
+      const adapterWithValidation = {
+        ...mockEvmAdapter,
+        isValidAddress: vi.fn().mockReturnValue(true),
+      } as unknown as ContractAdapter;
+
+      mockUseNetworkAdapter.mockReturnValue({
+        adapter: adapterWithValidation,
+        isLoading: false,
+        error: null,
+        retry: vi.fn(),
+      });
+
+      const { result } = renderHook(() => useContractForm());
+
+      act(() => {
+        result.current.setSelectedNetwork(mockEvmNetwork);
+      });
+
+      // Adapter's isValidAddress should be available for the valid EVM address
+      expect(adapterWithValidation.isValidAddress(validAddress)).toBe(true);
+    });
+
+    it('should reject invalid EVM address (wrong length)', () => {
+      const invalidAddress = '0x1234'; // Too short
+      const adapterWithValidation = {
+        ...mockEvmAdapter,
+        isValidAddress: vi.fn().mockReturnValue(false),
+      } as unknown as ContractAdapter;
+
+      mockUseNetworkAdapter.mockReturnValue({
+        adapter: adapterWithValidation,
+        isLoading: false,
+        error: null,
+        retry: vi.fn(),
+      });
+
+      const { result } = renderHook(() => useContractForm());
+
+      act(() => {
+        result.current.setSelectedNetwork(mockEvmNetwork);
+      });
+
+      // Adapter should reject the short address
+      expect(adapterWithValidation.isValidAddress(invalidAddress)).toBe(false);
+    });
+
+    it('should reject EVM address without 0x prefix', () => {
+      const noPrefix = '1234567890abcdef1234567890abcdef12345678';
+      const adapterWithValidation = {
+        ...mockEvmAdapter,
+        isValidAddress: vi.fn().mockReturnValue(false),
+      } as unknown as ContractAdapter;
+
+      mockUseNetworkAdapter.mockReturnValue({
+        adapter: adapterWithValidation,
+        isLoading: false,
+        error: null,
+        retry: vi.fn(),
+      });
+
+      const { result } = renderHook(() => useContractForm());
+
+      act(() => {
+        result.current.setSelectedNetwork(mockEvmNetwork);
+      });
+
+      expect(adapterWithValidation.isValidAddress(noPrefix)).toBe(false);
+    });
+
+    it('should show EVM-specific error message for invalid address', () => {
+      const adapterWithValidation = {
+        ...mockEvmAdapter,
+        isValidAddress: vi.fn().mockReturnValue(false),
+      } as unknown as ContractAdapter;
+
+      mockUseNetworkAdapter.mockReturnValue({
+        adapter: adapterWithValidation,
+        isLoading: false,
+        error: null,
+        retry: vi.fn(),
+      });
+      mockGetEcosystemMetadata.mockReturnValue({
+        id: 'evm',
+        name: 'Ethereum (EVM)',
+        description: '',
+        explorerGuidance: '',
+        addressExample: '0xA1B2...',
+        defaultFeatureConfig: { enabled: true, showInUI: true },
+      });
+
+      const { result } = renderHook(() => useContractForm());
+
+      act(() => {
+        result.current.setSelectedNetwork(mockEvmNetwork);
+      });
+
+      expect(mockGetEcosystemMetadata).toHaveBeenCalledWith('evm');
+    });
+
+    it('should show EVM-specific placeholder when EVM network is selected', () => {
+      mockUseNetworkAdapter.mockReturnValue({
+        adapter: mockEvmAdapter,
+        isLoading: false,
+        error: null,
+        retry: vi.fn(),
+      });
+      mockGetEcosystemMetadata.mockReturnValue({
+        id: 'evm',
+        name: 'Ethereum (EVM)',
+        description: '',
+        explorerGuidance: '',
+        addressExample: '0xA1B2...',
+        defaultFeatureConfig: { enabled: true, showInUI: true },
+      });
+
+      const { result } = renderHook(() => useContractForm());
+
+      act(() => {
+        result.current.setSelectedNetwork(mockEvmNetwork);
+      });
+
+      // Placeholder should contain EVM address example with short name extraction
+      expect(result.current.addressPlaceholder).toContain('0xA1B2');
+      expect(result.current.addressPlaceholder).toContain('EVM');
+    });
+  });
+
+  describe('EVM adapter error handling', () => {
+    it('should show adapter load error when EVM adapter fails to initialize', () => {
+      mockUseNetworkAdapter.mockReturnValue({
+        adapter: null,
+        isLoading: false,
+        error: new Error('Failed to load EVM adapter'),
+        retry: vi.fn(),
+      });
+
+      const { result } = renderHook(() => useContractForm());
+
+      act(() => {
+        result.current.setSelectedNetwork(mockEvmNetwork);
+      });
+
+      // Form should not be valid when adapter has an error
+      expect(result.current.isValid).toBe(false);
+      expect(result.current.adapter).toBeNull();
+    });
+
+    it('should allow form input while EVM adapter is loading', () => {
+      mockUseNetworkAdapter.mockReturnValue({
+        adapter: null,
+        isLoading: true,
+        error: null,
+        retry: vi.fn(),
+      });
+
+      const { result } = renderHook(() => useContractForm());
+
+      act(() => {
+        result.current.setSelectedNetwork(mockEvmNetwork);
+      });
+
+      // Adapter should be loading
+      expect(result.current.isAdapterLoading).toBe(true);
+      // Placeholder should show loading state
+      expect(result.current.addressPlaceholder).toBe('Loading...');
+    });
+
+    it('should re-validate when switching from Stellar to EVM network', () => {
+      const evmAdapter = {
+        ...mockAdapter,
+        isValidAddress: vi.fn().mockReturnValue(true),
+      } as unknown as ContractAdapter;
+
+      // Start with Stellar adapter
+      mockUseNetworkAdapter.mockReturnValue({
+        adapter: mockAdapter,
+        isLoading: false,
+        error: null,
+        retry: vi.fn(),
+      });
+
+      const { result } = renderHook(() => useContractForm());
+
+      act(() => {
+        result.current.setSelectedNetwork(mockStellarNetwork);
+      });
+
+      // Switch to EVM
+      mockUseNetworkAdapter.mockReturnValue({
+        adapter: evmAdapter,
+        isLoading: false,
+        error: null,
+        retry: vi.fn(),
+      });
+
+      act(() => {
+        result.current.setSelectedNetwork(mockEvmNetwork);
+      });
+
+      // Should be using EVM network now
+      expect(result.current.selectedNetwork).toEqual(mockEvmNetwork);
+      expect(result.current.adapter).toBe(evmAdapter);
     });
   });
 });

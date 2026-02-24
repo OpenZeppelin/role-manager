@@ -44,14 +44,20 @@ export function ChangeRow({ event, onRoleClick }: ChangeRowProps) {
   const actionConfig = ACTION_TYPE_CONFIG[event.action];
 
   // Map action to role type for special icon display
-  // - ownership-transfer → 'ownership' (crown icon)
-  // - admin-transfer → 'admin' (shield icon for Contract Admin only)
+  // - ownership-transfer/ownership-renounced → 'ownership' (crown icon)
+  // - admin-transfer/admin-transfer-canceled/admin-renounced/admin-delay → 'admin' (shield icon)
   const roleType =
-    event.action === 'ownership-transfer'
+    event.action === 'ownership-transfer' || event.action === 'ownership-renounced'
       ? 'ownership'
-      : event.action === 'admin-transfer'
+      : event.action === 'admin-transfer' ||
+          event.action === 'admin-transfer-canceled' ||
+          event.action === 'admin-renounced' ||
+          event.action === 'admin-delay'
         ? 'admin'
         : undefined;
+
+  // Show dash when account is missing (e.g., adapter omits it for renounced ownership).
+  const isEmptyAccount = !event.account || event.account.trim() === '';
 
   return (
     <tr className={cn('border-b last:border-b-0 transition-colors', 'hover:bg-accent/50')}>
@@ -75,17 +81,21 @@ export function ChangeRow({ event, onRoleClick }: ChangeRowProps) {
         />
       </td>
 
-      {/* Account address */}
+      {/* Account address — show dash for empty/zero addresses (e.g., renounced ownership) */}
       <td className="p-4">
-        <AddressDisplay
-          address={event.account}
-          truncate={true}
-          startChars={6}
-          endChars={4}
-          showCopyButton={true}
-          explorerUrl={event.accountUrl ?? undefined}
-          className="font-mono text-sm"
-        />
+        {isEmptyAccount ? (
+          <span className="text-sm text-muted-foreground">-</span>
+        ) : (
+          <AddressDisplay
+            address={event.account}
+            truncate={true}
+            startChars={6}
+            endChars={4}
+            showCopyButton={true}
+            explorerUrl={event.accountUrl ?? undefined}
+            className="font-mono text-sm"
+          />
+        )}
       </td>
 
       {/* Transaction hash */}

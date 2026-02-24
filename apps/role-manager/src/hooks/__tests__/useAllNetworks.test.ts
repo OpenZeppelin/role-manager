@@ -1,35 +1,18 @@
-/**
- * Tests for useAllNetworks hook
- * Feature: 004-add-contract-record
- *
- * TDD: These tests should FAIL initially before hook implementation
- */
 import { renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { NetworkConfig } from '@openzeppelin/ui-types';
 
-// Import after mock setup
-import { getNetworksByEcosystem } from '@/core/ecosystems/ecosystemManager';
-import { getEcosystemDefaultFeatureConfig } from '@/core/ecosystems/registry';
+import { getAllNetworks } from '@/core/ecosystems/ecosystemManager';
 
 import { useAllNetworks } from '../useAllNetworks';
 
-// Mock the ecosystemManager module
 vi.mock('@/core/ecosystems/ecosystemManager', () => ({
-  getNetworksByEcosystem: vi.fn(),
+  getAllNetworks: vi.fn(),
 }));
 
-// Mock the registry module
-vi.mock('@/core/ecosystems/registry', () => ({
-  ECOSYSTEM_ORDER: ['evm', 'stellar', 'midnight', 'solana'],
-  getEcosystemDefaultFeatureConfig: vi.fn(),
-}));
+const mockGetAllNetworks = vi.mocked(getAllNetworks);
 
-const mockGetNetworksByEcosystem = vi.mocked(getNetworksByEcosystem);
-const mockGetEcosystemDefaultFeatureConfig = vi.mocked(getEcosystemDefaultFeatureConfig);
-
-// Test fixtures - use type assertion to avoid full NetworkConfig requirements
 const mockEvmNetworks = [
   {
     id: 'ethereum-mainnet',
@@ -71,29 +54,7 @@ const mockStellarNetworks = [
 describe('useAllNetworks', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-
-    // Default mock implementations
-    mockGetEcosystemDefaultFeatureConfig.mockImplementation((ecosystem) => {
-      if (ecosystem === 'solana') {
-        return { enabled: false, showInUI: false };
-      }
-      return { enabled: true, showInUI: true };
-    });
-
-    mockGetNetworksByEcosystem.mockImplementation(async (ecosystem) => {
-      switch (ecosystem) {
-        case 'evm':
-          return mockEvmNetworks;
-        case 'stellar':
-          return mockStellarNetworks;
-        case 'midnight':
-          return [];
-        case 'solana':
-          return [];
-        default:
-          return [];
-      }
-    });
+    mockGetAllNetworks.mockResolvedValue([...mockEvmNetworks, ...mockStellarNetworks]);
   });
 
   afterEach(() => {
@@ -116,19 +77,14 @@ describe('useAllNetworks', () => {
   });
 
   describe('network fetching', () => {
-    it('should fetch networks from all enabled ecosystems', async () => {
+    it('should fetch networks via getAllNetworks', async () => {
       const { result } = renderHook(() => useAllNetworks());
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      // Should have called getNetworksByEcosystem for enabled ecosystems
-      expect(mockGetNetworksByEcosystem).toHaveBeenCalledWith('evm');
-      expect(mockGetNetworksByEcosystem).toHaveBeenCalledWith('stellar');
-      expect(mockGetNetworksByEcosystem).toHaveBeenCalledWith('midnight');
-      // Solana is disabled, should not be called
-      expect(mockGetNetworksByEcosystem).not.toHaveBeenCalledWith('solana');
+      expect(mockGetAllNetworks).toHaveBeenCalledTimes(1);
     });
 
     it('should combine networks from all ecosystems', async () => {
@@ -138,26 +94,13 @@ describe('useAllNetworks', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      // Should have all networks from enabled ecosystems
-      expect(result.current.networks).toHaveLength(4); // 2 EVM + 2 Stellar
+      expect(result.current.networks).toHaveLength(4);
       expect(result.current.networks).toContainEqual(
         expect.objectContaining({ id: 'ethereum-mainnet' })
       );
       expect(result.current.networks).toContainEqual(
         expect.objectContaining({ id: 'stellar-mainnet' })
       );
-    });
-
-    it('should not include networks from disabled ecosystems', async () => {
-      const { result } = renderHook(() => useAllNetworks());
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      // Solana networks should not be included
-      const solanaNetworks = result.current.networks.filter((n) => n.ecosystem === 'solana');
-      expect(solanaNetworks).toHaveLength(0);
     });
   });
 
@@ -172,30 +115,20 @@ describe('useAllNetworks', () => {
       });
     });
 
-    it('should set loading to false even if some ecosystems fail', async () => {
-      mockGetNetworksByEcosystem.mockImplementation(async (ecosystem) => {
-        if (ecosystem === 'evm') {
-          throw new Error('Failed to load EVM networks');
-        }
-        return mockStellarNetworks;
-      });
+    it('should set loading to false even on failure', async () => {
+      mockGetAllNetworks.mockRejectedValue(new Error('Network error'));
 
       const { result } = renderHook(() => useAllNetworks());
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
-
-      // Should still have Stellar networks
-      expect(result.current.networks).toContainEqual(
-        expect.objectContaining({ id: 'stellar-mainnet' })
-      );
     });
   });
 
   describe('error handling', () => {
-    it('should handle errors gracefully when ecosystem loading fails', async () => {
-      mockGetNetworksByEcosystem.mockRejectedValue(new Error('Network error'));
+    it('should handle complete failure gracefully', async () => {
+      mockGetAllNetworks.mockRejectedValue(new Error('Network error'));
 
       const { result } = renderHook(() => useAllNetworks());
 
@@ -203,42 +136,32 @@ describe('useAllNetworks', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      // Should return empty networks without crashing
       expect(result.current.networks).toEqual([]);
       expect(result.current.error).toBeDefined();
     });
 
-    it('should provide error state', async () => {
+    it('should set error when getAllNetworks returns empty array', async () => {
+      mockGetAllNetworks.mockResolvedValue([]);
+
+      const { result } = renderHook(() => useAllNetworks());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.error).toBeDefined();
+      expect(result.current.error?.message).toBe('Failed to fetch networks from any ecosystem');
+    });
+
+    it('should provide error state on rejection', async () => {
       const networkError = new Error('Failed to fetch networks');
-      mockGetNetworksByEcosystem.mockRejectedValue(networkError);
+      mockGetAllNetworks.mockRejectedValue(networkError);
 
       const { result } = renderHook(() => useAllNetworks());
 
       await waitFor(() => {
         expect(result.current.error).toBeDefined();
       });
-    });
-  });
-
-  describe('ecosystem filtering', () => {
-    it('should only fetch networks for enabled ecosystems based on config', async () => {
-      // All ecosystems disabled except EVM
-      mockGetEcosystemDefaultFeatureConfig.mockImplementation((ecosystem) => {
-        if (ecosystem === 'evm') {
-          return { enabled: true, showInUI: true };
-        }
-        return { enabled: false, showInUI: false };
-      });
-
-      const { result } = renderHook(() => useAllNetworks());
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      expect(mockGetNetworksByEcosystem).toHaveBeenCalledWith('evm');
-      expect(mockGetNetworksByEcosystem).not.toHaveBeenCalledWith('stellar');
-      expect(mockGetNetworksByEcosystem).not.toHaveBeenCalledWith('midnight');
     });
   });
 
@@ -261,13 +184,11 @@ describe('useAllNetworks', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      const callCount = mockGetNetworksByEcosystem.mock.calls.length;
+      const callCount = mockGetAllNetworks.mock.calls.length;
 
-      // Rerender
       rerender();
 
-      // Should not have called again
-      expect(mockGetNetworksByEcosystem.mock.calls.length).toBe(callCount);
+      expect(mockGetAllNetworks.mock.calls.length).toBe(callCount);
     });
   });
 });

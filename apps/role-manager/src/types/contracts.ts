@@ -172,7 +172,7 @@ export interface UseRecentContractsReturn {
   /** Whether data is loading */
   isLoading: boolean;
   /** Add or update a contract record */
-  addOrUpdate: (input: { networkId: string; address: string; label?: string }) => Promise<string>;
+  addOrUpdate: (input: { networkId: string; address: string }) => Promise<string>;
   /** Get contracts for a specific network */
   getByNetwork: (networkId: string) => Promise<ContractRecord[]>;
   /** Delete a contract by ID */

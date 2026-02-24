@@ -15,8 +15,6 @@ import { ReactNode } from 'react';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@openzeppelin/ui-components';
 import { cn } from '@openzeppelin/ui-utils';
 
-import { FeatureBadge } from '../Shared/FeatureBadge';
-
 interface DashboardStatsCardProps {
   /** Card title */
   title: string;
@@ -125,10 +123,10 @@ export function DashboardStatsCard({
 
         {/* Not Supported State */}
         {isNotSupported && !isLoading && !hasError && (
-          <div className="space-y-1">
-            <FeatureBadge variant="slate">Not Supported</FeatureBadge>
-            <p className="text-xs text-slate-500">{label}</p>
-          </div>
+          <>
+            <div className="text-4xl font-bold tracking-tight mb-1 text-slate-300">—</div>
+            <p className="text-xs text-slate-400">Not supported</p>
+          </>
         )}
 
         {/* Normal State */}

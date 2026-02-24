@@ -1,24 +1,32 @@
 /**
  * useOwnershipTransferDialog hook
  * Feature: 015-ownership-transfer
+ * Updated by: 017-evm-access-control (Phase 6 — US5, T035)
  *
  * Hook that manages the state and logic for the Transfer Ownership dialog.
  * Implements:
  * - Form validation (address, self-transfer, expiration)
  * - Transaction execution via useTransferOwnership
  * - Dialog step transitions
- * - Current ledger polling (for two-step)
+ * - Adapter-driven expiration handling (required / none / contract-managed)
  *
  * Uses useTransactionExecution for common transaction logic.
  */
 import { useCallback, useRef, useState } from 'react';
 
 import { useDerivedAccountStatus } from '@openzeppelin/ui-react';
-import type { ExecutionConfig, OperationResult, TxStatus } from '@openzeppelin/ui-types';
+import type {
+  ExecutionConfig,
+  ExpirationMetadata,
+  OperationResult,
+  TxStatus,
+} from '@openzeppelin/ui-types';
 
 import type { DialogTransactionStep } from '../types/role-dialogs';
+import { requiresExpirationInput } from '../utils/expiration';
 import { useTransferOwnership, type TransferOwnershipArgs } from './useAccessControlMutations';
 import { useCurrentBlock } from './useCurrentBlock';
+import { useExpirationMetadata } from './useExpirationMetadata';
 import { useSelectedContract } from './useSelectedContract';
 import { isUserRejectionError } from './useTransactionExecution';
 
@@ -32,7 +40,7 @@ import { isUserRejectionError } from './useTransactionExecution';
 export interface TransferOwnershipFormData {
   /** The new owner's address */
   newOwnerAddress: string;
-  /** The block number at which the transfer expires (string for form input) */
+  /** The expiration value as string (form input) — ledger number, block number, etc. */
   expirationBlock: string;
 }
 
@@ -62,12 +70,14 @@ export interface UseOwnershipTransferDialogReturn {
   txStatus: TxStatus;
   /** Whether wallet is connected */
   isWalletConnected: boolean;
-  /** Whether expiration input is required (two-step) */
+  /** Whether expiration input is required (adapter says mode: 'required') */
   requiresExpiration: boolean;
-  /** Current block for validation (null if not two-step) */
+  /** Current block for validation (null if expiration not required) */
   currentBlock: number | null;
   /** Whether the error is a network disconnection error (FR-026) */
   isNetworkError: boolean;
+  /** Adapter-driven expiration metadata for UI rendering decisions */
+  expirationMetadata: ExpirationMetadata | undefined;
   /** Submit the transfer */
   submit: (data: TransferOwnershipFormData) => Promise<void>;
   /** Retry after error */
@@ -91,7 +101,7 @@ function validateSelfTransfer(newOwner: string, currentOwner: string): string | 
 }
 
 /**
- * Validate expiration block (must be strictly greater than current)
+ * Validate expiration value (must be strictly greater than current)
  * Note: currentBlock is guaranteed non-null when this is called (caller validates first)
  */
 function validateExpiration(expirationBlock: number, currentBlock: number): string | null {
@@ -110,29 +120,14 @@ function validateExpiration(expirationBlock: number, currentBlock: number): stri
  *
  * Features:
  * - Validates address (self-transfer prevention)
- * - Validates expiration (must be in the future for two-step)
+ * - Validates expiration (must be in the future, only when mode is 'required')
  * - Handles transaction execution with proper state transitions
  * - Auto-closes dialog 1.5s after successful transaction
- * - Polls current ledger for two-step transfers
+ * - Polls current block only when expiration input is required
+ * - Adapter-driven expiration: 'required' | 'none' | 'contract-managed'
  *
  * @param options - Configuration including currentOwner, hasTwoStepOwnable, and callbacks
  * @returns Dialog state, actions, and derived values
- *
- * @example
- * ```tsx
- * const {
- *   step,
- *   currentBlock,
- *   submit,
- *   retry,
- *   reset,
- * } = useOwnershipTransferDialog({
- *   currentOwner: ownership.owner,
- *   hasTwoStepOwnable: capabilities.hasTwoStepOwnable,
- *   onClose: () => setDialogOpen(false),
- *   onSuccess: () => refetch(),
- * });
- * ```
  */
 export function useOwnershipTransferDialog(
   options: UseOwnershipTransferDialogOptions
@@ -151,9 +146,20 @@ export function useOwnershipTransferDialog(
   // Mutation hook for transfer
   const transferOwnership = useTransferOwnership(adapter, contractAddress);
 
-  // Current block polling (only for two-step)
+  // Adapter-driven expiration metadata (T035)
+  const { metadata: expirationMetadata } = useExpirationMetadata(
+    adapter,
+    contractAddress,
+    'ownership',
+    { enabled: hasTwoStepOwnable }
+  );
+
+  // Derive whether expiration input is required from adapter metadata.
+  const needsExpirationInput = requiresExpirationInput(expirationMetadata);
+
+  // Current block polling — only when expiration input is needed for validation
   const { currentBlock } = useCurrentBlock(adapter, {
-    enabled: hasTwoStepOwnable,
+    enabled: needsExpirationInput,
     pollInterval: 5000,
   });
 
@@ -231,21 +237,20 @@ export function useOwnershipTransferDialog(
       // Validate self-transfer
       const selfTransferError = validateSelfTransfer(data.newOwnerAddress, currentOwner);
       if (selfTransferError) {
-        // Set error state for validation errors (don't throw)
         setStep('error');
         setErrorMessage(selfTransferError);
         return;
       }
 
-      // Parse expiration (0 for single-step)
-      const expirationBlock = hasTwoStepOwnable ? parseInt(data.expirationBlock, 10) || 0 : 0;
+      // Parse expiration (0 when not required — EVM Ownable2Step or single-step)
+      const expirationBlock = needsExpirationInput ? parseInt(data.expirationBlock, 10) || 0 : 0;
 
-      // Validate expiration for two-step transfers
-      if (hasTwoStepOwnable) {
+      // Validate expiration only when the adapter requires user input
+      if (needsExpirationInput) {
         // Check if expiration is provided (form-level validation)
         if (!data.expirationBlock || !data.expirationBlock.trim()) {
           setStep('error');
-          setErrorMessage('Expiration block is required for two-step transfers');
+          setErrorMessage('Expiration is required for this transfer');
           return;
         }
 
@@ -271,30 +276,50 @@ export function useOwnershipTransferDialog(
       await executeTransaction({
         newOwner: data.newOwnerAddress,
         expirationBlock,
-        executionConfig: { method: 'eoa' } as ExecutionConfig,
+        executionConfig: { method: 'eoa', allowAny: true } as ExecutionConfig,
       });
     },
-    [currentOwner, hasTwoStepOwnable, currentBlock, executeTransaction]
+    [currentOwner, needsExpirationInput, currentBlock, executeTransaction]
   );
 
   // =============================================================================
   // Retry with Stored Form Data
+  // Re-validate expiration against current block before retry (same as FR-028b in useAdminTransferDialog)
   // =============================================================================
 
   const retry = useCallback(async () => {
     const formData = lastFormDataRef.current;
     if (!formData) return;
 
-    // Parse expiration (validation already passed once)
-    const expirationBlock = hasTwoStepOwnable ? parseInt(formData.expirationBlock, 10) || 0 : 0;
+    // Parse expiration
+    const expirationBlock = needsExpirationInput ? parseInt(formData.expirationBlock, 10) || 0 : 0;
+
+    // Re-validate expiration against current block before retry when expiration input is required.
+    // Time may have passed since initial submit; stored value could now be in the past.
+    if (needsExpirationInput) {
+      if (currentBlock === null) {
+        setStep('error');
+        setErrorMessage(
+          'Unable to validate expiration: current block not available. Please try again.'
+        );
+        return;
+      }
+
+      const expirationError = validateExpiration(expirationBlock, currentBlock);
+      if (expirationError) {
+        setStep('error');
+        setErrorMessage(expirationError);
+        return;
+      }
+    }
 
     // Re-execute the transaction
     await executeTransaction({
       newOwner: formData.newOwnerAddress,
       expirationBlock,
-      executionConfig: { method: 'eoa' } as ExecutionConfig,
+      executionConfig: { method: 'eoa', allowAny: true } as ExecutionConfig,
     });
-  }, [hasTwoStepOwnable, executeTransaction]);
+  }, [needsExpirationInput, currentBlock, executeTransaction]);
 
   // =============================================================================
   // Reset Function
@@ -320,7 +345,6 @@ export function useOwnershipTransferDialog(
   const isWalletConnected = !!connectedAddress;
 
   // Network error detection (FR-026)
-  // Uses the isNetworkError flag from the underlying mutation hook
   const isNetworkError = transferOwnership.isNetworkError;
 
   // =============================================================================
@@ -333,9 +357,10 @@ export function useOwnershipTransferDialog(
     errorMessage,
     txStatus,
     isWalletConnected,
-    requiresExpiration: hasTwoStepOwnable,
-    currentBlock: hasTwoStepOwnable ? currentBlock : null,
+    requiresExpiration: needsExpirationInput,
+    currentBlock: needsExpirationInput ? currentBlock : null,
     isNetworkError,
+    expirationMetadata,
 
     // Actions
     submit,

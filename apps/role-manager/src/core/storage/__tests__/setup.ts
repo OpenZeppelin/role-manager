@@ -211,5 +211,11 @@ vi.mock('@openzeppelin/ui-storage', () => {
     KeyValueStorage,
     withQuotaHandling,
     createRepositoryHook,
+    ALIAS_SCHEMA: {
+      aliases: '++id, [address+networkId], address, networkId, alias, createdAt, updatedAt',
+    },
+    createUseAliasStorage: vi.fn(() => vi.fn(() => ({}))),
+    createAliasStorage: vi.fn(),
+    useAliasLabelResolver: vi.fn(() => ({ resolveLabel: vi.fn() })),
   };
 });

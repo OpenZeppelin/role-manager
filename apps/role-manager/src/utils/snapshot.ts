@@ -42,24 +42,29 @@ export function truncateAddress(
 /**
  * Generates a unique filename for an access control snapshot export.
  *
- * Format: `access-snapshot-{truncated-address}-{ISO-timestamp}.json`
+ * Format: `access-snapshot-{truncated-address}-{ISO-timestamp}[.json]`
  *
  * The timestamp has colons and periods replaced with dashes for filesystem safety.
  *
  * @param address - The contract address to include in the filename
- * @returns A unique, filesystem-safe filename with .json extension
+ * @param options - Optional: `withExtension` (default true) includes the `.json` suffix
+ * @returns A unique, filesystem-safe filename
  *
  * @example
  * ```ts
  * generateSnapshotFilename('GCKFBEIYV2U22IO2BJ4KVJOIP7XPWQGQFKKWXR6DOSJBV7STMAQSMTGG')
  * // Returns: 'access-snapshot-GCKF...MTGG-2025-12-04T10-30-45-123Z.json'
+ *
+ * generateSnapshotFilename('0x1234...', { withExtension: false })
+ * // Returns: 'access-snapshot-0x12...5678-2025-12-04T10-30-45-123Z'
  * ```
  */
-export function generateSnapshotFilename(address: string): string {
+export function generateSnapshotFilename(
+  address: string,
+  options?: { withExtension?: boolean }
+): string {
   const truncated = truncateAddress(address);
-
-  // Generate ISO timestamp and replace colons and periods with dashes for filesystem safety
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-
-  return `access-snapshot-${truncated}-${timestamp}.json`;
+  const base = `access-snapshot-${truncated}-${timestamp}`;
+  return options?.withExtension === false ? base : `${base}.json`;
 }

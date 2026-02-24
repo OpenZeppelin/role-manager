@@ -9,6 +9,20 @@
 export { TransferAdminDialog } from './TransferAdminDialog';
 export type { TransferAdminDialogProps } from './TransferAdminDialog';
 
+// Cancel admin transfer dialog (Feature: 017-evm-access-control, T066)
+export { CancelAdminTransferDialog } from './CancelAdminTransferDialog';
+export type { CancelAdminTransferDialogProps } from './CancelAdminTransferDialog';
+
 // Accept admin transfer dialog (Phase 5 - US2)
 export { AcceptAdminTransferDialog } from './AcceptAdminTransferDialog';
 export type { AcceptAdminTransferDialogProps } from './AcceptAdminTransferDialog';
+
+// Admin delay panel (Feature: 017-evm-access-control, T065)
+export { AdminDelayPanel } from './AdminDelayPanel';
+export type { AdminDelayPanelProps } from './AdminDelayPanel';
+
+// Admin delay dialogs (Feature: 017-evm-access-control, T064)
+export { ChangeAdminDelayDialog } from './ChangeAdminDelayDialog';
+export type { ChangeAdminDelayDialogProps } from './ChangeAdminDelayDialog';
+export { RollbackAdminDelayDialog } from './RollbackAdminDelayDialog';
+export type { RollbackAdminDelayDialogProps } from './RollbackAdminDelayDialog';

@@ -12,6 +12,7 @@ import { useMemo } from 'react';
 
 import type { AccessControlCapabilities, ContractAdapter } from '@openzeppelin/ui-types';
 
+import { queryKeys } from './queryKeys';
 import { useAccessControlService } from './useAccessControlService';
 
 /**
@@ -30,10 +31,7 @@ export interface UseContractCapabilitiesReturn {
   isSupported: boolean;
 }
 
-/**
- * Query key factory for contract capabilities
- */
-const capabilitiesQueryKey = (address: string) => ['contractCapabilities', address] as const;
+// Use centralized query keys
 
 /**
  * Hook that detects access control capabilities for a given contract.
@@ -77,7 +75,7 @@ export function useContractCapabilities(
     error,
     refetch: queryRefetch,
   } = useQuery({
-    queryKey: capabilitiesQueryKey(contractAddress),
+    queryKey: queryKeys.contractCapabilities(contractAddress),
     queryFn: async (): Promise<AccessControlCapabilities> => {
       if (!service) {
         throw new Error('Access control service not available');

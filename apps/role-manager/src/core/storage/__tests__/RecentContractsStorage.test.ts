@@ -130,19 +130,6 @@ describe('RecentContractsStorage', () => {
       expect(typeof records[0].lastAccessed).toBe('number');
     });
 
-    it('should store optional label when provided', async () => {
-      const input: RecentContractInput = {
-        networkId: 'stellar-testnet',
-        address: 'GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI',
-        label: 'My Token Contract',
-      };
-
-      await storage.addOrUpdate(input);
-      const records = await storage.getByNetwork('stellar-testnet');
-
-      expect(records[0].label).toBe('My Token Contract');
-    });
-
     it('should trim whitespace from networkId and address', async () => {
       const input: RecentContractInput = {
         networkId: '  stellar-testnet  ',
@@ -179,49 +166,6 @@ describe('RecentContractsStorage', () => {
       expect(records2).toHaveLength(1);
       // lastAccessed should be updated
       expect(records2[0].lastAccessed).toBeGreaterThan(firstLastAccessed);
-    });
-
-    it('should preserve existing label on update if not provided', async () => {
-      const input1: RecentContractInput = {
-        networkId: 'stellar-testnet',
-        address: 'GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI',
-        label: 'My Token',
-      };
-
-      await storage.addOrUpdate(input1);
-
-      // Update without label
-      const input2: RecentContractInput = {
-        networkId: 'stellar-testnet',
-        address: 'GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI',
-      };
-
-      await storage.addOrUpdate(input2);
-      const records = await storage.getByNetwork('stellar-testnet');
-
-      // Label should be preserved
-      expect(records[0].label).toBe('My Token');
-    });
-
-    it('should update label when explicitly provided on update', async () => {
-      const input1: RecentContractInput = {
-        networkId: 'stellar-testnet',
-        address: 'GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI',
-        label: 'Old Label',
-      };
-
-      await storage.addOrUpdate(input1);
-
-      const input2: RecentContractInput = {
-        networkId: 'stellar-testnet',
-        address: 'GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI',
-        label: 'New Label',
-      };
-
-      await storage.addOrUpdate(input2);
-      const records = await storage.getByNetwork('stellar-testnet');
-
-      expect(records[0].label).toBe('New Label');
     });
 
     it('should allow same address on different networks', async () => {
@@ -319,108 +263,6 @@ describe('RecentContractsStorage', () => {
       };
 
       await expect(storage.addOrUpdate(input)).rejects.toThrow('recentContracts/invalid-address');
-    });
-
-    it('should reject label exceeding 64 characters', async () => {
-      const input: RecentContractInput = {
-        networkId: 'stellar-testnet',
-        address: 'GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI',
-        label: 'A'.repeat(65),
-      };
-
-      await expect(storage.addOrUpdate(input)).rejects.toThrow(
-        'recentContracts/invalid-label-length'
-      );
-    });
-
-    it('should accept label at exactly 64 characters', async () => {
-      const input: RecentContractInput = {
-        networkId: 'stellar-testnet',
-        address: 'GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI',
-        label: 'A'.repeat(64),
-      };
-
-      const id = await storage.addOrUpdate(input);
-      expect(id).toBeDefined();
-
-      const records = await storage.getByNetwork('stellar-testnet');
-      expect(records[0].label).toBe('A'.repeat(64));
-    });
-
-    it('should accept empty or undefined label', async () => {
-      const input1: RecentContractInput = {
-        networkId: 'stellar-testnet',
-        address: 'ADDR1',
-        label: '',
-      };
-      const input2: RecentContractInput = {
-        networkId: 'stellar-testnet',
-        address: 'ADDR2',
-      };
-
-      const id1 = await storage.addOrUpdate(input1);
-      const id2 = await storage.addOrUpdate(input2);
-
-      expect(id1).toBeDefined();
-      expect(id2).toBeDefined();
-    });
-
-    it('should trim label and validate trimmed length', async () => {
-      // Label with whitespace that after trimming is exactly 64 chars
-      const input: RecentContractInput = {
-        networkId: 'stellar-testnet',
-        address: 'GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI',
-        label: '  ' + 'A'.repeat(65) + '  ',
-      };
-
-      await expect(storage.addOrUpdate(input)).rejects.toThrow(
-        'recentContracts/invalid-label-length'
-      );
-    });
-
-    // Control character validation was removed - labels with control characters are now accepted
-    // This simplifies the validation logic as control chars in labels are edge cases
-    // that don't pose security risks in a client-side storage context
-
-    it('should allow label with control characters (null, bell, DEL)', async () => {
-      // Test null character (\x00)
-      const input1: RecentContractInput = {
-        networkId: 'stellar-testnet',
-        address: 'ADDR_NULL',
-        label: 'Test\x00Label',
-      };
-      const id1 = await storage.addOrUpdate(input1);
-      expect(id1).toBeDefined();
-
-      // Test bell character (\x07)
-      const input2: RecentContractInput = {
-        networkId: 'stellar-testnet',
-        address: 'ADDR_BELL',
-        label: 'Test\x07Label',
-      };
-      const id2 = await storage.addOrUpdate(input2);
-      expect(id2).toBeDefined();
-
-      // Test DEL character (\x7F)
-      const input3: RecentContractInput = {
-        networkId: 'stellar-testnet',
-        address: 'ADDR_DEL',
-        label: 'Test\x7FLabel',
-      };
-      const id3 = await storage.addOrUpdate(input3);
-      expect(id3).toBeDefined();
-    });
-
-    it('should allow label with normal whitespace (tab, newline, carriage return)', async () => {
-      // Tab (\x09), Newline (\x0A), and Carriage Return (\x0D) are common whitespace, allowed
-      const input: RecentContractInput = {
-        networkId: 'stellar-testnet',
-        address: 'GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI',
-        label: 'Test\tLabel\nWith\rWhitespace',
-      };
-
-      const id = await storage.addOrUpdate(input);
-      expect(id).toBeDefined();
     });
   });
 
@@ -524,16 +366,13 @@ describe('RecentContractsStorage', () => {
       const id = await storage.addOrUpdate({
         networkId: 'stellar-testnet',
         address: 'ADDR1',
-        label: 'Test Contract',
       });
 
       const record = await storage.get(id);
 
       expect(record).toBeDefined();
-      // ID may be stored as number in DB but returned as string from addOrUpdate
       expect(String(record!.id)).toBe(id);
       expect(record!.address).toBe('ADDR1');
-      expect(record!.label).toBe('Test Contract');
     });
 
     it('should return undefined for non-existent id', async () => {
@@ -605,7 +444,6 @@ describe('RecentContractsStorage', () => {
       const input = createSchemaInput({
         address: 'CABC123456789',
         networkId: 'stellar-testnet',
-        label: 'My Token',
       });
 
       const id = await storage.addOrUpdateWithSchema(input);
@@ -618,7 +456,6 @@ describe('RecentContractsStorage', () => {
       expect(record).toBeDefined();
       expect(record!.address).toBe('CABC123456789');
       expect(record!.networkId).toBe('stellar-testnet');
-      expect(record!.label).toBe('My Token');
       expect(record!.ecosystem).toBe('stellar');
       expect(record!.source).toBe('fetched');
       expect(record!.schema).toBeDefined();
@@ -631,18 +468,14 @@ describe('RecentContractsStorage', () => {
     });
 
     it('should update an existing record with new schema data', async () => {
-      // First, create a basic record without schema
       await storage.addOrUpdate({
         networkId: 'stellar-testnet',
         address: 'CABC123456789',
-        label: 'Old Label',
       });
 
-      // Now update with schema
       const input = createSchemaInput({
         address: 'CABC123456789',
         networkId: 'stellar-testnet',
-        label: 'New Label',
         schema: createMockSchema('UpdatedContract'),
       });
 
@@ -654,7 +487,6 @@ describe('RecentContractsStorage', () => {
 
       // Verify schema was added
       const record = await storage.getByAddressAndNetwork('CABC123456789', 'stellar-testnet');
-      expect(record!.label).toBe('New Label');
       expect(record!.schema).toBeDefined();
       const parsedSchema = JSON.parse(record!.schema!);
       expect(parsedSchema.name).toBe('UpdatedContract');
@@ -696,7 +528,6 @@ describe('RecentContractsStorage', () => {
       const input = createSchemaInput({
         address: 'CXYZ987654321',
         networkId: 'stellar-mainnet',
-        label: 'Production Contract',
         schemaMetadata: {
           fetchedFrom: 'https://soroban.stellar.org',
           fetchTimestamp: Date.now(),
@@ -710,7 +541,6 @@ describe('RecentContractsStorage', () => {
       expect(record).toBeDefined();
       expect(record!.address).toBe('CXYZ987654321');
       expect(record!.networkId).toBe('stellar-mainnet');
-      expect(record!.label).toBe('Production Contract');
       expect(record!.ecosystem).toBe('stellar');
       expect(record!.schema).toBeDefined();
       expect(record!.schemaHash).toBeDefined();
@@ -740,14 +570,12 @@ describe('RecentContractsStorage', () => {
       await storage.addOrUpdate({
         networkId: 'stellar-testnet',
         address: 'BASIC_ADDR',
-        label: 'Basic Contract',
       });
 
       const record = await storage.getByAddressAndNetwork('BASIC_ADDR', 'stellar-testnet');
 
       expect(record).toBeDefined();
       expect(record!.address).toBe('BASIC_ADDR');
-      expect(record!.label).toBe('Basic Contract');
       // Schema fields should be undefined
       expect(record!.schema).toBeUndefined();
       expect(record!.schemaHash).toBeUndefined();
@@ -791,7 +619,6 @@ describe('RecentContractsStorage', () => {
         createSchemaInput({
           address: 'CCLEAR_SCHEMA',
           networkId: 'stellar-testnet',
-          label: 'Contract To Clear',
           schemaMetadata: {
             fetchedFrom: 'https://test.rpc',
             fetchTimestamp: Date.now(),
@@ -814,7 +641,6 @@ describe('RecentContractsStorage', () => {
       expect(record).toBeDefined();
       expect(record!.address).toBe('CCLEAR_SCHEMA');
       expect(record!.networkId).toBe('stellar-testnet');
-      expect(record!.label).toBe('Contract To Clear');
       expect(record!.lastAccessed).toBeDefined();
 
       // Schema fields should be cleared

@@ -64,22 +64,27 @@ export interface TransformOptions {
  */
 export function transformHistoryEntry(
   entry: HistoryEntry,
-  options: TransformOptions
+  options: TransformOptions,
+  index?: number
 ): RoleChangeEventView {
-  const action = CHANGE_TYPE_MAP[entry.changeType] ?? 'grant';
+  const action = CHANGE_TYPE_MAP[entry.changeType] ?? 'unknown';
   const timestamp = entry.timestamp ?? new Date().toISOString();
 
-  // Determine role ID and name - override for admin transfer events
-  // Admin transfers should use CONTRACT_ADMIN role ID and "Admin" name
-  // This ensures filtering works correctly (matches SYNTHETIC_ADMIN_ROLE in filter-roles.ts)
-  const isAdminTransfer =
+  const isAdminEvent =
     entry.changeType === 'ADMIN_TRANSFER_INITIATED' ||
-    entry.changeType === 'ADMIN_TRANSFER_COMPLETED';
-  const roleId = isAdminTransfer ? ADMIN_ROLE_ID : entry.role.id;
-  const roleName = isAdminTransfer ? 'Admin' : getRoleName(undefined, entry.role.id);
+    entry.changeType === 'ADMIN_TRANSFER_COMPLETED' ||
+    entry.changeType === 'ADMIN_TRANSFER_CANCELED' ||
+    entry.changeType === 'ADMIN_RENOUNCED' ||
+    entry.changeType === 'ADMIN_DELAY_CHANGE_SCHEDULED' ||
+    entry.changeType === 'ADMIN_DELAY_CHANGE_CANCELED';
+  const roleId = isAdminEvent ? ADMIN_ROLE_ID : entry.role.id;
+  const roleName = isAdminEvent ? 'Admin' : getRoleName(entry.role.label, entry.role.id);
+
+  const txSuffix = entry.txId ? `-${entry.txId}` : '';
+  const indexSuffix = index != null ? `-${index}` : '';
 
   return {
-    id: `${timestamp}-${entry.changeType}-${roleId}-${entry.account}`,
+    id: `${timestamp}-${entry.changeType}-${roleId}-${entry.account}${txSuffix}${indexSuffix}`,
     timestamp,
     action,
     roleId,
@@ -113,7 +118,7 @@ export function transformHistoryEntries(
   entries: HistoryEntry[],
   options: TransformOptions
 ): RoleChangeEventView[] {
-  const transformed = entries.map((entry) => transformHistoryEntry(entry, options));
+  const transformed = entries.map((entry, index) => transformHistoryEntry(entry, options, index));
   return sortHistoryEvents(transformed);
 }
 

@@ -24,6 +24,7 @@ import type {
   AccessControlCapabilities,
   AdminInfo,
   AdminState,
+  ExpirationMetadata,
   OwnershipState,
   PendingAdminTransfer,
   PendingOwnershipTransfer,
@@ -38,11 +39,13 @@ import {
   OWNER_ROLE_NAME,
 } from '../constants';
 import type { RoleIdentifier, RoleWithDescription } from '../types/roles';
-import { getRoleName } from '../utils/role-name';
+import { getRoleName, isRoleDisplayHash } from '../utils/role-name';
+import { useBlockPollInterval } from './useBlockPollInterval';
 import { useContractCapabilities } from './useContractCapabilities';
 import { useContractAdminInfo, useContractOwnership, useContractRoles } from './useContractData';
 import { useCurrentBlock } from './useCurrentBlock';
 import { useCustomRoleDescriptions } from './useCustomRoleDescriptions';
+import { useExpirationMetadata } from './useExpirationMetadata';
 import { useSelectedContract } from './useSelectedContract';
 
 // =============================================================================
@@ -116,6 +119,11 @@ export interface UseRolesPageDataReturn {
    * Polled automatically when a pending transfer exists
    */
   currentBlock: number | null;
+
+  /** Adapter-driven expiration metadata for ownership pending transfers */
+  ownershipExpirationMetadata: ExpirationMetadata | undefined;
+  /** Adapter-driven expiration metadata for admin pending transfers */
+  adminExpirationMetadata: ExpirationMetadata | undefined;
 
   // =============================================================================
   // Feature 016: Two-Step Admin Assignment
@@ -219,14 +227,15 @@ export function useRolesPageData(): UseRolesPageDataReturn {
   } = useContractRoles(adapter, contractAddress, isContractRegistered);
 
   // Ownership fetching (T020)
-  // Wait for contract to be registered before fetching ownership
+  // Only fetch when contract has Ownable capability (prevents errors on AccessControl-only contracts)
+  const hasOwnableCapability = capabilities?.hasOwnable ?? false;
   const {
     ownership,
     isLoading: isOwnershipLoading,
     isFetching: isOwnershipFetching,
     refetch: refetchOwnership,
     hasOwner,
-  } = useContractOwnership(adapter, contractAddress, isContractRegistered);
+  } = useContractOwnership(adapter, contractAddress, isContractRegistered, hasOwnableCapability);
 
   // Feature 016: Admin info fetching (T013)
   // Only fetch when contract has two-step admin capability
@@ -247,10 +256,28 @@ export function useRolesPageData(): UseRolesPageDataReturn {
   const hasPendingOwnershipTransfer = ownership?.state === 'pending';
   const hasPendingAdminTransfer = adminInfo?.state === 'pending';
   const hasPendingTransfer = hasPendingOwnershipTransfer || hasPendingAdminTransfer;
+
+  // Chain-agnostic poll interval derived from calibrated block/ledger time
+  const blockPollInterval = useBlockPollInterval();
+
   const { currentBlock } = useCurrentBlock(adapter, {
     enabled: hasPendingTransfer,
-    pollInterval: 5000, // Poll every 5 seconds for real-time countdown
+    pollInterval: blockPollInterval,
   });
+
+  // Expiration metadata for pending transfer display labels (adapter-driven)
+  const { metadata: ownershipExpirationMetadata } = useExpirationMetadata(
+    adapter,
+    contractAddress,
+    'ownership',
+    { enabled: hasOwnableCapability }
+  );
+  const { metadata: adminExpirationMetadata } = useExpirationMetadata(
+    adapter,
+    contractAddress,
+    'admin',
+    { enabled: hasTwoStepAdmin }
+  );
 
   // =============================================================================
   // Computed Values
@@ -272,6 +299,7 @@ export function useRolesPageData(): UseRolesPageDataReturn {
       members: [ownership.owner],
       isOwnerRole: true,
       isAdminRole: false,
+      isHashDisplay: false,
     };
   }, [capabilities?.hasOwnable, hasOwner, ownership?.owner, customDescriptions]);
 
@@ -306,6 +334,7 @@ export function useRolesPageData(): UseRolesPageDataReturn {
       members,
       isOwnerRole: false,
       isAdminRole: true,
+      isHashDisplay: false,
     };
   }, [hasTwoStepAdmin, adminInfo, customDescriptions]);
 
@@ -330,6 +359,8 @@ export function useRolesPageData(): UseRolesPageDataReturn {
         members: assignment.members,
         isOwnerRole: false,
         isAdminRole: false, // T016: All enumerated roles default to non-admin
+        // T018: Determine if role name is a hash for AddressDisplay rendering
+        isHashDisplay: isRoleDisplayHash(assignment.role.label, roleId),
       };
     });
   }, [adapterRoles, customDescriptions]);
@@ -426,14 +457,11 @@ export function useRolesPageData(): UseRolesPageDataReturn {
   // =============================================================================
 
   // Combined refetch function (Feature 016: include admin refetch)
+  // Always include admin info refetch — React Query handles disabled queries gracefully,
+  // and contracts with hasAdminDelayManagement also need admin data refreshed.
   const refetch = useCallback(async (): Promise<void> => {
-    const refetchPromises = [refetchRoles(), refetchOwnership()];
-    // Only refetch admin if the capability is enabled
-    if (hasTwoStepAdmin) {
-      refetchPromises.push(refetchAdminInfo());
-    }
-    await Promise.all(refetchPromises);
-  }, [refetchRoles, refetchOwnership, refetchAdminInfo, hasTwoStepAdmin]);
+    await Promise.all([refetchRoles(), refetchOwnership(), refetchAdminInfo()]);
+  }, [refetchRoles, refetchOwnership, refetchAdminInfo]);
 
   // Wrapped refetchAdminInfo for external use
   const refetchAdminInfoCallback = useCallback(async (): Promise<void> => {
@@ -493,6 +521,8 @@ export function useRolesPageData(): UseRolesPageDataReturn {
       pendingTransfer: null,
       ownershipState: null,
       currentBlock: null,
+      ownershipExpirationMetadata: undefined,
+      adminExpirationMetadata: undefined,
       // Feature 016: Admin-related properties
       adminInfo: null,
       pendingAdminTransfer: null,
@@ -531,6 +561,8 @@ export function useRolesPageData(): UseRolesPageDataReturn {
     pendingTransfer,
     ownershipState,
     currentBlock,
+    ownershipExpirationMetadata,
+    adminExpirationMetadata,
     // Feature 016: Admin-related properties
     adminInfo,
     pendingAdminTransfer,

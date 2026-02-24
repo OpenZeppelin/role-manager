@@ -15,11 +15,16 @@ import type { ContractAdapter, OwnershipInfo } from '@openzeppelin/ui-types';
 
 import type { EnrichedRoleAssignment } from '../../types/authorized-accounts';
 import { DataError, ErrorCategory } from '../../utils/errors';
+import * as useContractCapabilitiesModule from '../useContractCapabilities';
 import * as useContractDataModule from '../useContractData';
 import * as useContractRolesEnrichedModule from '../useContractRolesEnriched';
 import { useDashboardData } from '../useDashboardData';
 
 // Mock the hooks
+vi.mock('../useContractCapabilities', () => ({
+  useContractCapabilities: vi.fn(),
+}));
+
 vi.mock('../useContractData', () => ({
   useContractOwnership: vi.fn(),
   useContractAdminInfo: vi.fn().mockReturnValue({
@@ -70,6 +75,23 @@ describe('useDashboardData', () => {
     } as unknown as ContractAdapter;
 
     vi.clearAllMocks();
+
+    // Default capabilities mock — hasOwnable: true enables ownership query
+    vi.mocked(useContractCapabilitiesModule.useContractCapabilities).mockReturnValue({
+      capabilities: {
+        hasOwnable: true,
+        hasTwoStepOwnable: false,
+        hasAccessControl: true,
+        hasTwoStepAdmin: false,
+        hasEnumerableRoles: false,
+        supportsHistory: false,
+        verifiedAgainstOZInterfaces: true,
+      },
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+      isSupported: true,
+    });
   });
 
   describe('initial state', () => {
@@ -81,7 +103,6 @@ describe('useDashboardData', () => {
         error: null,
         refetch: vi.fn(),
         isEmpty: true,
-        totalMemberCount: 0,
         canRetry: false,
         errorMessage: null,
         hasError: false,
@@ -135,7 +156,7 @@ describe('useDashboardData', () => {
         error: null,
         refetch: vi.fn().mockResolvedValue(undefined),
         isEmpty: false,
-        totalMemberCount: 4,
+
         canRetry: false,
         errorMessage: null,
         hasError: false,
@@ -206,7 +227,7 @@ describe('useDashboardData', () => {
         error: mockError,
         refetch: vi.fn(),
         isEmpty: true,
-        totalMemberCount: 0,
+
         canRetry: true,
         errorMessage: 'Failed to load roles',
         hasError: true,
@@ -246,7 +267,7 @@ describe('useDashboardData', () => {
         error: null,
         refetch: vi.fn(),
         isEmpty: true,
-        totalMemberCount: 0,
+
         canRetry: false,
         errorMessage: null,
         hasError: false,
@@ -292,7 +313,7 @@ describe('useDashboardData', () => {
         error: rolesError,
         refetch: vi.fn(),
         isEmpty: true,
-        totalMemberCount: 0,
+
         canRetry: true,
         errorMessage: 'Failed to load roles',
         hasError: true,
@@ -333,7 +354,7 @@ describe('useDashboardData', () => {
         error: null,
         refetch: mockRolesRefetch,
         isEmpty: true,
-        totalMemberCount: 0,
+
         canRetry: false,
         errorMessage: null,
         hasError: false,
@@ -373,7 +394,7 @@ describe('useDashboardData', () => {
         error: null,
         refetch: mockRolesRefetch,
         isEmpty: true,
-        totalMemberCount: 0,
+
         canRetry: false,
         errorMessage: null,
         hasError: false,
@@ -410,7 +431,7 @@ describe('useDashboardData', () => {
         error: null,
         refetch: mockRolesRefetch,
         isEmpty: true,
-        totalMemberCount: 0,
+
         canRetry: false,
         errorMessage: null,
         hasError: false,
@@ -447,7 +468,7 @@ describe('useDashboardData', () => {
         error: null,
         refetch: mockRolesRefetch,
         isEmpty: true,
-        totalMemberCount: 0,
+
         canRetry: false,
         errorMessage: null,
         hasError: false,
@@ -483,7 +504,7 @@ describe('useDashboardData', () => {
         error: null,
         refetch: vi.fn(),
         isEmpty: false,
-        totalMemberCount: 1,
+
         canRetry: false,
         errorMessage: null,
         hasError: false,
@@ -517,7 +538,7 @@ describe('useDashboardData', () => {
         error: null,
         refetch: vi.fn(),
         isEmpty: true,
-        totalMemberCount: 0,
+
         canRetry: false,
         errorMessage: null,
         hasError: false,
@@ -553,7 +574,7 @@ describe('useDashboardData', () => {
         error: null,
         refetch: vi.fn(),
         isEmpty: true,
-        totalMemberCount: 0,
+
         canRetry: false,
         errorMessage: null,
         hasError: false,
@@ -589,7 +610,7 @@ describe('useDashboardData', () => {
         error: null,
         refetch: vi.fn(),
         isEmpty: true,
-        totalMemberCount: 0,
+
         canRetry: false,
         errorMessage: null,
         hasError: false,

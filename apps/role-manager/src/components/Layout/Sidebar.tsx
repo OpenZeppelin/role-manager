@@ -1,4 +1,4 @@
-import { ArrowRightLeft, Key, LayoutDashboard, Users } from 'lucide-react';
+import { ArrowRightLeft, BookUser, Key, LayoutDashboard, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import React, { useCallback, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -12,7 +12,7 @@ import {
 } from '@openzeppelin/ui-components';
 import { logger } from '@openzeppelin/ui-utils';
 
-import { getEcosystemName } from '../../core/ecosystems/registry';
+import { getEcosystemMetadata } from '../../core/ecosystems/ecosystemManager';
 import { useAllNetworks } from '../../hooks/useAllNetworks';
 import { useRecentContracts } from '../../hooks/useRecentContracts';
 import { useSelectedContract } from '../../hooks/useSelectedContract';
@@ -107,7 +107,7 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps): React
         getNetworkIcon={(n) => <NetworkIcon network={n} />}
         getNetworkType={(n) => n.type}
         groupByEcosystem
-        getEcosystem={(n) => getEcosystemName(n.ecosystem)}
+        getEcosystem={(n) => getEcosystemMetadata(n.ecosystem)?.name ?? n.ecosystem}
         placeholder={isLoadingNetworks ? 'Loading networks...' : 'Select Network'}
       />
     </div>
@@ -155,6 +155,15 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps): React
             onClick={() => handleNavigation('/role-changes')}
           >
             Role Changes
+          </SidebarButton>
+        </SidebarSection>
+        <SidebarSection>
+          <SidebarButton
+            icon={<BookUser className="size-4" />}
+            isSelected={location.pathname === '/address-book'}
+            onClick={() => handleNavigation('/address-book')}
+          >
+            Address Book
           </SidebarButton>
         </SidebarSection>
       </SidebarLayout>

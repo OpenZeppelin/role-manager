@@ -38,12 +38,17 @@ export type { RoleBadgeInfo };
 /**
  * Action types for role change events (UI representation).
  * Feature 016: Added 'admin-transfer' for admin role transfers.
+ * Feature 017: Added 'ownership-renounced', 'admin-renounced', and 'admin-delay'.
  */
 export type RoleChangeAction =
   | 'grant'
   | 'revoke'
   | 'ownership-transfer'
+  | 'ownership-renounced'
   | 'admin-transfer'
+  | 'admin-transfer-canceled'
+  | 'admin-renounced'
+  | 'admin-delay'
   | 'unknown';
 
 /**
@@ -58,11 +63,11 @@ export const CHANGE_TYPE_TO_ACTION: Record<HistoryChangeType, RoleChangeAction> 
   ADMIN_TRANSFER_COMPLETED: 'admin-transfer',
   UNKNOWN: 'unknown', // Fallback for unknown change types
   ROLE_ADMIN_CHANGED: 'grant',
-  OWNERSHIP_RENOUNCED: 'ownership-transfer',
-  ADMIN_RENOUNCED: 'admin-transfer',
-  ADMIN_TRANSFER_CANCELED: 'admin-transfer',
-  ADMIN_DELAY_CHANGE_SCHEDULED: 'admin-transfer',
-  ADMIN_DELAY_CHANGE_CANCELED: 'admin-transfer',
+  OWNERSHIP_RENOUNCED: 'ownership-renounced',
+  ADMIN_RENOUNCED: 'admin-renounced',
+  ADMIN_TRANSFER_CANCELED: 'admin-transfer-canceled',
+  ADMIN_DELAY_CHANGE_SCHEDULED: 'admin-delay',
+  ADMIN_DELAY_CHANGE_CANCELED: 'admin-delay',
 };
 
 // =============================================================================
@@ -144,7 +149,11 @@ export const ACTION_TYPE_CONFIG: Record<RoleChangeAction, ActionTypeConfig> = {
   grant: { label: 'Grant', variant: 'success' },
   revoke: { label: 'Revoke', variant: 'error' },
   'ownership-transfer': { label: 'Ownership Transfer', variant: 'info' },
+  'ownership-renounced': { label: 'Ownership Renounced', variant: 'error' },
   'admin-transfer': { label: 'Admin Transfer', variant: 'info' },
+  'admin-transfer-canceled': { label: 'Transfer Canceled', variant: 'warning' },
+  'admin-renounced': { label: 'Admin Renounced', variant: 'error' },
+  'admin-delay': { label: 'Admin Delay', variant: 'warning' },
   unknown: { label: 'Unknown', variant: 'warning' },
 };
 
