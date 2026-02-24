@@ -256,7 +256,9 @@ export function PendingTransferInfo({
             scheduleReached ? 'border-green-200' : 'border-blue-200'
           )}
         >
-          <Info className={cn('h-4 w-4 shrink-0', scheduleReached ? 'text-green-600' : 'text-blue-600')} />
+          <Info
+            className={cn('h-4 w-4 shrink-0', scheduleReached ? 'text-green-600' : 'text-blue-600')}
+          />
           <p className={cn('text-xs', scheduleReached ? 'text-green-700' : 'text-blue-700')}>
             {isTimestamp && !scheduleReached
               ? `The transfer will be ready to accept once the schedule is reached.`

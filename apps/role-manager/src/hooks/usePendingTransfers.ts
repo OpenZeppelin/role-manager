@@ -22,7 +22,11 @@ import type {
 } from '@openzeppelin/ui-types';
 
 import type { PendingTransfer, UsePendingTransfersReturn } from '../types/pending-transfers';
-import { hasNoExpiration, isContractManagedExpiration, isScheduleTimestampReached } from '../utils/expiration';
+import {
+  hasNoExpiration,
+  isContractManagedExpiration,
+  isScheduleTimestampReached,
+} from '../utils/expiration';
 import { createGetAccountUrl } from '../utils/explorer-urls';
 import { useContractCapabilities } from './useContractCapabilities';
 import { useContractAdminInfo, useContractOwnership } from './useContractData';
