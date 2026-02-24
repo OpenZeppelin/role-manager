@@ -65,6 +65,28 @@ describe('capitalizeRoleName', () => {
 // =============================================================================
 
 describe('getRoleName', () => {
+  // --- Priority 0: User-defined alias (highest priority) ---
+
+  it('should return capitalized alias when provided, overriding label', () => {
+    expect(getRoleName('MINTER_ROLE', BYTES32_HASH, 'treasury manager')).toBe('Treasury Manager');
+  });
+
+  it('should return capitalized alias when provided, overriding readable roleId', () => {
+    expect(getRoleName(undefined, 'ADMIN_ROLE', 'treasury manager')).toBe('Treasury Manager');
+  });
+
+  it('should return capitalized alias even when roleId is a hash', () => {
+    expect(getRoleName(undefined, BYTES32_HASH, 'burner')).toBe('Burner');
+  });
+
+  it('should ignore alias when it is undefined', () => {
+    expect(getRoleName('MINTER_ROLE', BYTES32_HASH, undefined)).toBe('Minter');
+  });
+
+  it('should ignore alias when it is empty string', () => {
+    expect(getRoleName('MINTER_ROLE', BYTES32_HASH, '')).toBe('Minter');
+  });
+
   // --- Priority 1: Adapter-provided label (non-hash) ---
 
   it('should return capitalized label when provided and not a hash', () => {
@@ -124,6 +146,18 @@ describe('getRoleName', () => {
 // =============================================================================
 
 describe('isRoleDisplayHash', () => {
+  // --- Returns false: alias overrides hash display ---
+
+  it('should return false when alias is provided, even if roleId is a hash', () => {
+    expect(isRoleDisplayHash(undefined, BYTES32_HASH, 'my role')).toBe(false);
+    expect(isRoleDisplayHash(BYTES32_HASH, BYTES32_HASH, 'custom')).toBe(false);
+  });
+
+  it('should not be affected by empty alias', () => {
+    expect(isRoleDisplayHash(undefined, BYTES32_HASH, '')).toBe(true);
+    expect(isRoleDisplayHash(undefined, BYTES32_HASH, undefined)).toBe(true);
+  });
+
   // --- Returns false: human-readable display ---
 
   it('should return false when adapter provides a readable label', () => {

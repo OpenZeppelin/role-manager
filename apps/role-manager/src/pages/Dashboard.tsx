@@ -33,6 +33,7 @@ import { AcceptAdminTransferDialog } from '../components/Admin/AcceptAdminTransf
 import { ContractInfoCard } from '../components/Dashboard/ContractInfoCard';
 import { DashboardEmptyState } from '../components/Dashboard/DashboardEmptyState';
 import { DashboardStatsCard } from '../components/Dashboard/DashboardStatsCard';
+import { NetworkHealthBanner } from '../components/Dashboard/NetworkHealthBanner';
 import { PendingChangesCard } from '../components/Dashboard/PendingChangesCard';
 import { AcceptOwnershipDialog } from '../components/Ownership/AcceptOwnershipDialog';
 import { PageHeader } from '../components/Shared/PageHeader';
@@ -40,6 +41,7 @@ import { useAliasStorage } from '../core/storage/aliasStorage';
 import {
   useContractDisplayName,
   useDashboardData,
+  useNetworkServiceHealthCheck,
   usePendingTransfers,
   useSelectedContract,
 } from '../hooks';
@@ -50,6 +52,9 @@ export function Dashboard() {
   const navigate = useNavigate();
   const { selectedContract, selectedNetwork, adapter, isContractRegistered } =
     useSelectedContract();
+
+  // Proactive network service health check (RPC, indexer, explorer)
+  const { unhealthyServices } = useNetworkServiceHealthCheck(adapter, selectedNetwork);
 
   // Resolve contract display name from alias (single source of truth)
   const contractName = useContractDisplayName(selectedContract);
@@ -222,6 +227,13 @@ export function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column */}
         <div className="lg:col-span-2 space-y-6">
+          {selectedNetwork && (
+            <NetworkHealthBanner
+              networkConfig={selectedNetwork}
+              unhealthyServices={unhealthyServices}
+            />
+          )}
+
           <ContractInfoCard
             capabilities={selectedContract.capabilities}
             address={selectedContract.address}

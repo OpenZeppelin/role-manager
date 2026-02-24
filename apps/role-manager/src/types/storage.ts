@@ -56,6 +56,9 @@ export interface RecentContractRecord extends BaseRecord {
 
   /** User-provided role descriptions, keyed by role identifier (spec 009) */
   customRoleDescriptions?: CustomRoleDescriptions;
+
+  /** User-provided role aliases, keyed by role identifier (bytes32 hash) */
+  customRoleAliases?: CustomRoleAliases;
 }
 
 /**
@@ -70,6 +73,19 @@ export interface RecentContractRecord extends BaseRecord {
  * }
  */
 export type CustomRoleDescriptions = Record<string, string>;
+
+/**
+ * User-provided aliases for roles whose names couldn't be resolved by the adapter.
+ * Keyed by role identifier (bytes32 hash).
+ * Values are user-entered aliases (max 64 characters).
+ *
+ * @example
+ * {
+ *   "0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6": "Minter",
+ *   "0x3c11d16cbaffd01df69ce1c404f6340ee057498f5f00246190ea54220576a848": "Upgrader"
+ * }
+ */
+export type CustomRoleAliases = Record<string, string>;
 
 /**
  * Input for adding or updating a contract with schema data

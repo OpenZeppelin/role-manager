@@ -9,6 +9,10 @@ export { useNetworksByEcosystem } from './useNetworksByEcosystem';
 export { useNetworkSelection } from './useNetworkSelection';
 export type { UseNetworkSelectionOptions, UseNetworkSelectionReturn } from './useNetworkSelection';
 
+// Network service health check (proactive RPC/indexer/explorer status)
+export { useNetworkServiceHealthCheck } from './useNetworkServiceHealthCheck';
+export type { ServiceHealthStatus, NetworkHealthCheckResult } from './useNetworkServiceHealthCheck';
+
 // Contract selection hooks (Feature: 007-dashboard-real-data)
 export { useSelectedContract } from './useSelectedContract';
 export { useContractSelection } from './useContractSelection';
@@ -134,6 +138,10 @@ export type {
 // Custom Role Descriptions (Feature: 009-roles-page-data)
 export { useCustomRoleDescriptions } from './useCustomRoleDescriptions';
 export type { UseCustomRoleDescriptionsReturn } from './useCustomRoleDescriptions';
+
+// Custom Role Aliases (user-defined names for unidentified role hashes)
+export { useCustomRoleAliases } from './useCustomRoleAliases';
+export type { UseCustomRoleAliasesReturn } from './useCustomRoleAliases';
 
 // Roles Page Data Orchestration (Feature: 009-roles-page-data)
 export { useRolesPageData } from './useRolesPageData';

@@ -3,7 +3,8 @@
  * Feature: 009-roles-page-data, 017-evm-access-control (T006)
  *
  * Shared utilities for formatting role names for display.
- * Handles RoleIdentifier.label display logic:
+ * Resolution priority:
+ *   0. If a user-defined alias exists → capitalize it (highest priority)
  *   1. If the adapter provides a label (not a hash) → capitalize it
  *   2. If the roleId is a readable string (not a hash) → capitalize it
  *   3. Fallback: roleId is a hash → display truncated version
@@ -52,31 +53,39 @@ export function capitalizeRoleName(name: string): string {
  * When false, the role has a human-readable label that can be shown as plain text.
  *
  * Uses the same resolution logic as getRoleName:
+ *   0. If alias exists → NOT a hash display (user gave it a name)
  *   1. If label exists and is not a hash → NOT a hash display
  *   2. If roleId is a readable string → NOT a hash display
  *   3. Otherwise → IS a hash display
  *
  * @param label Optional human-readable label from adapter (RoleIdentifier.label)
  * @param roleId Role identifier (may be hash or constant string)
+ * @param alias Optional user-defined alias (highest priority)
  * @returns true if the display value is a truncated hash
  *
  * @example
- * isRoleDisplayHash('MINTER_ROLE', '0x9f2d...') // false — label resolves
- * isRoleDisplayHash(undefined, 'admin')          // false — roleId is readable
- * isRoleDisplayHash(undefined, '0x9f2d...')       // true  — hash fallback
+ * isRoleDisplayHash('MINTER_ROLE', '0x9f2d...')          // false — label resolves
+ * isRoleDisplayHash(undefined, 'admin')                   // false — roleId is readable
+ * isRoleDisplayHash(undefined, '0x9f2d...')                // true  — hash fallback
+ * isRoleDisplayHash(undefined, '0x9f2d...', 'Upgrader')   // false — alias resolves
  */
-export function isRoleDisplayHash(label: string | undefined, roleId: string): boolean {
-  // If adapter provides a non-hash label, it will be displayed as readable text
+export function isRoleDisplayHash(
+  label: string | undefined,
+  roleId: string,
+  alias?: string
+): boolean {
+  if (alias) {
+    return false;
+  }
+
   if (label && !isHash(label)) {
     return false;
   }
 
-  // If roleId is readable (not a hash), it will be capitalized as plain text
   if (!isHash(roleId)) {
     return false;
   }
 
-  // Fallback: display will be a truncated hash
   return true;
 }
 
@@ -92,19 +101,21 @@ export function isRoleDisplayHash(label: string | undefined, roleId: string): bo
  *
  * @param label Optional human-readable label from adapter (RoleIdentifier.label)
  * @param roleId Role identifier (may be hash or constant string)
+ * @param alias Optional user-defined alias (highest priority)
  * @returns Human-readable name or truncated hash fallback
  */
-export function getRoleName(label: string | undefined, roleId: string): string {
-  // If adapter provides a label, use it (capitalized)
+export function getRoleName(label: string | undefined, roleId: string, alias?: string): string {
+  if (alias) {
+    return capitalizeRoleName(alias);
+  }
+
   if (label && !isHash(label)) {
     return capitalizeRoleName(label);
   }
 
-  // If roleId is a readable identifier (not a hash), capitalize it
   if (!isHash(roleId)) {
     return capitalizeRoleName(roleId);
   }
 
-  // Fallback: roleId is a hash, display truncated version using shared utility
   return truncateMiddle(roleId, 6, 4);
 }

@@ -22,7 +22,11 @@ import type {
 } from '@openzeppelin/ui-types';
 
 import type { PendingTransfer, UsePendingTransfersReturn } from '../types/pending-transfers';
-import { hasNoExpiration } from '../utils/expiration';
+import {
+  hasNoExpiration,
+  isContractManagedExpiration,
+  isScheduleTimestampReached,
+} from '../utils/expiration';
 import { createGetAccountUrl } from '../utils/explorer-urls';
 import { useContractCapabilities } from './useContractCapabilities';
 import { useContractAdminInfo, useContractOwnership } from './useContractData';
@@ -69,13 +73,25 @@ function transformOwnershipTransfer(
   expirationMetadata: ExpirationMetadata | undefined
 ): PendingTransfer {
   const expirationBlock = pendingTransfer.expirationBlock ?? 0;
-  // When there's no expiration concept (mode: 'none'), the transfer never expires
   const noExpiration = hasNoExpiration(expirationMetadata);
-  const isExpired = !noExpiration && currentBlock !== null && currentBlock >= expirationBlock;
-  const isPendingOwner = addressesEqual(connectedAddress, pendingTransfer.pendingOwner);
+  const contractManaged = isContractManagedExpiration(expirationMetadata);
 
-  // Generate explorer URLs for addresses
+  // Contract-managed schedules never expire; the timestamp is when acceptance opens
+  const isExpired =
+    !noExpiration && !contractManaged && currentBlock !== null && currentBlock >= expirationBlock;
+
+  const isScheduleReached = contractManaged
+    ? isScheduleTimestampReached(expirationBlock, expirationMetadata)
+    : undefined;
+
+  const isPendingOwner = addressesEqual(connectedAddress, pendingTransfer.pendingOwner);
   const getAccountUrl = createGetAccountUrl(adapter);
+
+  // canAccept must reflect whether acceptance is actually possible right now:
+  // the connected wallet is the pending owner, the transfer hasn't expired,
+  // and for contract-managed schedules the schedule timestamp has been reached.
+  const canAccept =
+    isPendingOwner && !isExpired && (isScheduleReached === undefined || isScheduleReached);
 
   return {
     id: `ownership-${contractAddress}`,
@@ -87,10 +103,11 @@ function transformOwnershipTransfer(
     pendingRecipientUrl: getAccountUrl(pendingTransfer.pendingOwner) ?? undefined,
     expirationBlock,
     isExpired,
+    isScheduleReached,
     expirationMetadata,
     step: { current: 1, total: 2 },
-    canAccept: isPendingOwner && !isExpired,
-    initiatedAt: undefined, // Not available in current API
+    canAccept,
+    initiatedAt: undefined,
   };
 }
 
@@ -108,13 +125,22 @@ function transformAdminTransfer(
   expirationMetadata: ExpirationMetadata | undefined
 ): PendingTransfer {
   const expirationBlock = pendingTransfer.expirationBlock ?? 0;
-  // When there's no expiration concept (mode: 'none'), the transfer never expires
   const noExpiration = hasNoExpiration(expirationMetadata);
-  const isExpired = !noExpiration && currentBlock !== null && currentBlock >= expirationBlock;
-  const isPendingAdmin = addressesEqual(connectedAddress, pendingTransfer.pendingAdmin);
+  const contractManaged = isContractManagedExpiration(expirationMetadata);
 
-  // Generate explorer URLs for addresses
+  // Contract-managed schedules never expire; the timestamp is when acceptance opens
+  const isExpired =
+    !noExpiration && !contractManaged && currentBlock !== null && currentBlock >= expirationBlock;
+
+  const isScheduleReached = contractManaged
+    ? isScheduleTimestampReached(expirationBlock, expirationMetadata)
+    : undefined;
+
+  const isPendingAdmin = addressesEqual(connectedAddress, pendingTransfer.pendingAdmin);
   const getAccountUrl = createGetAccountUrl(adapter);
+
+  const canAccept =
+    isPendingAdmin && !isExpired && (isScheduleReached === undefined || isScheduleReached);
 
   return {
     id: `admin-${contractAddress}`,
@@ -126,10 +152,11 @@ function transformAdminTransfer(
     pendingRecipientUrl: getAccountUrl(pendingTransfer.pendingAdmin) ?? undefined,
     expirationBlock,
     isExpired,
+    isScheduleReached,
     expirationMetadata,
     step: { current: 1, total: 2 },
-    canAccept: isPendingAdmin && !isExpired,
-    initiatedAt: undefined, // Not available in current API
+    canAccept,
+    initiatedAt: undefined,
   };
 }
 

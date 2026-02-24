@@ -2,10 +2,9 @@
  * EditRoleDialog Component
  * Feature: 009-roles-page-data (Phase 6)
  *
- * Dialog for editing role settings. Currently supports:
+ * Dialog for editing role settings:
  * - Custom description editing with 256 character limit
- *
- * Designed to be extensible for future role editing features.
+ * - Custom alias for unidentified (hash-only) roles with 64 character limit
  *
  * Per FR-023: Edit role description
  * Per FR-031a: 256 character limit with validation
@@ -32,6 +31,7 @@ import type { RoleWithDescription } from '../../types/roles';
 // =============================================================================
 
 const MAX_DESCRIPTION_LENGTH = 256;
+const MAX_ALIAS_LENGTH = 64;
 
 // =============================================================================
 // Types
@@ -42,6 +42,7 @@ const MAX_DESCRIPTION_LENGTH = 256;
  */
 interface EditRoleFormData {
   description: string;
+  alias: string;
 }
 
 /**
@@ -56,6 +57,8 @@ export interface EditRoleDialogProps {
   role: RoleWithDescription | null;
   /** Save handler for description changes */
   onSaveDescription: (roleId: string, description: string) => Promise<void>;
+  /** Save handler for alias changes (only called when alias field is visible) */
+  onSaveAlias?: (roleId: string, alias: string) => Promise<void>;
 }
 
 // =============================================================================
@@ -65,8 +68,8 @@ export interface EditRoleDialogProps {
 /**
  * EditRoleDialog - Dialog for editing role settings
  *
- * Currently supports editing the role description with validation.
- * Can be extended to support additional role settings in the future.
+ * Supports editing the role description and, for unidentified (hash-only) roles,
+ * a custom alias that gives the role a human-readable name.
  *
  * @example
  * ```tsx
@@ -77,6 +80,9 @@ export interface EditRoleDialogProps {
  *   onSaveDescription={async (roleId, desc) => {
  *     await updateRoleDescription(roleId, desc);
  *   }}
+ *   onSaveAlias={async (roleId, alias) => {
+ *     await updateRoleAlias(roleId, alias);
+ *   }}
  * />
  * ```
  */
@@ -85,6 +91,7 @@ export function EditRoleDialog({
   onOpenChange,
   role,
   onSaveDescription,
+  onSaveAlias,
 }: EditRoleDialogProps) {
   // =============================================================================
   // State
@@ -98,8 +105,13 @@ export function EditRoleDialog({
     mode: 'onChange',
     defaultValues: {
       description: '',
+      alias: '',
     },
   });
+
+  // Show alias field when the role's underlying identifier is a hash
+  // (either currently showing as hash, or was a hash before the user set an alias)
+  const showAliasField = !!role && (role.isHashDisplay || !!role.alias);
 
   // =============================================================================
   // Effects
@@ -110,6 +122,7 @@ export function EditRoleDialog({
     if (open && role) {
       reset({
         description: role.description ?? '',
+        alias: role.alias ?? '',
       });
       setSaveError(null);
       setIsSaving(false);
@@ -125,21 +138,27 @@ export function EditRoleDialog({
       if (!role) return;
 
       const trimmedDescription = data.description.trim();
+      const trimmedAlias = data.alias.trim();
 
       setIsSaving(true);
       setSaveError(null);
 
       try {
         await onSaveDescription(role.roleId, trimmedDescription);
+
+        if (showAliasField && onSaveAlias) {
+          await onSaveAlias(role.roleId, trimmedAlias);
+        }
+
         onOpenChange(false);
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to save description';
+        const errorMessage = err instanceof Error ? err.message : 'Failed to save changes';
         setSaveError(errorMessage);
       } finally {
         setIsSaving(false);
       }
     },
-    [role, onSaveDescription, onOpenChange]
+    [role, onSaveDescription, onSaveAlias, onOpenChange, showAliasField]
   );
 
   const handleCancel = useCallback(() => {
@@ -163,7 +182,21 @@ export function EditRoleDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onFormSubmit)} className="grid gap-4 py-4">
-          {/* Description Field */}
+          {showAliasField && (
+            <TextField
+              id="role-alias"
+              name="alias"
+              label="Role Name"
+              placeholder="Give this role a human-readable name"
+              helperText="A custom name for this role. Leave empty to show the hash."
+              control={control}
+              validation={{
+                maxLength: MAX_ALIAS_LENGTH,
+              }}
+              readOnly={isSaving}
+            />
+          )}
+
           <TextField
             id="role-description"
             name="description"
@@ -177,7 +210,6 @@ export function EditRoleDialog({
             readOnly={isSaving}
           />
 
-          {/* Save Error */}
           {saveError && (
             <p className="text-sm text-destructive" role="alert">
               {saveError}

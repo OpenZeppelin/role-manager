@@ -44,6 +44,7 @@ import { useBlockPollInterval } from './useBlockPollInterval';
 import { useContractCapabilities } from './useContractCapabilities';
 import { useContractAdminInfo, useContractOwnership, useContractRoles } from './useContractData';
 import { useCurrentBlock } from './useCurrentBlock';
+import { useCustomRoleAliases } from './useCustomRoleAliases';
 import { useCustomRoleDescriptions } from './useCustomRoleDescriptions';
 import { useExpirationMetadata } from './useExpirationMetadata';
 import { useSelectedContract } from './useSelectedContract';
@@ -90,6 +91,7 @@ export interface UseRolesPageDataReturn {
   /** Actions */
   refetch: () => Promise<void>;
   updateRoleDescription: (roleId: string, description: string) => Promise<void>;
+  updateRoleAlias: (roleId: string, alias: string) => Promise<void>;
 
   /** Connected wallet */
   connectedAddress: string | null;
@@ -251,6 +253,9 @@ export function useRolesPageData(): UseRolesPageDataReturn {
   const { descriptions: customDescriptions, updateDescription } =
     useCustomRoleDescriptions(contractId);
 
+  // Custom role aliases (user-defined names for unidentified role hashes)
+  const { aliases: customAliases, updateAlias } = useCustomRoleAliases(contractId);
+
   // Current block for expiration countdown (poll when pending transfer exists)
   // Feature 016: Also poll when admin pending transfer exists
   const hasPendingOwnershipTransfer = ownership?.state === 'pending';
@@ -345,10 +350,9 @@ export function useRolesPageData(): UseRolesPageDataReturn {
   const transformedRoles = useMemo((): RoleWithDescription[] => {
     return adapterRoles.map((assignment) => {
       const roleId = assignment.role.id;
-      // T046: Use getRoleName for proper hash fallback handling
-      const roleName = getRoleName(assignment.role.label, roleId);
+      const alias = customAliases[roleId];
+      const roleName = getRoleName(assignment.role.label, roleId, alias);
       const customDescription = customDescriptions[roleId];
-      // Adapter doesn't provide description field, so use custom or null
       const resolvedDescription = customDescription ?? null;
 
       return {
@@ -358,12 +362,12 @@ export function useRolesPageData(): UseRolesPageDataReturn {
         isCustomDescription: !!customDescription,
         members: assignment.members,
         isOwnerRole: false,
-        isAdminRole: false, // T016: All enumerated roles default to non-admin
-        // T018: Determine if role name is a hash for AddressDisplay rendering
-        isHashDisplay: isRoleDisplayHash(assignment.role.label, roleId),
+        isAdminRole: false,
+        isHashDisplay: isRoleDisplayHash(assignment.role.label, roleId, alias),
+        alias,
       };
     });
-  }, [adapterRoles, customDescriptions]);
+  }, [adapterRoles, customDescriptions, customAliases]);
 
   // T015: Combine owner role, admin role, and adapter roles
   // Order: [ownerRole?, adminRole?, ...enumeratedRoles]
@@ -476,6 +480,14 @@ export function useRolesPageData(): UseRolesPageDataReturn {
     [updateDescription]
   );
 
+  // Update role alias (optimistic)
+  const updateRoleAlias = useCallback(
+    async (roleId: string, alias: string): Promise<void> => {
+      await updateAlias(roleId, alias);
+    },
+    [updateAlias]
+  );
+
   // =============================================================================
   // Return
   // =============================================================================
@@ -514,6 +526,7 @@ export function useRolesPageData(): UseRolesPageDataReturn {
       canRetry: false,
       refetch: async () => {},
       updateRoleDescription: async () => {},
+      updateRoleAlias: async () => {},
       connectedAddress: null,
       connectedRoleIds: [],
       roleIdentifiers: [],
@@ -554,6 +567,7 @@ export function useRolesPageData(): UseRolesPageDataReturn {
     canRetry,
     refetch,
     updateRoleDescription,
+    updateRoleAlias,
     connectedAddress: connectedAddress ?? null,
     connectedRoleIds,
     roleIdentifiers,
