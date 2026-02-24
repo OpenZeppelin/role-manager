@@ -22,6 +22,8 @@ This project is currently in development.
 
 ## Table of Contents
 
+- [Supported Ecosystems & Networks](#supported-ecosystems--networks)
+- [Contract Types & Features](#contract-types--features)
 - [Monorepo Structure](#monorepo-structure)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
@@ -34,6 +36,86 @@ This project is currently in development.
 - [Commit Convention](#commit-convention)
 - [Contributing](#contributing)
 - [License](#license)
+
+## Supported Ecosystems & Networks
+
+Role Manager supports smart contracts across three blockchain ecosystems via dedicated adapter packages.
+
+### EVM
+
+23 networks (11 mainnet, 12 testnet) via `@openzeppelin/ui-builder-adapter-evm`.
+
+| Mainnet           | Testnet               |
+| ----------------- | --------------------- |
+| Ethereum          | Sepolia               |
+| Arbitrum One      | Arbitrum Sepolia      |
+| Base              | Base Sepolia          |
+| Polygon           | Polygon Amoy          |
+| Polygon zkEVM     | Polygon zkEVM Cardona |
+| BNB Smart Chain   | BSC Testnet           |
+| OP Mainnet        | OP Sepolia            |
+| Avalanche C-Chain | Avalanche Fuji        |
+| Linea             | Linea Sepolia         |
+| Scroll            | Scroll Sepolia        |
+| ZkSync Era        | ZkSync Era Sepolia    |
+|                   | Monad Testnet         |
+
+### Stellar
+
+2 networks (1 mainnet, 1 testnet) via `@openzeppelin/ui-builder-adapter-stellar`.
+
+| Mainnet                | Testnet         |
+| ---------------------- | --------------- |
+| Stellar Public Network | Stellar Testnet |
+
+### Polkadot
+
+5 networks (3 mainnet, 2 testnet) via `@openzeppelin/ui-builder-adapter-polkadot`.
+
+| Mainnet      | Testnet              |
+| ------------ | -------------------- |
+| Polkadot Hub | Polkadot Hub Testnet |
+| Moonbeam     | Moonbase Alpha       |
+| Moonriver    |                      |
+
+## Contract Types & Features
+
+The application detects OpenZeppelin contract standards via ABI analysis and adapts its UI and available operations accordingly. Contracts can implement multiple standards simultaneously (e.g., AccessControl + AccessControlEnumerable).
+
+### Contract Types
+
+| Standard          | Description                                                            |
+| ----------------- | ---------------------------------------------------------------------- |
+| **Ownable**       | Single-owner access control pattern                                    |
+| **AccessControl** | Role-based access control with granular permissions for multiple roles |
+
+### Contract Features
+
+These features layer on top of the core contract types to provide additional capabilities.
+
+| Feature                | Standard                       | Description                                                                                                          |
+| ---------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| **Two-Step Ownership** | Ownable2Step                   | Ownership transfers require the new owner to explicitly accept, preventing accidental transfers to wrong addresses   |
+| **Two-Step Admin**     | AccessControlDefaultAdminRules | Admin transfers require acceptance after a configurable delay, adding a safety window before the change takes effect |
+| **Enumerable Roles**   | AccessControlEnumerable        | Roles and their members can be enumerated on-chain                                                                   |
+| **History**            | —                              | On-chain history of role changes is available via an indexer                                                         |
+
+### Supported Operations
+
+| Operation             | Ownable | AccessControl | Notes                                                         |
+| --------------------- | :-----: | :-----------: | ------------------------------------------------------------- |
+| Grant Role            |         |       ✓       | Assign a role to an account                                   |
+| Revoke Role           |         |       ✓       | Remove a role from an account                                 |
+| Renounce Role         |         |       ✓       | Self-revoke a role                                            |
+| Transfer Ownership    |    ✓    |               | Two-step when Ownable2Step is detected                        |
+| Accept Ownership      |    ✓    |               | Ownable2Step only                                             |
+| Renounce Ownership    |    ✓    |               | Permanently removes the owner                                 |
+| Transfer Admin        |         |       ✓       | AccessControlDefaultAdminRules only, with configurable delay  |
+| Accept Admin Transfer |         |       ✓       | AccessControlDefaultAdminRules only                           |
+| Cancel Admin Transfer |         |       ✓       | AccessControlDefaultAdminRules only                           |
+| Change Admin Delay    |         |       ✓       | AccessControlDefaultAdminRules only, change is itself delayed |
+| Rollback Admin Delay  |         |       ✓       | AccessControlDefaultAdminRules only                           |
+| Export Snapshot       |    ✓    |       ✓       | Download contract access control state as JSON                |
 
 ## Monorepo Structure
 
