@@ -241,7 +241,7 @@ export function isScheduleTimestampReached(
   timestampSeconds: number | undefined,
   metadata: ExpirationMetadata | undefined
 ): boolean {
-  if (!isTimestampBasedExpiration(metadata) || timestampSeconds == null) return false;
+  if (!isTimestampBasedExpiration(metadata) || !timestampSeconds) return false;
   return Math.floor(Date.now() / 1000) >= timestampSeconds;
 }
 

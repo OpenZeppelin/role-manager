@@ -462,6 +462,10 @@ describe('isScheduleTimestampReached', () => {
   it('should return false for undefined timestamp', () => {
     expect(isScheduleTimestampReached(undefined, evmAdminMetadata)).toBe(false);
   });
+
+  it('should return false for zero timestamp (no schedule set)', () => {
+    expect(isScheduleTimestampReached(0, evmAdminMetadata)).toBe(false);
+  });
 });
 
 describe('formatExpirationTimestamp', () => {
