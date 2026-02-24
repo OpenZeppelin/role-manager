@@ -253,7 +253,7 @@ export function PendingTransferInfo({
         </div>
       )}
 
-      {/* Wrong wallet / waiting messages */}
+      {/* Wrong wallet message — always prompt to connect the pending recipient */}
       {!canAccept && !isExpired && (
         <div
           className={cn(
@@ -265,9 +265,7 @@ export function PendingTransferInfo({
             className={cn('h-4 w-4 shrink-0', scheduleReached ? 'text-green-600' : 'text-blue-600')}
           />
           <p className={cn('text-xs', scheduleReached ? 'text-green-700' : 'text-blue-700')}>
-            {isTimestamp && !scheduleReached
-              ? `The transfer will be ready to accept once the schedule is reached.`
-              : `Connect the pending ${recipientLabel.toLowerCase()} wallet to accept this transfer.`}
+            Connect the pending {recipientLabel.toLowerCase()} wallet to accept this transfer.
           </p>
         </div>
       )}
