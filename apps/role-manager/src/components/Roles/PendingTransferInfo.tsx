@@ -237,14 +237,19 @@ export function PendingTransferInfo({
       )}
 
       {/* Accept button - shown when user can accept, transfer is not expired, and schedule is reached (if applicable) */}
-      {canAccept && !isExpired && onAccept && (
-        <div
-          className={cn(
-            'mt-3 pt-3 border-t flex justify-end',
-            scheduleReached ? 'border-green-200' : 'border-blue-200'
-          )}
-        >
+      {canAccept && !isExpired && onAccept && (!isTimestamp || scheduleReached) && (
+        <div className="mt-3 pt-3 border-t border-green-200 flex justify-end">
           <AcceptTransferButton roleLabel={transferLabel} onClick={onAccept} />
+        </div>
+      )}
+
+      {/* Pending recipient waiting for schedule */}
+      {canAccept && !isExpired && isTimestamp && !scheduleReached && (
+        <div className="mt-3 pt-3 border-t border-blue-200 flex items-center gap-2">
+          <Clock className="h-4 w-4 shrink-0 text-blue-600" />
+          <p className="text-xs text-blue-700">
+            The transfer will be ready to accept once the schedule is reached.
+          </p>
         </div>
       )}
 

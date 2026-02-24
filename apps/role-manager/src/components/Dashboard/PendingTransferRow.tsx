@@ -12,7 +12,7 @@
  * Tasks: T047, T040
  */
 
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Clock } from 'lucide-react';
 
 import { AddressDisplay } from '@openzeppelin/ui-components';
 import { cn } from '@openzeppelin/ui-utils';
@@ -145,13 +145,18 @@ export function PendingTransferRow({ transfer, currentBlock, onAccept }: Pending
 
       {/* Actions */}
       <td className="p-4">
-        {transfer.canAccept && !transfer.isExpired && (
+        {transfer.canAccept && !transfer.isExpired ? (
           <AcceptTransferButton
             roleLabel={transfer.label || transfer.type}
             shortLabel
             onClick={handleAccept}
           />
-        )}
+        ) : !transfer.isExpired && transfer.isScheduleReached === false ? (
+          <span className="flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap">
+            <Clock className="h-3.5 w-3.5 shrink-0" />
+            Awaiting schedule
+          </span>
+        ) : null}
       </td>
     </tr>
   );
