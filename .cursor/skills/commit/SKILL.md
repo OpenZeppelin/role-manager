@@ -9,9 +9,10 @@ This skill guides committing changes following the project's Conventional Commit
 
 ## Critical Requirements
 
-1. **Always run commits outside sandbox** - Full shell permissions required for GPG signing and pre-commit hooks
-2. **Never use `--no-gpg-sign`** - All commits must be GPG-signed
-3. **Never use `--no-verify`** - Pre-commit hooks must run
+1. **Never commit directly to `main`** - Always check the current branch before committing. If on `main`, create a new branch first (see Commit Workflow below).
+2. **Always run commits outside sandbox** - Full shell permissions required for GPG signing and pre-commit hooks
+3. **Never use `--no-gpg-sign`** - All commits must be GPG-signed
+4. **Never use `--no-verify`** - Pre-commit hooks must run
 
 ## Commit Format
 
@@ -74,10 +75,16 @@ The commitlint config enforces these scopes:
 ## Commit Workflow
 
 ```bash
-# 1. Stage changes
+# 1. Check current branch — NEVER commit directly to main
+git branch --show-current
+# If on main, create and switch to a new branch BEFORE committing:
+#   git checkout -b fix/short-description   (for fixes)
+#   git checkout -b feat/short-description  (for features)
+
+# 2. Stage changes
 git add <files>
 
-# 2. Commit with HEREDOC (recommended for multi-line messages)
+# 3. Commit with HEREDOC (recommended for multi-line messages)
 git commit -m "$(cat <<'EOF'
 feat(role-manager): add new contract template selector
 
@@ -206,6 +213,12 @@ feat(types): add ContractConfig interface
 ## Quick Reference
 
 ```bash
+# Check you're NOT on main before committing
+git branch --show-current
+
+# Create branch if on main
+git checkout -b fix/my-fix-description
+
 # Stage and commit
 git add . && git commit -m "feat(role-manager): add feature"
 
@@ -225,5 +238,7 @@ pnpm dev:npm
 ## Branch Naming
 
 - Feature branches: `###-feature-name` (e.g., `003-data-store-service`)
+- Fix branches: `fix/short-description` (e.g., `fix/schedule-semantics-contract-managed`)
+- Feature branches (no spec): `feat/short-description` (e.g., `feat/add-dark-mode`)
 - Use kebab-case for branch names
 - Include feature number prefix when following spec workflow
