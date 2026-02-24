@@ -9,6 +9,7 @@ import {
 import type { AccessControlCapabilities, NetworkConfig } from '@openzeppelin/ui-types';
 import { cn } from '@openzeppelin/ui-utils';
 
+import { CONTRACT_FEATURES, CONTRACT_TYPES, resolveCapabilities } from '../../constants';
 import { FeatureBadge } from '../Shared/FeatureBadge';
 
 /**
@@ -35,10 +36,8 @@ export function ContractInfoCard({
   explorerUrl,
   className,
 }: ContractInfoCardProps) {
-  // Determine which badges to show based on detected capabilities
-  const hasOwnable = capabilities?.hasOwnable ?? false;
-  const hasAccessControl = capabilities?.hasAccessControl ?? false;
-  const hasDetectedCapabilities = hasOwnable || hasAccessControl;
+  const typeBadges = resolveCapabilities(capabilities, CONTRACT_TYPES);
+  const featureBadges = resolveCapabilities(capabilities, CONTRACT_FEATURES);
 
   return (
     <Card className={cn('w-full shadow-none', className)}>
@@ -61,11 +60,30 @@ export function ContractInfoCard({
         <div className="flex justify-between items-center">
           <span className="text-sm font-semibold text-slate-900">Contract Type</span>
           <div className="flex items-center gap-1.5">
-            {hasAccessControl && <FeatureBadge variant="purple">AccessControl</FeatureBadge>}
-            {hasOwnable && <FeatureBadge variant="blue">Ownable</FeatureBadge>}
-            {!hasDetectedCapabilities && <FeatureBadge variant="slate">Unknown</FeatureBadge>}
+            {typeBadges.length > 0 ? (
+              typeBadges.map(({ label, variant, description }) => (
+                <FeatureBadge key={label} variant={variant} tooltip={description}>
+                  {label}
+                </FeatureBadge>
+              ))
+            ) : (
+              <FeatureBadge variant="slate">Unknown</FeatureBadge>
+            )}
           </div>
         </div>
+
+        {featureBadges.length > 0 && (
+          <div className="flex justify-between items-start">
+            <span className="text-sm font-semibold text-slate-900 pt-0.5">Contract Features</span>
+            <div className="flex flex-wrap justify-end gap-1.5">
+              {featureBadges.map(({ label, variant, description }) => (
+                <FeatureBadge key={label} variant={variant} tooltip={description}>
+                  {label}
+                </FeatureBadge>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="flex justify-between items-center">
           <span className="text-sm font-semibold text-slate-900">Network / Chain</span>

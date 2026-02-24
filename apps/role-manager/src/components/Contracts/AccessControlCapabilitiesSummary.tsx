@@ -7,6 +7,7 @@
 
 import type { AccessControlCapabilities } from '@openzeppelin/ui-types';
 
+import { CONTRACT_FEATURES, CONTRACT_TYPES, resolveCapabilities } from '../../constants';
 import { FeatureBadge } from '../Shared/FeatureBadge';
 
 interface AccessControlCapabilitiesSummaryProps {
@@ -43,11 +44,10 @@ export function AccessControlCapabilitiesSummary({
   headerText = 'Access Control Features',
   showNotes = true,
 }: AccessControlCapabilitiesSummaryProps): React.ReactElement {
-  const hasAnyFeature =
-    capabilities.hasOwnable ||
-    capabilities.hasAccessControl ||
-    capabilities.hasEnumerableRoles ||
-    capabilities.supportsHistory;
+  const allBadges = [
+    ...resolveCapabilities(capabilities, CONTRACT_TYPES),
+    ...resolveCapabilities(capabilities, CONTRACT_FEATURES),
+  ];
 
   return (
     <div className="rounded-lg border bg-muted/50 p-4">
@@ -57,28 +57,16 @@ export function AccessControlCapabilitiesSummary({
         </div>
       )}
 
-      {/* Feature badges */}
-      {hasAnyFeature && (
+      {/* Display feature badges if there are any */}
+      {allBadges.length > 0 ? (
         <div className="mb-3 flex flex-wrap gap-2">
-          {capabilities.hasOwnable && <FeatureBadge variant="blue">Ownable</FeatureBadge>}
-          {capabilities.hasTwoStepOwnable && (
-            <FeatureBadge variant="cyan">Two-Step Ownership</FeatureBadge>
-          )}
-          {capabilities.hasAccessControl && (
-            <FeatureBadge variant="purple">AccessControl</FeatureBadge>
-          )}
-          {capabilities.hasTwoStepAdmin && (
-            <FeatureBadge variant="teal">Two-Step Admin</FeatureBadge>
-          )}
-          {capabilities.hasEnumerableRoles && (
-            <FeatureBadge variant="green">Enumerable Roles</FeatureBadge>
-          )}
-          {capabilities.supportsHistory && <FeatureBadge variant="amber">History</FeatureBadge>}
+          {allBadges.map(({ label, variant, description }) => (
+            <FeatureBadge key={label} variant={variant} tooltip={description}>
+              {label}
+            </FeatureBadge>
+          ))}
         </div>
-      )}
-
-      {/* No features detected */}
-      {!hasAnyFeature && (
+      ) : (
         <p className="mb-3 text-sm text-muted-foreground">No access control features detected</p>
       )}
 
