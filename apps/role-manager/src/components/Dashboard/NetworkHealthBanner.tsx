@@ -13,17 +13,20 @@ interface ServiceCopy {
   description: string;
 }
 
+const INDEXER_COPY: ServiceCopy = {
+  title: 'Indexer Unavailable — Limited Functionality',
+  description:
+    "Role Manager will still work, but role change history, grant timestamps, and enriched account data won't be available until the indexer is back online. You can configure a custom indexer endpoint in the network settings.",
+};
+
 const SERVICE_COPY: Record<string, ServiceCopy> = {
   rpc: {
     title: 'RPC Provider Unavailable',
     description:
       'Core contract interactions (role grants, revocations, ownership transfers) require a working RPC connection. You can configure a custom RPC endpoint in the network settings.',
   },
-  'access-control-indexer': {
-    title: 'Indexer Unavailable — Limited Functionality',
-    description:
-      "Role Manager will still work, but role change history, grant timestamps, and enriched account data won't be available until the indexer is back online. You can configure a custom indexer endpoint in the network settings.",
-  },
+  'access-control-indexer': INDEXER_COPY,
+  indexer: INDEXER_COPY,
   explorer: {
     title: 'Block Explorer Unavailable',
     description:

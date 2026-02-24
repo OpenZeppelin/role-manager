@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { ContractAdapter, NetworkConfig } from '@openzeppelin/ui-types';
 import {
@@ -36,8 +36,11 @@ export function useNetworkServiceHealthCheck(
 ): NetworkHealthCheckResult {
   const [isChecking, setIsChecking] = useState(false);
   const [serviceStatuses, setServiceStatuses] = useState<ServiceHealthStatus[]>([]);
+  const checkIdRef = useRef(0);
 
   const checkServices = useCallback(async () => {
+    const currentCheckId = ++checkIdRef.current;
+
     if (!adapter || !networkConfig || !adapter.testNetworkServiceConnection) {
       setServiceStatuses([]);
       return;
@@ -96,9 +99,14 @@ export function useNetworkServiceHealthCheck(
       );
 
       const results = await Promise.all(statusPromises);
+
+      if (currentCheckId !== checkIdRef.current) return;
+
       setServiceStatuses(results.filter((s): s is ServiceHealthStatus => s !== null));
     } finally {
-      setIsChecking(false);
+      if (currentCheckId === checkIdRef.current) {
+        setIsChecking(false);
+      }
     }
   }, [adapter, networkConfig]);
 
