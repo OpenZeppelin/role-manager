@@ -139,6 +139,10 @@ export type {
 export { useCustomRoleDescriptions } from './useCustomRoleDescriptions';
 export type { UseCustomRoleDescriptionsReturn } from './useCustomRoleDescriptions';
 
+// Custom Role Aliases (user-defined names for unidentified role hashes)
+export { useCustomRoleAliases } from './useCustomRoleAliases';
+export type { UseCustomRoleAliasesReturn } from './useCustomRoleAliases';
+
 // Roles Page Data Orchestration (Feature: 009-roles-page-data)
 export { useRolesPageData } from './useRolesPageData';
 export type { UseRolesPageDataReturn } from './useRolesPageData';

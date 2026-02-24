@@ -68,4 +68,6 @@ export interface RoleWithDescription {
    * instead of plain text. Feature: 017-evm-access-control (T018)
    */
   isHashDisplay: boolean;
+  /** User-defined alias for this role (per-contract, only for hash-display roles) */
+  alias?: string;
 }

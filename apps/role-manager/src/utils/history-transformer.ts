@@ -44,6 +44,8 @@ export interface TransformOptions {
   getTransactionUrl: GetExplorerUrlFn;
   /** Function to generate account URL (typically adapter.getExplorerUrl) */
   getAccountUrl: GetExplorerUrlFn;
+  /** User-defined role aliases keyed by roleId (for resolving hash-only roles) */
+  aliases?: Record<string, string>;
 }
 
 /**
@@ -78,7 +80,8 @@ export function transformHistoryEntry(
     entry.changeType === 'ADMIN_DELAY_CHANGE_SCHEDULED' ||
     entry.changeType === 'ADMIN_DELAY_CHANGE_CANCELED';
   const roleId = isAdminEvent ? ADMIN_ROLE_ID : entry.role.id;
-  const roleName = isAdminEvent ? 'Admin' : getRoleName(entry.role.label, entry.role.id);
+  const alias = isAdminEvent ? undefined : options.aliases?.[entry.role.id];
+  const roleName = isAdminEvent ? 'Admin' : getRoleName(entry.role.label, entry.role.id, alias);
 
   const txSuffix = entry.txId ? `-${entry.txId}` : '';
   const indexSuffix = index != null ? `-${index}` : '';

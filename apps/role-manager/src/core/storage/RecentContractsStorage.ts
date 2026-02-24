@@ -5,6 +5,7 @@ import { simpleHash } from '@openzeppelin/ui-utils';
 
 import type {
   ContractSchemaInput,
+  CustomRoleAliases,
   CustomRoleDescriptions,
   RecentContractRecord,
 } from '@/types/storage';
@@ -292,6 +293,77 @@ export class RecentContractsStorage extends EntityStorage<RecentContractRecord> 
     delete customRoleDescriptions[roleId];
 
     await this.update(id, { customRoleDescriptions });
+  }
+
+  // ===========================================================================
+  // Custom Role Aliases
+  // ===========================================================================
+
+  /**
+   * Update a custom role alias for a contract.
+   * If alias is empty/whitespace, the alias is cleared for that role.
+   *
+   * @param id - Contract record ID
+   * @param roleId - Role identifier (bytes32 hash)
+   * @param alias - Custom alias (max 64 chars) or empty to clear
+   * @throws Error if roleId is invalid or alias exceeds 64 characters
+   */
+  async updateRoleAlias(id: string, roleId: string, alias: string): Promise<void> {
+    if (!roleId || typeof roleId !== 'string' || roleId.trim().length === 0) {
+      throw new Error('storage/invalid-role-id');
+    }
+
+    const trimmedAlias = alias.trim();
+
+    if (trimmedAlias.length > 64) {
+      throw new Error('storage/alias-too-long');
+    }
+
+    const record = await this.get(id);
+    if (!record) {
+      return;
+    }
+
+    const customRoleAliases: CustomRoleAliases = {
+      ...(record.customRoleAliases || {}),
+    };
+
+    if (trimmedAlias.length === 0) {
+      delete customRoleAliases[roleId];
+    } else {
+      customRoleAliases[roleId] = trimmedAlias;
+    }
+
+    await this.update(id, { customRoleAliases });
+  }
+
+  /**
+   * Get all custom role aliases for a contract.
+   *
+   * @param id - Contract record ID
+   * @returns Custom aliases map or empty object
+   */
+  async getCustomRoleAliases(id: string): Promise<CustomRoleAliases> {
+    const record = await this.get(id);
+    return record?.customRoleAliases || {};
+  }
+
+  /**
+   * Clear a specific custom role alias.
+   *
+   * @param id - Contract record ID
+   * @param roleId - Role identifier to clear
+   */
+  async clearRoleAlias(id: string, roleId: string): Promise<void> {
+    const record = await this.get(id);
+    if (!record || !record.customRoleAliases) {
+      return;
+    }
+
+    const customRoleAliases: CustomRoleAliases = { ...record.customRoleAliases };
+    delete customRoleAliases[roleId];
+
+    await this.update(id, { customRoleAliases });
   }
 }
 

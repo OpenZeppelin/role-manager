@@ -26,6 +26,7 @@ import { transformHistoryEntries } from '../utils/history-transformer';
 import { useContractCapabilities } from './useContractCapabilities';
 import { useContractRoles } from './useContractData';
 import { DEFAULT_PAGE_SIZE, useContractHistory } from './useContractHistory';
+import { useCustomRoleAliases } from './useCustomRoleAliases';
 import { useSelectedContract } from './useSelectedContract';
 
 /**
@@ -185,6 +186,9 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
     isFetching: areRolesFetching,
   } = useContractRoles(adapter, contractAddress, isContractRegistered);
 
+  // Custom role aliases for resolving hash-only roles in history display
+  const { aliases: customAliases } = useCustomRoleAliases(contractId);
+
   // =============================================================================
   // Explorer URL Helpers (chain-agnostic via adapter)
   // =============================================================================
@@ -200,8 +204,13 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
 
   // Transform history entries to view models
   const transformedEvents = useMemo(
-    () => transformHistoryEntries(historyItems, { getTransactionUrl, getAccountUrl }),
-    [historyItems, getTransactionUrl, getAccountUrl]
+    () =>
+      transformHistoryEntries(historyItems, {
+        getTransactionUrl,
+        getAccountUrl,
+        aliases: customAliases,
+      }),
+    [historyItems, getTransactionUrl, getAccountUrl, customAliases]
   );
 
   const events = transformedEvents;

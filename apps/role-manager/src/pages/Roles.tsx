@@ -84,6 +84,7 @@ export function Roles() {
     canRetry,
     refetch,
     updateRoleDescription,
+    updateRoleAlias,
     connectedAddress,
     connectedRoleIds,
     roleIdentifiers,
@@ -302,10 +303,24 @@ export function Roles() {
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Failed to save description';
         toast.error(message);
-        throw error; // Re-throw to let dialog show the error
+        throw error;
       }
     },
     [updateRoleDescription]
+  );
+
+  // Handle alias save from dialog
+  const handleSaveAlias = useCallback(
+    async (roleId: string, alias: string) => {
+      try {
+        await updateRoleAlias(roleId, alias);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to save alias';
+        toast.error(message);
+        throw error;
+      }
+    },
+    [updateRoleAlias]
   );
 
   // T037: Loading state
@@ -465,6 +480,7 @@ export function Roles() {
         onOpenChange={setIsEditDialogOpen}
         role={selectedRole}
         onSaveDescription={handleSaveDescription}
+        onSaveAlias={handleSaveAlias}
       />
 
       {/* Spec 014 (T041): Assign Role Dialog */}
