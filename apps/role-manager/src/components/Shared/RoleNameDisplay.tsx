@@ -57,6 +57,7 @@ export function RoleNameDisplay({
         startChars={startChars}
         endChars={endChars}
         showCopyButton={true}
+        disableLabel
         className={className}
       />
     );

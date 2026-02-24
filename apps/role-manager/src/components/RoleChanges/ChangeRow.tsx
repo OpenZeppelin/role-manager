@@ -108,6 +108,7 @@ export function ChangeRow({ event, onRoleClick }: ChangeRowProps) {
             endChars={4}
             showCopyButton={true}
             explorerUrl={event.transactionUrl ?? undefined}
+            disableLabel
             className="font-mono text-sm"
           />
         ) : (
