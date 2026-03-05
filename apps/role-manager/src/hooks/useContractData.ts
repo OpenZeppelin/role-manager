@@ -68,6 +68,8 @@ export interface UseContractOwnershipReturn {
   ownership: OwnershipInfo | null;
   /** Whether the query is currently loading (initial fetch) */
   isLoading: boolean;
+  /** Whether no cached data exists yet (true even when query is disabled or just enabled) */
+  isPending: boolean;
   /** Whether data is being refetched (background refresh) */
   isFetching: boolean;
   /** Error if ownership fetching failed */
@@ -275,6 +277,7 @@ export function useContractOwnership(
   const {
     data: ownership,
     isLoading,
+    isPending,
     isFetching,
     error: rawError,
     refetch: queryRefetch,
@@ -327,6 +330,7 @@ export function useContractOwnership(
   return {
     ownership: ownership ?? null,
     isLoading,
+    isPending,
     isFetching,
     error,
     refetch,

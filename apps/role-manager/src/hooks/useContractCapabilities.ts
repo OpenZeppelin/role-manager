@@ -23,6 +23,8 @@ export interface UseContractCapabilitiesReturn {
   capabilities: AccessControlCapabilities | null;
   /** Whether the query is currently loading */
   isLoading: boolean;
+  /** Whether no cached data exists yet (true even when query is disabled or just enabled) */
+  isPending: boolean;
   /** Error if capability detection failed */
   error: Error | null;
   /** Function to manually refetch capabilities */
@@ -72,6 +74,7 @@ export function useContractCapabilities(
   const {
     data: capabilities,
     isLoading,
+    isPending,
     error,
     refetch: queryRefetch,
   } = useQuery({
@@ -106,6 +109,7 @@ export function useContractCapabilities(
   return {
     capabilities: capabilities ?? null,
     isLoading,
+    isPending,
     error: error as Error | null,
     refetch,
     isSupported,

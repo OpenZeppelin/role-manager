@@ -10,7 +10,7 @@
  * Tasks: T027, T028
  */
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import type { ContractAdapter, RoleAssignment } from '@openzeppelin/ui-types';
 import { logger } from '@openzeppelin/ui-utils';
@@ -28,8 +28,12 @@ export interface UseContractRolesEnrichedReturn {
   roles: EnrichedRoleAssignment[];
   /** Whether initial fetch is in progress */
   isLoading: boolean;
+  /** Whether no cached data exists yet (true even when query is disabled or just enabled) */
+  isPending: boolean;
   /** Whether background refresh is in progress */
   isFetching: boolean;
+  /** Whether query resolved empty and is still polling for real data (indexer initializing) */
+  isSettling: boolean;
   /** Error if fetch failed */
   error: DataError | null;
   /** User-friendly error message */
@@ -83,6 +87,7 @@ export function useContractRolesEnriched(
   const {
     data: roles,
     isLoading,
+    isPending,
     isFetching,
     error: rawError,
     refetch: queryRefetch,
@@ -140,6 +145,17 @@ export function useContractRolesEnriched(
     staleTime: 1 * 60 * 1000, // 1 minute
     gcTime: 10 * 60 * 1000, // 10 minutes
     retry: false,
+    // Poll every 2s while the service returns empty data (max 5 cycles).
+    // The indexer/service may not have role IDs available on the first call
+    // (e.g. role discovery via indexer is still initializing). Polling ensures
+    // the UI auto-recovers without requiring a manual refresh.
+    refetchInterval: (query) => {
+      const data = query.state.data;
+      if ((!data || data.length === 0) && query.state.dataUpdateCount < 5) {
+        return 2_000;
+      }
+      return false;
+    },
   });
 
   const error = useMemo(() => {
@@ -148,6 +164,36 @@ export function useContractRolesEnriched(
   }, [rawError]);
 
   const isEmpty = useMemo(() => !roles || roles.length === 0, [roles]);
+
+  // Track whether we've exhausted the settling budget (empty data accepted as genuine).
+  // This prevents infinite loading for contracts that genuinely have no roles.
+  const MAX_SETTLE_CYCLES = 5;
+  const emptyFetchCount = useRef(0);
+  const [settleExhausted, setSettleExhausted] = useState(false);
+
+  useEffect(() => {
+    emptyFetchCount.current = 0;
+    setSettleExhausted(false);
+  }, [contractAddress, isContractRegistered]);
+
+  useEffect(() => {
+    if (roles && roles.length > 0) {
+      emptyFetchCount.current = 0;
+      setSettleExhausted(false);
+      return;
+    }
+    if (!isPending && !isFetching && !rawError) {
+      emptyFetchCount.current++;
+      if (emptyFetchCount.current >= MAX_SETTLE_CYCLES) {
+        setSettleExhausted(true);
+      }
+    }
+  }, [isPending, isFetching, roles, rawError]);
+
+  // isSettling: query resolved with empty data but is still polling for real data.
+  // Consumers should treat this as "loading" to avoid showing a misleading "0".
+  const isSettling =
+    !isPending && (roles === undefined || roles.length === 0) && !rawError && !settleExhausted;
 
   const refetch = async (): Promise<void> => {
     await queryRefetch();
@@ -160,7 +206,9 @@ export function useContractRolesEnriched(
   return {
     roles: roles ?? [],
     isLoading,
+    isPending,
     isFetching,
+    isSettling,
     error,
     errorMessage,
     canRetry,

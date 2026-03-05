@@ -92,7 +92,7 @@ export function useDashboardData(
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Detect capabilities to gate ownership query (prevents errors on AccessControl-only contracts)
-  const { capabilities, isLoading: capabilitiesLoading } = useContractCapabilities(
+  const { capabilities, isPending: capabilitiesPending } = useContractCapabilities(
     adapter,
     contractAddress,
     isContractRegistered
@@ -104,7 +104,8 @@ export function useDashboardData(
   // so when navigating to Roles page it doesn't need to make another RPC call.
   const {
     roles: enrichedRoles,
-    isLoading: rolesLoading,
+    isPending: rolesPending,
+    isSettling: rolesSettling,
     hasError: rolesHasError,
     errorMessage: rolesErrorMessage,
     canRetry: rolesCanRetry,
@@ -125,26 +126,32 @@ export function useDashboardData(
   // Fetch ownership data
   // Only fetch when contract has Ownable capability (prevents errors on AccessControl-only contracts)
   const {
-    isLoading: ownershipLoading,
+    isPending: ownershipPending,
     hasError: ownershipHasError,
     errorMessage: ownershipErrorMessage,
     canRetry: ownershipCanRetry,
     refetch: ownershipRefetch,
   } = useContractOwnership(adapter, contractAddress, isContractRegistered, hasOwnableCapability);
 
-  // Compute roles count
+  // Use isPending (not isLoading) from TanStack Query v5 for count guards.
+  // isPending is true whenever no cached data exists — this covers all gaps:
+  //   - query disabled (enabled: false, e.g. waiting for contract registration)
+  //   - query just enabled but fetch not yet scheduled
+  //   - query actively fetching for the first time
+  // isSettling extends this: the query resolved with empty data but the indexer
+  // may still be initializing. Return null (loading skeleton) instead of showing 0.
   const rolesCount = useMemo(() => {
     if (!adapter || !contractAddress) return null;
-    if (rolesLoading) return null;
+    if (rolesPending || rolesSettling) return null;
     return roles.length;
-  }, [adapter, contractAddress, rolesLoading, roles.length]);
+  }, [adapter, contractAddress, rolesPending, rolesSettling, roles.length]);
 
   // Compute unique accounts count using Set-based deduplication
   const uniqueAccountsCount = useMemo(() => {
     if (!adapter || !contractAddress) return null;
-    if (rolesLoading) return null;
+    if (rolesPending || rolesSettling) return null;
     return getUniqueAccountsCount(roles);
-  }, [adapter, contractAddress, rolesLoading, roles]);
+  }, [adapter, contractAddress, rolesPending, rolesSettling, roles]);
 
   // Determine capability flags from detected capabilities (more reliable than inference)
   const hasAccessControl = useMemo(() => {
@@ -155,8 +162,19 @@ export function useDashboardData(
     return hasOwnableCapability;
   }, [hasOwnableCapability]);
 
-  // Combined loading state (include capabilities loading for initial state)
-  const isLoading = capabilitiesLoading || rolesLoading || ownershipLoading;
+  // Combined loading state using isPending from TanStack Query v5.
+  // isPending is true whenever no cached data exists, covering all timing gaps:
+  //   - query disabled (waiting for contract registration or adapter)
+  //   - query just enabled but fetch not yet scheduled
+  //   - query actively fetching for the first time
+  // rolesSettling covers the gap where the query resolved with empty data but
+  // the indexer is still initializing — keeps the loading skeleton visible.
+  // Ownership is only expected to have data when the contract supports Ownable.
+  const isLoading =
+    capabilitiesPending ||
+    rolesPending ||
+    rolesSettling ||
+    (hasOwnableCapability && ownershipPending);
 
   // Combined error state
   const hasError = rolesHasError || ownershipHasError;
