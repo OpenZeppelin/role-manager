@@ -10,7 +10,7 @@
  * Tasks: T027, T028
  */
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo } from 'react';
 
 import type { ContractAdapter, RoleAssignment } from '@openzeppelin/ui-types';
 import { logger } from '@openzeppelin/ui-utils';
@@ -150,6 +150,7 @@ export function useContractRolesEnriched(
     // (e.g. role discovery via indexer is still initializing). Polling ensures
     // the UI auto-recovers without requiring a manual refresh.
     refetchInterval: (query) => {
+      if (query.state.status === 'error') return false;
       const data = query.state.data;
       if ((!data || data.length === 0) && query.state.dataUpdateCount < 5) {
         return 2_000;
@@ -165,35 +166,19 @@ export function useContractRolesEnriched(
 
   const isEmpty = useMemo(() => !roles || roles.length === 0, [roles]);
 
-  // Track whether we've exhausted the settling budget (empty data accepted as genuine).
-  // This prevents infinite loading for contracts that genuinely have no roles.
+  // Derive settling state from the query cache's dataUpdateCount — the same counter
+  // that refetchInterval uses to stop polling. This keeps both in sync and avoids
+  // stale isSettling after remounts when the cached empty array persists.
   const MAX_SETTLE_CYCLES = 5;
-  const emptyFetchCount = useRef(0);
-  const [settleExhausted, setSettleExhausted] = useState(false);
+  const dataUpdateCount =
+    queryClient.getQueryState(queryKeys.contractRolesEnriched(contractAddress))?.dataUpdateCount ??
+    0;
 
-  useEffect(() => {
-    emptyFetchCount.current = 0;
-    setSettleExhausted(false);
-  }, [contractAddress, isContractRegistered]);
-
-  useEffect(() => {
-    if (roles && roles.length > 0) {
-      emptyFetchCount.current = 0;
-      setSettleExhausted(false);
-      return;
-    }
-    if (!isPending && !isFetching && !rawError) {
-      emptyFetchCount.current++;
-      if (emptyFetchCount.current >= MAX_SETTLE_CYCLES) {
-        setSettleExhausted(true);
-      }
-    }
-  }, [isPending, isFetching, roles, rawError]);
-
-  // isSettling: query resolved with empty data but is still polling for real data.
-  // Consumers should treat this as "loading" to avoid showing a misleading "0".
   const isSettling =
-    !isPending && (roles === undefined || roles.length === 0) && !rawError && !settleExhausted;
+    !isPending &&
+    (roles === undefined || roles.length === 0) &&
+    !rawError &&
+    dataUpdateCount < MAX_SETTLE_CYCLES;
 
   const refetch = async (): Promise<void> => {
     await queryRefetch();

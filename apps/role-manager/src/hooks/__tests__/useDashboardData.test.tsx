@@ -133,6 +133,44 @@ describe('useDashboardData', () => {
       expect(result.current.rolesCount).toBeNull();
       expect(result.current.uniqueAccountsCount).toBeNull();
     });
+
+    it('keeps loading state while roles are settling (indexer initializing)', () => {
+      vi.mocked(useContractRolesEnrichedModule.useContractRolesEnriched).mockReturnValue({
+        roles: [],
+        isLoading: false,
+        isPending: false,
+        isFetching: false,
+        isSettling: true,
+        error: null,
+        refetch: vi.fn(),
+        isEmpty: true,
+        canRetry: false,
+        errorMessage: null,
+        hasError: false,
+      });
+
+      vi.mocked(useContractDataModule.useContractOwnership).mockReturnValue({
+        ownership: null,
+        isLoading: false,
+        isPending: false,
+        isFetching: false,
+        error: null,
+        refetch: vi.fn(),
+        hasOwner: false,
+        canRetry: false,
+        errorMessage: null,
+        hasError: false,
+      });
+
+      const { result } = renderHook(
+        () => useDashboardData(mockAdapter, testAddress, defaultOptions),
+        { wrapper }
+      );
+
+      expect(result.current.isLoading).toBe(true);
+      expect(result.current.rolesCount).toBeNull();
+      expect(result.current.uniqueAccountsCount).toBeNull();
+    });
   });
 
   describe('with loaded data', () => {
