@@ -16,6 +16,10 @@ ENV VITE_APP_CFG_FEATURE_FLAG_ANALYTICS_ENABLED=$VITE_APP_CFG_FEATURE_FLAG_ANALY
 ARG VITE_GA_TAG_ID
 ENV VITE_GA_TAG_ID=$VITE_GA_TAG_ID
 
+# Accept build argument for Routescan API key (used by EVM adapter for contract verification)
+ARG VITE_APP_CFG_SERVICE_ROUTESCAN_API_KEY
+ENV VITE_APP_CFG_SERVICE_ROUTESCAN_API_KEY=$VITE_APP_CFG_SERVICE_ROUTESCAN_API_KEY
+
 # Install build dependencies required for native Node.js modules
 # node-gyp (used by some dependencies) requires python and build-essential
 # 'python-is-python3' is used in newer Debian-based images instead of 'python'
