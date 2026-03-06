@@ -1,5 +1,5 @@
 # Build stage
-FROM node:25-slim@sha256:32f45869cf02c26971de72c383d5f99cab002905ed8b515b56df925007941782 AS base
+FROM node:25-slim@sha256:5aea649bacdc35e8e20571131c4f3547477dfe66e677d45c005af6dbd1edfaa7 AS base
 
 WORKDIR /app
 
@@ -64,7 +64,7 @@ RUN --mount=type=secret,id=etherscan_api_key \
         pnpm build:app'
 
 # Runtime stage - using a slim image for a smaller footprint
-FROM node:25-slim@sha256:32f45869cf02c26971de72c383d5f99cab002905ed8b515b56df925007941782 AS runner
+FROM node:25-slim@sha256:5aea649bacdc35e8e20571131c4f3547477dfe66e677d45c005af6dbd1edfaa7 AS runner
 
 # Set NODE_ENV to production for the final runtime image
 ENV NODE_ENV=production
