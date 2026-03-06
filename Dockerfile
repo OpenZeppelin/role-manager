@@ -16,10 +16,6 @@ ENV VITE_APP_CFG_FEATURE_FLAG_ANALYTICS_ENABLED=$VITE_APP_CFG_FEATURE_FLAG_ANALY
 ARG VITE_GA_TAG_ID
 ENV VITE_GA_TAG_ID=$VITE_GA_TAG_ID
 
-# Accept build argument for Routescan API key (used by EVM adapter for contract verification)
-ARG VITE_APP_CFG_SERVICE_ROUTESCAN_API_KEY
-ENV VITE_APP_CFG_SERVICE_ROUTESCAN_API_KEY=$VITE_APP_CFG_SERVICE_ROUTESCAN_API_KEY
-
 # Install build dependencies required for native Node.js modules
 # node-gyp (used by some dependencies) requires python and build-essential
 # 'python-is-python3' is used in newer Debian-based images instead of 'python'
@@ -50,9 +46,22 @@ RUN pnpm install --frozen-lockfile || (echo "Install failed, clearing caches and
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 
 # Build all packages and the application with optimizations
-# Use filter to build packages first, then the app
-# This provides better caching and error isolation
-RUN pnpm build:app
+# This step uses Docker BuildKit secrets to securely pass API keys
+# The secrets are only available during this RUN command and won't be stored in the image
+RUN --mount=type=secret,id=etherscan_api_key \
+    --mount=type=secret,id=routescan_api_key \
+    sh -c '\
+        if [ -f /run/secrets/etherscan_api_key ]; then \
+            export VITE_APP_CFG_SERVICE_ETHERSCANV2_API_KEY=$(cat /run/secrets/etherscan_api_key); \
+        else \
+            echo "Warning: Building without Etherscan API key"; \
+        fi && \
+        if [ -f /run/secrets/routescan_api_key ]; then \
+            export VITE_APP_CFG_SERVICE_ROUTESCAN_API_KEY=$(cat /run/secrets/routescan_api_key); \
+        else \
+            echo "Warning: Building without Routescan API key"; \
+        fi && \
+        pnpm build:app'
 
 # Runtime stage - using a slim image for a smaller footprint
 FROM node:25-slim@sha256:32f45869cf02c26971de72c383d5f99cab002905ed8b515b56df925007941782 AS runner
