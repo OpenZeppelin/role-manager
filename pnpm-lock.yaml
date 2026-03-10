@@ -131,8 +131,8 @@ importers:
         specifier: ^1.8.2
         version: 1.8.2(021efdeba76542a2bc1abf17664481ce)
       '@openzeppelin/ui-builder-adapter-polkadot':
-        specifier: ^1.8.2
-        version: 1.8.2(147bf91b2279ce2ffbf55d2c77b63ff9)
+        specifier: ^1.8.3
+        version: 1.8.3(147bf91b2279ce2ffbf55d2c77b63ff9)
       '@openzeppelin/ui-builder-adapter-stellar':
         specifier: ^1.8.2
         version: 1.8.2(@babel/runtime@7.28.6)(@solana/sysvars@5.5.1(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3))(@stellar/stellar-base@14.0.4)(@trezor/connect@9.6.2(@solana/sysvars@5.5.1(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3))(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(tslib@2.8.1)(typescript@5.9.3)(utf-8-validate@5.0.10)(ws@8.19.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(near-api-js@5.1.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(tailwindcss@4.2.0)(tslib@2.8.1)(typescript@5.9.3)(utf-8-validate@5.0.10)(ws@8.19.0(bufferutil@4.1.0)(utf-8-validate@5.0.10))
@@ -1169,8 +1169,8 @@ packages:
       viem: ^2.28.0
       wagmi: ^2.15.0
 
-  '@openzeppelin/ui-builder-adapter-polkadot@1.8.2':
-    resolution: {integrity: sha512-T99/THu1Vyk+IwiNEj1UDpJaqsLB5fpmQ1vELWcRSKanwYD/rsGrByhrFCgMJw32Ej+89AFVEXDfnrdFp/F6pQ==}
+  '@openzeppelin/ui-builder-adapter-polkadot@1.8.3':
+    resolution: {integrity: sha512-0dmkMjauz+yROhx3rz1KkA+5aEacW5eAr8VRlXkS1VOhF2+ZmqY3KyduXqab9DOmKGIw5viQVH6nqb8i2g9npg==}
     peerDependencies:
       '@rainbow-me/rainbowkit': ^2.2.8
       '@tanstack/react-query': ^5.74.7
@@ -9461,7 +9461,7 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@openzeppelin/ui-builder-adapter-polkadot@1.8.2(147bf91b2279ce2ffbf55d2c77b63ff9)':
+  '@openzeppelin/ui-builder-adapter-polkadot@1.8.3(147bf91b2279ce2ffbf55d2c77b63ff9)':
     dependencies:
       '@openzeppelin/relayer-sdk': 1.9.0
       '@openzeppelin/ui-types': 1.11.1

@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@openzeppelin/ui-builder-adapter-evm": "^1.8.2",
-    "@openzeppelin/ui-builder-adapter-polkadot": "^1.8.2",
+    "@openzeppelin/ui-builder-adapter-polkadot": "^1.8.3",
     "@openzeppelin/ui-builder-adapter-stellar": "^1.8.2",
     "@openzeppelin/ui-components": "^1.4.0",
     "@openzeppelin/ui-react": "^1.1.0",
