@@ -21,17 +21,19 @@ export function MainLayout({ children }: MainLayoutProps): React.ReactElement {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex h-screen overflow-hidden bg-background">
       {/* Sidebar with mobile slide-over controlled by mobileOpen state */}
       <Sidebar mobileOpen={mobileOpen} onMobileOpenChange={setMobileOpen} />
 
       {/* Main content area */}
-      <div className="flex flex-1 flex-col">
+      <div className="flex h-screen min-w-0 flex-1 flex-col overflow-hidden">
         {/* Header with mobile menu toggle */}
         <AppHeader onOpenSidebar={() => setMobileOpen(true)} />
 
         {/* Page content */}
-        <main className="flex-1">{children}</main>
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <main className="flex-1 overflow-y-auto">{children}</main>
+        </div>
 
         <Footer />
       </div>
