@@ -101,7 +101,7 @@
 >
 > **Architecture Ready**: Role Manager's dynamic form rendering and storage (with `source: 'manual'`) are designed to support this automatically when the adapter is updated.
 >
-> **Skip this phase for MVP** - resume when `@openzeppelin/ui-builder-adapter-stellar` adds manual definition input.
+> **Skip this phase for MVP** - resume when `@openzeppelin/adapter-stellar` adds manual definition input.
 
 ### Tests for User Story 2 (TDD - DEFERRED until adapter supports manual input)
 
@@ -221,7 +221,7 @@ Phase 1 (Setup) → Phase 2 (Foundational) → User Stories (3-6) → Phase 7 (P
 | US3 (P2) | Foundational       | Phase 2 complete | ✅ Yes                 |
 | US4 (P3) | Foundational       | Phase 2 complete | ⏸️ POSTPONED (Stellar) |
 
-**Note**: US2 is blocked until `@openzeppelin/ui-builder-adapter-stellar` adds manual definition input to `getContractDefinitionInputs()`. US4 (schema refresh) is postponed to focus on Stellar-specific priorities. Architecture for both is ready - will work when revisited.
+**Note**: US2 is blocked until `@openzeppelin/adapter-stellar` adds manual definition input to `getContractDefinitionInputs()`. US4 (schema refresh) is postponed to focus on Stellar-specific priorities. Architecture for both is ready - will work when revisited.
 
 ### Within Each User Story
 

@@ -1,6 +1,6 @@
-# Local Development with openzeppelin-ui and ui-builder
+# Local Development with openzeppelin-ui and openzeppelin-adapters
 
-This guide explains how to develop with local versions of `@openzeppelin/ui-*` packages from [openzeppelin-ui](https://github.com/OpenZeppelin/openzeppelin-ui) and `@openzeppelin/ui-builder-adapter-*` packages from [ui-builder](https://github.com/OpenZeppelin/ui-builder).
+This guide explains how to develop with local versions of `@openzeppelin/ui-*` packages from [openzeppelin-ui](https://github.com/OpenZeppelin/openzeppelin-ui) and `@openzeppelin/adapter-*` packages from [openzeppelin-adapters](https://github.com/OpenZeppelin/openzeppelin-adapters).
 
 ## Quick Start
 
@@ -9,14 +9,14 @@ This guide explains how to develop with local versions of `@openzeppelin/ui-*` p
 cd ~/dev/repos/OpenZeppelin
 git clone git@github.com:OpenZeppelin/role-manager.git
 git clone git@github.com:OpenZeppelin/openzeppelin-ui.git
-git clone git@github.com:OpenZeppelin/ui-builder.git
+git clone git@github.com:OpenZeppelin/openzeppelin-adapters.git
 
 # 2. Install dependencies in openzeppelin-ui
 cd openzeppelin-ui
 pnpm install
 
-# 3. Install dependencies in ui-builder
-cd ../ui-builder
+# 3. Install dependencies in openzeppelin-adapters
+cd ../openzeppelin-adapters
 pnpm install
 
 # 4. Enable local packages in role-manager (auto-builds both repos)
@@ -45,11 +45,14 @@ The local development setup uses pnpm's `.pnpmfile.cjs` hook to dynamically reso
 │       ├── renderer/          # @openzeppelin/ui-renderer
 │       ├── react/             # @openzeppelin/ui-react
 │       └── storage/           # @openzeppelin/ui-storage
-└── ui-builder/                # Adapter packages
+└── openzeppelin-adapters/     # Adapter packages
     └── packages/
-        ├── adapter-evm/       # @openzeppelin/ui-builder-adapter-evm
-        ├── adapter-stellar/   # @openzeppelin/ui-builder-adapter-stellar
-        └── adapter-solana/    # @openzeppelin/ui-builder-adapter-solana
+        ├── adapter-evm/       # @openzeppelin/adapter-evm
+        ├── adapter-evm-core/  # @openzeppelin/adapter-evm-core
+        ├── adapter-stellar/   # @openzeppelin/adapter-stellar
+        ├── adapter-solana/    # @openzeppelin/adapter-solana
+        ├── adapter-polkadot/  # @openzeppelin/adapter-polkadot
+        └── adapter-midnight/  # @openzeppelin/adapter-midnight
 ```
 
 ## Commands
@@ -63,7 +66,7 @@ pnpm dev:local
 This command automatically:
 
 1. Builds packages in local openzeppelin-ui (defaults to `../openzeppelin-ui`)
-2. Builds adapter packages in local ui-builder (defaults to `../ui-builder`)
+2. Builds adapter packages in local openzeppelin-adapters (defaults to `../openzeppelin-adapters`)
 3. Runs `LOCAL_UI=true pnpm install` to resolve all dependencies to local paths
 
 This ensures you always have up-to-date compiled types when working with local packages.
@@ -73,8 +76,10 @@ This ensures you always have up-to-date compiled types when working with local p
 If your repos are in different locations, use environment variables:
 
 ```bash
-LOCAL_UI_PATH=/path/to/openzeppelin-ui LOCAL_UI_BUILDER_PATH=/path/to/ui-builder pnpm dev:local
+LOCAL_UI_PATH=/path/to/openzeppelin-ui LOCAL_UI_BUILDER_PATH=/path/to/openzeppelin-adapters pnpm dev:local
 ```
+
+(`LOCAL_UI_BUILDER_PATH` is the adapters monorepo root, despite the historical name.)
 
 ### Switch Back to npm Packages
 
@@ -97,7 +102,7 @@ This runs a regular `pnpm install` which uses the published npm versions.
 
 ### Making Changes to Adapter Packages
 
-1. Make changes in `ui-builder/packages/adapter-*`
+1. Make changes in `openzeppelin-adapters/packages/adapter-*`
 2. Rebuild and reinstall:
    ```bash
    pnpm dev:local  # Rebuilds and reinstalls
@@ -113,8 +118,8 @@ For faster iteration, run builds in watch mode:
 cd openzeppelin-ui
 pnpm build --watch  # If supported
 
-# Terminal 2: Watch ui-builder adapters
-cd ui-builder
+# Terminal 2: Watch openzeppelin-adapters
+cd openzeppelin-adapters
 pnpm --filter='./packages/adapter-*' build --watch  # If supported
 
 # Terminal 3: Run role-manager
@@ -136,7 +141,7 @@ Or manually ensure both repos are built:
 
 ```bash
 cd ../openzeppelin-ui && pnpm install && pnpm --filter='./packages/*' build
-cd ../ui-builder && pnpm install && pnpm --filter='./packages/adapter-*' build
+cd ../openzeppelin-adapters && pnpm install && pnpm --filter='./packages/adapter-*' build
 ```
 
 ### Changes Not Reflected
@@ -166,13 +171,13 @@ When running `pnpm dev:local`, you should see:
 ```
 🔨 Building local openzeppelin-ui packages...
 ...
-🔨 Building local ui-builder adapter packages...
+🔨 Building local openzeppelin-adapters packages...
 ...
 [local-dev] @openzeppelin/ui-types → /path/to/openzeppelin-ui/packages/types
-[local-dev] @openzeppelin/ui-builder-adapter-evm → /path/to/ui-builder/packages/adapter-evm
+[local-dev] @openzeppelin/adapter-evm → /path/to/openzeppelin-adapters/packages/adapter-evm
 ...
 ✅ Using local @openzeppelin/ui-* packages from ../openzeppelin-ui
-✅ Using local @openzeppelin/ui-builder-adapter-* packages from ../ui-builder
+✅ Using local @openzeppelin/adapter-* packages from ../openzeppelin-adapters
 ```
 
 ## Best Practices
@@ -180,4 +185,4 @@ When running `pnpm dev:local`, you should see:
 1. **Keep All Repos Updated**: Pull latest changes from all repos regularly
 2. **Build Before Testing**: Always rebuild after changes
 3. **Use npm for CI**: Local mode is for development only; CI should use npm packages
-4. **Commit Separately**: Changes to openzeppelin-ui or ui-builder should be committed/pushed separately
+4. **Commit Separately**: Changes to openzeppelin-ui or openzeppelin-adapters should be committed/pushed separately

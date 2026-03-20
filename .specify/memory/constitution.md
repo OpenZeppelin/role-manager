@@ -19,7 +19,7 @@ Follow-up TODOs: none
 
 ### I. Adapter-Led, Chain-Agnostic Architecture (NON-NEGOTIABLE)
 
-- The Role Manager app MUST remain chain-agnostic; all blockchain interactions and business logic reside exclusively in chain-specific adapters (e.g., `@openzeppelin/ui-builder-adapter-evm`, `@openzeppelin/ui-builder-adapter-stellar`).
+- The Role Manager app MUST remain chain-agnostic; all blockchain interactions and business logic reside exclusively in chain-specific adapters (e.g., `@openzeppelin/adapter-evm`, `@openzeppelin/adapter-stellar`).
 - The UI MUST NOT contain chain-specific parsing, formatting, or transaction logic; it consumes the generic `AccessControlService` interface provided by adapters.
 - Feature detection drives the UI: the app MUST query adapter capabilities (e.g., `hasOwnable`, `hasAccessControl`) to enable/disable features dynamically.
 - Adapters are instantiated via `NetworkConfig`; the app supports multi-chain operations by switching adapters based on user selection.
@@ -28,7 +28,7 @@ Follow-up TODOs: none
 ### II. Reuse-First & Monorepo Integration (NON-NEGOTIABLE)
 
 - The application MUST reuse `@openzeppelin/ui-*` packages (types, utils, renderer, storage, components, react, styles) rather than re-implementing core functionality.
-- Adapter packages remain in the `@openzeppelin/ui-builder-adapter-*` namespace (e.g., `adapter-evm`, `adapter-stellar`).
+- Adapter packages remain in the `@openzeppelin/adapter-*` namespace (e.g., `adapter-evm`, `adapter-stellar`).
 - Local development against the `openzeppelin-ui` monorepo MUST use the pnpmfile hook workflow: run `pnpm dev:local` to resolve `@openzeppelin/ui-*` packages to local paths via `.pnpmfile.cjs`. This approach keeps `package.json` unchanged while enabling seamless switching between local and npm packages.
 - New shared utilities or types required by Role Manager should ideally be contributed upstream to `openzeppelin-ui` packages first, then consumed here.
 - Rationale: Guarantees consistency with the broader OpenZeppelin tool ecosystem and validates the standalone usability of UI Kit packages.

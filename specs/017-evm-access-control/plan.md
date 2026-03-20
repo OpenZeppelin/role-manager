@@ -19,7 +19,7 @@ Key work areas:
 ## Technical Context
 
 **Language/Version**: TypeScript 5.x, React 19
-**Primary Dependencies**: `@openzeppelin/ui-types` (^1.7.0 → new version with extended interface), `@openzeppelin/ui-react` (^1.1.0), `@openzeppelin/ui-components` (^1.2.1), `@openzeppelin/ui-builder-adapter-evm` (^1.5.0 → new version with updated capabilities), `@tanstack/react-query`
+**Primary Dependencies**: `@openzeppelin/ui-types` (^1.7.0 → new version with extended interface), `@openzeppelin/ui-react` (^1.1.0), `@openzeppelin/ui-components` (^1.2.1), `@openzeppelin/adapter-evm` (^1.5.0 → new version with updated capabilities), `@tanstack/react-query`
 **Storage**: IndexedDB via `@openzeppelin/ui-storage` (for recent contracts, user preferences)
 **Testing**: Vitest (unit tests for hooks and utilities, TDD for business logic)
 **Target Platform**: Web SPA (Vite build)
@@ -261,8 +261,8 @@ Phases 1-3 can begin immediately and deliver a working EVM integration for core 
 ## Dependencies
 
 - **Hard**: Updated `@openzeppelin/ui-types` with new optional methods, capability flags, and expiration metadata (for Phases 4-8)
-- **Hard**: Updated `@openzeppelin/ui-builder-adapter-evm` implementing the extended interface (for Phases 4-8)
-- **Hard**: Updated `@openzeppelin/ui-builder-adapter-stellar` reporting new capability flags as `false` (for Phase 4 regression safety)
+- **Hard**: Updated `@openzeppelin/adapter-evm` implementing the extended interface (for Phases 4-8)
+- **Hard**: Updated `@openzeppelin/adapter-stellar` reporting new capability flags as `false` (for Phase 4 regression safety)
 - **Soft**: Access control indexer deployed for EVM networks (enriched data + history; graceful degradation if unavailable)
 - **Already available**: Etherscan V2 API key, WalletConnect project ID (developer setup)
 

@@ -106,13 +106,13 @@ apps/role-manager/src/
 
 ## Key Dependencies
 
-| Dependency                                 | Version | Purpose                                                                                      |
-| ------------------------------------------ | ------- | -------------------------------------------------------------------------------------------- |
-| `@openzeppelin/ui-builder-types`           | 0.16.0+ | `AccessControlCapabilities`, `OwnershipInfo`, `AccessControlService.acceptOwnership()` types |
-| `@openzeppelin/ui-builder-adapter-stellar` | 0.16.0  | Stellar implementation of `AccessControlService` including `acceptOwnership()`               |
-| `@openzeppelin/ui-builder-ui`              | 0.16.0  | Dialog, Button, AddressField components                                                      |
-| `@tanstack/react-query`                    | 5.x     | Query invalidation, data fetching                                                            |
-| `react-hook-form`                          | 7.x     | Form state management                                                                        |
+| Dependency                       | Version | Purpose                                                                                      |
+| -------------------------------- | ------- | -------------------------------------------------------------------------------------------- |
+| `@openzeppelin/ui-builder-types` | 0.16.0+ | `AccessControlCapabilities`, `OwnershipInfo`, `AccessControlService.acceptOwnership()` types |
+| `@openzeppelin/adapter-stellar`  | 0.16.0  | Stellar implementation of `AccessControlService` including `acceptOwnership()`               |
+| `@openzeppelin/ui-builder-ui`    | 0.16.0  | Dialog, Button, AddressField components                                                      |
+| `@tanstack/react-query`          | 5.x     | Query invalidation, data fetching                                                            |
+| `react-hook-form`                | 7.x     | Form state management                                                                        |
 
 ## Critical Implementation Notes
 

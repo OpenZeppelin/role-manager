@@ -25,7 +25,7 @@
 
 ### Current State
 
-The Role Manager currently supports Stellar as its only enabled ecosystem. The architecture is ecosystem-agnostic: UI components, React Query hooks, and mutation hooks all operate against the `AccessControlService` interface from `@openzeppelin/ui-types`. The EVM adapter package (`@openzeppelin/ui-builder-adapter-evm`) has recently introduced a full `EvmAccessControlService` that implements this same interface.
+The Role Manager currently supports Stellar as its only enabled ecosystem. The architecture is ecosystem-agnostic: UI components, React Query hooks, and mutation hooks all operate against the `AccessControlService` interface from `@openzeppelin/ui-types`. The EVM adapter package (`@openzeppelin/adapter-evm`) has recently introduced a full `EvmAccessControlService` that implements this same interface.
 
 ### EVM Adapter Access Control Module
 
@@ -86,7 +86,7 @@ The Role Manager already has:
 
 - EVM entry in `ECOSYSTEM_REGISTRY` (disabled: `enabled: false`, `disabledLabel: 'Coming Soon'`)
 - EVM metadata in `ecosystemRegistry` (`EvmAdapter`, `evmNetworks`)
-- Static import for `@openzeppelin/ui-builder-adapter-evm` in `ecosystemManager.ts`
+- Static import for `@openzeppelin/adapter-evm` in `ecosystemManager.ts`
 - `WalletStateProvider` (from `@openzeppelin/ui-builder-react`) — the core ecosystem switching mechanism
 - `AdapterProvider` — manages adapter singletons, handles `getAdapter()` calls
 - `WalletSyncProvider` — bridges `ContractContext.selectedNetwork` → `WalletStateProvider.setActiveNetworkId()`, handles EVM chain switching via `NetworkSwitchManager`
@@ -205,7 +205,7 @@ Both the EVM and Stellar adapters must be updated to:
 ### 7. Versioning & Compatibility
 
 - The upstream release SHOULD be a **semver minor** version bump (new optional fields and methods are backward-compatible additions).
-- The Role Manager's `package.json` MUST pin minimum versions: `@openzeppelin/ui-types >= X.Y.0`, `@openzeppelin/ui-builder-adapter-evm >= X.Y.0`, `@openzeppelin/ui-builder-adapter-stellar >= X.Y.0` (exact versions determined at release time).
+- The Role Manager's `package.json` MUST pin minimum versions: `@openzeppelin/ui-types >= X.Y.0`, `@openzeppelin/adapter-evm >= X.Y.0`, `@openzeppelin/adapter-stellar >= X.Y.0` (exact versions determined at release time).
 - **Graceful degradation with old packages**: If the Role Manager is run with an older ui-types version, the new optional methods (`renounceOwnership`, etc.) simply won't exist on the service object, and the new capability flags will be `undefined` (treated as `false`). The UI will not display the new features. This is safe and expected — no crash, no error.
 
 ## User Scenarios & Testing _(mandatory)_
@@ -590,7 +590,7 @@ As a user, I want to view the history of access control changes on an EVM contra
 
 ## Assumptions
 
-- The EVM adapter package (`@openzeppelin/ui-builder-adapter-evm`) exports `EvmAdapter` class implementing `ContractAdapter` and `evmNetworks` array of `NetworkConfig`.
+- The EVM adapter package (`@openzeppelin/adapter-evm`) exports `EvmAdapter` class implementing `ContractAdapter` and `evmNetworks` array of `NetworkConfig`.
 - The `EvmAdapter.getAccessControlService()` returns an `EvmAccessControlService` instance implementing the full `AccessControlService` interface (including the new optional methods after ui-types update).
 - The `EvmAdapter` exposes `getEcosystemReactUiContextProvider()` returning `EvmWalletUiRoot` and `getEcosystemWalletComponents()` returning `EcosystemWalletComponents | undefined`. **[Verified against adapter source]**
 - Transaction execution is handled internally by the adapter via wagmi — the adapter creates its own `EvmTransactionExecutor` callback that wraps `signAndBroadcast()`. The Role Manager does not need to wire this manually. **[Verified against adapter source]**

@@ -45,13 +45,13 @@ import type { ContractAdapter, Ecosystem, NetworkConfig } from '@openzeppelin/ui
 async function loadAdapterPackageModule(ecosystem: Ecosystem): Promise<Record<string, unknown>> {
   switch (ecosystem) {
     case 'evm':
-      return import('@openzeppelin/ui-builder-adapter-evm');
+      return import('@openzeppelin/adapter-evm');
     case 'solana':
-      return import('@openzeppelin/ui-builder-adapter-solana');
+      return import('@openzeppelin/adapter-solana');
     case 'stellar':
-      return import('@openzeppelin/ui-builder-adapter-stellar');
+      return import('@openzeppelin/adapter-stellar');
     case 'midnight':
-      return import('@openzeppelin/ui-builder-adapter-midnight');
+      return import('@openzeppelin/adapter-midnight');
     default:
       throw new Error(`Unknown ecosystem: ${ecosystem}`);
   }

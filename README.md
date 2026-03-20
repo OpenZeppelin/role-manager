@@ -29,7 +29,7 @@ This project is currently in development.
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
 - [Available Scripts](#available-scripts)
-- [Local Development with UI Builder](#local-development-with-ui-builder)
+- [Local development with openzeppelin-ui and openzeppelin-adapters](#local-development-with-openzeppelin-ui-and-openzeppelin-adapters)
 - [Project Structure](#project-structure)
 - [Tech Stack](#tech-stack)
 - [Code Style](#code-style)
@@ -43,7 +43,7 @@ Role Manager supports smart contracts across three blockchain ecosystems via ded
 
 ### EVM
 
-23 networks (11 mainnet, 12 testnet) via `@openzeppelin/ui-builder-adapter-evm`.
+23 networks (11 mainnet, 12 testnet) via `@openzeppelin/adapter-evm`.
 
 | Mainnet           | Testnet               |
 | ----------------- | --------------------- |
@@ -62,7 +62,7 @@ Role Manager supports smart contracts across three blockchain ecosystems via ded
 
 ### Stellar
 
-2 networks (1 mainnet, 1 testnet) via `@openzeppelin/ui-builder-adapter-stellar`.
+2 networks (1 mainnet, 1 testnet) via `@openzeppelin/adapter-stellar`.
 
 | Mainnet                | Testnet         |
 | ---------------------- | --------------- |
@@ -70,7 +70,7 @@ Role Manager supports smart contracts across three blockchain ecosystems via ded
 
 ### Polkadot
 
-5 networks (3 mainnet, 2 testnet) via `@openzeppelin/ui-builder-adapter-polkadot`.
+5 networks (3 mainnet, 2 testnet) via `@openzeppelin/adapter-polkadot`.
 
 | Mainnet      | Testnet              |
 | ------------ | -------------------- |
@@ -163,30 +163,29 @@ This project is organized as a monorepo with the following packages:
 
 ## Available Scripts
 
-| Script                  | Description                                     |
-| ----------------------- | ----------------------------------------------- |
-| `pnpm dev`              | Start the development server (role-manager app) |
-| `pnpm dev:all`          | Start all packages in watch mode                |
-| `pnpm build`            | Build all packages and apps                     |
-| `pnpm build:ui-builder` | Build and pack local UI Builder packages        |
-| `pnpm build:packages`   | Build only packages (components, hooks)         |
-| `pnpm build:app`        | Build only the role-manager app                 |
-| `pnpm test`             | Run tests across all packages                   |
-| `pnpm test:all`         | Run all tests in parallel                       |
-| `pnpm test:coverage`    | Run tests with coverage reports                 |
-| `pnpm typecheck`        | Run TypeScript type checking                    |
-| `pnpm lint`             | Run ESLint across all packages                  |
-| `pnpm lint:fix`         | Fix ESLint issues                               |
-| `pnpm format`           | Format code with Prettier                       |
-| `pnpm format:check`     | Check formatting without changes                |
-| `pnpm fix-all`          | Run Prettier then ESLint fix                    |
-| `pnpm commit`           | Create a commit using Commitizen                |
-| `pnpm changeset`        | Create a changeset for versioning               |
-| `pnpm clean`            | Clean build artifacts                           |
+| Script                | Description                                     |
+| --------------------- | ----------------------------------------------- |
+| `pnpm dev`            | Start the development server (role-manager app) |
+| `pnpm dev:all`        | Start all packages in watch mode                |
+| `pnpm build`          | Build all packages and apps                     |
+| `pnpm build:packages` | Build only packages (components, hooks)         |
+| `pnpm build:app`      | Build only the role-manager app                 |
+| `pnpm test`           | Run tests across all packages                   |
+| `pnpm test:all`       | Run all tests in parallel                       |
+| `pnpm test:coverage`  | Run tests with coverage reports                 |
+| `pnpm typecheck`      | Run TypeScript type checking                    |
+| `pnpm lint`           | Run ESLint across all packages                  |
+| `pnpm lint:fix`       | Fix ESLint issues                               |
+| `pnpm format`         | Format code with Prettier                       |
+| `pnpm format:check`   | Check formatting without changes                |
+| `pnpm fix-all`        | Run Prettier then ESLint fix                    |
+| `pnpm commit`         | Create a commit using Commitizen                |
+| `pnpm changeset`      | Create a changeset for versioning               |
+| `pnpm clean`          | Clean build artifacts                           |
 
-## Local Development with UI Builder
+## Local development with openzeppelin-ui and openzeppelin-adapters
 
-This project can consume packages from the [UI Builder](https://github.com/OpenZeppelin/ui-builder) repository. To develop against local changes:
+This project can consume packages from [openzeppelin-ui](https://github.com/OpenZeppelin/openzeppelin-ui) (`@openzeppelin/ui-*`) and [openzeppelin-adapters](https://github.com/OpenZeppelin/openzeppelin-adapters) (`@openzeppelin/adapter-*`). See [docs/LOCAL_DEVELOPMENT.md](docs/LOCAL_DEVELOPMENT.md) for clone layout, troubleshooting, and workflow details.
 
 1. **Enable local packages**:
 
@@ -194,8 +193,7 @@ This project can consume packages from the [UI Builder](https://github.com/OpenZ
    pnpm dev:local
    ```
 
-   This automatically builds the local `openzeppelin-ui` packages (defaults to `../openzeppelin-ui`)
-   and installs dependencies with `LOCAL_UI=true`.
+   This builds local `openzeppelin-ui` packages (default `../openzeppelin-ui`), builds local adapter packages (default `../openzeppelin-adapters`), then runs `LOCAL_UI=true pnpm install`.
 
 2. **Switch back to npm packages** (before committing):
 
@@ -203,10 +201,10 @@ This project can consume packages from the [UI Builder](https://github.com/OpenZ
    pnpm dev:npm
    ```
 
-3. **Custom path** (optional):
+3. **Custom paths** (optional):
 
    ```bash
-   LOCAL_UI_PATH=/path/to/openzeppelin-ui pnpm dev:local
+   LOCAL_UI_PATH=/path/to/openzeppelin-ui LOCAL_UI_BUILDER_PATH=/path/to/openzeppelin-adapters pnpm dev:local
    ```
 
 ## Project Structure

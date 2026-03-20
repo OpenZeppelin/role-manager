@@ -15,7 +15,7 @@ This feature adds contract schema loading and storage capabilities to Role Manag
 The implementation reuses patterns from `ui-builder`:
 
 - `@openzeppelin/ui-builder-renderer` for dynamic form rendering (`DynamicFormField`)
-- `@openzeppelin/ui-builder-adapter-stellar` for contract loading via `loadContractWithMetadata()`
+- `@openzeppelin/adapter-stellar` for contract loading via `loadContractWithMetadata()`
 - `@openzeppelin/ui-builder-storage` for IndexedDB persistence (extending existing `RecentContractsStorage`)
 - `@openzeppelin/ui-builder-types` for `ContractSchema`, `FormFieldType`, etc.
 
@@ -25,7 +25,7 @@ The implementation reuses patterns from `ui-builder`:
 **Primary Dependencies**:
 
 - `@openzeppelin/ui-builder-renderer` (NEW - for `DynamicFormField`)
-- `@openzeppelin/ui-builder-adapter-stellar` (existing)
+- `@openzeppelin/adapter-stellar` (existing)
 - `@openzeppelin/ui-builder-storage` (existing - Dexie/IndexedDB)
 - `@openzeppelin/ui-builder-types` (existing - `ContractSchema`, `FormFieldType`)
 - `@openzeppelin/ui-builder-utils` (existing - `logger`, `simpleHash`)

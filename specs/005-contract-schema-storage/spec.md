@@ -41,7 +41,7 @@ As a user with a contract whose spec cannot be fetched automatically, I want to 
 
 **Independent Test**: Can be tested by pasting a valid JSON spec for a contract and confirming the system parses and displays the functions correctly.
 
-> **⚠️ Stellar Adapter Status**: The Stellar adapter in `@openzeppelin/ui-builder-adapter-stellar` currently only supports RPC fetching via `getContractDefinitionInputs()` (returns only `contractAddress` field). Manual definition input (JSON spec or Wasm binary) is documented as a **future enhancement** in the adapter ([adapter.ts lines 157-180](https://github.com/OpenZeppelin/ui-builder/blob/main/packages/adapter-stellar/src/adapter.ts#L157-L180)). When the adapter adds `contractDefinition` to its inputs, Role Manager will automatically support it via the dynamic form rendering.
+> **⚠️ Stellar Adapter Status**: The Stellar adapter in `@openzeppelin/adapter-stellar` currently only supports RPC fetching via `getContractDefinitionInputs()` (returns only `contractAddress` field). Manual definition input (JSON spec or Wasm binary) is documented as a **future enhancement** in the adapter ([adapter.ts lines 157-180](https://github.com/OpenZeppelin/ui-builder/blob/main/packages/adapter-stellar/src/adapter.ts#L157-L180)). When the adapter adds `contractDefinition` to its inputs, Role Manager will automatically support it via the dynamic form rendering.
 >
 > **For MVP**: This user story is **blocked by adapter enhancement**. Role Manager's architecture is ready (dynamic form rendering, storage with `source: 'manual'`), but the Stellar adapter must first add the `contractDefinition` input field.
 

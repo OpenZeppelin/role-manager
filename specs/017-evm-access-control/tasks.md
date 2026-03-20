@@ -134,9 +134,9 @@
 
 ## ⚠️ DEPENDENCY GATE: Upstream Release Required
 
-**Phases 6-9 require the updated `@openzeppelin/ui-types`, `@openzeppelin/ui-builder-adapter-evm`, and `@openzeppelin/ui-builder-adapter-stellar` packages.**
+**Phases 6-9 require the updated `@openzeppelin/ui-types`, `@openzeppelin/adapter-evm`, and `@openzeppelin/adapter-stellar` packages.**
 
-- [x] T030 Update `@openzeppelin/ui-types`, `@openzeppelin/ui-builder-adapter-evm`, `@openzeppelin/ui-builder-adapter-stellar` to new minimum versions in `apps/role-manager/package.json`
+- [x] T030 Update `@openzeppelin/ui-types`, `@openzeppelin/adapter-evm`, `@openzeppelin/adapter-stellar` to new minimum versions in `apps/role-manager/package.json`
 - [x] T031 Run `pnpm install` and verify TypeScript compilation succeeds with new types
 
 ---

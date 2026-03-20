@@ -287,7 +287,7 @@ Note: Exact validation rules are delegated to each adapter's `isValidAddress()` 
 
 ## Assumptions
 
-- **ASSUMP-001**: Network configurations are pre-loaded and available from the `@openzeppelin/ui-builder-adapter-*` packages via the ecosystemManager pattern. **Status**: ✅ Verified - Each adapter package exports `{ecosystem}Networks` array.
+- **ASSUMP-001**: Network configurations are pre-loaded and available from the `@openzeppelin/adapter-*` packages via the ecosystemManager pattern. **Status**: ✅ Verified - Each adapter package exports `{ecosystem}Networks` array.
 - **ASSUMP-002**: The `RecentContractsStorage` service is already functional and handles persistence, including upsert behavior for existing records. **Status**: ✅ Verified - `addOrUpdate()` implemented in storage class.
 - **ASSUMP-003**: UI components (Dialog, Button, form fields) are available from `@openzeppelin/ui-builder-ui` package. **Status**: ✅ Verified - Dialog, Button, Input, Label, NetworkSelector all exported.
 - **ASSUMP-004**: Address validation is synchronous and available via `ContractAdapter.isValidAddress()` method. **Status**: ✅ Verified - Interface shows `isValidAddress(address: string, addressType?: string): boolean`.

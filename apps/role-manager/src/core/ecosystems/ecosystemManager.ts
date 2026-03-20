@@ -9,9 +9,9 @@
  */
 
 // Static metadata imports — tiny (~500 B each), available synchronously
-import { ecosystemMetadata as evmMetadata } from '@openzeppelin/ui-builder-adapter-evm/metadata';
-import { ecosystemMetadata as polkadotMetadata } from '@openzeppelin/ui-builder-adapter-polkadot/metadata';
-import { ecosystemMetadata as stellarMetadata } from '@openzeppelin/ui-builder-adapter-stellar/metadata';
+import { ecosystemMetadata as evmMetadata } from '@openzeppelin/adapter-evm/metadata';
+import { ecosystemMetadata as polkadotMetadata } from '@openzeppelin/adapter-polkadot/metadata';
+import { ecosystemMetadata as stellarMetadata } from '@openzeppelin/adapter-stellar/metadata';
 import type {
   ContractAdapter,
   Ecosystem,
@@ -45,13 +45,13 @@ async function loadAdapterModule(ecosystem: Ecosystem): Promise<EcosystemExport>
     let mod: { ecosystemDefinition: EcosystemExport };
     switch (ecosystem) {
       case 'evm':
-        mod = await import('@openzeppelin/ui-builder-adapter-evm');
+        mod = await import('@openzeppelin/adapter-evm');
         break;
       case 'stellar':
-        mod = await import('@openzeppelin/ui-builder-adapter-stellar');
+        mod = await import('@openzeppelin/adapter-stellar');
         break;
       case 'polkadot':
-        mod = await import('@openzeppelin/ui-builder-adapter-polkadot');
+        mod = await import('@openzeppelin/adapter-polkadot');
         break;
       case 'solana':
       case 'midnight':
@@ -108,13 +108,13 @@ async function loadNetworksModule(ecosystem: Ecosystem): Promise<NetworkConfig[]
     let mod: { networks: NetworkConfig[] };
     switch (ecosystem) {
       case 'evm':
-        mod = await import('@openzeppelin/ui-builder-adapter-evm/networks');
+        mod = await import('@openzeppelin/adapter-evm/networks');
         break;
       case 'stellar':
-        mod = await import('@openzeppelin/ui-builder-adapter-stellar/networks');
+        mod = await import('@openzeppelin/adapter-stellar/networks');
         break;
       case 'polkadot':
-        mod = await import('@openzeppelin/ui-builder-adapter-polkadot/networks');
+        mod = await import('@openzeppelin/adapter-polkadot/networks');
         break;
       case 'solana':
       case 'midnight':

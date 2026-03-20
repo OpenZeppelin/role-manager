@@ -6,7 +6,7 @@
 
 Before implementation:
 
-1. **Upstream packages released**: Updated versions of `@openzeppelin/ui-types`, `@openzeppelin/ui-builder-adapter-evm`, and `@openzeppelin/ui-builder-adapter-stellar` must be published with:
+1. **Upstream packages released**: Updated versions of `@openzeppelin/ui-types`, `@openzeppelin/adapter-evm`, and `@openzeppelin/adapter-stellar` must be published with:
    - New optional methods on `AccessControlService` (renounce, cancel, delay)
    - New capability flags on `AccessControlCapabilities`
    - Chain-agnostic `ExpirationMetadata` type
@@ -22,7 +22,7 @@ Before implementation:
 
 ```bash
 cd apps/role-manager
-pnpm update @openzeppelin/ui-types @openzeppelin/ui-builder-adapter-evm @openzeppelin/ui-builder-adapter-stellar
+pnpm update @openzeppelin/ui-types @openzeppelin/adapter-evm @openzeppelin/adapter-stellar
 ```
 
 ### 2. Configure Credentials

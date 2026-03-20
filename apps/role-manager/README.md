@@ -87,7 +87,7 @@ When developing against local changes to `@openzeppelin/ui-*` packages:
 # From the monorepo root, enable local packages
 pnpm dev:local
 
-# This uses packages from ../openzeppelin-ui and ../ui-builder
+# This uses packages from ../openzeppelin-ui and ../openzeppelin-adapters
 # Make sure those repos are built first:
 # cd ../openzeppelin-ui && pnpm install && pnpm build
 
@@ -101,7 +101,7 @@ The local development workflow uses pnpm's [`readPackage` hook](https://pnpm.io/
 
 1. When `LOCAL_UI=true` is set (via `pnpm dev:local`), the hook intercepts package resolution
 2. Any `@openzeppelin/ui-*` dependency is rewritten to `file:../openzeppelin-ui/packages/*`
-3. Any `@openzeppelin/ui-builder-adapter-*` dependency is rewritten to `file:../ui-builder/packages/*`
+3. Any `@openzeppelin/adapter-*` dependency is rewritten to `file:../openzeppelin-adapters/packages/*`
 
 **Benefits:**
 
@@ -123,8 +123,8 @@ See `.pnpmfile.cjs` at the monorepo root for the full implementation.
 - `@openzeppelin/ui-renderer` - Transaction form rendering
 - `@openzeppelin/ui-react` - React context providers and hooks
 - `@openzeppelin/ui-storage` - IndexedDB storage utilities
-- `@openzeppelin/ui-builder-adapter-evm` - EVM blockchain adapter
-- `@openzeppelin/ui-builder-adapter-stellar` - Stellar blockchain adapter
+- `@openzeppelin/adapter-evm` - EVM blockchain adapter
+- `@openzeppelin/adapter-stellar` - Stellar blockchain adapter
 - `react` - React framework
 - `react-dom` - React DOM bindings
 - `react-router-dom` - Routing

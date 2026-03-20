@@ -13,8 +13,8 @@ Add wallet connection capability to the Role Manager header by integrating the U
 **Primary Dependencies**:
 
 - `@openzeppelin/ui-builder-react-core` (NEW - provides `AdapterProvider`, `WalletStateProvider`, `WalletConnectionHeader`)
-- `@openzeppelin/ui-builder-adapter-stellar` (existing - **PRIMARY**: Stellar wallet support via Stellar Wallets Kit)
-- `@openzeppelin/ui-builder-adapter-evm` (existing - EVM wallet support for future expansion)
+- `@openzeppelin/adapter-stellar` (existing - **PRIMARY**: Stellar wallet support via Stellar Wallets Kit)
+- `@openzeppelin/adapter-evm` (existing - EVM wallet support for future expansion)
 - `@openzeppelin/ui-builder-types` (existing - type definitions)
 - `@openzeppelin/ui-builder-ui` (existing - UI components)
 
