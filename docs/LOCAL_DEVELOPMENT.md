@@ -33,7 +33,7 @@ The local development setup uses pnpm's `.pnpmfile.cjs` hook to dynamically reso
 
 ### Directory Structure
 
-```
+```text
 ~/dev/repos/OpenZeppelin/
 ├── role-manager/              # This repo
 ├── openzeppelin-ui/           # UI packages
@@ -57,7 +57,7 @@ The local development setup uses pnpm's `.pnpmfile.cjs` hook to dynamically reso
 
 ## Commands
 
-### Switch to Local Packages
+### Switch to Local UI + Adapter Packages
 
 ```bash
 pnpm dev:local
@@ -67,19 +67,35 @@ This command automatically:
 
 1. Builds packages in local openzeppelin-ui (defaults to `../openzeppelin-ui`)
 2. Builds adapter packages in local openzeppelin-adapters (defaults to `../openzeppelin-adapters`)
-3. Runs `LOCAL_UI=true pnpm install` to resolve all dependencies to local paths
+3. Runs `LOCAL_UI=true LOCAL_ADAPTERS=true pnpm install` to resolve all dependencies to local paths
 
 This ensures you always have up-to-date compiled types when working with local packages.
+
+### Switch to Local UI Packages Only
+
+```bash
+pnpm dev:uikit:local
+```
+
+Use this when you only want local `@openzeppelin/ui-*` packages and want adapters to keep resolving from npm.
+
+### Switch to Local Adapter Packages Only
+
+```bash
+pnpm dev:adapters:local
+```
+
+Use this when you only want local `@openzeppelin/adapter-*` packages and want UI packages to keep resolving from npm.
 
 ### Custom Paths
 
 If your repos are in different locations, use environment variables:
 
 ```bash
-LOCAL_UI_PATH=/path/to/openzeppelin-ui LOCAL_UI_BUILDER_PATH=/path/to/openzeppelin-adapters pnpm dev:local
+LOCAL_UI_PATH=/path/to/openzeppelin-ui LOCAL_ADAPTERS_PATH=/path/to/openzeppelin-adapters pnpm dev:local
 ```
 
-(`LOCAL_UI_BUILDER_PATH` is the adapters monorepo root, despite the historical name.)
+`LOCAL_UI_BUILDER_PATH` is still accepted as a compatibility alias for `LOCAL_ADAPTERS_PATH`.
 
 ### Switch Back to npm Packages
 
@@ -94,19 +110,13 @@ This runs a regular `pnpm install` which uses the published npm versions.
 ### Making Changes to UI Packages
 
 1. Make changes in `openzeppelin-ui/packages/*`
-2. Rebuild and reinstall:
-   ```bash
-   pnpm dev:local  # Rebuilds and reinstalls
-   ```
+2. Rebuild and reinstall: `pnpm dev:local`
 3. Restart the dev server if needed
 
 ### Making Changes to Adapter Packages
 
 1. Make changes in `openzeppelin-adapters/packages/adapter-*`
-2. Rebuild and reinstall:
-   ```bash
-   pnpm dev:local  # Rebuilds and reinstalls
-   ```
+2. Rebuild and reinstall: `pnpm dev:local`
 3. Restart the dev server if needed
 
 ### Hot Reload (Advanced)
@@ -168,7 +178,7 @@ pnpm install  # or pnpm dev:local
 
 When running `pnpm dev:local`, you should see:
 
-```
+```text
 🔨 Building local openzeppelin-ui packages...
 ...
 🔨 Building local openzeppelin-adapters packages...

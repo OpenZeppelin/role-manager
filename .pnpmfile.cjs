@@ -20,11 +20,12 @@
  *   LOCAL_UI_BUILDER_PATH=../my-adapters-fork LOCAL_UI=true pnpm install
  */
 
+const fs = require('fs');
 const path = require('path');
 
 const LOCAL_UI_PATH = process.env.LOCAL_UI_PATH || '../openzeppelin-ui';
-/** Adapters monorepo root (openzeppelin-adapters); name kept for backward compatibility. */
-const LOCAL_UI_BUILDER_PATH = process.env.LOCAL_UI_BUILDER_PATH || '../openzeppelin-adapters';
+const LOCAL_ADAPTERS_ENV_VARS = ['LOCAL_ADAPTERS_PATH', 'LOCAL_UI_BUILDER_PATH'];
+const DEFAULT_LOCAL_ADAPTERS_PATH = '../openzeppelin-adapters';
 
 /**
  * Maps npm package names to their directory paths within openzeppelin-ui
@@ -42,12 +43,80 @@ const UI_PACKAGE_MAP = {
 /**
  * Maps npm package names to their directory paths within openzeppelin-adapters
  */
-const UI_BUILDER_PACKAGE_MAP = {
+const ADAPTER_PACKAGE_MAP = {
   '@openzeppelin/adapter-evm': 'packages/adapter-evm',
-  '@openzeppelin/adapter-stellar': 'packages/adapter-stellar',
-  '@openzeppelin/adapter-solana': 'packages/adapter-solana',
+  '@openzeppelin/adapter-midnight': 'packages/adapter-midnight',
   '@openzeppelin/adapter-polkadot': 'packages/adapter-polkadot',
+  '@openzeppelin/adapter-solana': 'packages/adapter-solana',
+  '@openzeppelin/adapter-stellar': 'packages/adapter-stellar',
 };
+
+function getConfiguredPath(envNames, defaultPath) {
+  for (const envName of envNames) {
+    if (process.env[envName]) {
+      return {
+        envName,
+        relativePath: process.env[envName],
+      };
+    }
+  }
+
+  return {
+    envName: null,
+    relativePath: defaultPath,
+  };
+}
+
+function resolveRepoRoot(baseDir, { envNames, defaultPath, repoName }) {
+  const { envName, relativePath } = getConfiguredPath(envNames, defaultPath);
+  const absolutePath = path.resolve(baseDir, relativePath);
+
+  if (!fs.existsSync(absolutePath)) {
+    const envHelp = envNames.join(' or ');
+    const envSource = envName ? `${envName}=${relativePath}` : `default path ${defaultPath}`;
+
+    throw new Error(
+      `[local-dev] ${repoName} checkout not found at ${absolutePath} (${envSource}). ` +
+        `Set ${envHelp} to a valid ${repoName} checkout.`
+    );
+  }
+
+  return absolutePath;
+}
+
+function resolvePackageDirectory(baseDir, repoConfig, packageName, packagePath) {
+  const repoRoot = resolveRepoRoot(baseDir, repoConfig);
+  const absolutePath = path.resolve(repoRoot, packagePath);
+
+  if (!fs.existsSync(absolutePath)) {
+    throw new Error(
+      `[local-dev] Expected ${packageName} at ${absolutePath}, but it was not found. ` +
+        `Check that ${repoConfig.repoName} matches a compatible checkout.`
+    );
+  }
+
+  return absolutePath;
+}
+
+function rewriteDependencies(pkg, context, packageMap, repoConfig) {
+  const baseDir = context.dir || process.cwd();
+
+  for (const depType of ['dependencies', 'devDependencies']) {
+    if (!pkg[depType]) continue;
+
+    for (const [npmName, localPath] of Object.entries(packageMap)) {
+      if (!pkg[depType][npmName]) continue;
+
+      const absolutePath = resolvePackageDirectory(baseDir, repoConfig, npmName, localPath);
+      pkg[depType][npmName] = `file:${absolutePath}`;
+      context.log(`[local-dev] ${npmName} → ${absolutePath}`);
+    }
+  }
+}
+
+function isLocalAdaptersEnabled() {
+  return process.env.LOCAL_ADAPTERS === 'true' || process.env.LOCAL_UI === 'true';
+}
 
 /**
  * Hook called by pnpm for each package being resolved
@@ -56,37 +125,31 @@ const UI_BUILDER_PACKAGE_MAP = {
  * @returns {object} - Modified package.json content
  */
 function readPackage(pkg, context) {
-  // Skip if local development is not enabled
-  if (process.env.LOCAL_UI !== 'true') {
+  const localUiEnabled = process.env.LOCAL_UI === 'true';
+  const localAdaptersEnabled = isLocalAdaptersEnabled();
+
+  // Skip if local development is not enabled.
+  if (!localUiEnabled && !localAdaptersEnabled) {
     return pkg;
   }
 
-  // Use context.dir when available to resolve relative paths
-  const baseDir = context.dir || process.cwd();
-
-  // Replace dependencies with local file: references
+  // Replace dependencies with local file: references.
   // Note: peerDependencies are excluded because pnpm requires them to be
-  // semver ranges, workspace: specs, or catalog: specs (not file: paths)
-  for (const depType of ['dependencies', 'devDependencies']) {
-    if (!pkg[depType]) continue;
+  // semver ranges, workspace: specs, or catalog: specs (not file: paths).
+  if (localUiEnabled) {
+    rewriteDependencies(pkg, context, UI_PACKAGE_MAP, {
+      envNames: ['LOCAL_UI_PATH'],
+      defaultPath: '../openzeppelin-ui',
+      repoName: 'openzeppelin-ui',
+    });
+  }
 
-    // Handle @openzeppelin/ui-* packages from openzeppelin-ui
-    for (const [npmName, localPath] of Object.entries(UI_PACKAGE_MAP)) {
-      if (pkg[depType][npmName]) {
-        const absolutePath = path.resolve(baseDir, LOCAL_UI_PATH, localPath);
-        pkg[depType][npmName] = `file:${absolutePath}`;
-        context.log(`[local-dev] ${npmName} → ${absolutePath}`);
-      }
-    }
-
-    // Handle @openzeppelin/adapter-* packages from openzeppelin-adapters
-    for (const [npmName, localPath] of Object.entries(UI_BUILDER_PACKAGE_MAP)) {
-      if (pkg[depType][npmName]) {
-        const absolutePath = path.resolve(baseDir, LOCAL_UI_BUILDER_PATH, localPath);
-        pkg[depType][npmName] = `file:${absolutePath}`;
-        context.log(`[local-dev] ${npmName} → ${absolutePath}`);
-      }
-    }
+  if (localAdaptersEnabled) {
+    rewriteDependencies(pkg, context, ADAPTER_PACKAGE_MAP, {
+      envNames: LOCAL_ADAPTERS_ENV_VARS,
+      defaultPath: DEFAULT_LOCAL_ADAPTERS_PATH,
+      repoName: 'openzeppelin-adapters',
+    });
   }
 
   return pkg;

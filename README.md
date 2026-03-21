@@ -187,24 +187,36 @@ This project is organized as a monorepo with the following packages:
 
 This project can consume packages from [openzeppelin-ui](https://github.com/OpenZeppelin/openzeppelin-ui) (`@openzeppelin/ui-*`) and [openzeppelin-adapters](https://github.com/OpenZeppelin/openzeppelin-adapters) (`@openzeppelin/adapter-*`). See [docs/LOCAL_DEVELOPMENT.md](docs/LOCAL_DEVELOPMENT.md) for clone layout, troubleshooting, and workflow details.
 
-1. **Enable local packages**:
+1. **Enable local UI + adapter packages**:
 
    ```bash
    pnpm dev:local
    ```
 
-   This builds local `openzeppelin-ui` packages (default `../openzeppelin-ui`), builds local adapter packages (default `../openzeppelin-adapters`), then runs `LOCAL_UI=true pnpm install`.
+   This builds local `openzeppelin-ui` packages (default `../openzeppelin-ui`), builds local adapter packages (default `../openzeppelin-adapters`), then runs `LOCAL_UI=true LOCAL_ADAPTERS=true pnpm install`.
 
-2. **Switch back to npm packages** (before committing):
+2. **Enable only local UI packages**:
+
+   ```bash
+   pnpm dev:uikit:local
+   ```
+
+3. **Enable only local adapter packages**:
+
+   ```bash
+   pnpm dev:adapters:local
+   ```
+
+4. **Switch back to npm packages** (before committing):
 
    ```bash
    pnpm dev:npm
    ```
 
-3. **Custom paths** (optional):
+5. **Custom paths** (optional):
 
    ```bash
-   LOCAL_UI_PATH=/path/to/openzeppelin-ui LOCAL_UI_BUILDER_PATH=/path/to/openzeppelin-adapters pnpm dev:local
+   LOCAL_UI_PATH=/path/to/openzeppelin-ui LOCAL_ADAPTERS_PATH=/path/to/openzeppelin-adapters pnpm dev:local
    ```
 
 ## Project Structure
