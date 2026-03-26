@@ -4,7 +4,7 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-pnpmfileChecksum: sha256-4QauopY2O2HDuIBY/2/OPwMHB/fS9vuw/TU8voL5D9s=
+pnpmfileChecksum: sha256-ljMNgT4lFnpODo1DQUdhaWNO/OyDhKdNucdm08Yi76E=
 
 importers:
 
@@ -28,6 +28,9 @@ importers:
       '@ianvs/prettier-plugin-sort-imports':
         specifier: 4.5.1
         version: 4.5.1(prettier@3.8.1)
+      '@openzeppelin/ui-dev-cli':
+        specifier: ^0.2.0
+        version: 0.2.0
       '@tailwindcss/postcss':
         specifier: ^4.1.18
         version: 4.2.0
@@ -127,15 +130,15 @@ importers:
 
   apps/role-manager:
     dependencies:
-      '@openzeppelin/ui-builder-adapter-evm':
-        specifier: ^1.8.2
-        version: 1.8.2(021efdeba76542a2bc1abf17664481ce)
-      '@openzeppelin/ui-builder-adapter-polkadot':
-        specifier: ^1.8.3
-        version: 1.8.3(147bf91b2279ce2ffbf55d2c77b63ff9)
-      '@openzeppelin/ui-builder-adapter-stellar':
-        specifier: ^1.8.2
-        version: 1.8.2(@babel/runtime@7.28.6)(@solana/sysvars@5.5.1(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3))(@stellar/stellar-base@14.0.4)(@trezor/connect@9.6.2(@solana/sysvars@5.5.1(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3))(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(tslib@2.8.1)(typescript@5.9.3)(utf-8-validate@5.0.10)(ws@8.19.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(near-api-js@5.1.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(tailwindcss@4.2.0)(tslib@2.8.1)(typescript@5.9.3)(utf-8-validate@5.0.10)(ws@8.19.0(bufferutil@4.1.0)(utf-8-validate@5.0.10))
+      '@openzeppelin/adapter-evm':
+        specifier: ^1.0.0
+        version: 1.0.0(021efdeba76542a2bc1abf17664481ce)
+      '@openzeppelin/adapter-polkadot':
+        specifier: ^1.0.0
+        version: 1.0.0(147bf91b2279ce2ffbf55d2c77b63ff9)
+      '@openzeppelin/adapter-stellar':
+        specifier: ^1.0.0
+        version: 1.0.0(@babel/runtime@7.28.6)(@solana/sysvars@5.5.1(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3))(@stellar/stellar-base@14.0.4)(@trezor/connect@9.6.2(@solana/sysvars@5.5.1(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3))(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(tslib@2.8.1)(typescript@5.9.3)(utf-8-validate@5.0.10)(ws@8.19.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(near-api-js@5.1.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(tailwindcss@4.2.0)(tslib@2.8.1)(typescript@5.9.3)(utf-8-validate@5.0.10)(ws@8.19.0(bufferutil@4.1.0)(utf-8-validate@5.0.10))
       '@openzeppelin/ui-components':
         specifier: ^1.4.0
         version: 1.4.0(@babel/runtime@7.28.6)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(tailwindcss@4.2.0)(typescript@5.9.3)
@@ -397,6 +400,12 @@ packages:
 
   '@changesets/write@0.4.0':
     resolution: {integrity: sha512-CdTLvIOPiCNuH71pyDu3rA+Q0n65cmAbXnwWH84rKGiFumFzkmHNT8KHTMEchcxN+Kl8I54xGUhJ7l3E7X396Q==}
+
+  '@clack/core@0.4.2':
+    resolution: {integrity: sha512-NYQfcEy8MWIxrT5Fj8nIVchfRFA26yYKJcvBS7WlUIlw2OmQOY9DhGGXMovyI5J5PpxrCPGkgUi207EBrjpBvg==}
+
+  '@clack/prompts@0.10.1':
+    resolution: {integrity: sha512-Q0T02vx8ZM9XSv9/Yde0jTmmBQufZhPJfYAg2XrrrxWWaZgq1rr8nU8Hv710BQ1dhoP8rtY7YUdpGej2Qza/cw==}
 
   '@coinbase/cdp-sdk@1.45.0':
     resolution: {integrity: sha512-4fgGOhyN9g/pTDE9NtsKUapwFsubrk9wafz8ltmBqSwWqLZWfWxXkVmzMYYFAf+qeGf/X9JqJtmvDVaHFlXWlw==}
@@ -1156,12 +1165,8 @@ packages:
     resolution: {integrity: sha512-nn5ozdjYQpUCZlWGuxcJY/KpxkWQs4DcbMCmKojjyrYDEAGy4Ce19NN4v5MduafTwJlbKc99UA8YhSVqq9yPZA==}
     engines: {node: '>=12.4.0'}
 
-  '@openzeppelin/relayer-sdk@1.9.0':
-    resolution: {integrity: sha512-G3Zhg0imaT9Ej1cE9Cq5d4uQvW+DinD2GvRuiPWo3+O9KI8ivBnGJkjEGgK9Ja3/QsUNIfx8Gk5Mdw2sPXjVWA==}
-    engines: {node: '>=22.14.0', npm: use pnpm, pnpm: '>=9', yarn: use pnpm}
-
-  '@openzeppelin/ui-builder-adapter-evm@1.8.2':
-    resolution: {integrity: sha512-Tc8fPFjKMfqjGzvtga2CHsMTmDwRdKFS6OQVQQR4R9GeVIJx74LpoIscPd3Wj+gQ+pJ0wGJBkgIToDAyEJ+S/Q==}
+  '@openzeppelin/adapter-evm@1.0.0':
+    resolution: {integrity: sha512-X0adrEPJJ62P+1ihUPtZ/CV6GnWSRPUWiwMrqS7R6WyeC/rM6oM/cz/23CucgvG+8RsnzYZwkSLHmvjcKbAUJw==}
     peerDependencies:
       '@rainbow-me/rainbowkit': ^2.2.8
       '@tanstack/react-query': ^5.74.7
@@ -1169,8 +1174,8 @@ packages:
       viem: ^2.28.0
       wagmi: ^2.15.0
 
-  '@openzeppelin/ui-builder-adapter-polkadot@1.8.3':
-    resolution: {integrity: sha512-0dmkMjauz+yROhx3rz1KkA+5aEacW5eAr8VRlXkS1VOhF2+ZmqY3KyduXqab9DOmKGIw5viQVH6nqb8i2g9npg==}
+  '@openzeppelin/adapter-polkadot@1.0.0':
+    resolution: {integrity: sha512-8n4Kmt7MBXZTNlERPSbgm7JtungG44xkgs01j18zlGJtwIWnwT4qHXGPPiLfJ7vTtBC0m8NMu3PhyNhEV47bYw==}
     peerDependencies:
       '@rainbow-me/rainbowkit': ^2.2.8
       '@tanstack/react-query': ^5.74.7
@@ -1179,16 +1184,25 @@ packages:
       viem: ^2.28.0
       wagmi: ^2.15.0
 
-  '@openzeppelin/ui-builder-adapter-stellar@1.8.2':
-    resolution: {integrity: sha512-tgczpPov1nPJQmvpO0mbhedRrMvt7vzJm4mCMwyvbOdyW3autkbT2ZQbRCHICZavqKUtqUr6S2anT4pC2yUgaQ==}
+  '@openzeppelin/adapter-stellar@1.0.0':
+    resolution: {integrity: sha512-OtnEhx/5RUzMB6jvzEhWgjE5SlUTyiRv+21nG8FDYl6Z596elRnJG7HBRTd+MIFc9R3R1SZuRo2UgWwXpB8SLQ==}
     peerDependencies:
       react: ^19.0.0
+
+  '@openzeppelin/relayer-sdk@1.9.0':
+    resolution: {integrity: sha512-G3Zhg0imaT9Ej1cE9Cq5d4uQvW+DinD2GvRuiPWo3+O9KI8ivBnGJkjEGgK9Ja3/QsUNIfx8Gk5Mdw2sPXjVWA==}
+    engines: {node: '>=22.14.0', npm: use pnpm, pnpm: '>=9', yarn: use pnpm}
 
   '@openzeppelin/ui-components@1.4.0':
     resolution: {integrity: sha512-O5s0v1+0zMeCchLU3fRZZLyAMPCFTVUVhXWinexgE+jbwGENvDflL/0ti9e6Yhe5wMU7V2X9P4eVSRFjaaD5lQ==}
     peerDependencies:
       react: ^19.0.0
       react-dom: ^19.0.0
+
+  '@openzeppelin/ui-dev-cli@0.2.0':
+    resolution: {integrity: sha512-0aBrbFxq/fk7b020kWR79lIwFSHUiUGDk4eWAcLt4Hw8RFBAEfkDU/a89Nf9Sf3u3OZdwEKUg0z39qzPHbEyqQ==}
+    engines: {node: '>=20.19.0'}
+    hasBin: true
 
   '@openzeppelin/ui-react@1.1.0':
     resolution: {integrity: sha512-W9jY8jtvOVoG5PkM5rM4HdM3jLO1onZHHyeDr9H7s+kIyXIQXgccz5DxP5H4Nrcc+M85a+N4wZ2rQmaKV9cGsQ==}
@@ -3769,9 +3783,6 @@ packages:
     peerDependencies:
       axios: 0.x || 1.x
 
-  axios@1.13.5:
-    resolution: {integrity: sha512-cz4ur7Vb0xS4/KUN0tPWe44eqxrIu31me+fbang3ijiNscE129POzipJJA6zniq2C/Z6sJCjMimjS8Lc/GAs8Q==}
-
   axios@1.13.6:
     resolution: {integrity: sha512-ChTCHMouEe2kn713WHbQGcuYrr6fXTBiu460OTwWrWob16g1bXn4vtz07Ope7ewMozJAnEquLk5lWQWtBig9DQ==}
 
@@ -4468,10 +4479,6 @@ packages:
 
   ecdsa-sig-formatter@1.0.11:
     resolution: {integrity: sha512-nagl3RYrbNv6kQkeJIpt6NJZy8twLB/2vtz6yN9Z4vRKHN4/QZJIEbqohALSgwKdnksuY3k5Addp5lg8sVoVcQ==}
-
-  eciesjs@0.4.17:
-    resolution: {integrity: sha512-TOOURki4G7sD1wDCjj7NfLaXZZ49dFOeEb5y39IXpb8p0hRzVvfvzZHOi5JcT+PpyAbi/Y+lxPb8eTag2WYH8w==}
-    engines: {bun: '>=1', deno: '>=2', node: '>=16'}
 
   eciesjs@0.4.18:
     resolution: {integrity: sha512-wG99Zcfcys9fZux7Cft8BAX/YrOJLJSZ3jyYPfhZHqN2E+Ffx+QXBDsv3gubEgPtV6dTzJMSQUwk1H98/t/0wQ==}
@@ -6471,9 +6478,6 @@ packages:
   preact@10.24.2:
     resolution: {integrity: sha512-1cSoF0aCC8uaARATfrlz4VCBqE8LwZwRfLgkxJOQwAlQt6ayTmi0D9OF7nXid1POI5SZidFuG9CnlXbDfLqY/Q==}
 
-  preact@10.28.4:
-    resolution: {integrity: sha512-uKFfOHWuSNpRFVTnljsCluEFq57OKT+0QdOiQo8XWnQ/pSvg7OpX5eNOejELXJMWy+BwM2nobz0FkvzmnpCNsQ==}
-
   preact@10.29.0:
     resolution: {integrity: sha512-wSAGyk2bYR1c7t3SZ3jHcM6xy0lcBcDel6lODcs9ME6Th++Dx2KU+6D3HD8wMMKGA8Wpw7OMd3/4RGzYRpzwRg==}
 
@@ -6581,9 +6585,6 @@ packages:
 
   proxy-from-env@1.1.0:
     resolution: {integrity: sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==}
-
-  pump@3.0.3:
-    resolution: {integrity: sha512-todwxLMY7/heScKmntwQG8CXVkWUOdYxIvY2s0VWAAMh/nd8SoYiRaKjlr7+iCs984f2P8zvrfWcDDYVb73NfA==}
 
   pump@3.0.4:
     resolution: {integrity: sha512-VS7sjc6KR7e1ukRFhQSY5LM2uBWAUPiOPa/A3mkKmiMwSmRFUITt0xuj+/lesgnCv+dPIEYlkzrcyXgquIHMcA==}
@@ -6973,6 +6974,9 @@ packages:
   signal-exit@4.1.0:
     resolution: {integrity: sha512-bzyZ1e88w9O1iNJbKnOlvYTrWPDl46O1bG0D3XInv+9tkPrxrN8jUUTiFlDkkmKWgn1M6CfIA13SuGqOa9Korw==}
     engines: {node: '>=14'}
+
+  sisteransi@1.0.5:
+    resolution: {integrity: sha512-bLGGlR1QxBcynn2d5YmDX4MGjlZvy2MRBDRNHLJ8VI6l6+9FUiyTFNJ0IveOSP0bcXgVDPRcfGqA0pjaqUpfVg==}
 
   slash@3.0.0:
     resolution: {integrity: sha512-g9Q1haeby36OSStwb4ntCGGGaKsaVSjQ68fBxoQcutl5fS1vuY18H3wSt3jFyFtrkx+Kz0V1G85A4MyAdDMi2Q==}
@@ -8286,6 +8290,17 @@ snapshots:
       human-id: 4.1.3
       prettier: 2.8.8
 
+  '@clack/core@0.4.2':
+    dependencies:
+      picocolors: 1.1.1
+      sisteransi: 1.0.5
+
+  '@clack/prompts@0.10.1':
+    dependencies:
+      '@clack/core': 0.4.2
+      picocolors: 1.1.1
+      sisteransi: 1.0.5
+
   '@coinbase/cdp-sdk@1.45.0(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3)(utf-8-validate@5.0.10)':
     dependencies:
       '@solana-program/system': 0.10.0(@solana/kit@5.5.1(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3)(utf-8-validate@5.0.10))
@@ -8327,7 +8342,7 @@ snapshots:
       '@noble/hashes': 1.8.0
       clsx: 1.2.1
       eventemitter3: 5.0.4
-      preact: 10.28.4
+      preact: 10.29.0
 
   '@coinbase/wallet-sdk@4.3.6(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.4)(typescript@5.9.3)(use-sync-external-store@1.4.0(react@19.2.4))(utf-8-validate@5.0.10)(zod@3.25.76)':
     dependencies:
@@ -9036,13 +9051,13 @@ snapshots:
     dependencies:
       openapi-fetch: 0.13.8
 
-  '@metamask/sdk-communication-layer@0.32.0(cross-fetch@4.1.0)(eciesjs@0.4.17)(eventemitter2@6.4.9)(readable-stream@3.6.2)(socket.io-client@4.8.3(bufferutil@4.1.0)(utf-8-validate@5.0.10))':
+  '@metamask/sdk-communication-layer@0.32.0(cross-fetch@4.1.0)(eciesjs@0.4.18)(eventemitter2@6.4.9)(readable-stream@3.6.2)(socket.io-client@4.8.3(bufferutil@4.1.0)(utf-8-validate@5.0.10))':
     dependencies:
       bufferutil: 4.1.0
       cross-fetch: 4.1.0
       date-fns: 2.30.0
       debug: 4.4.3
-      eciesjs: 0.4.17
+      eciesjs: 0.4.18
       eventemitter2: 6.4.9
       readable-stream: 3.6.2
       socket.io-client: 4.8.3(bufferutil@4.1.0)(utf-8-validate@5.0.10)
@@ -9080,17 +9095,17 @@ snapshots:
       '@babel/runtime': 7.28.6
       '@metamask/onboarding': 1.0.1
       '@metamask/providers': 16.1.0
-      '@metamask/sdk-communication-layer': 0.32.0(cross-fetch@4.1.0)(eciesjs@0.4.17)(eventemitter2@6.4.9)(readable-stream@3.6.2)(socket.io-client@4.8.3(bufferutil@4.1.0)(utf-8-validate@5.0.10))
+      '@metamask/sdk-communication-layer': 0.32.0(cross-fetch@4.1.0)(eciesjs@0.4.18)(eventemitter2@6.4.9)(readable-stream@3.6.2)(socket.io-client@4.8.3(bufferutil@4.1.0)(utf-8-validate@5.0.10))
       '@metamask/sdk-install-modal-web': 0.32.0
       '@paulmillr/qr': 0.2.1
       bowser: 2.14.1
       cross-fetch: 4.1.0
       debug: 4.4.3
-      eciesjs: 0.4.17
+      eciesjs: 0.4.18
       eth-rpc-errors: 4.0.3
       eventemitter2: 6.4.9
       obj-multiplex: 1.0.0
-      pump: 3.0.3
+      pump: 3.0.4
       readable-stream: 3.6.2
       socket.io-client: 4.8.3(bufferutil@4.1.0)(utf-8-validate@5.0.10)
       tslib: 2.8.1
@@ -9408,13 +9423,7 @@ snapshots:
 
   '@nolyfill/is-core-module@1.0.39': {}
 
-  '@openzeppelin/relayer-sdk@1.9.0':
-    dependencies:
-      axios: 1.13.5
-    transitivePeerDependencies:
-      - debug
-
-  '@openzeppelin/ui-builder-adapter-evm@1.8.2(021efdeba76542a2bc1abf17664481ce)':
+  '@openzeppelin/adapter-evm@1.0.0(021efdeba76542a2bc1abf17664481ce)':
     dependencies:
       '@openzeppelin/relayer-sdk': 1.9.0
       '@openzeppelin/ui-components': 1.4.0(@babel/runtime@7.28.6)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(tailwindcss@4.2.0)(typescript@5.9.3)
@@ -9468,7 +9477,7 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@openzeppelin/ui-builder-adapter-polkadot@1.8.3(147bf91b2279ce2ffbf55d2c77b63ff9)':
+  '@openzeppelin/adapter-polkadot@1.0.0(147bf91b2279ce2ffbf55d2c77b63ff9)':
     dependencies:
       '@openzeppelin/relayer-sdk': 1.9.0
       '@openzeppelin/ui-types': 1.11.1
@@ -9515,7 +9524,7 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@openzeppelin/ui-builder-adapter-stellar@1.8.2(@babel/runtime@7.28.6)(@solana/sysvars@5.5.1(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3))(@stellar/stellar-base@14.0.4)(@trezor/connect@9.6.2(@solana/sysvars@5.5.1(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3))(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(tslib@2.8.1)(typescript@5.9.3)(utf-8-validate@5.0.10)(ws@8.19.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(near-api-js@5.1.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(tailwindcss@4.2.0)(tslib@2.8.1)(typescript@5.9.3)(utf-8-validate@5.0.10)(ws@8.19.0(bufferutil@4.1.0)(utf-8-validate@5.0.10))':
+  '@openzeppelin/adapter-stellar@1.0.0(@babel/runtime@7.28.6)(@solana/sysvars@5.5.1(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3))(@stellar/stellar-base@14.0.4)(@trezor/connect@9.6.2(@solana/sysvars@5.5.1(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3))(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(tslib@2.8.1)(typescript@5.9.3)(utf-8-validate@5.0.10)(ws@8.19.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(near-api-js@5.1.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(tailwindcss@4.2.0)(tslib@2.8.1)(typescript@5.9.3)(utf-8-validate@5.0.10)(ws@8.19.0(bufferutil@4.1.0)(utf-8-validate@5.0.10))':
     dependencies:
       '@creit.tech/stellar-wallets-kit': 1.9.5(@solana/sysvars@5.5.1(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3))(@stellar/stellar-base@14.0.4)(@stellar/stellar-sdk@14.5.0)(@trezor/connect@9.6.2(@solana/sysvars@5.5.1(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3))(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(tslib@2.8.1)(typescript@5.9.3)(utf-8-validate@5.0.10)(ws@8.19.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)))(@types/react@19.2.14)(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(near-api-js@5.1.1)(react@19.2.4)(tslib@2.8.1)(typescript@5.9.3)(utf-8-validate@5.0.10)(ws@8.19.0(bufferutil@4.1.0)(utf-8-validate@5.0.10))
       '@openzeppelin/relayer-sdk': 1.9.0
@@ -9573,6 +9582,12 @@ snapshots:
       - utf-8-validate
       - ws
 
+  '@openzeppelin/relayer-sdk@1.9.0':
+    dependencies:
+      axios: 1.13.6
+    transitivePeerDependencies:
+      - debug
+
   '@openzeppelin/ui-components@1.4.0(@babel/runtime@7.28.6)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(tailwindcss@4.2.0)(typescript@5.9.3)':
     dependencies:
       '@openzeppelin/ui-types': 1.11.1
@@ -9612,6 +9627,12 @@ snapshots:
       - '@types/react-dom'
       - tailwindcss
       - typescript
+
+  '@openzeppelin/ui-dev-cli@0.2.0':
+    dependencies:
+      '@clack/prompts': 0.10.1
+      commander: 13.1.0
+      picocolors: 1.1.1
 
   '@openzeppelin/ui-react@1.1.0(@babel/runtime@7.28.6)(@tanstack/react-query@5.90.21(react@19.2.4))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(tailwindcss@4.2.0)(typescript@5.9.3)':
     dependencies:
@@ -11572,7 +11593,7 @@ snapshots:
   '@stellar/stellar-sdk@13.3.0':
     dependencies:
       '@stellar/stellar-base': 13.1.0
-      axios: 1.13.5
+      axios: 1.13.6
       bignumber.js: 9.3.1
       eventsource: 2.0.2
       feaxios: 0.0.23
@@ -11586,7 +11607,7 @@ snapshots:
   '@stellar/stellar-sdk@14.5.0':
     dependencies:
       '@stellar/stellar-base': 14.0.4
-      axios: 1.13.5
+      axios: 1.13.6
       bignumber.js: 9.3.1
       commander: 14.0.3
       eventsource: 2.0.2
@@ -13795,14 +13816,6 @@ snapshots:
       axios: 1.13.6
       is-retry-allowed: 2.2.0
 
-  axios@1.13.5:
-    dependencies:
-      follow-redirects: 1.15.11
-      form-data: 4.0.5
-      proxy-from-env: 1.1.0
-    transitivePeerDependencies:
-      - debug
-
   axios@1.13.6:
     dependencies:
       follow-redirects: 1.15.11
@@ -14456,13 +14469,6 @@ snapshots:
   ecdsa-sig-formatter@1.0.11:
     dependencies:
       safe-buffer: 5.2.1
-
-  eciesjs@0.4.17:
-    dependencies:
-      '@ecies/ciphers': 0.2.5(@noble/ciphers@1.3.0)
-      '@noble/ciphers': 1.3.0
-      '@noble/curves': 1.9.7
-      '@noble/hashes': 1.8.0
 
   eciesjs@0.4.18:
     dependencies:
@@ -16678,8 +16684,6 @@ snapshots:
 
   preact@10.24.2: {}
 
-  preact@10.28.4: {}
-
   preact@10.29.0: {}
 
   prelude-ls@1.2.1: {}
@@ -16738,11 +16742,6 @@ snapshots:
   proxy-compare@2.6.0: {}
 
   proxy-from-env@1.1.0: {}
-
-  pump@3.0.3:
-    dependencies:
-      end-of-stream: 1.4.5
-      once: 1.4.0
 
   pump@3.0.4:
     dependencies:
@@ -17219,6 +17218,8 @@ snapshots:
   signal-exit@3.0.7: {}
 
   signal-exit@4.1.0: {}
+
+  sisteransi@1.0.5: {}
 
   slash@3.0.0: {}
 

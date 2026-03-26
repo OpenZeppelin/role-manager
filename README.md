@@ -193,7 +193,7 @@ This project can consume packages from [openzeppelin-ui](https://github.com/Open
    pnpm dev:local
    ```
 
-   This builds local `openzeppelin-ui` packages (default `../openzeppelin-ui`), builds local adapter packages (default `../openzeppelin-adapters`), then runs `LOCAL_UI=true LOCAL_ADAPTERS=true pnpm install`.
+   This delegates to the published `oz-dev` CLI, which builds and packs the configured families from your local checkouts before reinstalling Role Manager against those packed artifacts.
 
 2. **Enable only local UI packages**:
 

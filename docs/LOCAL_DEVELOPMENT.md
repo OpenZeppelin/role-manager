@@ -29,7 +29,7 @@ pnpm dev
 
 ## How It Works
 
-The local development setup uses pnpm's `.pnpmfile.cjs` hook to dynamically resolve packages to local file paths when `LOCAL_UI=true` is set.
+The local development setup uses the published `oz-dev` CLI plus a config-driven `.pnpmfile.cjs` hook in this repo. The CLI builds and packs the selected families from your local source checkouts, and the pnpm hook rewrites dependencies to those packed artifacts during install.
 
 ### Directory Structure
 
@@ -63,13 +63,7 @@ The local development setup uses pnpm's `.pnpmfile.cjs` hook to dynamically reso
 pnpm dev:local
 ```
 
-This command automatically:
-
-1. Builds packages in local openzeppelin-ui (defaults to `../openzeppelin-ui`)
-2. Builds adapter packages in local openzeppelin-adapters (defaults to `../openzeppelin-adapters`)
-3. Runs `LOCAL_UI=true LOCAL_ADAPTERS=true pnpm install` to resolve all dependencies to local paths
-
-This ensures you always have up-to-date compiled types when working with local packages.
+This command delegates to the published `oz-dev` CLI. It builds the selected package families from your local `openzeppelin-ui` and `openzeppelin-adapters` checkouts, packs them into tarballs under `.packed-packages/local-dev`, and reinstalls Role Manager against those packed artifacts.
 
 ### Switch to Local UI Packages Only
 
@@ -95,15 +89,13 @@ If your repos are in different locations, use environment variables:
 LOCAL_UI_PATH=/path/to/openzeppelin-ui LOCAL_ADAPTERS_PATH=/path/to/openzeppelin-adapters pnpm dev:local
 ```
 
-`LOCAL_UI_BUILDER_PATH` is still accepted as a compatibility alias for `LOCAL_ADAPTERS_PATH`.
-
 ### Switch Back to npm Packages
 
 ```bash
 pnpm dev:npm
 ```
 
-This runs a regular `pnpm install` which uses the published npm versions.
+This delegates to `oz-dev use remote`, which removes local manifests and reinstalls against published npm packages.
 
 ## Development Workflow
 
@@ -179,15 +171,9 @@ pnpm install  # or pnpm dev:local
 When running `pnpm dev:local`, you should see:
 
 ```text
-🔨 Building local openzeppelin-ui packages...
-...
-🔨 Building local openzeppelin-adapters packages...
-...
-[local-dev] @openzeppelin/ui-types → /path/to/openzeppelin-ui/packages/types
-[local-dev] @openzeppelin/adapter-evm → /path/to/openzeppelin-adapters/packages/adapter-evm
-...
-✅ Using local @openzeppelin/ui-* packages from ../openzeppelin-ui
-✅ Using local @openzeppelin/adapter-* packages from ../openzeppelin-adapters
+Using local packages for /path/to/role-manager
+  ui: 7 tarballs -> /path/to/role-manager/.packed-packages/local-dev/ui.json
+  adapters: 5 tarballs -> /path/to/role-manager/.packed-packages/local-dev/adapters.json
 ```
 
 ## Best Practices

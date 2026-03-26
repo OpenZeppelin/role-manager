@@ -97,18 +97,18 @@ pnpm dev:npm
 
 ### How It Works
 
-The local development workflow uses pnpm's [`readPackage` hook](https://pnpm.io/pnpmfile#hooksreadpackagepkg-context) via `.pnpmfile.cjs` to dynamically resolve packages at install time:
+The local development workflow uses the published `oz-dev` CLI plus the monorepo root [`readPackage` hook](https://pnpm.io/pnpmfile#hooksreadpackagepkg-context):
 
-1. When `LOCAL_UI=true` is set (via `pnpm dev:local`), the hook intercepts package resolution
-2. Any `@openzeppelin/ui-*` dependency is rewritten to `file:../openzeppelin-ui/packages/*`
-3. Any `@openzeppelin/adapter-*` dependency is rewritten to `file:../openzeppelin-adapters/packages/*`
+1. `pnpm dev:local` calls `oz-dev use local` through the published CLI package
+2. The CLI builds and packs the selected families into `.packed-packages/local-dev`
+3. `.pnpmfile.cjs` rewrites `@openzeppelin/ui-*` and `@openzeppelin/adapter-*` dependencies to those packed tarballs during install
 
 **Benefits:**
 
 - `package.json` stays unchanged (no `file:` references committed)
-- Switching between local and npm is instant — just re-run install
-- Transitive dependencies are also resolved locally
-- Environment variables (`LOCAL_UI_PATH`, `LOCAL_UI_BUILDER_PATH`) allow custom paths
+- Switching between local and npm is a single command
+- The packed-tarball flow mirrors published package behavior more closely than raw repo links
+- Environment variables (`LOCAL_UI_PATH`, `LOCAL_ADAPTERS_PATH`) allow custom paths
 
 See `.pnpmfile.cjs` at the monorepo root for the full implementation.
 
