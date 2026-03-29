@@ -35,7 +35,7 @@
     "react-router-dom": "^7.1.1"
   },
   "devDependencies": {
-    "@openzeppelin/adapters-vite": "^1.3.1",
+    "@openzeppelin/adapters-vite": "^1.3.2",
     "@tailwindcss/vite": "^4.2.1",
     "@types/pluralize": "^0.0.33",
     "@types/react": "^19.2.8",
