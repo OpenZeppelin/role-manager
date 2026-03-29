@@ -31,7 +31,6 @@ const mockContract: ContractRecord = {
   id: 'contract-1',
   networkId: 'stellar-testnet',
   address: 'CONTRACT_ADDRESS_1',
-  label: 'Test Contract',
   lastAccessed: Date.now(),
   createdAt: new Date(),
   updatedAt: new Date(),
@@ -132,6 +131,7 @@ describe('useSelectedContract', () => {
       expect(result.current).toHaveProperty('isAdapterLoading');
       expect(result.current).toHaveProperty('contracts');
       expect(result.current).toHaveProperty('isContractsLoading');
+      expect(result.current).toHaveProperty('selectContractById');
     });
   });
 
@@ -150,7 +150,6 @@ describe('useSelectedContract', () => {
       const newContract: ContractRecord = {
         ...mockContract,
         id: 'contract-2',
-        label: 'New Contract',
       };
       mocks.contracts = [mockContract, newContract];
 

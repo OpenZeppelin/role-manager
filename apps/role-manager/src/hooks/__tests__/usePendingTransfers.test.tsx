@@ -56,7 +56,6 @@ describe('usePendingTransfers', () => {
   const mockContract = {
     id: '1',
     address: testAddress,
-    label: 'Test',
     networkId: 'stellar-testnet',
     lastAccessed: Date.now(),
     createdAt: new Date(),
@@ -93,6 +92,7 @@ describe('usePendingTransfers', () => {
       isAdapterLoading: false,
       contracts: [],
       isContractsLoading: false,
+      selectContractById: vi.fn(),
     });
 
     // Default mock for useCurrentBlock
@@ -265,6 +265,7 @@ describe('usePendingTransfers', () => {
         isAdapterLoading: false,
         contracts: [],
         isContractsLoading: false,
+        selectContractById: vi.fn(),
       });
 
       vi.mocked(useContractDataModule.useContractOwnership).mockReturnValue({
@@ -585,6 +586,7 @@ describe('usePendingTransfers', () => {
         isAdapterLoading: false,
         contracts: [],
         isContractsLoading: false,
+        selectContractById: vi.fn(),
       });
 
       vi.mocked(useContractDataModule.useContractOwnership).mockReturnValue({

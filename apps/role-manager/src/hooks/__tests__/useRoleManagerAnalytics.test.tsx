@@ -48,9 +48,9 @@ describe('useRoleManagerAnalytics', () => {
     it('should pass through trackNetworkSelection from base analytics', () => {
       const { result } = renderHook(() => useRoleManagerAnalytics());
 
-      result.current.trackNetworkSelection('ethereum-mainnet');
+      result.current.trackNetworkSelection('ethereum-mainnet', 'evm');
 
-      expect(mockTrackNetworkSelection).toHaveBeenCalledWith('ethereum-mainnet');
+      expect(mockTrackNetworkSelection).toHaveBeenCalledWith('ethereum-mainnet', 'evm');
     });
 
     it('should pass through initialize from base analytics', () => {

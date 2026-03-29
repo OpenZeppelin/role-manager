@@ -1,6 +1,6 @@
 # Local Development with openzeppelin-ui and openzeppelin-adapters
 
-This guide explains how to develop with local versions of `@openzeppelin/ui-*` packages from [openzeppelin-ui](https://github.com/OpenZeppelin/openzeppelin-ui) and `@openzeppelin/adapter-*` packages from [openzeppelin-adapters](https://github.com/OpenZeppelin/openzeppelin-adapters).
+This guide explains how to develop with local versions of `@openzeppelin/ui-*` packages from [openzeppelin-ui](https://github.com/OpenZeppelin/openzeppelin-ui) and the adapter family from [openzeppelin-adapters](https://github.com/OpenZeppelin/openzeppelin-adapters), including `@openzeppelin/adapter-*` packages and shared tooling such as `@openzeppelin/adapters-vite`.
 
 ## Quick Start
 
@@ -79,7 +79,7 @@ Use this when you only want local `@openzeppelin/ui-*` packages and want adapter
 pnpm dev:adapters:local
 ```
 
-Use this when you only want local `@openzeppelin/adapter-*` packages and want UI packages to keep resolving from npm.
+Use this when you only want local packages from `openzeppelin-adapters` and want UI packages to keep resolving from npm.
 
 ### Custom Paths
 

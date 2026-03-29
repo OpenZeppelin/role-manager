@@ -1,11 +1,31 @@
-import type { UserConfig } from 'vite';
-import { defineConfig, mergeConfig } from 'vitest/config';
+import path from 'path';
+import tailwindcss from '@tailwindcss/vite';
+import react from '@vitejs/plugin-react';
+import { defineOpenZeppelinAdapterVitestConfig } from '@openzeppelin/adapters-vite';
 
-import viteConfig from './vite.config';
+import { supportedAdapterEcosystems } from './adapter-ecosystems';
 
-export default mergeConfig(
-  viteConfig as UserConfig,
-  defineConfig({
+export default defineOpenZeppelinAdapterVitestConfig({
+  ecosystems: supportedAdapterEcosystems,
+  importMetaUrl: import.meta.url,
+  config: {
+    plugins: [react(), tailwindcss()],
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, './src'),
+      },
+    },
+    define: {
+      'process.env': {},
+      global: 'globalThis',
+    },
+    optimizeDeps: {
+      esbuildOptions: {
+        define: {
+          global: 'globalThis',
+        },
+      },
+    },
     test: {
       globals: true,
       environment: 'happy-dom',
@@ -17,5 +37,5 @@ export default mergeConfig(
         },
       },
     },
-  })
-);
+  },
+});

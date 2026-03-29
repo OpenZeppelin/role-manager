@@ -6,7 +6,7 @@
     "target": "ES2020",
     "useDefineForClassFields": true,
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "types": ["vite/client"],
+    "types": ["vite/client", "@testing-library/jest-dom"],
     "jsx": "react-jsx",
     "noEmit": true,
     "rootDir": "src",
