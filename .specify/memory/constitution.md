@@ -29,7 +29,7 @@ Follow-up TODOs: none
 
 - The application MUST reuse `@openzeppelin/ui-*` packages (types, utils, renderer, storage, components, react, styles) rather than re-implementing core functionality.
 - Adapter packages remain in the `@openzeppelin/adapter-*` namespace (e.g., `adapter-evm`, `adapter-stellar`).
-- Local development against `openzeppelin-ui` and `openzeppelin-adapters` MUST use the shared `oz-dev` workflow backed by the checked-in `.openzeppelin-dev.json` and `.pnpmfile.cjs` files. Use `pnpm dev:local` and `pnpm dev:npm` to switch between local packed artifacts and published npm packages without rewriting committed dependencies.
+- Local development against `openzeppelin-ui` and `openzeppelin-adapters` MUST use the shared `oz-ui-dev` workflow backed by the checked-in `.openzeppelin-dev.json` and `.pnpmfile.cjs` files. Use `pnpm dev:local` and `pnpm dev:npm` to switch between local packed artifacts and published npm packages without rewriting committed dependencies.
 - New shared utilities or types required by Role Manager should ideally be contributed upstream to `openzeppelin-ui` packages first, then consumed here.
 - Rationale: Guarantees consistency with the broader OpenZeppelin tool ecosystem and validates the standalone usability of UI Kit packages.
 

@@ -29,10 +29,10 @@
     "prepare": "husky",
     "commit": "git-cz",
     "changeset": "changeset",
-    "dev:uikit:local": "LOCAL_UI_PATH=${LOCAL_UI_PATH:-../openzeppelin-ui} && LOCAL_UI_PATH=\"$LOCAL_UI_PATH\" oz-dev use local --project \"$PWD\" --family ui",
-    "dev:adapters:local": "LOCAL_ADAPTERS_PATH=${LOCAL_ADAPTERS_PATH:-../openzeppelin-adapters} && LOCAL_ADAPTERS_PATH=\"$LOCAL_ADAPTERS_PATH\" oz-dev use local --project \"$PWD\" --family adapters",
-    "dev:local": "LOCAL_UI_PATH=${LOCAL_UI_PATH:-../openzeppelin-ui} && LOCAL_ADAPTERS_PATH=${LOCAL_ADAPTERS_PATH:-../openzeppelin-adapters} && LOCAL_UI_PATH=\"$LOCAL_UI_PATH\" LOCAL_ADAPTERS_PATH=\"$LOCAL_ADAPTERS_PATH\" oz-dev use local --project \"$PWD\" --family ui --family adapters",
-    "dev:npm": "oz-dev use remote --project \"$PWD\"",
+    "dev:uikit:local": "LOCAL_UI_PATH=${LOCAL_UI_PATH:-../openzeppelin-ui} && LOCAL_UI_PATH=\"$LOCAL_UI_PATH\" oz-ui-dev use local --project \"$PWD\" --family ui",
+    "dev:adapters:local": "LOCAL_ADAPTERS_PATH=${LOCAL_ADAPTERS_PATH:-../openzeppelin-adapters} && LOCAL_ADAPTERS_PATH=\"$LOCAL_ADAPTERS_PATH\" oz-ui-dev use local --project \"$PWD\" --family adapters",
+    "dev:local": "LOCAL_UI_PATH=${LOCAL_UI_PATH:-../openzeppelin-ui} && LOCAL_ADAPTERS_PATH=${LOCAL_ADAPTERS_PATH:-../openzeppelin-adapters} && LOCAL_UI_PATH=\"$LOCAL_UI_PATH\" LOCAL_ADAPTERS_PATH=\"$LOCAL_ADAPTERS_PATH\" oz-ui-dev use local --project \"$PWD\" --family ui --family adapters",
+    "dev:npm": "oz-ui-dev use remote --project \"$PWD\"",
     "docker:dev": "docker-compose up --build"
   },
   "lint-staged": {

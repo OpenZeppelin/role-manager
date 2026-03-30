@@ -29,7 +29,7 @@ pnpm dev
 
 ## How It Works
 
-The local development setup uses the published `oz-dev` CLI plus a config-driven `.pnpmfile.cjs` hook in this repo. The CLI builds and packs the selected families from your local source checkouts, and the pnpm hook rewrites dependencies to those packed artifacts during install.
+The local development setup uses the published `oz-ui-dev` CLI plus a config-driven `.pnpmfile.cjs` hook in this repo. The CLI builds and packs the selected families from your local source checkouts, and the pnpm hook rewrites dependencies to those packed artifacts during install.
 
 ### Directory Structure
 
@@ -63,7 +63,7 @@ The local development setup uses the published `oz-dev` CLI plus a config-driven
 pnpm dev:local
 ```
 
-This command delegates to the published `oz-dev` CLI. It builds the selected package families from your local `openzeppelin-ui` and `openzeppelin-adapters` checkouts, packs them into tarballs under `.packed-packages/local-dev`, and reinstalls Role Manager against those packed artifacts.
+This command delegates to the published `oz-ui-dev` CLI. It builds the selected package families from your local `openzeppelin-ui` and `openzeppelin-adapters` checkouts, packs them into tarballs under `.packed-packages/local-dev`, and reinstalls Role Manager against those packed artifacts.
 
 ### Switch to Local UI Packages Only
 
@@ -95,7 +95,7 @@ LOCAL_UI_PATH=/path/to/openzeppelin-ui LOCAL_ADAPTERS_PATH=/path/to/openzeppelin
 pnpm dev:npm
 ```
 
-This delegates to `oz-dev use remote`, which removes local manifests and reinstalls against published npm packages.
+This delegates to `oz-ui-dev use remote`, which removes local manifests and reinstalls against published npm packages.
 
 ## Development Workflow
 

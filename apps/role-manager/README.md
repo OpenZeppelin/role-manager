@@ -97,9 +97,9 @@ pnpm dev:npm
 
 ### How It Works
 
-The local development workflow uses the published `oz-dev` CLI plus the monorepo root [`readPackage` hook](https://pnpm.io/pnpmfile#hooksreadpackagepkg-context):
+The local development workflow uses the published `oz-ui-dev` CLI plus the monorepo root [`readPackage` hook](https://pnpm.io/pnpmfile#hooksreadpackagepkg-context):
 
-1. `pnpm dev:local` calls `oz-dev use local` through the published CLI package
+1. `pnpm dev:local` calls `oz-ui-dev use local` through the published CLI package
 2. The CLI builds and packs the selected families into `.packed-packages/local-dev`
 3. `.pnpmfile.cjs` rewrites `@openzeppelin/ui-*` and `@openzeppelin/adapter-*` dependencies to those packed tarballs during install
 
