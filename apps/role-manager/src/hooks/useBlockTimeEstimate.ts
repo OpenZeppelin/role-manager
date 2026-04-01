@@ -13,7 +13,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import type { ContractAdapter } from '@openzeppelin/ui-types';
+import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
 
 import { useCurrentBlock } from './useCurrentBlock';
 
@@ -162,7 +162,7 @@ function calculateAvgBlockTime(samples: BlockSample[]): number | null {
  * ```
  */
 export function useBlockTimeEstimate(
-  adapter: ContractAdapter | null,
+  adapter: RoleManagerAdapter | null,
   options?: UseBlockTimeEstimateOptions
 ): UseBlockTimeEstimateReturn {
   const {

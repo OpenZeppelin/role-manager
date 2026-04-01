@@ -12,12 +12,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import type {
-  AdminInfo,
-  ContractAdapter,
-  OwnershipInfo,
-  RoleAssignment,
-} from '@openzeppelin/ui-types';
+import type { AdminInfo, OwnershipInfo, RoleAssignment } from '@openzeppelin/ui-types';
+
+import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
 
 import { DataError, ErrorCategory, wrapError } from '../utils/errors';
 import { computeAdminRefetchInterval, postMutationRefetchInterval } from './mutationPolling';
@@ -171,7 +168,7 @@ export const adminInfoQueryKey = queryKeys.contractAdminInfo;
  * ```
  */
 export function useContractRoles(
-  adapter: ContractAdapter | null,
+  adapter: RoleManagerAdapter | null,
   contractAddress: string,
   isContractRegistered: boolean = true
 ): UseContractRolesReturn {
@@ -267,7 +264,7 @@ export function useContractRoles(
  * ```
  */
 export function useContractOwnership(
-  adapter: ContractAdapter | null,
+  adapter: RoleManagerAdapter | null,
   contractAddress: string,
   isContractRegistered: boolean = true,
   enabled: boolean = true
@@ -362,7 +359,7 @@ export function useContractOwnership(
  * ```
  */
 export function useContractAdminInfo(
-  adapter: ContractAdapter | null,
+  adapter: RoleManagerAdapter | null,
   contractAddress: string,
   isContractRegistered: boolean = true,
   enabled: boolean = true
@@ -452,7 +449,7 @@ const DEFAULT_PAGE_SIZE = 10;
  * @returns Object containing paginated roles and pagination controls
  */
 export function usePaginatedRoles(
-  adapter: ContractAdapter | null,
+  adapter: RoleManagerAdapter | null,
   contractAddress: string,
   options?: PaginationOptions
 ): UsePaginatedRolesReturn {

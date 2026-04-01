@@ -10,7 +10,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
-import type { ContractAdapter } from '@openzeppelin/ui-types';
+import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
 
 import type {
   HistoryQueryOptions,
@@ -84,7 +84,7 @@ const EMPTY_PAGE_INFO: PageInfo = {
  * ```
  */
 export function useContractHistory(
-  adapter: ContractAdapter | null,
+  adapter: RoleManagerAdapter | null,
   contractAddress: string,
   isContractRegistered: boolean = true,
   options?: HistoryQueryOptions

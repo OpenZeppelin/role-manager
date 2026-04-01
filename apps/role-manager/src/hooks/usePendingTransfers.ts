@@ -14,12 +14,13 @@
 import { useCallback, useMemo } from 'react';
 
 import type {
-  ContractAdapter,
   ExpirationMetadata,
   OwnershipInfo,
   PendingAdminTransfer,
   PendingOwnershipTransfer,
 } from '@openzeppelin/ui-types';
+
+import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
 
 import type { PendingTransfer, UsePendingTransfersReturn } from '../types/pending-transfers';
 import {
@@ -69,7 +70,7 @@ function transformOwnershipTransfer(
   pendingTransfer: PendingOwnershipTransfer,
   currentBlock: number | null,
   connectedAddress: string | null | undefined,
-  adapter: ContractAdapter | null,
+  adapter: RoleManagerAdapter | null,
   expirationMetadata: ExpirationMetadata | undefined
 ): PendingTransfer {
   const expirationBlock = pendingTransfer.expirationBlock ?? 0;
@@ -121,7 +122,7 @@ function transformAdminTransfer(
   pendingTransfer: PendingAdminTransfer,
   currentBlock: number | null,
   connectedAddress: string | null | undefined,
-  adapter: ContractAdapter | null,
+  adapter: RoleManagerAdapter | null,
   expirationMetadata: ExpirationMetadata | undefined
 ): PendingTransfer {
   const expirationBlock = pendingTransfer.expirationBlock ?? 0;

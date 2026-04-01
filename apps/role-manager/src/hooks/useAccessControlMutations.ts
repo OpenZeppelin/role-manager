@@ -26,13 +26,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type {
   AccessControlService,
-  ContractAdapter,
   ExecutionConfig,
   OperationResult,
   RoleAssignment,
   TransactionStatusUpdate,
   TxStatus,
 } from '@openzeppelin/ui-types';
+
+import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
 
 import { invalidationMap, type MutationType } from './invalidationMap';
 import { queryKeys } from './queryKeys';
@@ -228,7 +229,7 @@ interface FactoryConfig<TArgs> {
  * - Reset function
  */
 function useAccessControlMutationFactory<TArgs>(
-  adapter: ContractAdapter | null,
+  adapter: RoleManagerAdapter | null,
   contractAddress: string,
   config: FactoryConfig<TArgs>,
   options?: MutationHookOptions
@@ -424,7 +425,7 @@ function useAccessControlMutationFactory<TArgs>(
 // ============================================================================
 
 export function useGrantRole(
-  adapter: ContractAdapter | null,
+  adapter: RoleManagerAdapter | null,
   contractAddress: string,
   options?: MutationHookOptions
 ): UseAccessControlMutationReturn<GrantRoleArgs> {
@@ -448,7 +449,7 @@ export function useGrantRole(
 }
 
 export function useRevokeRole(
-  adapter: ContractAdapter | null,
+  adapter: RoleManagerAdapter | null,
   contractAddress: string,
   options?: MutationHookOptions
 ): UseAccessControlMutationReturn<RevokeRoleArgs> {
@@ -472,7 +473,7 @@ export function useRevokeRole(
 }
 
 export function useRenounceRole(
-  adapter: ContractAdapter | null,
+  adapter: RoleManagerAdapter | null,
   contractAddress: string,
   options?: MutationHookOptions
 ): UseAccessControlMutationReturn<RenounceRoleArgs> {
@@ -498,7 +499,7 @@ export function useRenounceRole(
 }
 
 export function useTransferOwnership(
-  adapter: ContractAdapter | null,
+  adapter: RoleManagerAdapter | null,
   contractAddress: string,
   options?: MutationHookOptions
 ): UseAccessControlMutationReturn<TransferOwnershipArgs> {
@@ -522,7 +523,7 @@ export function useTransferOwnership(
 }
 
 export function useAcceptOwnership(
-  adapter: ContractAdapter | null,
+  adapter: RoleManagerAdapter | null,
   contractAddress: string,
   options?: MutationHookOptions
 ): UseAccessControlMutationReturn<AcceptOwnershipArgs> {
@@ -546,7 +547,7 @@ export function useAcceptOwnership(
 }
 
 export function useRenounceOwnership(
-  adapter: ContractAdapter | null,
+  adapter: RoleManagerAdapter | null,
   contractAddress: string,
   options?: MutationHookOptions
 ): UseAccessControlMutationReturn<RenounceOwnershipArgs> {
@@ -570,7 +571,7 @@ export function useRenounceOwnership(
 }
 
 export function useTransferAdminRole(
-  adapter: ContractAdapter | null,
+  adapter: RoleManagerAdapter | null,
   contractAddress: string,
   options?: MutationHookOptions
 ): UseAccessControlMutationReturn<TransferAdminRoleArgs> {
@@ -596,7 +597,7 @@ export function useTransferAdminRole(
 }
 
 export function useAcceptAdminTransfer(
-  adapter: ContractAdapter | null,
+  adapter: RoleManagerAdapter | null,
   contractAddress: string,
   options?: MutationHookOptions
 ): UseAccessControlMutationReturn<AcceptAdminTransferArgs> {
@@ -622,7 +623,7 @@ export function useAcceptAdminTransfer(
 }
 
 export function useCancelAdminTransfer(
-  adapter: ContractAdapter | null,
+  adapter: RoleManagerAdapter | null,
   contractAddress: string,
   options?: MutationHookOptions
 ): UseAccessControlMutationReturn<CancelAdminTransferArgs> {
@@ -648,7 +649,7 @@ export function useCancelAdminTransfer(
 }
 
 export function useChangeAdminDelay(
-  adapter: ContractAdapter | null,
+  adapter: RoleManagerAdapter | null,
   contractAddress: string,
   options?: MutationHookOptions
 ): UseAccessControlMutationReturn<ChangeAdminDelayArgs> {
@@ -673,7 +674,7 @@ export function useChangeAdminDelay(
 }
 
 export function useRollbackAdminDelay(
-  adapter: ContractAdapter | null,
+  adapter: RoleManagerAdapter | null,
   contractAddress: string,
   options?: MutationHookOptions
 ): UseAccessControlMutationReturn<RollbackAdminDelayArgs> {
@@ -786,7 +787,7 @@ function downloadJson(data: unknown, filename: string): void {
 }
 
 export function useExportSnapshot(
-  adapter: ContractAdapter | null,
+  adapter: RoleManagerAdapter | null,
   contractAddress: string,
   options: ExportSnapshotOptions
 ): UseExportSnapshotReturn {

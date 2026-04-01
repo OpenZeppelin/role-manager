@@ -5,7 +5,7 @@
  * - Lightweight metadata (name, icon, description) is statically imported from
  *   each adapter's /metadata entry point. Available synchronously from the
  *   first render — no loading state for ecosystem pickers.
- * - Full adapter (networks, createAdapter) is lazy-loaded only when needed.
+ * - Full ecosystem definitions are lazy-loaded only when needed.
  */
 
 // Static metadata imports — tiny (~500 B each), available synchronously
@@ -13,13 +13,21 @@ import { ecosystemMetadata as evmMetadata } from '@openzeppelin/adapter-evm/meta
 import { ecosystemMetadata as polkadotMetadata } from '@openzeppelin/adapter-polkadot/metadata';
 import { ecosystemMetadata as stellarMetadata } from '@openzeppelin/adapter-stellar/metadata';
 import type {
-  ContractAdapter,
   Ecosystem,
   EcosystemExport,
   EcosystemMetadata,
   NetworkConfig,
+  OperatorEcosystemRuntime,
+  RelayerCapability,
 } from '@openzeppelin/ui-types';
 import { logger } from '@openzeppelin/ui-utils';
+
+import {
+  toRoleManagerAdapter,
+  type RoleManagerAdapter,
+  type RoleManagerRuntime,
+} from '../runtimeAdapter';
+import { createLegacyOperatorRuntime } from './legacyOperatorRuntime';
 
 // =============================================================================
 // Metadata Registry (synchronous — available from first render)
@@ -32,6 +40,40 @@ const ecosystemMetadataRegistry: Partial<Record<Ecosystem, EcosystemMetadata>> =
 };
 
 // =============================================================================
+type LegacyEcosystemExport = EcosystemExport & {
+  createAdapter?: (config: NetworkConfig) => unknown;
+};
+
+function attachRelayerCapability(
+  runtime: OperatorEcosystemRuntime,
+  relayerFactory: ((config: NetworkConfig) => RelayerCapability) | undefined
+): RoleManagerRuntime {
+  const runtimeWithMaybeRelayer = runtime as OperatorEcosystemRuntime & {
+    relayer?: RelayerCapability;
+  };
+
+  if (runtimeWithMaybeRelayer.relayer) {
+    return runtimeWithMaybeRelayer as RoleManagerRuntime;
+  }
+
+  if (!relayerFactory) {
+    throw new Error(
+      `Operator runtime for ${runtime.networkConfig.ecosystem} is missing relayer capability required by role-manager.`
+    );
+  }
+
+  const relayer = relayerFactory(runtime.networkConfig);
+
+  return {
+    ...runtime,
+    relayer,
+    dispose() {
+      relayer.dispose();
+      runtime.dispose();
+    },
+  };
+}
+
 // Full Adapter Module Loading (lazy — static switch required by Vite)
 // =============================================================================
 
@@ -191,9 +233,40 @@ export async function getNetworkById(id: string): Promise<NetworkConfig | undefi
 // Adapter Instantiation
 // =============================================================================
 
-export async function getAdapter(networkConfig: NetworkConfig): Promise<ContractAdapter> {
+export async function getRuntime(networkConfig: NetworkConfig): Promise<RoleManagerRuntime> {
   const def = await loadAdapterModule(networkConfig.ecosystem);
-  return def.createAdapter(networkConfig);
+
+  if (typeof def.createRuntime === 'function') {
+    const runtime = def.createRuntime('operator', networkConfig) as OperatorEcosystemRuntime;
+    return attachRelayerCapability(runtime, def.capabilities?.relayer);
+  }
+
+  const legacyDef = def as LegacyEcosystemExport;
+  if (typeof legacyDef.createAdapter === 'function') {
+    logger.warn(
+      'EcosystemManager(getRuntime)',
+      `Falling back to legacy createAdapter() for ecosystem ${networkConfig.ecosystem}.`
+    );
+    return createLegacyOperatorRuntime(
+      legacyDef.createAdapter(networkConfig) as Parameters<typeof createLegacyOperatorRuntime>[0],
+      legacyDef.networks
+    );
+  }
+
+  throw new Error(
+    `No runtime or adapter factory available for ecosystem ${networkConfig.ecosystem}`
+  );
+}
+
+export async function getAdapter(networkConfig: NetworkConfig): Promise<RoleManagerAdapter> {
+  const runtime = await getRuntime(networkConfig);
+  const adapter = toRoleManagerAdapter(runtime);
+
+  if (!adapter) {
+    throw new Error(`Failed to construct role-manager adapter for network ${networkConfig.id}`);
+  }
+
+  return adapter;
 }
 
 // =============================================================================

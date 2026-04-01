@@ -8,7 +8,9 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { PropsWithChildren } from 'react';
 
-import type { ContractAdapter, NetworkConfig } from '@openzeppelin/ui-types';
+import type { NetworkConfig } from '@openzeppelin/ui-types';
+
+import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
 
 import { ContractProvider } from '../../context/ContractContext';
 import type { ContractRecord } from '../../types/contracts';
@@ -36,10 +38,10 @@ const mockContract: ContractRecord = {
   updatedAt: new Date(),
 };
 
-const mockAdapter: ContractAdapter = {
+const mockAdapter: RoleManagerAdapter = {
   networkConfig: mockNetwork,
   isValidAddress: vi.fn().mockReturnValue(true),
-} as unknown as ContractAdapter;
+} as unknown as RoleManagerAdapter;
 
 // =============================================================================
 // Mocks
@@ -48,7 +50,7 @@ const mockAdapter: ContractAdapter = {
 const mocks = {
   networks: [mockNetwork],
   contracts: [mockContract],
-  adapter: mockAdapter as ContractAdapter | null,
+  adapter: mockAdapter as RoleManagerAdapter | null,
   isAdapterLoading: false,
 };
 

@@ -8,9 +8,9 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import type { ContractAdapter } from '@openzeppelin/ui-types';
 import { simpleHash } from '@openzeppelin/ui-utils';
 
+import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
 import type {
   CircuitBreakerState,
   SchemaLoadResult,
@@ -31,7 +31,7 @@ import { DEFAULT_CIRCUIT_BREAKER_CONFIG } from '@/types/schema';
  * @returns Hook state and functions
  */
 export function useContractSchemaLoader(
-  adapter: ContractAdapter | null
+  adapter: RoleManagerAdapter | null
 ): UseContractSchemaLoaderReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

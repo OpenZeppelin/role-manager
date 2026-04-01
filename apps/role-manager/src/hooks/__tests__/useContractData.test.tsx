@@ -11,11 +11,12 @@ import type { PropsWithChildren } from 'react';
 
 import type {
   AccessControlService,
-  ContractAdapter,
   NetworkConfig,
   OwnershipInfo,
   RoleAssignment,
 } from '@openzeppelin/ui-types';
+
+import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
 
 import { DataError, ErrorCategory } from '../../utils/errors';
 import { useContractOwnership, useContractRoles, usePaginatedRoles } from '../useContractData';
@@ -87,7 +88,9 @@ const createMockAccessControlService = (
   }) as AccessControlService;
 
 // Create mock adapter factory
-const createMockAdapter = (accessControlService?: AccessControlService | null): ContractAdapter => {
+const createMockAdapter = (
+  accessControlService?: AccessControlService | null
+): RoleManagerAdapter => {
   const mockService =
     accessControlService === null
       ? undefined
@@ -97,7 +100,7 @@ const createMockAdapter = (accessControlService?: AccessControlService | null): 
     networkConfig: mockNetworkConfig,
     isValidAddress: vi.fn().mockReturnValue(true),
     getAccessControlService: mockService ? vi.fn().mockReturnValue(mockService) : undefined,
-  } as unknown as ContractAdapter;
+  } as unknown as RoleManagerAdapter;
 };
 
 // React Query wrapper

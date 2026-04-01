@@ -428,7 +428,7 @@ function TransferAdminFormContent({
           }
           helperText="The address that will become the new admin of this contract."
           control={control}
-          adapter={adapter ?? undefined}
+          addressing={adapter ?? undefined}
           validation={{ required: true }}
         />
       </div>

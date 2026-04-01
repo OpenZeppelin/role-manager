@@ -1,3 +1,5 @@
+import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
+
 /**
  * Explorer URL Utilities
  *
@@ -5,8 +7,6 @@
  * These delegate to the adapter's explorer methods to handle different
  * URL patterns across chains (EVM, Stellar, etc.).
  */
-
-import type { ContractAdapter } from '@openzeppelin/ui-types';
 
 /**
  * Function type for generating explorer URLs.
@@ -26,7 +26,7 @@ export type GetExplorerUrlFn = (value: string) => string | null;
  * const url = getTransactionUrl('0x123...'); // "https://etherscan.io/tx/0x123..."
  * ```
  */
-export function createGetTransactionUrl(adapter: ContractAdapter | null): GetExplorerUrlFn {
+export function createGetTransactionUrl(adapter: RoleManagerAdapter | null): GetExplorerUrlFn {
   return (txHash: string): string | null => {
     if (!adapter) return null;
     return adapter.getExplorerTxUrl?.(txHash) ?? null;
@@ -45,7 +45,7 @@ export function createGetTransactionUrl(adapter: ContractAdapter | null): GetExp
  * const url = getAccountUrl('0xabc...'); // "https://etherscan.io/address/0xabc..."
  * ```
  */
-export function createGetAccountUrl(adapter: ContractAdapter | null): GetExplorerUrlFn {
+export function createGetAccountUrl(adapter: RoleManagerAdapter | null): GetExplorerUrlFn {
   return (address: string): string | null => {
     if (!adapter) return null;
     return adapter.getExplorerUrl?.(address) ?? null;

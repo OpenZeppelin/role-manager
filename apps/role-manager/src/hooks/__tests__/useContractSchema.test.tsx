@@ -7,8 +7,9 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ContractAdapter, ContractSchema } from '@openzeppelin/ui-types';
+import type { ContractSchema } from '@openzeppelin/ui-types';
 
+import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
 import type { ContractSchemaMetadata, RecentContractRecord } from '@/types/storage';
 
 import { useContractSchema } from '../useContractSchema';
@@ -106,7 +107,7 @@ const createMockRecord = (overrides?: Partial<RecentContractRecord>): RecentCont
   ...overrides,
 });
 
-const createMockAdapter = (overrides?: Partial<ContractAdapter>): ContractAdapter =>
+const createMockAdapter = (overrides?: Partial<RoleManagerAdapter>): RoleManagerAdapter =>
   ({
     networkConfig: {
       id: 'stellar-testnet',
@@ -133,7 +134,7 @@ const createMockAdapter = (overrides?: Partial<ContractAdapter>): ContractAdapte
       metadata: { rpcUrl: 'https://soroban-testnet.stellar.org' },
     }),
     ...overrides,
-  }) as unknown as ContractAdapter;
+  }) as unknown as RoleManagerAdapter;
 
 // =============================================================================
 // Tests

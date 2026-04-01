@@ -5,7 +5,9 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ContractAdapter, NetworkConfig } from '@openzeppelin/ui-types';
+import type { NetworkConfig } from '@openzeppelin/ui-types';
+
+import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
 
 import { useNetworkServiceHealthCheck } from '../useNetworkServiceHealthCheck';
 
@@ -44,13 +46,13 @@ const mockNetworkConfig: NetworkConfig = {
   isTestnet: false,
 } as NetworkConfig;
 
-function createMockAdapter(overrides: Partial<ContractAdapter> = {}): ContractAdapter {
+function createMockAdapter(overrides: Partial<RoleManagerAdapter> = {}): RoleManagerAdapter {
   return {
     getNetworkServiceForms: vi.fn(() => []),
     getDefaultServiceConfig: vi.fn(() => ({})),
     testNetworkServiceConnection: vi.fn(),
     ...overrides,
-  } as unknown as ContractAdapter;
+  } as unknown as RoleManagerAdapter;
 }
 
 const rpcForm = { id: 'rpc', label: 'RPC Endpoint', enabled: true, fields: [] };

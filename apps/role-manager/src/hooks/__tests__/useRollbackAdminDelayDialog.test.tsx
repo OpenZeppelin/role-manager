@@ -10,7 +10,7 @@ import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { PropsWithChildren } from 'react';
 
-import type { ContractAdapter } from '@openzeppelin/ui-types';
+import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
 
 import { useRollbackAdminDelayDialog } from '../useRollbackAdminDelayDialog';
 import { useSelectedContract } from '../useSelectedContract';
@@ -47,7 +47,7 @@ vi.mock('../useTransactionExecution', () => ({
   })),
 }));
 
-const mockAdapter = {} as ContractAdapter;
+const mockAdapter = {} as RoleManagerAdapter;
 
 const createWrapper = () => {
   const queryClient = new QueryClient({

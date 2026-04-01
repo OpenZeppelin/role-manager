@@ -7,12 +7,12 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ContractAdapter, NetworkConfig } from '@openzeppelin/ui-types';
+import type { NetworkConfig } from '@openzeppelin/ui-types';
 
 import { getEcosystemMetadata } from '@/core/ecosystems/ecosystemManager';
+import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
 
 import { useContractForm } from '../useContractForm';
-// Import after mock setup
 import { useNetworkAdapter } from '../useNetworkAdapter';
 
 // Mock the useNetworkAdapter hook
@@ -47,11 +47,11 @@ const mockStellarNetwork = {
   isTestnet: false,
 } as NetworkConfig;
 
-const mockAdapter: ContractAdapter = {
+const mockAdapter: RoleManagerAdapter = {
   networkConfig: mockEvmNetwork,
   isValidAddress: vi.fn(),
   getContract: vi.fn(),
-} as unknown as ContractAdapter;
+} as unknown as RoleManagerAdapter;
 
 describe('useContractForm', () => {
   beforeEach(() => {
@@ -266,7 +266,7 @@ describe('useContractForm', () => {
       const adapterWithValidation = {
         ...mockAdapter,
         isValidAddress: mockIsValidAddress,
-      } as unknown as ContractAdapter;
+      } as unknown as RoleManagerAdapter;
 
       mockUseNetworkAdapter.mockReturnValue({
         adapter: adapterWithValidation,
@@ -291,7 +291,7 @@ describe('useContractForm', () => {
       const adapterWithValidation = {
         ...mockAdapter,
         isValidAddress: mockIsValidAddress,
-      } as unknown as ContractAdapter;
+      } as unknown as RoleManagerAdapter;
 
       mockUseNetworkAdapter.mockReturnValue({
         adapter: adapterWithValidation,
@@ -315,7 +315,7 @@ describe('useContractForm', () => {
       const adapterWithValidation = {
         ...mockAdapter,
         isValidAddress: mockIsValidAddress,
-      } as unknown as ContractAdapter;
+      } as unknown as RoleManagerAdapter;
 
       mockUseNetworkAdapter.mockReturnValue({
         adapter: adapterWithValidation,
@@ -381,7 +381,7 @@ describe('useContractForm', () => {
       const adapterWithValidation = {
         ...mockAdapter,
         isValidAddress: mockIsValidAddress,
-      } as unknown as ContractAdapter;
+      } as unknown as RoleManagerAdapter;
 
       mockUseNetworkAdapter.mockReturnValue({
         adapter: adapterWithValidation,
@@ -425,18 +425,18 @@ describe('useContractForm', () => {
 
   // T008: EVM-specific address validation and error handling
   describe('EVM address validation', () => {
-    const mockEvmAdapter: ContractAdapter = {
+    const mockEvmAdapter: RoleManagerAdapter = {
       networkConfig: mockEvmNetwork,
       isValidAddress: vi.fn(),
       getContract: vi.fn(),
-    } as unknown as ContractAdapter;
+    } as unknown as RoleManagerAdapter;
 
     it('should accept valid EVM address (0x-prefixed, 42 chars)', () => {
       const validAddress = '0x1234567890abcdef1234567890abcdef12345678';
       const adapterWithValidation = {
         ...mockEvmAdapter,
         isValidAddress: vi.fn().mockReturnValue(true),
-      } as unknown as ContractAdapter;
+      } as unknown as RoleManagerAdapter;
 
       mockUseNetworkAdapter.mockReturnValue({
         adapter: adapterWithValidation,
@@ -460,7 +460,7 @@ describe('useContractForm', () => {
       const adapterWithValidation = {
         ...mockEvmAdapter,
         isValidAddress: vi.fn().mockReturnValue(false),
-      } as unknown as ContractAdapter;
+      } as unknown as RoleManagerAdapter;
 
       mockUseNetworkAdapter.mockReturnValue({
         adapter: adapterWithValidation,
@@ -484,7 +484,7 @@ describe('useContractForm', () => {
       const adapterWithValidation = {
         ...mockEvmAdapter,
         isValidAddress: vi.fn().mockReturnValue(false),
-      } as unknown as ContractAdapter;
+      } as unknown as RoleManagerAdapter;
 
       mockUseNetworkAdapter.mockReturnValue({
         adapter: adapterWithValidation,
@@ -506,7 +506,7 @@ describe('useContractForm', () => {
       const adapterWithValidation = {
         ...mockEvmAdapter,
         isValidAddress: vi.fn().mockReturnValue(false),
-      } as unknown as ContractAdapter;
+      } as unknown as RoleManagerAdapter;
 
       mockUseNetworkAdapter.mockReturnValue({
         adapter: adapterWithValidation,
@@ -604,7 +604,7 @@ describe('useContractForm', () => {
       const evmAdapter = {
         ...mockAdapter,
         isValidAddress: vi.fn().mockReturnValue(true),
-      } as unknown as ContractAdapter;
+      } as unknown as RoleManagerAdapter;
 
       // Start with Stellar adapter
       mockUseNetworkAdapter.mockReturnValue({

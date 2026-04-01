@@ -10,7 +10,9 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { PropsWithChildren } from 'react';
 
-import type { ContractAdapter, NetworkConfig } from '@openzeppelin/ui-types';
+import type { NetworkConfig } from '@openzeppelin/ui-types';
+
+import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
 
 import { useCurrentBlock } from '../useCurrentBlock';
 
@@ -25,11 +27,11 @@ const mockNetworkConfig: NetworkConfig = {
 } as NetworkConfig;
 
 // Create mock adapter factory
-const createMockAdapter = (getCurrentBlockFn?: () => Promise<number>): ContractAdapter => {
+const createMockAdapter = (getCurrentBlockFn?: () => Promise<number>): RoleManagerAdapter => {
   return {
     networkConfig: mockNetworkConfig,
     getCurrentBlock: getCurrentBlockFn ?? vi.fn().mockResolvedValue(12345),
-  } as unknown as ContractAdapter;
+  } as unknown as RoleManagerAdapter;
 };
 
 // React Query wrapper factory
@@ -257,7 +259,7 @@ describe('useCurrentBlock', () => {
         ...adapter1,
         networkConfig: { ...mockNetworkConfig, id: 'stellar-mainnet' },
         getCurrentBlock: getCurrentBlockFn2,
-      } as unknown as ContractAdapter;
+      } as unknown as RoleManagerAdapter;
 
       const { result, rerender } = renderHook(({ adapter }) => useCurrentBlock(adapter), {
         wrapper: createWrapper(),

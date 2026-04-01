@@ -407,7 +407,8 @@ export function AddContractForm({
                   key={field.id}
                   field={field}
                   control={control as unknown as Control<FormValues>}
-                  adapter={adapter}
+                  addressing={adapter}
+                  typeMapping={adapter}
                 />
               ))}
             </div>

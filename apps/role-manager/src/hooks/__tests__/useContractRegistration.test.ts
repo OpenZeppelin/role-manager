@@ -6,7 +6,9 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ContractAdapter, NetworkConfig } from '@openzeppelin/ui-types';
+import type { NetworkConfig } from '@openzeppelin/ui-types';
+
+import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
 
 import type { ContractRecord } from '../../types/contracts';
 import { useContractRegistration } from '../useContractRegistration';
@@ -64,7 +66,7 @@ const mockContractWithoutSchema: ContractRecord = {
 function createMockAdapter(options: {
   supportsRegistration?: boolean;
   registerContract?: ReturnType<typeof vi.fn>;
-}): ContractAdapter {
+}): RoleManagerAdapter {
   const { supportsRegistration = true, registerContract = vi.fn() } = options;
 
   const mockService = supportsRegistration
@@ -80,7 +82,7 @@ function createMockAdapter(options: {
     networkConfig: mockNetworkStellar,
     isValidAddress: vi.fn().mockReturnValue(true),
     getAccessControlService: vi.fn().mockReturnValue(mockService),
-  } as unknown as ContractAdapter;
+  } as unknown as RoleManagerAdapter;
 }
 
 // =============================================================================
@@ -254,7 +256,7 @@ describe('useContractRegistration', () => {
           registerContract: registerContractEvm,
           getCapabilities: vi.fn(),
         }),
-      } as unknown as ContractAdapter;
+      } as unknown as RoleManagerAdapter;
 
       const evmContract: ContractRecord = {
         ...mockContractWithSchema,

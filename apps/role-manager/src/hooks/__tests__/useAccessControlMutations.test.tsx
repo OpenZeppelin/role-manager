@@ -12,13 +12,14 @@ import type { PropsWithChildren } from 'react';
 
 import type {
   AccessControlService,
-  ContractAdapter,
   ExecutionConfig,
   NetworkConfig,
   OperationResult,
   TransactionStatusUpdate,
   TxStatus,
 } from '@openzeppelin/ui-types';
+
+import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
 
 import {
   useAcceptOwnership,
@@ -78,7 +79,9 @@ const createMockAccessControlService = (
   }) as AccessControlService;
 
 // Create mock adapter factory
-const createMockAdapter = (accessControlService?: AccessControlService | null): ContractAdapter => {
+const createMockAdapter = (
+  accessControlService?: AccessControlService | null
+): RoleManagerAdapter => {
   const mockService =
     accessControlService === null
       ? undefined
@@ -88,7 +91,7 @@ const createMockAdapter = (accessControlService?: AccessControlService | null): 
     networkConfig: mockNetworkConfig,
     isValidAddress: vi.fn().mockReturnValue(true),
     getAccessControlService: mockService ? vi.fn().mockReturnValue(mockService) : undefined,
-  } as unknown as ContractAdapter;
+  } as unknown as RoleManagerAdapter;
 };
 
 // Error class for network disconnection
@@ -130,7 +133,7 @@ const createWrapper = (queryClient?: QueryClient) => {
 
 describe('useGrantRole', () => {
   let mockService: AccessControlService;
-  let mockAdapter: ContractAdapter;
+  let mockAdapter: RoleManagerAdapter;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -594,7 +597,7 @@ describe('useGrantRole', () => {
 
 describe('useRevokeRole', () => {
   let mockService: AccessControlService;
-  let mockAdapter: ContractAdapter;
+  let mockAdapter: RoleManagerAdapter;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -759,7 +762,7 @@ describe('useRevokeRole', () => {
 
 describe('useTransferOwnership', () => {
   let mockService: AccessControlService;
-  let mockAdapter: ContractAdapter;
+  let mockAdapter: RoleManagerAdapter;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -1009,7 +1012,7 @@ describe('mutation hook integration', () => {
 
 describe('useExportSnapshot', () => {
   let mockService: AccessControlService;
-  let mockAdapter: ContractAdapter;
+  let mockAdapter: RoleManagerAdapter;
 
   const mockCapabilities = {
     hasOwnable: true,
@@ -1394,7 +1397,7 @@ describe('useExportSnapshot', () => {
 
 describe('useAcceptOwnership', () => {
   let mockService: AccessControlService;
-  let mockAdapter: ContractAdapter;
+  let mockAdapter: RoleManagerAdapter;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -1792,7 +1795,7 @@ describe('EVM Adapter: useGrantRole', () => {
       ...overrides,
     }) as AccessControlService;
 
-  const createEvmAdapter = (service?: AccessControlService | null): ContractAdapter => {
+  const createEvmAdapter = (service?: AccessControlService | null): RoleManagerAdapter => {
     const mockService = service === null ? undefined : (service ?? createEvmMockService());
 
     return {
@@ -1802,11 +1805,11 @@ describe('EVM Adapter: useGrantRole', () => {
         return /^0x[0-9a-fA-F]{40}$/.test(addr);
       }),
       getAccessControlService: mockService ? vi.fn().mockReturnValue(mockService) : undefined,
-    } as unknown as ContractAdapter;
+    } as unknown as RoleManagerAdapter;
   };
 
   let evmService: AccessControlService;
-  let evmAdapter: ContractAdapter;
+  let evmAdapter: RoleManagerAdapter;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -2123,7 +2126,7 @@ describe('EVM Adapter: useRevokeRole', () => {
       ...overrides,
     }) as AccessControlService;
 
-  const createEvmAdapter = (service?: AccessControlService | null): ContractAdapter => {
+  const createEvmAdapter = (service?: AccessControlService | null): RoleManagerAdapter => {
     const mockService = service === null ? undefined : (service ?? createEvmMockService());
 
     return {
@@ -2132,11 +2135,11 @@ describe('EVM Adapter: useRevokeRole', () => {
         return /^0x[0-9a-fA-F]{40}$/.test(addr);
       }),
       getAccessControlService: mockService ? vi.fn().mockReturnValue(mockService) : undefined,
-    } as unknown as ContractAdapter;
+    } as unknown as RoleManagerAdapter;
   };
 
   let evmService: AccessControlService;
-  let evmAdapter: ContractAdapter;
+  let evmAdapter: RoleManagerAdapter;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -2385,13 +2388,13 @@ describe('Cross-ecosystem: EVM and Stellar interoperability', () => {
   const createCrossEcosystemAdapter = (
     networkConfig: NetworkConfig,
     service?: AccessControlService
-  ): ContractAdapter => {
+  ): RoleManagerAdapter => {
     const mockService = service ?? createCrossEcosystemService();
     return {
       networkConfig,
       isValidAddress: vi.fn().mockReturnValue(true),
       getAccessControlService: vi.fn().mockReturnValue(mockService),
-    } as unknown as ContractAdapter;
+    } as unknown as RoleManagerAdapter;
   };
 
   it('should use the same hook interface for both EVM and Stellar grants', async () => {
@@ -2499,7 +2502,7 @@ describe('Cross-ecosystem: EVM and Stellar interoperability', () => {
 
 describe('useRenounceOwnership', () => {
   let mockService: AccessControlService;
-  let mockAdapter: ContractAdapter;
+  let mockAdapter: RoleManagerAdapter;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -2782,7 +2785,7 @@ describe('useRenounceOwnership', () => {
 
 describe('useRenounceRole', () => {
   let mockService: AccessControlService;
-  let mockAdapter: ContractAdapter;
+  let mockAdapter: RoleManagerAdapter;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -3109,7 +3112,7 @@ describe('useRenounceRole', () => {
 
 describe('useCancelAdminTransfer', () => {
   let mockService: AccessControlService;
-  let mockAdapter: ContractAdapter;
+  let mockAdapter: RoleManagerAdapter;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -3231,7 +3234,7 @@ describe('useCancelAdminTransfer', () => {
 
 describe('useChangeAdminDelay', () => {
   let mockService: AccessControlService;
-  let mockAdapter: ContractAdapter;
+  let mockAdapter: RoleManagerAdapter;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -3344,7 +3347,7 @@ describe('useChangeAdminDelay', () => {
 
 describe('useRollbackAdminDelay', () => {
   let mockService: AccessControlService;
-  let mockAdapter: ContractAdapter;
+  let mockAdapter: RoleManagerAdapter;
 
   beforeEach(() => {
     vi.clearAllMocks();

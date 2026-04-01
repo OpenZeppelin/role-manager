@@ -12,12 +12,13 @@ import type { PropsWithChildren } from 'react';
 
 import type {
   AccessControlService,
-  ContractAdapter,
   NetworkConfig,
   OperationResult,
   TransactionStatusUpdate,
   TxStatus,
 } from '@openzeppelin/ui-types';
+
+import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
 
 import { useAcceptOwnershipDialog } from '../useAcceptOwnershipDialog';
 
@@ -71,7 +72,9 @@ const createMockAccessControlService = (
   }) as AccessControlService;
 
 // Create mock adapter factory
-const createMockAdapter = (accessControlService?: AccessControlService | null): ContractAdapter => {
+const createMockAdapter = (
+  accessControlService?: AccessControlService | null
+): RoleManagerAdapter => {
   const mockService =
     accessControlService === null
       ? undefined
@@ -82,7 +85,7 @@ const createMockAdapter = (accessControlService?: AccessControlService | null): 
     isValidAddress: vi.fn().mockReturnValue(true),
     getAccessControlService: mockService ? vi.fn().mockReturnValue(mockService) : undefined,
     getCurrentBlock: vi.fn().mockResolvedValue(1000),
-  } as unknown as ContractAdapter;
+  } as unknown as RoleManagerAdapter;
 };
 
 // Mock useSelectedContract

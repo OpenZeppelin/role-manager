@@ -14,7 +14,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useCallback } from 'react';
 
-import type { ContractAdapter } from '@openzeppelin/ui-types';
+import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
 
 import { queryKeys } from './queryKeys';
 
@@ -82,7 +82,7 @@ export interface UseCurrentBlockReturn {
  * ```
  */
 export function useCurrentBlock(
-  adapter: ContractAdapter | null,
+  adapter: RoleManagerAdapter | null,
   options?: UseCurrentBlockOptions
 ): UseCurrentBlockReturn {
   const { pollInterval = DEFAULT_POLL_INTERVAL_MS, enabled = true } = options ?? {};

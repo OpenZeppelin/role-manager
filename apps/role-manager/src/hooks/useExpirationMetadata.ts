@@ -13,7 +13,9 @@
  */
 import { useQuery } from '@tanstack/react-query';
 
-import type { ContractAdapter, ExpirationMetadata } from '@openzeppelin/ui-types';
+import type { ExpirationMetadata } from '@openzeppelin/ui-types';
+
+import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
 
 import { queryKeys } from './queryKeys';
 import { useAccessControlService } from './useAccessControlService';
@@ -66,7 +68,7 @@ export const expirationMetadataQueryKey = queryKeys.expirationMetadata;
  * ```
  */
 export function useExpirationMetadata(
-  adapter: ContractAdapter | null,
+  adapter: RoleManagerAdapter | null,
   contractAddress: string,
   transferType: TransferType,
   options?: UseExpirationMetadataOptions

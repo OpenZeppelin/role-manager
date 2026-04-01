@@ -13,7 +13,9 @@ import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { type ReactNode } from 'react';
 
-import type { ContractAdapter, OwnershipInfo } from '@openzeppelin/ui-types';
+import type { OwnershipInfo } from '@openzeppelin/ui-types';
+
+import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
 
 import { DataError, ErrorCategory } from '../../utils/errors';
 import * as useContractDataModule from '../useContractData';
@@ -47,7 +49,7 @@ vi.mock('../useSelectedContract', () => ({
 
 describe('usePendingTransfers', () => {
   let queryClient: QueryClient;
-  let mockAdapter: ContractAdapter;
+  let mockAdapter: RoleManagerAdapter;
   const testAddress = '0x1234567890123456789012345678901234567890';
   const pendingOwnerAddress = '0xabcdef0123456789abcdef0123456789abcdef01';
   const currentOwnerAddress = '0x9999999999999999999999999999999999999999';
@@ -77,7 +79,7 @@ describe('usePendingTransfers', () => {
       ecosystem: 'stellar',
       getExplorerUrl: vi.fn(),
       createAccessControlService: vi.fn(),
-    } as unknown as ContractAdapter;
+    } as unknown as RoleManagerAdapter;
 
     vi.clearAllMocks();
 

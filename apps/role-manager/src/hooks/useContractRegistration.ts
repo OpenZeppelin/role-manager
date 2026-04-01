@@ -8,14 +8,10 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import type {
-  AccessControlService,
-  ContractAdapter,
-  ContractSchema,
-  NetworkConfig,
-} from '@openzeppelin/ui-types';
+import type { AccessControlService, ContractSchema, NetworkConfig } from '@openzeppelin/ui-types';
 import { logger } from '@openzeppelin/ui-utils';
 
+import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
 import type { ContractRecord } from '@/types/contracts';
 
 // =============================================================================
@@ -24,7 +20,7 @@ import type { ContractRecord } from '@/types/contracts';
 
 export interface UseContractRegistrationOptions {
   /** The loaded adapter for the selected network */
-  adapter: ContractAdapter | null;
+  adapter: RoleManagerAdapter | null;
   /** Whether the adapter is still loading */
   isAdapterLoading: boolean;
   /** Currently selected network */
@@ -105,12 +101,12 @@ export function useContractRegistration({
       return;
     }
 
-    // Get access control service from adapter
-    const service = adapter.getAccessControlService?.() as
+    // Access control lives directly on the runtime-backed adapter now.
+    const service = (adapter.accessControl ?? adapter.getAccessControlService?.()) as
       | (AccessControlService & {
           registerContract?: (address: string, schema: ContractSchema) => void;
         })
-      | undefined;
+      | null;
 
     // If adapter doesn't support registration, mark as registered anyway
     if (!service || typeof service.registerContract !== 'function') {

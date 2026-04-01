@@ -12,8 +12,10 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
-import type { ContractAdapter, RoleAssignment } from '@openzeppelin/ui-types';
+import type { RoleAssignment } from '@openzeppelin/ui-types';
 import { logger } from '@openzeppelin/ui-utils';
+
+import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
 
 import type { EnrichedRoleAssignment } from '../types/authorized-accounts';
 import { DataError, ErrorCategory, wrapError } from '../utils/errors';
@@ -77,7 +79,7 @@ export interface UseContractRolesEnrichedReturn {
  * ```
  */
 export function useContractRolesEnriched(
-  adapter: ContractAdapter | null,
+  adapter: RoleManagerAdapter | null,
   contractAddress: string,
   isContractRegistered: boolean = true
 ): UseContractRolesEnrichedReturn {

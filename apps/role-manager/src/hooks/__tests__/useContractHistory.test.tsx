@@ -16,11 +16,12 @@ import type { PropsWithChildren } from 'react';
 
 import type {
   AccessControlService,
-  ContractAdapter,
   HistoryEntry,
   NetworkConfig,
   PaginatedHistoryResult,
 } from '@openzeppelin/ui-types';
+
+import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
 
 import { DEFAULT_PAGE_SIZE, useContractHistory } from '../useContractHistory';
 
@@ -96,7 +97,9 @@ const createMockAccessControlService = (
     ...overrides,
   }) as AccessControlService;
 
-const createMockAdapter = (accessControlService?: AccessControlService | null): ContractAdapter => {
+const createMockAdapter = (
+  accessControlService?: AccessControlService | null
+): RoleManagerAdapter => {
   const mockService =
     accessControlService === null
       ? undefined
@@ -106,7 +109,7 @@ const createMockAdapter = (accessControlService?: AccessControlService | null): 
     networkConfig: mockNetworkConfig,
     isValidAddress: vi.fn().mockReturnValue(true),
     getAccessControlService: mockService ? vi.fn().mockReturnValue(mockService) : undefined,
-  } as unknown as ContractAdapter;
+  } as unknown as RoleManagerAdapter;
 };
 
 // =============================================================================

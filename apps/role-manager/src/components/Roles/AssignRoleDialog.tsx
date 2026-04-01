@@ -377,7 +377,7 @@ function AssignRoleFormContent({
           }
           helperText="The account address that will receive this role."
           control={control}
-          adapter={adapter ?? undefined}
+          addressing={adapter ?? undefined}
           validation={{ required: true }}
         />
       </div>

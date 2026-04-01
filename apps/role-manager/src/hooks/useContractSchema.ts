@@ -8,9 +8,10 @@
 
 import { useCallback, useRef, useState } from 'react';
 
-import type { ContractAdapter, ContractSchema } from '@openzeppelin/ui-types';
+import type { ContractSchema } from '@openzeppelin/ui-types';
 import { logger } from '@openzeppelin/ui-utils';
 
+import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
 import { recentContractsStorage } from '@/core/storage/RecentContractsStorage';
 import type {
   SchemaComparisonResult,
@@ -33,7 +34,7 @@ import { useContractSchemaLoader } from './useContractSchemaLoader';
  * @param adapter - The contract adapter to use for loading (or null)
  * @returns Hook state and functions
  */
-export function useContractSchema(adapter: ContractAdapter | null): UseContractSchemaReturn {
+export function useContractSchema(adapter: RoleManagerAdapter | null): UseContractSchemaReturn {
   const [state, setState] = useState<SchemaLoadingState>('idle');
   const [schema, setSchema] = useState<ContractSchema | null>(null);
   const [record, setRecord] = useState<RecentContractRecord | null>(null);

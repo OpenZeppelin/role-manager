@@ -8,7 +8,9 @@
 
 import { useMemo } from 'react';
 
-import type { AccessControlService, ContractAdapter } from '@openzeppelin/ui-types';
+import type { AccessControlService } from '@openzeppelin/ui-types';
+
+import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
 
 /**
  * Return type for useAccessControlService hook
@@ -41,7 +43,7 @@ export interface UseAccessControlServiceReturn {
  * ```
  */
 export function useAccessControlService(
-  adapter: ContractAdapter | null
+  adapter: RoleManagerAdapter | null
 ): UseAccessControlServiceReturn {
   // Memoize the service extraction to maintain stable reference
   const service = useMemo<AccessControlService | null>(() => {
@@ -49,12 +51,11 @@ export function useAccessControlService(
       return null;
     }
 
-    // Check if adapter supports access control operations
-    if (!adapter.getAccessControlService) {
-      return null;
+    if (adapter.accessControl) {
+      return adapter.accessControl;
     }
 
-    return adapter.getAccessControlService() ?? null;
+    return adapter.getAccessControlService?.() ?? null;
   }, [adapter]);
 
   const isReady = service !== null;

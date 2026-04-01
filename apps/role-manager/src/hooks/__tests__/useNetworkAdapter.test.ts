@@ -7,19 +7,19 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ContractAdapter, NetworkConfig } from '@openzeppelin/ui-types';
+import type { NetworkConfig } from '@openzeppelin/ui-types';
 
-// Import after mock setup
-import { getAdapter } from '@/core/ecosystems/ecosystemManager';
+import { getRuntime } from '@/core/ecosystems/ecosystemManager';
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 
 import { useNetworkAdapter } from '../useNetworkAdapter';
 
 // Mock the ecosystemManager module
 vi.mock('@/core/ecosystems/ecosystemManager', () => ({
-  getAdapter: vi.fn(),
+  getRuntime: vi.fn(),
 }));
 
-const mockGetAdapter = vi.mocked(getAdapter);
+const mockGetRuntime = vi.mocked(getRuntime);
 
 // Test fixtures - use partial type to avoid needing all NetworkConfig fields
 const mockNetworkConfig = {
@@ -31,17 +31,104 @@ const mockNetworkConfig = {
   isTestnet: false,
 } as NetworkConfig;
 
-const mockAdapter: ContractAdapter = {
-  networkConfig: mockNetworkConfig,
-  isValidAddress: vi.fn().mockReturnValue(true),
-  getContract: vi.fn(),
-  // Add minimal required adapter methods
-} as unknown as ContractAdapter;
+function createMockRuntime(config: NetworkConfig = mockNetworkConfig): RoleManagerRuntime {
+  return {
+    networkConfig: config,
+    addressing: {
+      isValidAddress: vi.fn().mockReturnValue(true),
+    },
+    explorer: {
+      getExplorerUrl: vi.fn().mockReturnValue(null),
+      getExplorerTxUrl: vi.fn().mockReturnValue(null),
+    },
+    networkCatalog: {
+      getNetworks: vi.fn().mockReturnValue([config]),
+    },
+    uiLabels: {
+      getUiLabels: vi.fn().mockReturnValue({}),
+    },
+    contractLoading: {
+      networkConfig: config,
+      dispose: vi.fn(),
+      loadContract: vi.fn(),
+      loadContractWithMetadata: vi.fn(),
+      getContractDefinitionInputs: vi.fn().mockReturnValue([]),
+    },
+    schema: {
+      networkConfig: config,
+      dispose: vi.fn(),
+      getWritableFunctions: vi.fn().mockReturnValue([]),
+      isViewFunction: vi.fn().mockReturnValue(false),
+      filterAutoQueryableFunctions: vi.fn((functions) => functions),
+    },
+    typeMapping: {
+      networkConfig: config,
+      dispose: vi.fn(),
+      mapParameterTypeToFieldType: vi.fn(),
+      getCompatibleFieldTypes: vi.fn().mockReturnValue([]),
+      generateDefaultField: vi.fn(),
+      getTypeMappingInfo: vi.fn().mockReturnValue({}),
+    },
+    query: {
+      networkConfig: config,
+      dispose: vi.fn(),
+      queryViewFunction: vi.fn(),
+      formatFunctionResult: vi.fn(),
+      getCurrentBlock: vi.fn(),
+    },
+    execution: {
+      networkConfig: config,
+      dispose: vi.fn(),
+      formatTransactionData: vi.fn(),
+      signAndBroadcast: vi.fn(),
+      getSupportedExecutionMethods: vi.fn().mockResolvedValue([]),
+      validateExecutionConfig: vi.fn().mockResolvedValue(true),
+    },
+    wallet: {
+      networkConfig: config,
+      dispose: vi.fn(),
+      supportsWalletConnection: vi.fn().mockReturnValue(true),
+      getAvailableConnectors: vi.fn().mockResolvedValue([]),
+      connectWallet: vi.fn(),
+      disconnectWallet: vi.fn(),
+      getWalletConnectionStatus: vi.fn(),
+    },
+    uiKit: {
+      networkConfig: config,
+      dispose: vi.fn(),
+      getAvailableUiKits: vi.fn().mockResolvedValue([]),
+    },
+    relayer: {
+      networkConfig: config,
+      dispose: vi.fn(),
+      getRelayers: vi.fn(),
+      getRelayer: vi.fn(),
+      getNetworkServiceForms: vi.fn().mockReturnValue([]),
+      getDefaultServiceConfig: vi.fn().mockReturnValue(null),
+    },
+    accessControl: {
+      networkConfig: config,
+      dispose: vi.fn(),
+      getCapabilities: vi.fn(),
+      getOwnership: vi.fn(),
+      getCurrentRoles: vi.fn(),
+      getCurrentRolesEnriched: vi.fn(),
+      grantRole: vi.fn(),
+      revokeRole: vi.fn(),
+      transferOwnership: vi.fn(),
+      exportSnapshot: vi.fn(),
+      getHistory: vi.fn(),
+    },
+    dispose: vi.fn(),
+  } as unknown as RoleManagerRuntime;
+}
+
+const mockRuntime = createMockRuntime();
 
 describe('useNetworkAdapter', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetAdapter.mockResolvedValue(mockAdapter);
+    mockGetRuntime.mockResolvedValue(mockRuntime);
   });
 
   afterEach(() => {
@@ -58,6 +145,8 @@ describe('useNetworkAdapter', () => {
     });
 
     it('should start with loading state when networkConfig is provided', () => {
+      mockGetRuntime.mockImplementationOnce(() => new Promise(() => {}));
+
       const { result } = renderHook(() => useNetworkAdapter(mockNetworkConfig));
 
       // Should be loading initially
@@ -74,8 +163,10 @@ describe('useNetworkAdapter', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      expect(mockGetAdapter).toHaveBeenCalledWith(mockNetworkConfig);
-      expect(result.current.adapter).toBe(mockAdapter);
+      expect(mockGetRuntime).toHaveBeenCalledWith(mockNetworkConfig);
+      expect(result.current.runtime).toBe(mockRuntime);
+      expect(result.current.adapter?.networkConfig).toEqual(mockNetworkConfig);
+      expect(result.current.adapter?.getAccessControlService?.()).toBe(mockRuntime.accessControl);
       expect(result.current.error).toBeNull();
     });
 
@@ -89,29 +180,58 @@ describe('useNetworkAdapter', () => {
         isTestnet: false,
       } as NetworkConfig;
 
-      const stellarAdapter = {
-        ...mockAdapter,
-        networkConfig: stellarConfig,
-      } as ContractAdapter;
+      const stellarRuntime = createMockRuntime(stellarConfig);
 
-      mockGetAdapter.mockResolvedValueOnce(mockAdapter).mockResolvedValueOnce(stellarAdapter);
+      mockGetRuntime.mockResolvedValueOnce(mockRuntime).mockResolvedValueOnce(stellarRuntime);
 
       const { result, rerender } = renderHook(({ config }) => useNetworkAdapter(config), {
         initialProps: { config: mockNetworkConfig },
       });
 
       await waitFor(() => {
-        expect(result.current.adapter).toBe(mockAdapter);
+        expect(result.current.runtime).toBe(mockRuntime);
       });
 
       // Change network config
       rerender({ config: stellarConfig });
 
       await waitFor(() => {
-        expect(result.current.adapter).toBe(stellarAdapter);
+        expect(result.current.runtime).toBe(stellarRuntime);
       });
 
-      expect(mockGetAdapter).toHaveBeenCalledTimes(2);
+      expect(result.current.adapter?.networkConfig).toEqual(stellarConfig);
+      expect(mockGetRuntime).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not dispose the previous runtime while switching networks', async () => {
+      const stellarConfig = {
+        id: 'stellar-mainnet',
+        name: 'Stellar Mainnet',
+        ecosystem: 'stellar',
+        network: 'stellar',
+        type: 'mainnet',
+        isTestnet: false,
+      } as NetworkConfig;
+
+      const stellarRuntime = createMockRuntime(stellarConfig);
+
+      mockGetRuntime.mockResolvedValueOnce(mockRuntime).mockResolvedValueOnce(stellarRuntime);
+
+      const { result, rerender } = renderHook(({ config }) => useNetworkAdapter(config), {
+        initialProps: { config: mockNetworkConfig },
+      });
+
+      await waitFor(() => {
+        expect(result.current.runtime).toBe(mockRuntime);
+      });
+
+      rerender({ config: stellarConfig });
+
+      await waitFor(() => {
+        expect(result.current.runtime).toBe(stellarRuntime);
+      });
+
+      expect(mockRuntime.dispose).not.toHaveBeenCalled();
     });
 
     it('should reset adapter to null when networkConfig becomes null', async () => {
@@ -120,21 +240,23 @@ describe('useNetworkAdapter', () => {
       });
 
       await waitFor(() => {
-        expect(result.current.adapter).toBe(mockAdapter);
+        expect(result.current.runtime).toBe(mockRuntime);
       });
 
       // Set config to null
       rerender({ config: null });
 
       expect(result.current.adapter).toBeNull();
+      expect(result.current.runtime).toBeNull();
       expect(result.current.isLoading).toBe(false);
+      expect(mockRuntime.dispose).not.toHaveBeenCalled();
     });
   });
 
   describe('error handling', () => {
     it('should set error state when adapter loading fails', async () => {
       const loadError = new Error('Failed to load adapter');
-      mockGetAdapter.mockRejectedValue(loadError);
+      mockGetRuntime.mockRejectedValue(loadError);
 
       const { result } = renderHook(() => useNetworkAdapter(mockNetworkConfig));
 
@@ -148,7 +270,7 @@ describe('useNetworkAdapter', () => {
 
     it('should clear error state when loading succeeds after retry', async () => {
       const loadError = new Error('Failed to load adapter');
-      mockGetAdapter.mockRejectedValueOnce(loadError).mockResolvedValueOnce(mockAdapter);
+      mockGetRuntime.mockRejectedValueOnce(loadError).mockResolvedValueOnce(mockRuntime);
 
       const { result } = renderHook(() => useNetworkAdapter(mockNetworkConfig));
 
@@ -163,7 +285,7 @@ describe('useNetworkAdapter', () => {
       });
 
       await waitFor(() => {
-        expect(result.current.adapter).toBe(mockAdapter);
+        expect(result.current.runtime).toBe(mockRuntime);
       });
 
       expect(result.current.error).toBeNull();
@@ -172,6 +294,8 @@ describe('useNetworkAdapter', () => {
 
   describe('retry functionality', () => {
     it('should provide retry function', () => {
+      mockGetRuntime.mockImplementationOnce(() => new Promise(() => {}));
+
       const { result } = renderHook(() => useNetworkAdapter(mockNetworkConfig));
 
       expect(result.current.retry).toBeDefined();
@@ -182,10 +306,10 @@ describe('useNetworkAdapter', () => {
       const { result } = renderHook(() => useNetworkAdapter(mockNetworkConfig));
 
       await waitFor(() => {
-        expect(result.current.adapter).toBe(mockAdapter);
+        expect(result.current.runtime).toBe(mockRuntime);
       });
 
-      expect(mockGetAdapter).toHaveBeenCalledTimes(1);
+      expect(mockGetRuntime).toHaveBeenCalledTimes(1);
 
       // Call retry
       act(() => {
@@ -193,7 +317,7 @@ describe('useNetworkAdapter', () => {
       });
 
       await waitFor(() => {
-        expect(mockGetAdapter).toHaveBeenCalledTimes(2);
+        expect(mockGetRuntime).toHaveBeenCalledTimes(2);
       });
     });
 
@@ -204,7 +328,7 @@ describe('useNetworkAdapter', () => {
         result.current.retry();
       });
 
-      expect(mockGetAdapter).not.toHaveBeenCalled();
+      expect(mockGetRuntime).not.toHaveBeenCalled();
     });
   });
 
@@ -218,9 +342,22 @@ describe('useNetworkAdapter', () => {
 
       // Verify return type shape
       expect(result.current).toHaveProperty('adapter');
+      expect(result.current).toHaveProperty('runtime');
       expect(result.current).toHaveProperty('isLoading');
       expect(result.current).toHaveProperty('error');
       expect(result.current).toHaveProperty('retry');
+    });
+
+    it('does not dispose the runtime on unmount', async () => {
+      const { result, unmount } = renderHook(() => useNetworkAdapter(mockNetworkConfig));
+
+      await waitFor(() => {
+        expect(result.current.runtime).toBe(mockRuntime);
+      });
+
+      unmount();
+
+      expect(mockRuntime.dispose).not.toHaveBeenCalled();
     });
   });
 });

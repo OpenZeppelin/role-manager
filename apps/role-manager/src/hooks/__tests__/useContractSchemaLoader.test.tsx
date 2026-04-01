@@ -7,8 +7,9 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ContractAdapter, ContractSchema, NetworkConfig } from '@openzeppelin/ui-types';
+import type { ContractSchema, NetworkConfig } from '@openzeppelin/ui-types';
 
+import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
 import type { SchemaLoadResult } from '@/types/schema';
 import { DEFAULT_CIRCUIT_BREAKER_CONFIG } from '@/types/schema';
 
@@ -51,7 +52,7 @@ const mockLoadResult = {
 };
 
 // Create mock adapter factory
-const createMockAdapter = (overrides?: Partial<ContractAdapter>): ContractAdapter =>
+const createMockAdapter = (overrides?: Partial<RoleManagerAdapter>): RoleManagerAdapter =>
   ({
     networkConfig: mockNetworkConfig,
     isValidAddress: vi.fn().mockReturnValue(true),
@@ -67,7 +68,7 @@ const createMockAdapter = (overrides?: Partial<ContractAdapter>): ContractAdapte
     ]),
     loadContractWithMetadata: vi.fn().mockResolvedValue(mockLoadResult),
     ...overrides,
-  }) as unknown as ContractAdapter;
+  }) as unknown as RoleManagerAdapter;
 
 describe('useContractSchemaLoader', () => {
   beforeEach(() => {

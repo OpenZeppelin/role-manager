@@ -6,15 +6,16 @@
  * handling loading states, errors, and retry functionality.
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import type { ContractAdapter, NetworkConfig } from '@openzeppelin/ui-types';
+import type { NetworkConfig } from '@openzeppelin/ui-types';
 
-import { getAdapter } from '@/core/ecosystems/ecosystemManager';
+import { getRuntime } from '@/core/ecosystems/ecosystemManager';
+import { toRoleManagerAdapter, type RoleManagerRuntime } from '@/core/runtimeAdapter';
 import type { UseNetworkAdapterReturn } from '@/types/contracts';
 
 /**
- * Hook that loads and provides a ContractAdapter for a given network configuration.
+ * Hook that loads and provides a RoleManagerAdapter for a given network configuration.
  *
  * @param networkConfig - The network configuration to load an adapter for, or null if no network selected
  * @returns Object containing the adapter, loading state, error, and retry function
@@ -31,39 +32,56 @@ import type { UseNetworkAdapterReturn } from '@/types/contracts';
  * ```
  */
 export function useNetworkAdapter(networkConfig: NetworkConfig | null): UseNetworkAdapterReturn {
-  const [adapter, setAdapter] = useState<ContractAdapter | null>(null);
+  const [runtime, setRuntime] = useState<RoleManagerRuntime | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
 
   // Track retry attempts to trigger re-fetching
   const [retryCount, setRetryCount] = useState(0);
 
-  const loadAdapter = useCallback(async (config: NetworkConfig) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const loadedAdapter = await getAdapter(config);
-      setAdapter(loadedAdapter);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to load adapter'));
-      setAdapter(null);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
+    let cancelled = false;
+
     if (!networkConfig) {
       // Reset state when no network is selected
-      setAdapter(null);
+      setRuntime(null);
       setIsLoading(false);
       setError(null);
       return;
     }
 
-    loadAdapter(networkConfig);
-  }, [networkConfig, loadAdapter, retryCount]);
+    setRuntime(null);
+    setIsLoading(true);
+    setError(null);
+
+    void getRuntime(networkConfig)
+      .then((loadedRuntime) => {
+        if (cancelled) {
+          return;
+        }
+
+        // Keep prior runtimes alive until their consumers naturally unmount. Eager disposal
+        // during network switches regressed the app by invalidating in-flight hooks/effects.
+        setRuntime(loadedRuntime);
+      })
+      .catch((err) => {
+        if (cancelled) {
+          return;
+        }
+
+        setError(err instanceof Error ? err : new Error('Failed to load runtime'));
+        setRuntime(null);
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [networkConfig, retryCount]);
 
   const retry = useCallback(() => {
     if (networkConfig) {
@@ -71,7 +89,10 @@ export function useNetworkAdapter(networkConfig: NetworkConfig | null): UseNetwo
     }
   }, [networkConfig]);
 
+  const adapter = useMemo(() => toRoleManagerAdapter(runtime), [runtime]);
+
   return {
+    runtime,
     adapter,
     isLoading,
     error,

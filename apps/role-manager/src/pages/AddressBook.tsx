@@ -59,7 +59,7 @@ export function AddressBook() {
     [adapter]
   );
 
-  const resolveAdapter = useCallback(async (network: NetworkConfig) => getAdapter(network), []);
+  const resolveAddressing = useCallback(async (network: NetworkConfig) => getAdapter(network), []);
 
   const resolveAddressPlaceholder = useCallback(
     (network: NetworkConfig) => getEcosystemMetadata(network.ecosystem)?.addressExample ?? '0x...',
@@ -76,8 +76,8 @@ export function AddressBook() {
         {...widgetProps}
         resolveNetwork={resolveNetwork}
         resolveExplorerUrl={resolveExplorerUrl}
-        adapter={adapter ?? undefined}
-        resolveAdapter={resolveAdapter}
+        addressing={adapter ?? undefined}
+        resolveAddressing={resolveAddressing}
         addressPlaceholder={addressPlaceholder}
         resolveAddressPlaceholder={resolveAddressPlaceholder}
         networks={networks}

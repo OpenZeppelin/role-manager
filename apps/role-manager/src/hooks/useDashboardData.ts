@@ -13,7 +13,7 @@
 
 import { useCallback, useMemo, useState } from 'react';
 
-import type { ContractAdapter } from '@openzeppelin/ui-types';
+import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
 
 import type { UseDashboardDataReturn } from '../types/dashboard';
 import { getUniqueAccountsCount } from '../utils/deduplication';
@@ -83,7 +83,7 @@ export interface UseDashboardDataOptions {
  * ```
  */
 export function useDashboardData(
-  adapter: ContractAdapter | null,
+  adapter: RoleManagerAdapter | null,
   contractAddress: string,
   options: UseDashboardDataOptions
 ): UseDashboardDataReturn {

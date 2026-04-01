@@ -11,7 +11,9 @@ import { renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { PropsWithChildren } from 'react';
 
-import type { ContractAdapter, NetworkConfig } from '@openzeppelin/ui-types';
+import type { NetworkConfig } from '@openzeppelin/ui-types';
+
+import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
 
 import { useBlockTimeEstimate } from '../useBlockTimeEstimate';
 
@@ -31,11 +33,11 @@ const mockNetworkConfig: NetworkConfig = {
 // Track the current block for controlled testing
 let mockCurrentBlock = 100;
 
-const createMockAdapter = (): ContractAdapter => {
+const createMockAdapter = (): RoleManagerAdapter => {
   return {
     networkConfig: mockNetworkConfig,
     getCurrentBlock: vi.fn().mockImplementation(() => Promise.resolve(mockCurrentBlock)),
-  } as unknown as ContractAdapter;
+  } as unknown as RoleManagerAdapter;
 };
 
 // React Query wrapper factory

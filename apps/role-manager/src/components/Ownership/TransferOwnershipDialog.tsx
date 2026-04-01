@@ -428,7 +428,7 @@ function TransferOwnershipFormContent({
           }
           helperText="The address that will become the new owner of this contract."
           control={control}
-          adapter={adapter ?? undefined}
+          addressing={adapter ?? undefined}
           validation={{ required: true }}
         />
       </div>

@@ -68,6 +68,7 @@ export function useSelectedContract(): UseSelectedContractReturn {
     setSelectedContract: context.setSelectedContract,
     selectedNetwork: context.selectedNetwork,
     setSelectedNetwork: context.setSelectedNetwork,
+    runtime: context.runtime,
     adapter: context.adapter,
     isAdapterLoading: context.isAdapterLoading,
     contracts: context.contracts,

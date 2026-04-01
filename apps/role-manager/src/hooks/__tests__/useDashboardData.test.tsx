@@ -11,7 +11,9 @@ import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { type ReactNode } from 'react';
 
-import type { ContractAdapter, OwnershipInfo } from '@openzeppelin/ui-types';
+import type { OwnershipInfo } from '@openzeppelin/ui-types';
+
+import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
 
 import type { EnrichedRoleAssignment } from '../../types/authorized-accounts';
 import { DataError, ErrorCategory } from '../../utils/errors';
@@ -46,7 +48,7 @@ vi.mock('../useContractRolesEnriched', () => ({
 
 describe('useDashboardData', () => {
   let queryClient: QueryClient;
-  let mockAdapter: ContractAdapter;
+  let mockAdapter: RoleManagerAdapter;
   const testAddress = '0x1234567890123456789012345678901234567890';
 
   // Default options for tests
@@ -72,7 +74,7 @@ describe('useDashboardData', () => {
       ecosystem: 'stellar',
       getExplorerUrl: vi.fn(),
       createAccessControlService: vi.fn(),
-    } as unknown as ContractAdapter;
+    } as unknown as RoleManagerAdapter;
 
     vi.clearAllMocks();
 
