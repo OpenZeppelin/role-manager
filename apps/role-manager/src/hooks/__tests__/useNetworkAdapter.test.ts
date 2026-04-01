@@ -19,6 +19,10 @@ vi.mock('@/core/ecosystems/ecosystemManager', () => ({
   getRuntime: vi.fn(),
 }));
 
+vi.mock('@openzeppelin/ui-utils', () => ({
+  logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() },
+}));
+
 const mockGetRuntime = vi.mocked(getRuntime);
 
 // Test fixtures - use partial type to avoid needing all NetworkConfig fields
@@ -203,7 +207,8 @@ describe('useNetworkAdapter', () => {
       expect(mockGetRuntime).toHaveBeenCalledTimes(2);
     });
 
-    it('does not dispose the previous runtime while switching networks', async () => {
+    it('disposes the previous runtime after the replacement is promoted', async () => {
+      vi.useFakeTimers();
       const stellarConfig = {
         id: 'stellar-mainnet',
         name: 'Stellar Mainnet',
@@ -221,35 +226,90 @@ describe('useNetworkAdapter', () => {
         initialProps: { config: mockNetworkConfig },
       });
 
+      await vi.advanceTimersByTimeAsync(0);
       await waitFor(() => {
         expect(result.current.runtime).toBe(mockRuntime);
       });
 
+      expect(mockRuntime.dispose).not.toHaveBeenCalled();
+
       rerender({ config: stellarConfig });
 
+      await vi.advanceTimersByTimeAsync(0);
       await waitFor(() => {
         expect(result.current.runtime).toBe(stellarRuntime);
       });
 
-      expect(mockRuntime.dispose).not.toHaveBeenCalled();
+      await vi.advanceTimersByTimeAsync(0);
+      expect(mockRuntime.dispose).toHaveBeenCalledTimes(1);
+      vi.useRealTimers();
     });
 
-    it('should reset adapter to null when networkConfig becomes null', async () => {
+    it('should reset adapter to null and dispose the runtime when networkConfig becomes null', async () => {
+      vi.useFakeTimers();
       const { result, rerender } = renderHook(({ config }) => useNetworkAdapter(config), {
         initialProps: { config: mockNetworkConfig as NetworkConfig | null },
       });
 
+      await vi.advanceTimersByTimeAsync(0);
       await waitFor(() => {
         expect(result.current.runtime).toBe(mockRuntime);
       });
 
-      // Set config to null
       rerender({ config: null });
 
       expect(result.current.adapter).toBeNull();
       expect(result.current.runtime).toBeNull();
       expect(result.current.isLoading).toBe(false);
-      expect(mockRuntime.dispose).not.toHaveBeenCalled();
+
+      await vi.advanceTimersByTimeAsync(0);
+      expect(mockRuntime.dispose).toHaveBeenCalledTimes(1);
+      vi.useRealTimers();
+    });
+
+    it('disposes a runtime that finishes loading after the effect was cancelled', async () => {
+      vi.useFakeTimers();
+      const stellarConfig = {
+        id: 'stellar-mainnet',
+        name: 'Stellar Mainnet',
+        ecosystem: 'stellar',
+        network: 'stellar',
+        type: 'mainnet',
+        isTestnet: false,
+      } as NetworkConfig;
+
+      const stellarRuntime = createMockRuntime(stellarConfig);
+      let resolveEvm: (r: RoleManagerRuntime) => void;
+
+      mockGetRuntime
+        .mockImplementationOnce(
+          () =>
+            new Promise<RoleManagerRuntime>((resolve) => {
+              resolveEvm = resolve;
+            })
+        )
+        .mockResolvedValueOnce(stellarRuntime);
+
+      const { result, rerender } = renderHook(({ config }) => useNetworkAdapter(config), {
+        initialProps: { config: mockNetworkConfig as NetworkConfig | null },
+      });
+
+      rerender({ config: stellarConfig });
+
+      await vi.advanceTimersByTimeAsync(0);
+      await waitFor(() => {
+        expect(result.current.runtime).toBe(stellarRuntime);
+      });
+
+      act(() => {
+        resolveEvm!(mockRuntime);
+      });
+
+      await vi.advanceTimersByTimeAsync(0);
+      expect(mockRuntime.dispose).toHaveBeenCalledTimes(1);
+
+      expect(result.current.runtime).toBe(stellarRuntime);
+      vi.useRealTimers();
     });
   });
 
@@ -348,16 +408,20 @@ describe('useNetworkAdapter', () => {
       expect(result.current).toHaveProperty('retry');
     });
 
-    it('does not dispose the runtime on unmount', async () => {
+    it('disposes the runtime on unmount', async () => {
+      vi.useFakeTimers();
       const { result, unmount } = renderHook(() => useNetworkAdapter(mockNetworkConfig));
 
+      await vi.advanceTimersByTimeAsync(0);
       await waitFor(() => {
         expect(result.current.runtime).toBe(mockRuntime);
       });
 
       unmount();
 
-      expect(mockRuntime.dispose).not.toHaveBeenCalled();
+      await vi.advanceTimersByTimeAsync(0);
+      expect(mockRuntime.dispose).toHaveBeenCalledTimes(1);
+      vi.useRealTimers();
     });
   });
 });

@@ -4,15 +4,36 @@
  *
  * Provides a contract adapter for a given network configuration,
  * handling loading states, errors, and retry functionality.
+ *
+ * Lifecycle: superseded runtimes are disposed after their replacement has been
+ * promoted to state, following the same promote-then-dispose handoff used in
+ * the shared RuntimeProvider/WalletStateProvider layer. Runtimes that finish
+ * loading after their effect has been cancelled are disposed immediately.
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { NetworkConfig } from '@openzeppelin/ui-types';
+import { logger } from '@openzeppelin/ui-utils';
 
 import { getRuntime } from '@/core/ecosystems/ecosystemManager';
 import { toRoleManagerAdapter, type RoleManagerRuntime } from '@/core/runtimeAdapter';
 import type { UseNetworkAdapterReturn } from '@/types/contracts';
+
+/**
+ * Defers disposal to the next macrotask so React's commit phase (including
+ * development-mode prop diffing) can finish reading the old runtime's
+ * properties without hitting the RuntimeDisposedError proxy trap.
+ */
+function safeDispose(runtime: RoleManagerRuntime, label: string): void {
+  setTimeout(() => {
+    try {
+      runtime.dispose();
+    } catch (err) {
+      logger.error('useNetworkAdapter', `Error disposing runtime (${label}):`, err);
+    }
+  }, 0);
+}
 
 /**
  * Hook that loads and provides a RoleManagerAdapter for a given network configuration.
@@ -39,14 +60,23 @@ export function useNetworkAdapter(networkConfig: NetworkConfig | null): UseNetwo
   // Track retry attempts to trigger re-fetching
   const [retryCount, setRetryCount] = useState(0);
 
+  // Ref to the currently promoted runtime for lifecycle management.
+  // This allows disposal of the superseded runtime after its replacement is in state.
+  const promotedRuntimeRef = useRef<RoleManagerRuntime | null>(null);
+
   useEffect(() => {
     let cancelled = false;
 
     if (!networkConfig) {
-      // Reset state when no network is selected
+      const prev = promotedRuntimeRef.current;
       setRuntime(null);
       setIsLoading(false);
       setError(null);
+
+      if (prev) {
+        safeDispose(prev, 'network cleared');
+        promotedRuntimeRef.current = null;
+      }
       return;
     }
 
@@ -57,12 +87,17 @@ export function useNetworkAdapter(networkConfig: NetworkConfig | null): UseNetwo
     void getRuntime(networkConfig)
       .then((loadedRuntime) => {
         if (cancelled) {
+          safeDispose(loadedRuntime, 'cancelled load');
           return;
         }
 
-        // Keep prior runtimes alive until their consumers naturally unmount. Eager disposal
-        // during network switches regressed the app by invalidating in-flight hooks/effects.
+        const prev = promotedRuntimeRef.current;
         setRuntime(loadedRuntime);
+        promotedRuntimeRef.current = loadedRuntime;
+
+        if (prev && prev !== loadedRuntime) {
+          safeDispose(prev, `superseded by ${networkConfig.id}`);
+        }
       })
       .catch((err) => {
         if (cancelled) {
@@ -82,6 +117,16 @@ export function useNetworkAdapter(networkConfig: NetworkConfig | null): UseNetwo
       cancelled = true;
     };
   }, [networkConfig, retryCount]);
+
+  // Dispose the active runtime on unmount.
+  useEffect(() => {
+    return () => {
+      if (promotedRuntimeRef.current) {
+        safeDispose(promotedRuntimeRef.current, 'unmount');
+        promotedRuntimeRef.current = null;
+      }
+    };
+  }, []);
 
   const retry = useCallback(() => {
     if (networkConfig) {
