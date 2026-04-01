@@ -27,7 +27,6 @@ import {
   type RoleManagerAdapter,
   type RoleManagerRuntime,
 } from '../runtimeAdapter';
-import { createLegacyOperatorRuntime } from './legacyOperatorRuntime';
 
 // =============================================================================
 // Metadata Registry (synchronous — available from first render)
@@ -40,10 +39,6 @@ const ecosystemMetadataRegistry: Partial<Record<Ecosystem, EcosystemMetadata>> =
 };
 
 // =============================================================================
-type LegacyEcosystemExport = EcosystemExport & {
-  createAdapter?: (config: NetworkConfig) => unknown;
-};
-
 function attachRelayerCapability(
   runtime: OperatorEcosystemRuntime,
   relayerFactory: ((config: NetworkConfig) => RelayerCapability) | undefined
@@ -236,26 +231,14 @@ export async function getNetworkById(id: string): Promise<NetworkConfig | undefi
 export async function getRuntime(networkConfig: NetworkConfig): Promise<RoleManagerRuntime> {
   const def = await loadAdapterModule(networkConfig.ecosystem);
 
-  if (typeof def.createRuntime === 'function') {
-    const runtime = def.createRuntime('operator', networkConfig) as OperatorEcosystemRuntime;
-    return attachRelayerCapability(runtime, def.capabilities?.relayer);
-  }
-
-  const legacyDef = def as LegacyEcosystemExport;
-  if (typeof legacyDef.createAdapter === 'function') {
-    logger.warn(
-      'EcosystemManager(getRuntime)',
-      `Falling back to legacy createAdapter() for ecosystem ${networkConfig.ecosystem}.`
-    );
-    return createLegacyOperatorRuntime(
-      legacyDef.createAdapter(networkConfig) as Parameters<typeof createLegacyOperatorRuntime>[0],
-      legacyDef.networks
+  if (typeof def.createRuntime !== 'function') {
+    throw new Error(
+      `Ecosystem export for ${networkConfig.ecosystem} is missing createRuntime (operator profile).`
     );
   }
 
-  throw new Error(
-    `No runtime or adapter factory available for ecosystem ${networkConfig.ecosystem}`
-  );
+  const runtime = def.createRuntime('operator', networkConfig) as OperatorEcosystemRuntime;
+  return attachRelayerCapability(runtime, def.capabilities?.relayer);
 }
 
 export async function getAdapter(networkConfig: NetworkConfig): Promise<RoleManagerAdapter> {

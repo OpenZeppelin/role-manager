@@ -34,6 +34,7 @@ const STANDARD_FAMILIES = {
     packageMap: {
       '@openzeppelin/adapters-vite': 'packages/adapters-vite',
       '@openzeppelin/adapter-runtime-utils': 'packages/adapter-runtime-utils',
+      '@openzeppelin/adapter-evm-core': 'packages/adapter-evm-core',
       '@openzeppelin/adapter-evm': 'packages/adapter-evm',
       '@openzeppelin/adapter-midnight': 'packages/adapter-midnight',
       '@openzeppelin/adapter-polkadot': 'packages/adapter-polkadot',
