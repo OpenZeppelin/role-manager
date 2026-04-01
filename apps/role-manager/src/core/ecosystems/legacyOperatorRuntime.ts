@@ -111,7 +111,14 @@ interface LegacyOperatorAdapter
   getAccessControlService?: () => AccessControlService | null;
 }
 
-type DisposableAccessControlService = AccessControlService & { dispose?: () => void };
+type DisposableAccessControlService = AccessControlService & {
+  dispose?: () => void;
+  registerContract?: (
+    contractAddress: string,
+    contractSchema: unknown,
+    knownRoleIds?: string[]
+  ) => void;
+};
 
 function bindMethod<T extends object, TMethod extends keyof T>(target: T, method: TMethod) {
   const value = target[method];
@@ -144,6 +151,7 @@ function createLegacyAccessControlCapability(
     dispose: () => {
       service.dispose?.();
     },
+    registerContract: service.registerContract?.bind(service),
     getCapabilities: bindMethod(service, 'getCapabilities'),
     getOwnership: bindMethod(service, 'getOwnership'),
     getCurrentRoles: bindMethod(service, 'getCurrentRoles'),
