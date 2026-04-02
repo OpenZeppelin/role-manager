@@ -142,6 +142,7 @@ export function WalletSyncProvider({ children }: WalletSyncProviderProps): React
       lastSyncedNetworkIdRef.current = newNetworkId;
       setActiveNetworkId(newNetworkId);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally tracking only selectedNetwork.id to avoid re-running on object reference changes
   }, [selectedNetwork?.id, setActiveNetworkId]);
 
   // Watch for runtime ready state (follows UI Builder pattern)
