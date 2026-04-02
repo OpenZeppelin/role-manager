@@ -7,7 +7,7 @@
 
 import type { NetworkConfig } from '@openzeppelin/ui-types';
 
-import type { RoleManagerAdapter, RoleManagerRuntime } from '@/core/runtimeAdapter';
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 
 import type { RecentContractRecord } from './storage';
 
@@ -113,10 +113,10 @@ export interface UseContractFormReturn {
   selectedNetwork: NetworkConfig | null;
   /** Set the selected network */
   setSelectedNetwork: (network: NetworkConfig | null) => void;
-  /** Current adapter for the selected network */
-  adapter: RoleManagerAdapter | null;
-  /** Whether adapter is loading */
-  isAdapterLoading: boolean;
+  /** Current runtime for the selected network */
+  runtime: RoleManagerRuntime | null;
+  /** Whether runtime is loading */
+  isRuntimeLoading: boolean;
   /** Address placeholder text based on selected network */
   addressPlaceholder: string;
   /** Reset form to initial state */
@@ -128,14 +128,12 @@ export interface UseContractFormReturn {
  */
 export interface UseNetworkAdapterReturn {
   /** The loaded runtime, or null if not loaded */
-  runtime?: RoleManagerRuntime | null;
-  /** The loaded adapter, or null if not loaded */
-  adapter: RoleManagerAdapter | null;
-  /** Whether the adapter is currently loading */
+  runtime: RoleManagerRuntime | null;
+  /** Whether the runtime is currently loading */
   isLoading: boolean;
-  /** Error if adapter failed to load */
+  /** Error if runtime failed to load */
   error: Error | null;
-  /** Retry loading the adapter (after error) */
+  /** Retry loading the runtime (after error) */
   retry: () => void;
 }
 

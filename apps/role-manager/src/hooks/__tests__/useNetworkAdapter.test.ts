@@ -140,10 +140,10 @@ describe('useNetworkAdapter', () => {
   });
 
   describe('initialization', () => {
-    it('should return null adapter when networkConfig is null', () => {
+    it('should return null runtime when networkConfig is null', () => {
       const { result } = renderHook(() => useNetworkAdapter(null));
 
-      expect(result.current.adapter).toBeNull();
+      expect(result.current.runtime).toBeNull();
       expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBeNull();
     });
@@ -155,12 +155,12 @@ describe('useNetworkAdapter', () => {
 
       // Should be loading initially
       expect(result.current.isLoading).toBe(true);
-      expect(result.current.adapter).toBeNull();
+      expect(result.current.runtime).toBeNull();
     });
   });
 
-  describe('adapter loading', () => {
-    it('should load adapter for given network config', async () => {
+  describe('runtime loading', () => {
+    it('should load runtime for given network config', async () => {
       const { result } = renderHook(() => useNetworkAdapter(mockNetworkConfig));
 
       await waitFor(() => {
@@ -169,12 +169,10 @@ describe('useNetworkAdapter', () => {
 
       expect(mockGetRuntime).toHaveBeenCalledWith(mockNetworkConfig);
       expect(result.current.runtime).toBe(mockRuntime);
-      expect(result.current.adapter?.networkConfig).toEqual(mockNetworkConfig);
-      expect(result.current.adapter?.getAccessControlService?.()).toBe(mockRuntime.accessControl);
       expect(result.current.error).toBeNull();
     });
 
-    it('should update adapter when networkConfig changes', async () => {
+    it('should update runtime when networkConfig changes', async () => {
       const stellarConfig = {
         id: 'stellar-mainnet',
         name: 'Stellar Mainnet',
@@ -203,7 +201,7 @@ describe('useNetworkAdapter', () => {
         expect(result.current.runtime).toBe(stellarRuntime);
       });
 
-      expect(result.current.adapter?.networkConfig).toEqual(stellarConfig);
+      expect(result.current.runtime?.networkConfig).toEqual(stellarConfig);
       expect(mockGetRuntime).toHaveBeenCalledTimes(2);
     });
 
@@ -245,7 +243,7 @@ describe('useNetworkAdapter', () => {
       vi.useRealTimers();
     });
 
-    it('should reset adapter to null and dispose the runtime when networkConfig becomes null', async () => {
+    it('should reset runtime to null and dispose when networkConfig becomes null', async () => {
       vi.useFakeTimers();
       const { result, rerender } = renderHook(({ config }) => useNetworkAdapter(config), {
         initialProps: { config: mockNetworkConfig as NetworkConfig | null },
@@ -258,7 +256,6 @@ describe('useNetworkAdapter', () => {
 
       rerender({ config: null });
 
-      expect(result.current.adapter).toBeNull();
       expect(result.current.runtime).toBeNull();
       expect(result.current.isLoading).toBe(false);
 
@@ -314,8 +311,8 @@ describe('useNetworkAdapter', () => {
   });
 
   describe('error handling', () => {
-    it('should set error state when adapter loading fails', async () => {
-      const loadError = new Error('Failed to load adapter');
+    it('should set error state when runtime loading fails', async () => {
+      const loadError = new Error('Failed to load runtime');
       mockGetRuntime.mockRejectedValue(loadError);
 
       const { result } = renderHook(() => useNetworkAdapter(mockNetworkConfig));
@@ -325,11 +322,11 @@ describe('useNetworkAdapter', () => {
       });
 
       expect(result.current.error).toEqual(loadError);
-      expect(result.current.adapter).toBeNull();
+      expect(result.current.runtime).toBeNull();
     });
 
     it('should clear error state when loading succeeds after retry', async () => {
-      const loadError = new Error('Failed to load adapter');
+      const loadError = new Error('Failed to load runtime');
       mockGetRuntime.mockRejectedValueOnce(loadError).mockResolvedValueOnce(mockRuntime);
 
       const { result } = renderHook(() => useNetworkAdapter(mockNetworkConfig));
@@ -362,7 +359,7 @@ describe('useNetworkAdapter', () => {
       expect(typeof result.current.retry).toBe('function');
     });
 
-    it('should reload adapter when retry is called', async () => {
+    it('should reload runtime when retry is called', async () => {
       const { result } = renderHook(() => useNetworkAdapter(mockNetworkConfig));
 
       await waitFor(() => {
@@ -401,7 +398,6 @@ describe('useNetworkAdapter', () => {
       });
 
       // Verify return type shape
-      expect(result.current).toHaveProperty('adapter');
       expect(result.current).toHaveProperty('runtime');
       expect(result.current).toHaveProperty('isLoading');
       expect(result.current).toHaveProperty('error');

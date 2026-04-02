@@ -16,7 +16,7 @@ import type {
   RoleAssignment,
 } from '@openzeppelin/ui-types';
 
-import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 
 import { DataError, ErrorCategory } from '../../utils/errors';
 import { useContractOwnership, useContractRoles, usePaginatedRoles } from '../useContractData';
@@ -87,10 +87,10 @@ const createMockAccessControlService = (
     ...overrides,
   }) as AccessControlService;
 
-// Create mock adapter factory
-const createMockAdapter = (
+// Create mock runtime factory
+const createMockRuntime = (
   accessControlService?: AccessControlService | null
-): RoleManagerAdapter => {
+): RoleManagerRuntime => {
   const mockService =
     accessControlService === null
       ? undefined
@@ -98,9 +98,9 @@ const createMockAdapter = (
 
   return {
     networkConfig: mockNetworkConfig,
-    isValidAddress: vi.fn().mockReturnValue(true),
-    getAccessControlService: mockService ? vi.fn().mockReturnValue(mockService) : undefined,
-  } as unknown as RoleManagerAdapter;
+    addressing: { isValidAddress: vi.fn().mockReturnValue(true) },
+    accessControl: mockService,
+  } as unknown as RoleManagerRuntime;
 };
 
 // React Query wrapper
@@ -140,7 +140,7 @@ describe('useContractRoles', () => {
     });
 
     it('should return empty roles when address is empty', () => {
-      const mockAdapter = createMockAdapter();
+      const mockAdapter = createMockRuntime();
       const { result } = renderHook(() => useContractRoles(mockAdapter, ''), {
         wrapper: createWrapper(),
       });
@@ -150,7 +150,7 @@ describe('useContractRoles', () => {
     });
 
     it('should return empty roles when adapter does not support access control', () => {
-      const mockAdapter = createMockAdapter(null);
+      const mockAdapter = createMockRuntime(null);
       const { result } = renderHook(() => useContractRoles(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
@@ -163,7 +163,7 @@ describe('useContractRoles', () => {
   describe('successful role fetching', () => {
     it('should fetch roles for a valid contract', async () => {
       const mockService = createMockAccessControlService();
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(() => useContractRoles(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
@@ -185,7 +185,7 @@ describe('useContractRoles', () => {
       const mockService = createMockAccessControlService({
         getCurrentRoles: vi.fn().mockResolvedValue(mockEmptyRoles),
       });
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(() => useContractRoles(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
@@ -201,7 +201,7 @@ describe('useContractRoles', () => {
 
     it('should calculate total member count correctly', async () => {
       const mockService = createMockAccessControlService();
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(() => useContractRoles(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
@@ -221,7 +221,7 @@ describe('useContractRoles', () => {
       const mockService = createMockAccessControlService({
         getCurrentRoles: vi.fn().mockRejectedValue(new Error('Network error')),
       });
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(() => useContractRoles(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
@@ -242,7 +242,7 @@ describe('useContractRoles', () => {
       const mockService = createMockAccessControlService({
         getCurrentRoles: vi.fn().mockRejectedValue(new Error('Indexer unavailable')),
       });
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(() => useContractRoles(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
@@ -262,7 +262,7 @@ describe('useContractRoles', () => {
       const mockService = createMockAccessControlService({
         getCurrentRoles: vi.fn().mockRejectedValue(new Error('Network timeout')),
       });
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(() => useContractRoles(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
@@ -280,7 +280,7 @@ describe('useContractRoles', () => {
       const mockService = createMockAccessControlService({
         getCurrentRoles: vi.fn().mockRejectedValue(new Error('Indexer unavailable')),
       });
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(() => useContractRoles(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
@@ -297,7 +297,7 @@ describe('useContractRoles', () => {
   describe('refetch functionality', () => {
     it('should provide refetch function', async () => {
       const mockService = createMockAccessControlService();
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(() => useContractRoles(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
@@ -322,7 +322,7 @@ describe('useContractRoles', () => {
   describe('query key management', () => {
     it('should refetch when contract address changes', async () => {
       const mockService = createMockAccessControlService();
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result, rerender } = renderHook(
         ({ address }) => useContractRoles(mockAdapter, address),
@@ -352,7 +352,7 @@ describe('useContractRoles', () => {
   describe('return type interface', () => {
     it('should match UseContractRolesReturn interface', async () => {
       const mockService = createMockAccessControlService();
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(() => useContractRoles(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
@@ -396,7 +396,7 @@ describe('usePaginatedRoles', () => {
       const mockService = createMockAccessControlService({
         getCurrentRoles: vi.fn().mockResolvedValue(mockLargeRoleList),
       });
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(() => usePaginatedRoles(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
@@ -418,7 +418,7 @@ describe('usePaginatedRoles', () => {
       const mockService = createMockAccessControlService({
         getCurrentRoles: vi.fn().mockResolvedValue(mockLargeRoleList),
       });
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(() => usePaginatedRoles(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
@@ -442,7 +442,7 @@ describe('usePaginatedRoles', () => {
       const mockService = createMockAccessControlService({
         getCurrentRoles: vi.fn().mockResolvedValue(mockLargeRoleList),
       });
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(() => usePaginatedRoles(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
@@ -468,7 +468,7 @@ describe('usePaginatedRoles', () => {
       const mockService = createMockAccessControlService({
         getCurrentRoles: vi.fn().mockResolvedValue(mockLargeRoleList),
       });
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(() => usePaginatedRoles(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
@@ -491,7 +491,7 @@ describe('usePaginatedRoles', () => {
       const mockService = createMockAccessControlService({
         getCurrentRoles: vi.fn().mockResolvedValue(mockLargeRoleList),
       });
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(() => usePaginatedRoles(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
@@ -515,7 +515,7 @@ describe('usePaginatedRoles', () => {
       const mockService = createMockAccessControlService({
         getCurrentRoles: vi.fn().mockResolvedValue(mockLargeRoleList),
       });
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(() => usePaginatedRoles(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
@@ -538,7 +538,7 @@ describe('usePaginatedRoles', () => {
       const mockService = createMockAccessControlService({
         getCurrentRoles: vi.fn().mockResolvedValue(mockLargeRoleList),
       });
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(
         () => usePaginatedRoles(mockAdapter, 'CONTRACT_ADDRESS', { pageSize: 25 }),
@@ -557,7 +557,7 @@ describe('usePaginatedRoles', () => {
       const mockService = createMockAccessControlService({
         getCurrentRoles: vi.fn().mockResolvedValue(mockLargeRoleList),
       });
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result, rerender } = renderHook(
         ({ address }) => usePaginatedRoles(mockAdapter, address),
@@ -591,7 +591,7 @@ describe('usePaginatedRoles', () => {
       const mockService = createMockAccessControlService({
         getCurrentRoles: vi.fn().mockResolvedValue([]),
       });
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(() => usePaginatedRoles(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
@@ -631,7 +631,7 @@ describe('useContractOwnership', () => {
     });
 
     it('should return null ownership when address is empty', () => {
-      const mockAdapter = createMockAdapter();
+      const mockAdapter = createMockRuntime();
       const { result } = renderHook(() => useContractOwnership(mockAdapter, ''), {
         wrapper: createWrapper(),
       });
@@ -641,7 +641,7 @@ describe('useContractOwnership', () => {
     });
 
     it('should return null ownership when adapter does not support access control', () => {
-      const mockAdapter = createMockAdapter(null);
+      const mockAdapter = createMockRuntime(null);
       const { result } = renderHook(() => useContractOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
@@ -654,7 +654,7 @@ describe('useContractOwnership', () => {
   describe('successful ownership fetching', () => {
     it('should fetch ownership for a valid contract', async () => {
       const mockService = createMockAccessControlService();
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(() => useContractOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
@@ -677,7 +677,7 @@ describe('useContractOwnership', () => {
       const mockService = createMockAccessControlService({
         getOwnership: vi.fn().mockResolvedValue(mockOwnershipNull),
       });
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(() => useContractOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
@@ -697,7 +697,7 @@ describe('useContractOwnership', () => {
           owner: '0x1234567890123456789012345678901234567890',
         }),
       });
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(() => useContractOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
@@ -717,7 +717,7 @@ describe('useContractOwnership', () => {
       const mockService = createMockAccessControlService({
         getOwnership: vi.fn().mockRejectedValue(new Error('Network error')),
       });
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(() => useContractOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
@@ -738,7 +738,7 @@ describe('useContractOwnership', () => {
       const mockService = createMockAccessControlService({
         getOwnership: vi.fn().mockRejectedValue(new Error('Contract does not support Ownable')),
       });
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(() => useContractOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
@@ -757,7 +757,7 @@ describe('useContractOwnership', () => {
       const mockService = createMockAccessControlService({
         getOwnership: vi.fn().mockRejectedValue(new Error('Connection timeout')),
       });
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(() => useContractOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
@@ -775,7 +775,7 @@ describe('useContractOwnership', () => {
       const mockService = createMockAccessControlService({
         getOwnership: vi.fn().mockRejectedValue(new Error('Indexer service unavailable')),
       });
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(() => useContractOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
@@ -793,7 +793,7 @@ describe('useContractOwnership', () => {
   describe('refetch functionality', () => {
     it('should provide refetch function', async () => {
       const mockService = createMockAccessControlService();
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(() => useContractOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
@@ -818,7 +818,7 @@ describe('useContractOwnership', () => {
   describe('query key management', () => {
     it('should refetch when contract address changes', async () => {
       const mockService = createMockAccessControlService();
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result, rerender } = renderHook(
         ({ address }) => useContractOwnership(mockAdapter, address),
@@ -848,7 +848,7 @@ describe('useContractOwnership', () => {
   describe('return type interface', () => {
     it('should match UseContractOwnershipReturn interface', async () => {
       const mockService = createMockAccessControlService();
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(() => useContractOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),

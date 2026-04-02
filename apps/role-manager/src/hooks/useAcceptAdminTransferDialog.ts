@@ -94,13 +94,13 @@ export function useAcceptAdminTransferDialog(
   // Context & External Data
   // =============================================================================
 
-  const { selectedContract, adapter } = useSelectedContract();
+  const { selectedContract, runtime } = useSelectedContract();
   const contractAddress = selectedContract?.address ?? '';
 
   const { address: connectedAddress } = useDerivedAccountStatus();
 
   // Mutation hook for accept admin transfer
-  const acceptAdminTransfer = useAcceptAdminTransfer(adapter, contractAddress);
+  const acceptAdminTransfer = useAcceptAdminTransfer(runtime, contractAddress);
 
   // =============================================================================
   // Internal State

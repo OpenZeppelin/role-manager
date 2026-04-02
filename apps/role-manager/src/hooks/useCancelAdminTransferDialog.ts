@@ -68,17 +68,17 @@ export function useCancelAdminTransferDialog(
 ): UseCancelAdminTransferDialogReturn {
   const { onClose, onSuccess } = options;
 
-  const { selectedContract, adapter } = useSelectedContract();
+  const { selectedContract, runtime } = useSelectedContract();
   const contractAddress = selectedContract?.address ?? '';
   const { address: connectedAddress } = useDerivedAccountStatus();
   const { trackAdminTransferCancelled } = useRoleManagerAnalytics();
 
-  const cancelMutation = useCancelAdminTransfer(adapter, contractAddress);
+  const cancelMutation = useCancelAdminTransfer(runtime, contractAddress);
 
   const execution = useTransactionExecution<CancelAdminTransferArgs>(cancelMutation, {
     onClose,
     onSuccess: (result) => {
-      trackAdminTransferCancelled(adapter?.networkConfig?.ecosystem ?? 'unknown');
+      trackAdminTransferCancelled(runtime?.networkConfig?.ecosystem ?? 'unknown');
       onSuccess?.(result);
     },
   });

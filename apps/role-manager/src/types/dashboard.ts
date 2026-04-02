@@ -8,7 +8,7 @@
 
 import type { AccessControlCapabilities, NetworkConfig } from '@openzeppelin/ui-types';
 
-import type { RoleManagerAdapter, RoleManagerRuntime } from '@/core/runtimeAdapter';
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 
 import type { ContractRecord } from './contracts';
 
@@ -31,12 +31,10 @@ export interface ContractContextValue {
   /** Update the selected network */
   setSelectedNetwork: (network: NetworkConfig | null) => void;
 
-  /** Loaded adapter for the selected network */
-  adapter: RoleManagerAdapter | null;
   /** Loaded runtime for the selected network */
-  runtime?: RoleManagerRuntime | null;
-  /** Whether the adapter is currently loading */
-  isAdapterLoading: boolean;
+  runtime: RoleManagerRuntime | null;
+  /** Whether the runtime is currently loading */
+  isRuntimeLoading: boolean;
 
   /** List of contracts for the current network */
   contracts: ContractRecord[];
@@ -156,12 +154,10 @@ export interface UseSelectedContractReturn {
   selectedNetwork: NetworkConfig | null;
   /** Update the selected network */
   setSelectedNetwork: (network: NetworkConfig | null) => void;
-  /** Loaded adapter for the selected network */
-  adapter: RoleManagerAdapter | null;
   /** Loaded runtime for the selected network */
-  runtime?: RoleManagerRuntime | null;
-  /** Whether the adapter is loading */
-  isAdapterLoading: boolean;
+  runtime: RoleManagerRuntime | null;
+  /** Whether the runtime is loading */
+  isRuntimeLoading: boolean;
   /** List of contracts for the current network */
   contracts: ContractRecord[];
   /** Whether contracts are loading */

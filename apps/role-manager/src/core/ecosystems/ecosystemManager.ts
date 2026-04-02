@@ -22,11 +22,7 @@ import type {
 } from '@openzeppelin/ui-types';
 import { logger } from '@openzeppelin/ui-utils';
 
-import {
-  toRoleManagerAdapter,
-  type RoleManagerAdapter,
-  type RoleManagerRuntime,
-} from '../runtimeAdapter';
+import type { RoleManagerRuntime } from '../runtimeAdapter';
 
 // =============================================================================
 // Metadata Registry (synchronous — available from first render)
@@ -239,17 +235,6 @@ export async function getRuntime(networkConfig: NetworkConfig): Promise<RoleMana
 
   const runtime = def.createRuntime('operator', networkConfig) as OperatorEcosystemRuntime;
   return attachRelayerCapability(runtime, def.capabilities?.relayer);
-}
-
-export async function getAdapter(networkConfig: NetworkConfig): Promise<RoleManagerAdapter> {
-  const runtime = await getRuntime(networkConfig);
-  const adapter = toRoleManagerAdapter(runtime);
-
-  if (!adapter) {
-    throw new Error(`Failed to construct role-manager adapter for network ${networkConfig.id}`);
-  }
-
-  return adapter;
 }
 
 // =============================================================================

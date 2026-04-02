@@ -18,7 +18,7 @@ import type {
   TxStatus,
 } from '@openzeppelin/ui-types';
 
-import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 
 import type { RoleWithDescription } from '../../types/roles';
 import { useAssignRoleDialog } from '../useAssignRoleDialog';
@@ -116,9 +116,9 @@ const createMockAccessControlService = (
   }) as AccessControlService;
 
 // Create mock adapter factory
-const createMockAdapter = (
+const createMockRuntime = (
   accessControlService?: AccessControlService | null
-): RoleManagerAdapter => {
+): RoleManagerRuntime => {
   const mockService =
     accessControlService === null
       ? undefined
@@ -126,9 +126,9 @@ const createMockAdapter = (
 
   return {
     networkConfig: mockNetworkConfig,
-    isValidAddress: vi.fn().mockReturnValue(true),
-    getAccessControlService: mockService ? vi.fn().mockReturnValue(mockService) : undefined,
-  } as unknown as RoleManagerAdapter;
+    addressing: { isValidAddress: vi.fn().mockReturnValue(true) },
+    accessControl: mockService ?? undefined,
+  } as unknown as RoleManagerRuntime;
 };
 
 // Mock useSelectedContract
@@ -220,7 +220,7 @@ const setupDefaultMocks = () => {
       label: 'Test Contract',
       networkId: 'stellar-testnet',
     },
-    adapter: createMockAdapter(),
+    runtime: createMockRuntime(),
     isContractRegistered: true,
   });
 

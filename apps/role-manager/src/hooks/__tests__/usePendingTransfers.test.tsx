@@ -15,7 +15,7 @@ import { type ReactNode } from 'react';
 
 import type { OwnershipInfo } from '@openzeppelin/ui-types';
 
-import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 
 import { DataError, ErrorCategory } from '../../utils/errors';
 import * as useContractDataModule from '../useContractData';
@@ -49,7 +49,7 @@ vi.mock('../useSelectedContract', () => ({
 
 describe('usePendingTransfers', () => {
   let queryClient: QueryClient;
-  let mockAdapter: RoleManagerAdapter;
+  let mockRuntime: RoleManagerRuntime;
   const testAddress = '0x1234567890123456789012345678901234567890';
   const pendingOwnerAddress = '0xabcdef0123456789abcdef0123456789abcdef01';
   const currentOwnerAddress = '0x9999999999999999999999999999999999999999';
@@ -75,23 +75,23 @@ describe('usePendingTransfers', () => {
       },
     });
 
-    mockAdapter = {
+    mockRuntime = {
       ecosystem: 'stellar',
       getExplorerUrl: vi.fn(),
       createAccessControlService: vi.fn(),
-    } as unknown as RoleManagerAdapter;
+    } as unknown as RoleManagerRuntime;
 
     vi.clearAllMocks();
 
     // Default mock for useSelectedContract
     vi.mocked(useSelectedContractModule.useSelectedContract).mockReturnValue({
       selectedContract: mockContract,
-      adapter: mockAdapter,
+      runtime: mockRuntime,
       isContractRegistered: true,
       selectedNetwork: { id: 'stellar-testnet', name: 'Stellar Testnet' } as never,
       setSelectedContract: vi.fn(),
       setSelectedNetwork: vi.fn(),
-      isAdapterLoading: false,
+      isRuntimeLoading: false,
       contracts: [],
       isContractsLoading: false,
       selectContractById: vi.fn(),
@@ -259,12 +259,12 @@ describe('usePendingTransfers', () => {
     it('sets canAccept to true when connected wallet is pending owner', () => {
       vi.mocked(useSelectedContractModule.useSelectedContract).mockReturnValue({
         selectedContract: mockContract,
-        adapter: mockAdapter,
+        runtime: mockRuntime,
         isContractRegistered: true,
         selectedNetwork: { id: 'stellar-testnet', name: 'Stellar Testnet' } as never,
         setSelectedContract: vi.fn(),
         setSelectedNetwork: vi.fn(),
-        isAdapterLoading: false,
+        isRuntimeLoading: false,
         contracts: [],
         isContractsLoading: false,
         selectContractById: vi.fn(),
@@ -580,12 +580,12 @@ describe('usePendingTransfers', () => {
     it('returns empty transfers when no contract selected', () => {
       vi.mocked(useSelectedContractModule.useSelectedContract).mockReturnValue({
         selectedContract: null,
-        adapter: null,
+        runtime: null,
         isContractRegistered: false,
         selectedNetwork: null,
         setSelectedContract: vi.fn(),
         setSelectedNetwork: vi.fn(),
-        isAdapterLoading: false,
+        isRuntimeLoading: false,
         contracts: [],
         isContractsLoading: false,
         selectContractById: vi.fn(),

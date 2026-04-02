@@ -70,12 +70,12 @@ export function useChangeAdminDelayDialog(
 ): UseChangeAdminDelayDialogReturn {
   const { onClose, onSuccess } = options;
 
-  const { selectedContract, adapter } = useSelectedContract();
+  const { selectedContract, runtime } = useSelectedContract();
   const contractAddress = selectedContract?.address ?? '';
   const { trackAdminDelayChangeScheduled } = useRoleManagerAnalytics();
-  const ecosystem = adapter?.networkConfig?.ecosystem ?? 'unknown';
+  const ecosystem = runtime?.networkConfig?.ecosystem ?? 'unknown';
 
-  const changeMutation = useChangeAdminDelay(adapter, contractAddress);
+  const changeMutation = useChangeAdminDelay(runtime, contractAddress);
 
   const execution = useTransactionExecution<ChangeAdminDelayArgs>(changeMutation, {
     onClose,

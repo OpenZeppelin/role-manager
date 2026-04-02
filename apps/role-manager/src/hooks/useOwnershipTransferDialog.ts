@@ -138,17 +138,17 @@ export function useOwnershipTransferDialog(
   // Context & External Data
   // =============================================================================
 
-  const { selectedContract, adapter } = useSelectedContract();
+  const { selectedContract, runtime } = useSelectedContract();
   const contractAddress = selectedContract?.address ?? '';
 
   const { address: connectedAddress } = useDerivedAccountStatus();
 
   // Mutation hook for transfer
-  const transferOwnership = useTransferOwnership(adapter, contractAddress);
+  const transferOwnership = useTransferOwnership(runtime, contractAddress);
 
   // Adapter-driven expiration metadata (T035)
   const { metadata: expirationMetadata } = useExpirationMetadata(
-    adapter,
+    runtime,
     contractAddress,
     'ownership',
     { enabled: hasTwoStepOwnable }
@@ -158,7 +158,7 @@ export function useOwnershipTransferDialog(
   const needsExpirationInput = requiresExpirationInput(expirationMetadata);
 
   // Current block polling — only when expiration input is needed for validation
-  const { currentBlock } = useCurrentBlock(adapter, {
+  const { currentBlock } = useCurrentBlock(runtime, {
     enabled: needsExpirationInput,
     pollInterval: 5000,
   });

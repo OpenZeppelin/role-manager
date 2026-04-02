@@ -136,22 +136,22 @@ export function useAdminTransferDialog(
   // Context & External Data
   // =============================================================================
 
-  const { selectedContract, adapter } = useSelectedContract();
+  const { selectedContract, runtime } = useSelectedContract();
   const contractAddress = selectedContract?.address ?? '';
 
   const { address: connectedAddress } = useDerivedAccountStatus();
 
   // Mutation hook for admin transfer
-  const transferAdminRole = useTransferAdminRole(adapter, contractAddress);
+  const transferAdminRole = useTransferAdminRole(runtime, contractAddress);
 
   // Adapter-driven expiration metadata (T037)
-  const { metadata: expirationMetadata } = useExpirationMetadata(adapter, contractAddress, 'admin');
+  const { metadata: expirationMetadata } = useExpirationMetadata(runtime, contractAddress, 'admin');
 
   // Derive whether expiration input is required from adapter metadata.
   const needsExpirationInput = requiresExpirationInput(expirationMetadata);
 
   // Current block polling — only when expiration input is needed for validation
-  const { currentBlock } = useCurrentBlock(adapter, {
+  const { currentBlock } = useCurrentBlock(runtime, {
     enabled: needsExpirationInput,
     pollInterval: 5000,
   });

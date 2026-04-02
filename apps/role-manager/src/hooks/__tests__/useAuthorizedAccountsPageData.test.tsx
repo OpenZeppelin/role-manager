@@ -129,8 +129,8 @@ function setupDefaultMocks() {
       networkId: 'ethereum-mainnet',
       label: 'Test Contract',
     },
-    adapter: { id: 'test-adapter' },
-    isAdapterLoading: false,
+    runtime: { id: 'test-adapter' },
+    isRuntimeLoading: false,
     isContractRegistered: true,
   });
 
@@ -310,8 +310,8 @@ describe('useAuthorizedAccountsPageData', () => {
           networkId: 'ethereum-mainnet',
           label: 'New Contract',
         },
-        adapter: { id: 'test-adapter' },
-        isAdapterLoading: false,
+        runtime: { id: 'test-adapter' },
+        isRuntimeLoading: false,
         isContractRegistered: true,
       });
 
@@ -347,8 +347,8 @@ describe('useAuthorizedAccountsPageData', () => {
           networkId: 'ethereum-mainnet',
           label: 'New Contract',
         },
-        adapter: { id: 'test-adapter' },
-        isAdapterLoading: false,
+        runtime: { id: 'test-adapter' },
+        isRuntimeLoading: false,
         isContractRegistered: true,
       });
 
@@ -504,8 +504,8 @@ describe('useAuthorizedAccountsPageData', () => {
     it('should handle no selected contract gracefully', async () => {
       mockUseSelectedContract.mockReturnValue({
         selectedContract: null,
-        adapter: null,
-        isAdapterLoading: false,
+        runtime: null,
+        isRuntimeLoading: false,
         isContractRegistered: false,
       });
 

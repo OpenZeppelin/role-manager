@@ -196,7 +196,7 @@ export function useRolesPageData(): UseRolesPageDataReturn {
   // Context & State
   // =============================================================================
 
-  const { selectedContract, adapter, isContractRegistered } = useSelectedContract();
+  const { selectedContract, runtime, isContractRegistered } = useSelectedContract();
   const contractAddress = selectedContract?.address ?? '';
   const contractId = selectedContract?.id;
 
@@ -214,7 +214,7 @@ export function useRolesPageData(): UseRolesPageDataReturn {
     isLoading: isCapabilitiesLoading,
     error: capabilitiesError,
     isSupported,
-  } = useContractCapabilities(adapter, contractAddress, isContractRegistered);
+  } = useContractCapabilities(runtime, contractAddress, isContractRegistered);
 
   // Roles fetching (T019)
   // Wait for contract to be registered before fetching roles
@@ -226,7 +226,7 @@ export function useRolesPageData(): UseRolesPageDataReturn {
     hasError: hasRolesError,
     canRetry: canRetryRoles,
     errorMessage: rolesErrorMessage,
-  } = useContractRoles(adapter, contractAddress, isContractRegistered);
+  } = useContractRoles(runtime, contractAddress, isContractRegistered);
 
   // Ownership fetching (T020)
   // Only fetch when contract has Ownable capability (prevents errors on AccessControl-only contracts)
@@ -237,7 +237,7 @@ export function useRolesPageData(): UseRolesPageDataReturn {
     isFetching: isOwnershipFetching,
     refetch: refetchOwnership,
     hasOwner,
-  } = useContractOwnership(adapter, contractAddress, isContractRegistered, hasOwnableCapability);
+  } = useContractOwnership(runtime, contractAddress, isContractRegistered, hasOwnableCapability);
 
   // Feature 016: Admin info fetching (T013)
   // Only fetch when contract has two-step admin capability
@@ -247,7 +247,7 @@ export function useRolesPageData(): UseRolesPageDataReturn {
     isLoading: isAdminLoading,
     isFetching: isAdminFetching,
     refetch: refetchAdminInfo,
-  } = useContractAdminInfo(adapter, contractAddress, isContractRegistered, hasTwoStepAdmin);
+  } = useContractAdminInfo(runtime, contractAddress, isContractRegistered, hasTwoStepAdmin);
 
   // Custom descriptions
   const { descriptions: customDescriptions, updateDescription } =
@@ -265,20 +265,20 @@ export function useRolesPageData(): UseRolesPageDataReturn {
   // Chain-agnostic poll interval derived from calibrated block/ledger time
   const blockPollInterval = useBlockPollInterval();
 
-  const { currentBlock } = useCurrentBlock(adapter, {
+  const { currentBlock } = useCurrentBlock(runtime, {
     enabled: hasPendingTransfer,
     pollInterval: blockPollInterval,
   });
 
   // Expiration metadata for pending transfer display labels (adapter-driven)
   const { metadata: ownershipExpirationMetadata } = useExpirationMetadata(
-    adapter,
+    runtime,
     contractAddress,
     'ownership',
     { enabled: hasOwnableCapability }
   );
   const { metadata: adminExpirationMetadata } = useExpirationMetadata(
-    adapter,
+    runtime,
     contractAddress,
     'admin',
     { enabled: hasTwoStepAdmin }

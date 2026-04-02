@@ -12,7 +12,7 @@ import type { PropsWithChildren } from 'react';
 
 import type { NetworkConfig } from '@openzeppelin/ui-types';
 
-import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 
 import { useCurrentBlock } from '../useCurrentBlock';
 
@@ -26,12 +26,14 @@ const mockNetworkConfig: NetworkConfig = {
   isTestnet: true,
 } as NetworkConfig;
 
-// Create mock adapter factory
-const createMockAdapter = (getCurrentBlockFn?: () => Promise<number>): RoleManagerAdapter => {
+// Create mock runtime factory
+const createMockRuntime = (getCurrentBlockFn?: () => Promise<number>): RoleManagerRuntime => {
   return {
     networkConfig: mockNetworkConfig,
-    getCurrentBlock: getCurrentBlockFn ?? vi.fn().mockResolvedValue(12345),
-  } as unknown as RoleManagerAdapter;
+    query: {
+      getCurrentBlock: getCurrentBlockFn ?? vi.fn().mockResolvedValue(12345),
+    },
+  } as unknown as RoleManagerRuntime;
 };
 
 // React Query wrapper factory
@@ -65,9 +67,9 @@ describe('useCurrentBlock', () => {
     it('should return null currentBlock initially before fetch completes', () => {
       // Use a promise that never resolves to keep loading state
       const getCurrentBlockFn = vi.fn().mockImplementation(() => new Promise(() => {}));
-      const mockAdapter = createMockAdapter(getCurrentBlockFn);
+      const mockRuntime = createMockRuntime(getCurrentBlockFn);
 
-      const { result } = renderHook(() => useCurrentBlock(mockAdapter), {
+      const { result } = renderHook(() => useCurrentBlock(mockRuntime), {
         wrapper: createWrapper(),
       });
 
@@ -79,9 +81,9 @@ describe('useCurrentBlock', () => {
 
     it('should return currentBlock after fetch completes', async () => {
       const getCurrentBlockFn = vi.fn().mockResolvedValue(54321);
-      const mockAdapter = createMockAdapter(getCurrentBlockFn);
+      const mockRuntime = createMockRuntime(getCurrentBlockFn);
 
-      const { result } = renderHook(() => useCurrentBlock(mockAdapter), {
+      const { result } = renderHook(() => useCurrentBlock(mockRuntime), {
         wrapper: createWrapper(),
       });
 
@@ -105,9 +107,9 @@ describe('useCurrentBlock', () => {
 
     it('should not fetch when enabled is false', () => {
       const getCurrentBlockFn = vi.fn().mockResolvedValue(12345);
-      const mockAdapter = createMockAdapter(getCurrentBlockFn);
+      const mockRuntime = createMockRuntime(getCurrentBlockFn);
 
-      const { result } = renderHook(() => useCurrentBlock(mockAdapter, { enabled: false }), {
+      const { result } = renderHook(() => useCurrentBlock(mockRuntime, { enabled: false }), {
         wrapper: createWrapper(),
       });
 
@@ -120,9 +122,9 @@ describe('useCurrentBlock', () => {
   describe('polling configuration', () => {
     it('should configure polling with default interval (5000ms)', async () => {
       const getCurrentBlockFn = vi.fn().mockResolvedValue(100);
-      const mockAdapter = createMockAdapter(getCurrentBlockFn);
+      const mockRuntime = createMockRuntime(getCurrentBlockFn);
 
-      const { result } = renderHook(() => useCurrentBlock(mockAdapter), {
+      const { result } = renderHook(() => useCurrentBlock(mockRuntime), {
         wrapper: createWrapper(),
       });
 
@@ -137,9 +139,9 @@ describe('useCurrentBlock', () => {
 
     it('should use custom poll interval when provided', async () => {
       const getCurrentBlockFn = vi.fn().mockResolvedValue(100);
-      const mockAdapter = createMockAdapter(getCurrentBlockFn);
+      const mockRuntime = createMockRuntime(getCurrentBlockFn);
 
-      const { result } = renderHook(() => useCurrentBlock(mockAdapter, { pollInterval: 2000 }), {
+      const { result } = renderHook(() => useCurrentBlock(mockRuntime, { pollInterval: 2000 }), {
         wrapper: createWrapper(),
       });
 
@@ -154,10 +156,10 @@ describe('useCurrentBlock', () => {
 
     it('should stop polling when enabled changes to false', async () => {
       const getCurrentBlockFn = vi.fn().mockResolvedValue(100);
-      const mockAdapter = createMockAdapter(getCurrentBlockFn);
+      const mockRuntime = createMockRuntime(getCurrentBlockFn);
 
       const { result, rerender } = renderHook(
-        ({ enabled }) => useCurrentBlock(mockAdapter, { enabled }),
+        ({ enabled }) => useCurrentBlock(mockRuntime, { enabled }),
         {
           wrapper: createWrapper(),
           initialProps: { enabled: true },
@@ -183,9 +185,9 @@ describe('useCurrentBlock', () => {
   describe('error handling', () => {
     it('should set error when fetch fails', async () => {
       const getCurrentBlockFn = vi.fn().mockRejectedValue(new Error('Network error'));
-      const mockAdapter = createMockAdapter(getCurrentBlockFn);
+      const mockRuntime = createMockRuntime(getCurrentBlockFn);
 
-      const { result } = renderHook(() => useCurrentBlock(mockAdapter), {
+      const { result } = renderHook(() => useCurrentBlock(mockRuntime), {
         wrapper: createWrapper(),
       });
 
@@ -200,9 +202,9 @@ describe('useCurrentBlock', () => {
 
     it('should handle multiple fetch cycles', async () => {
       const getCurrentBlockFn = vi.fn().mockResolvedValueOnce(100).mockResolvedValueOnce(101);
-      const mockAdapter = createMockAdapter(getCurrentBlockFn);
+      const mockRuntime = createMockRuntime(getCurrentBlockFn);
 
-      const { result } = renderHook(() => useCurrentBlock(mockAdapter), {
+      const { result } = renderHook(() => useCurrentBlock(mockRuntime), {
         wrapper: createWrapper(),
       });
 
@@ -225,9 +227,9 @@ describe('useCurrentBlock', () => {
   describe('manual refetch', () => {
     it('should provide refetch function', async () => {
       const getCurrentBlockFn = vi.fn().mockResolvedValueOnce(100).mockResolvedValueOnce(150);
-      const mockAdapter = createMockAdapter(getCurrentBlockFn);
+      const mockRuntime = createMockRuntime(getCurrentBlockFn);
 
-      const { result } = renderHook(() => useCurrentBlock(mockAdapter), {
+      const { result } = renderHook(() => useCurrentBlock(mockRuntime), {
         wrapper: createWrapper(),
       });
 
@@ -249,21 +251,21 @@ describe('useCurrentBlock', () => {
     });
   });
 
-  describe('adapter changes', () => {
-    it('should refetch when adapter changes', async () => {
+  describe('runtime changes', () => {
+    it('should refetch when runtime changes', async () => {
       const getCurrentBlockFn1 = vi.fn().mockResolvedValue(100);
       const getCurrentBlockFn2 = vi.fn().mockResolvedValue(999);
 
-      const adapter1 = createMockAdapter(getCurrentBlockFn1);
-      const adapter2 = {
-        ...adapter1,
+      const runtime1 = createMockRuntime(getCurrentBlockFn1);
+      const runtime2 = {
+        ...runtime1,
         networkConfig: { ...mockNetworkConfig, id: 'stellar-mainnet' },
-        getCurrentBlock: getCurrentBlockFn2,
-      } as unknown as RoleManagerAdapter;
+        query: { getCurrentBlock: getCurrentBlockFn2 },
+      } as unknown as RoleManagerRuntime;
 
-      const { result, rerender } = renderHook(({ adapter }) => useCurrentBlock(adapter), {
+      const { result, rerender } = renderHook(({ runtime }) => useCurrentBlock(runtime), {
         wrapper: createWrapper(),
-        initialProps: { adapter: adapter1 },
+        initialProps: { runtime: runtime1 },
       });
 
       // Wait for initial fetch
@@ -271,8 +273,8 @@ describe('useCurrentBlock', () => {
         expect(result.current.currentBlock).toBe(100);
       });
 
-      // Change adapter
-      rerender({ adapter: adapter2 });
+      // Change runtime
+      rerender({ runtime: runtime2 });
 
       await waitFor(() => {
         expect(result.current.currentBlock).toBe(999);
@@ -284,9 +286,9 @@ describe('useCurrentBlock', () => {
 
   describe('return type', () => {
     it('should return correct shape matching UseCurrentBlockReturn', async () => {
-      const mockAdapter = createMockAdapter(vi.fn().mockResolvedValue(12345));
+      const mockRuntime = createMockRuntime(vi.fn().mockResolvedValue(12345));
 
-      const { result } = renderHook(() => useCurrentBlock(mockAdapter), {
+      const { result } = renderHook(() => useCurrentBlock(mockRuntime), {
         wrapper: createWrapper(),
       });
 

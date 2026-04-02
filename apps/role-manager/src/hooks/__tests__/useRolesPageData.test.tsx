@@ -131,8 +131,8 @@ function setupDefaultMocks() {
       networkId: 'stellar-testnet',
       label: 'Test Contract',
     },
-    adapter: { id: 'test-adapter' },
-    isAdapterLoading: false,
+    runtime: { id: 'test-adapter' },
+    isRuntimeLoading: false,
     isContractRegistered: true,
   });
 
@@ -769,8 +769,8 @@ describe('useRolesPageData', () => {
     it('should handle no selected contract gracefully', () => {
       mockUseSelectedContract.mockReturnValue({
         selectedContract: null,
-        adapter: null,
-        isAdapterLoading: false,
+        runtime: null,
+        isRuntimeLoading: false,
       });
 
       const { result } = renderHook(() => useRolesPageData(), { wrapper: createWrapper() });

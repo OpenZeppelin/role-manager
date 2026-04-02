@@ -118,13 +118,13 @@ export function useRevokeRoleDialog(
   // Context & External Data
   // =============================================================================
 
-  const { selectedContract, adapter } = useSelectedContract();
+  const { selectedContract, runtime } = useSelectedContract();
   const contractAddress = selectedContract?.address ?? '';
 
   const { address: connectedAddress } = useDerivedAccountStatus();
 
   // Mutation hook for revoke
-  const revokeRole = useRevokeRole(adapter, contractAddress);
+  const revokeRole = useRevokeRole(runtime, contractAddress);
 
   // =============================================================================
   // Transaction Execution (using shared hook)

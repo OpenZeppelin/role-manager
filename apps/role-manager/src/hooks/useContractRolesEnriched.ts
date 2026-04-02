@@ -15,7 +15,7 @@ import { useMemo } from 'react';
 import type { RoleAssignment } from '@openzeppelin/ui-types';
 import { logger } from '@openzeppelin/ui-utils';
 
-import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 
 import type { EnrichedRoleAssignment } from '../types/authorized-accounts';
 import { DataError, ErrorCategory, wrapError } from '../utils/errors';
@@ -63,14 +63,14 @@ export interface UseContractRolesEnrichedReturn {
  * pages - when Dashboard or Authorized Accounts loads first, the Roles page benefits
  * from the already-cached basic roles data.
  *
- * @param adapter - Contract adapter instance
+ * @param runtime - Ecosystem runtime instance
  * @param contractAddress - Contract address to fetch roles for
  * @param isContractRegistered - Whether contract is registered (default: true)
  * @returns Enriched roles data and controls
  *
  * @example
  * ```tsx
- * const { roles, isLoading, hasError } = useContractRolesEnriched(adapter, address);
+ * const { roles, isLoading, hasError } = useContractRolesEnriched(runtime, address);
  *
  * if (isLoading) return <Spinner />;
  * if (hasError) return <ErrorMessage />;
@@ -79,11 +79,11 @@ export interface UseContractRolesEnrichedReturn {
  * ```
  */
 export function useContractRolesEnriched(
-  adapter: RoleManagerAdapter | null,
+  runtime: RoleManagerRuntime | null,
   contractAddress: string,
   isContractRegistered: boolean = true
 ): UseContractRolesEnrichedReturn {
-  const { service, isReady } = useAccessControlService(adapter);
+  const { service, isReady } = useAccessControlService(runtime);
   const queryClient = useQueryClient();
 
   const {

@@ -142,11 +142,11 @@ export function AddContractForm({
   // Watch contractAddress for duplicate validation
   const contractAddress = watch('contractAddress') as string | undefined;
 
-  // Load adapter for selected network (used for address validation and dynamic fields)
+  // Load runtime for selected network (used for address validation and dynamic fields)
   const {
-    adapter,
-    isLoading: isAdapterLoading,
-    error: adapterError,
+    runtime,
+    isLoading: isRuntimeLoading,
+    error: runtimeError,
   } = useNetworkAdapter(selectedNetwork);
 
   // Duplicate contract validation
@@ -208,11 +208,11 @@ export function AddContractForm({
 
   // Get contract definition inputs from adapter
   const contractDefinitionInputs = useMemo<FormFieldType[]>(() => {
-    if (!adapter || typeof adapter.getContractDefinitionInputs !== 'function') {
+    if (!runtime || typeof runtime.contractLoading.getContractDefinitionInputs !== 'function') {
       return [];
     }
-    return adapter.getContractDefinitionInputs();
-  }, [adapter]);
+    return runtime.contractLoading.getContractDefinitionInputs();
+  }, [runtime]);
 
   // Handle ecosystem selection
   const handleEcosystemSelect = (ecosystem: Ecosystem) => {
@@ -248,13 +248,13 @@ export function AddContractForm({
   // Determine if form is valid for submission
   // Check that required adapter fields are filled
   const hasRequiredAdapterFields = useMemo(() => {
-    if (!adapter || contractDefinitionInputs.length === 0) {
+    if (!runtime || contractDefinitionInputs.length === 0) {
       return false;
     }
-    // For now, just check if we have the adapter ready
-    // The actual validation is handled by react-hook-form
+    // The actual field validation is handled by react-hook-form;
+    // here we just check that the runtime is ready.
     return true;
-  }, [adapter, contractDefinitionInputs]);
+  }, [runtime, contractDefinitionInputs]);
 
   // Check if there's a duplicate error
   const hasDuplicateError = formState.errors.contractAddress?.type === 'duplicate';
@@ -262,8 +262,8 @@ export function AddContractForm({
   const isFormValid =
     formState.isValid &&
     !!selectedNetwork &&
-    !isAdapterLoading &&
-    !adapterError &&
+    !isRuntimeLoading &&
+    !runtimeError &&
     hasRequiredAdapterFields &&
     !hasDuplicateError &&
     !isDuplicateChecking;
@@ -368,7 +368,7 @@ export function AddContractForm({
           />
 
           {/* Adapter Loading State */}
-          {isAdapterLoading && (
+          {isRuntimeLoading && (
             <div className="flex items-center gap-2 rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
               <span>Loading adapter...</span>
@@ -376,7 +376,7 @@ export function AddContractForm({
           )}
 
           {/* Adapter Error */}
-          {adapterError && (
+          {runtimeError && (
             <div
               className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive"
               role="alert"
@@ -400,15 +400,15 @@ export function AddContractForm({
           )}
 
           {/* Dynamic Contract Definition Fields from Adapter */}
-          {adapter && !isAdapterLoading && !adapterError && (
+          {runtime && !isRuntimeLoading && !runtimeError && (
             <div className="space-y-4">
               {contractDefinitionInputs.map((field) => (
                 <DynamicFormField
                   key={field.id}
                   field={field}
                   control={control as unknown as Control<FormValues>}
-                  addressing={adapter}
-                  typeMapping={adapter}
+                  addressing={runtime?.addressing}
+                  typeMapping={runtime?.typeMapping}
                 />
               ))}
             </div>

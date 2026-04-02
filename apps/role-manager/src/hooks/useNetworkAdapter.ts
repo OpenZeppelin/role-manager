@@ -11,13 +11,13 @@
  * loading after their effect has been cancelled are disposed immediately.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { NetworkConfig } from '@openzeppelin/ui-types';
 import { logger } from '@openzeppelin/ui-utils';
 
 import { getRuntime } from '@/core/ecosystems/ecosystemManager';
-import { toRoleManagerAdapter, type RoleManagerRuntime } from '@/core/runtimeAdapter';
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 import type { UseNetworkAdapterReturn } from '@/types/contracts';
 
 /**
@@ -36,7 +36,7 @@ function safeDispose(runtime: RoleManagerRuntime, label: string): void {
 }
 
 /**
- * Hook that loads and provides a RoleManagerAdapter for a given network configuration.
+ * Hook that loads and provides a RoleManagerRuntime for a given network configuration.
  *
  * @param networkConfig - The network configuration to load an adapter for, or null if no network selected
  * @returns Object containing the adapter, loading state, error, and retry function
@@ -134,11 +134,8 @@ export function useNetworkAdapter(networkConfig: NetworkConfig | null): UseNetwo
     }
   }, [networkConfig]);
 
-  const adapter = useMemo(() => toRoleManagerAdapter(runtime), [runtime]);
-
   return {
     runtime,
-    adapter,
     isLoading,
     error,
     retry,

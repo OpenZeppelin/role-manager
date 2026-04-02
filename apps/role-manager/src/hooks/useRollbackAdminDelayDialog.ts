@@ -68,12 +68,12 @@ export function useRollbackAdminDelayDialog(
 ): UseRollbackAdminDelayDialogReturn {
   const { onClose, onSuccess } = options;
 
-  const { selectedContract, adapter } = useSelectedContract();
+  const { selectedContract, runtime } = useSelectedContract();
   const contractAddress = selectedContract?.address ?? '';
   const { trackAdminDelayChangeRolledBack } = useRoleManagerAnalytics();
-  const ecosystem = adapter?.networkConfig?.ecosystem ?? 'unknown';
+  const ecosystem = runtime?.networkConfig?.ecosystem ?? 'unknown';
 
-  const rollbackMutation = useRollbackAdminDelay(adapter, contractAddress);
+  const rollbackMutation = useRollbackAdminDelay(runtime, contractAddress);
 
   const execution = useTransactionExecution<RollbackAdminDelayArgs>(rollbackMutation, {
     onClose,

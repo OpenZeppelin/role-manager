@@ -21,7 +21,7 @@ import type {
   PaginatedHistoryResult,
 } from '@openzeppelin/ui-types';
 
-import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 
 import { DEFAULT_PAGE_SIZE, useContractHistory } from '../useContractHistory';
 
@@ -97,9 +97,9 @@ const createMockAccessControlService = (
     ...overrides,
   }) as AccessControlService;
 
-const createMockAdapter = (
+const createMockRuntime = (
   accessControlService?: AccessControlService | null
-): RoleManagerAdapter => {
+): RoleManagerRuntime => {
   const mockService =
     accessControlService === null
       ? undefined
@@ -107,9 +107,9 @@ const createMockAdapter = (
 
   return {
     networkConfig: mockNetworkConfig,
-    isValidAddress: vi.fn().mockReturnValue(true),
-    getAccessControlService: mockService ? vi.fn().mockReturnValue(mockService) : undefined,
-  } as unknown as RoleManagerAdapter;
+    addressing: { isValidAddress: vi.fn().mockReturnValue(true) },
+    accessControl: mockService,
+  } as unknown as RoleManagerRuntime;
 };
 
 // =============================================================================
@@ -160,7 +160,7 @@ describe('useContractHistory', () => {
     });
 
     it('should return empty items when address is empty', () => {
-      const mockAdapter = createMockAdapter();
+      const mockAdapter = createMockRuntime();
       const { result } = renderHook(() => useContractHistory(mockAdapter, ''), {
         wrapper: createWrapper(),
       });
@@ -170,7 +170,7 @@ describe('useContractHistory', () => {
     });
 
     it('should return empty items when contract is not registered', () => {
-      const mockAdapter = createMockAdapter();
+      const mockAdapter = createMockRuntime();
       const { result } = renderHook(
         () => useContractHistory(mockAdapter, 'CONTRACT_ADDRESS', false),
         { wrapper: createWrapper() }
@@ -181,7 +181,7 @@ describe('useContractHistory', () => {
     });
 
     it('should return empty items when adapter does not support access control', () => {
-      const mockAdapter = createMockAdapter(null);
+      const mockAdapter = createMockRuntime(null);
       const { result } = renderHook(() => useContractHistory(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
@@ -198,7 +198,7 @@ describe('useContractHistory', () => {
   describe('successful data fetching', () => {
     it('should fetch history entries for valid contract', async () => {
       const mockService = createMockAccessControlService();
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(() => useContractHistory(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
@@ -223,7 +223,7 @@ describe('useContractHistory', () => {
 
     it('should return pagination info from API response', async () => {
       const mockService = createMockAccessControlService();
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(() => useContractHistory(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
@@ -243,7 +243,7 @@ describe('useContractHistory', () => {
       const mockService = createMockAccessControlService({
         getHistory: vi.fn().mockResolvedValue(mockEmptyResult),
       });
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(() => useContractHistory(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
@@ -265,7 +265,7 @@ describe('useContractHistory', () => {
   describe('query options', () => {
     it('should pass cursor option to API', async () => {
       const mockService = createMockAccessControlService();
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(
         () =>
@@ -289,7 +289,7 @@ describe('useContractHistory', () => {
 
     it('should pass roleId filter option to API', async () => {
       const mockService = createMockAccessControlService();
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(
         () =>
@@ -313,7 +313,7 @@ describe('useContractHistory', () => {
 
     it('should pass custom limit option to API', async () => {
       const mockService = createMockAccessControlService();
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(
         () =>
@@ -337,7 +337,7 @@ describe('useContractHistory', () => {
 
     it('should use DEFAULT_PAGE_SIZE when limit not specified', async () => {
       const mockService = createMockAccessControlService();
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(() => useContractHistory(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
@@ -363,7 +363,7 @@ describe('useContractHistory', () => {
       const mockService = createMockAccessControlService({
         getHistory: vi.fn().mockRejectedValue(new Error('Network error')),
       });
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(() => useContractHistory(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
@@ -382,7 +382,7 @@ describe('useContractHistory', () => {
       const mockService = createMockAccessControlService({
         getHistory: vi.fn().mockRejectedValue('string error'),
       });
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(() => useContractHistory(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
@@ -399,7 +399,7 @@ describe('useContractHistory', () => {
       const mockService = createMockAccessControlService({
         getHistory: vi.fn().mockRejectedValue(new Error('Temporary failure')),
       });
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(() => useContractHistory(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
@@ -421,7 +421,7 @@ describe('useContractHistory', () => {
   describe('refetch functionality', () => {
     it('should provide refetch function', async () => {
       const mockService = createMockAccessControlService();
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(() => useContractHistory(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
@@ -436,7 +436,7 @@ describe('useContractHistory', () => {
 
     it('should call getHistory again on refetch', async () => {
       const mockService = createMockAccessControlService();
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(() => useContractHistory(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
@@ -463,7 +463,7 @@ describe('useContractHistory', () => {
   describe('query key management', () => {
     it('should refetch when contract address changes', async () => {
       const mockService = createMockAccessControlService();
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result, rerender } = renderHook(
         ({ address }) => useContractHistory(mockAdapter, address),
@@ -491,7 +491,7 @@ describe('useContractHistory', () => {
 
     it('should refetch when cursor changes', async () => {
       const mockService = createMockAccessControlService();
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result, rerender } = renderHook(
         ({ cursor }) => useContractHistory(mockAdapter, 'CONTRACT_ADDRESS', true, { cursor }),
@@ -522,7 +522,7 @@ describe('useContractHistory', () => {
 
     it('should refetch when roleId filter changes', async () => {
       const mockService = createMockAccessControlService();
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result, rerender } = renderHook(
         ({ roleId }) => useContractHistory(mockAdapter, 'CONTRACT_ADDRESS', true, { roleId }),
@@ -559,7 +559,7 @@ describe('useContractHistory', () => {
   describe('return type interface', () => {
     it('should match UseContractHistoryReturn interface', async () => {
       const mockService = createMockAccessControlService();
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(() => useContractHistory(mockAdapter, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),

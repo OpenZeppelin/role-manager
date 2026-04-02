@@ -122,14 +122,14 @@ export function useRenounceDialog(options: UseRenounceDialogOptions): UseRenounc
   // Context & External Data
   // =============================================================================
 
-  const { selectedContract, adapter } = useSelectedContract();
+  const { selectedContract, runtime } = useSelectedContract();
   const contractAddress = selectedContract?.address ?? '';
 
   const { address: connectedAddress } = useDerivedAccountStatus();
 
   // Mutation hooks
-  const renounceOwnership = useRenounceOwnership(adapter, contractAddress);
-  const renounceRole = useRenounceRole(adapter, contractAddress);
+  const renounceOwnership = useRenounceOwnership(runtime, contractAddress);
+  const renounceRole = useRenounceRole(runtime, contractAddress);
 
   // Select the appropriate mutation based on type
   const mutation = type === 'ownership' ? renounceOwnership : renounceRole;

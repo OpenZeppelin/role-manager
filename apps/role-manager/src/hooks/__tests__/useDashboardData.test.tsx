@@ -13,7 +13,7 @@ import { type ReactNode } from 'react';
 
 import type { OwnershipInfo } from '@openzeppelin/ui-types';
 
-import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 
 import type { EnrichedRoleAssignment } from '../../types/authorized-accounts';
 import { DataError, ErrorCategory } from '../../utils/errors';
@@ -48,7 +48,7 @@ vi.mock('../useContractRolesEnriched', () => ({
 
 describe('useDashboardData', () => {
   let queryClient: QueryClient;
-  let mockAdapter: RoleManagerAdapter;
+  let mockRuntime: RoleManagerRuntime;
   const testAddress = '0x1234567890123456789012345678901234567890';
 
   // Default options for tests
@@ -70,11 +70,11 @@ describe('useDashboardData', () => {
       },
     });
 
-    mockAdapter = {
+    mockRuntime = {
       ecosystem: 'stellar',
       getExplorerUrl: vi.fn(),
       createAccessControlService: vi.fn(),
-    } as unknown as RoleManagerAdapter;
+    } as unknown as RoleManagerRuntime;
 
     vi.clearAllMocks();
 
@@ -127,7 +127,7 @@ describe('useDashboardData', () => {
       });
 
       const { result } = renderHook(
-        () => useDashboardData(mockAdapter, testAddress, defaultOptions),
+        () => useDashboardData(mockRuntime, testAddress, defaultOptions),
         { wrapper }
       );
 
@@ -165,7 +165,7 @@ describe('useDashboardData', () => {
       });
 
       const { result } = renderHook(
-        () => useDashboardData(mockAdapter, testAddress, defaultOptions),
+        () => useDashboardData(mockRuntime, testAddress, defaultOptions),
         { wrapper }
       );
 
@@ -224,7 +224,7 @@ describe('useDashboardData', () => {
 
     it('returns correct roles count', () => {
       const { result } = renderHook(
-        () => useDashboardData(mockAdapter, testAddress, defaultOptions),
+        () => useDashboardData(mockRuntime, testAddress, defaultOptions),
         { wrapper }
       );
 
@@ -233,7 +233,7 @@ describe('useDashboardData', () => {
 
     it('returns correct unique accounts count (deduplicated)', () => {
       const { result } = renderHook(
-        () => useDashboardData(mockAdapter, testAddress, defaultOptions),
+        () => useDashboardData(mockRuntime, testAddress, defaultOptions),
         { wrapper }
       );
 
@@ -243,7 +243,7 @@ describe('useDashboardData', () => {
 
     it('returns isLoading as false when data is loaded', () => {
       const { result } = renderHook(
-        () => useDashboardData(mockAdapter, testAddress, defaultOptions),
+        () => useDashboardData(mockRuntime, testAddress, defaultOptions),
         { wrapper }
       );
 
@@ -252,7 +252,7 @@ describe('useDashboardData', () => {
 
     it('returns hasError as false when no errors', () => {
       const { result } = renderHook(
-        () => useDashboardData(mockAdapter, testAddress, defaultOptions),
+        () => useDashboardData(mockRuntime, testAddress, defaultOptions),
         { wrapper }
       );
 
@@ -296,7 +296,7 @@ describe('useDashboardData', () => {
       });
 
       const { result } = renderHook(
-        () => useDashboardData(mockAdapter, testAddress, defaultOptions),
+        () => useDashboardData(mockRuntime, testAddress, defaultOptions),
         { wrapper }
       );
 
@@ -339,7 +339,7 @@ describe('useDashboardData', () => {
       });
 
       const { result } = renderHook(
-        () => useDashboardData(mockAdapter, testAddress, defaultOptions),
+        () => useDashboardData(mockRuntime, testAddress, defaultOptions),
         { wrapper }
       );
 
@@ -388,7 +388,7 @@ describe('useDashboardData', () => {
       });
 
       const { result } = renderHook(
-        () => useDashboardData(mockAdapter, testAddress, defaultOptions),
+        () => useDashboardData(mockRuntime, testAddress, defaultOptions),
         { wrapper }
       );
 
@@ -432,7 +432,7 @@ describe('useDashboardData', () => {
       });
 
       const { result } = renderHook(
-        () => useDashboardData(mockAdapter, testAddress, defaultOptions),
+        () => useDashboardData(mockRuntime, testAddress, defaultOptions),
         { wrapper }
       );
 
@@ -475,7 +475,7 @@ describe('useDashboardData', () => {
       });
 
       const { result } = renderHook(
-        () => useDashboardData(mockAdapter, testAddress, defaultOptions),
+        () => useDashboardData(mockRuntime, testAddress, defaultOptions),
         { wrapper }
       );
 
@@ -515,7 +515,7 @@ describe('useDashboardData', () => {
       });
 
       const { result } = renderHook(
-        () => useDashboardData(mockAdapter, testAddress, defaultOptions),
+        () => useDashboardData(mockRuntime, testAddress, defaultOptions),
         { wrapper }
       );
 
@@ -555,7 +555,7 @@ describe('useDashboardData', () => {
       });
 
       const { result } = renderHook(
-        () => useDashboardData(mockAdapter, testAddress, defaultOptions),
+        () => useDashboardData(mockRuntime, testAddress, defaultOptions),
         { wrapper }
       );
 
@@ -594,7 +594,7 @@ describe('useDashboardData', () => {
       });
 
       const { result } = renderHook(
-        () => useDashboardData(mockAdapter, testAddress, defaultOptions),
+        () => useDashboardData(mockRuntime, testAddress, defaultOptions),
         { wrapper }
       );
 
@@ -631,7 +631,7 @@ describe('useDashboardData', () => {
       });
 
       const { result } = renderHook(
-        () => useDashboardData(mockAdapter, testAddress, defaultOptions),
+        () => useDashboardData(mockRuntime, testAddress, defaultOptions),
         { wrapper }
       );
 
@@ -639,8 +639,8 @@ describe('useDashboardData', () => {
     });
   });
 
-  describe('with null adapter', () => {
-    it('handles null adapter gracefully', () => {
+  describe('with null runtime', () => {
+    it('handles null runtime gracefully', () => {
       vi.mocked(useContractRolesEnrichedModule.useContractRolesEnriched).mockReturnValue({
         roles: [],
         isLoading: false,
@@ -721,7 +721,7 @@ describe('useDashboardData', () => {
     it('reports isLoading=true when contract is not yet registered', () => {
       const { result } = renderHook(
         () =>
-          useDashboardData(mockAdapter, testAddress, {
+          useDashboardData(mockRuntime, testAddress, {
             ...defaultOptions,
             isContractRegistered: false,
           }),
@@ -781,7 +781,7 @@ describe('useDashboardData', () => {
 
       const { result } = renderHook(
         () =>
-          useDashboardData(mockAdapter, testAddress, {
+          useDashboardData(mockRuntime, testAddress, {
             ...defaultOptions,
             isContractRegistered: true,
           }),
@@ -822,7 +822,7 @@ describe('useDashboardData', () => {
         hasError: false,
       });
 
-      const { result } = renderHook(() => useDashboardData(mockAdapter, '', defaultOptions), {
+      const { result } = renderHook(() => useDashboardData(mockRuntime, '', defaultOptions), {
         wrapper,
       });
 

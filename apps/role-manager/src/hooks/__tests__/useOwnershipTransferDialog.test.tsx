@@ -18,7 +18,7 @@ import type {
   TxStatus,
 } from '@openzeppelin/ui-types';
 
-import type { RoleManagerAdapter } from '@/core/runtimeAdapter';
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 
 import { useOwnershipTransferDialog } from '../useOwnershipTransferDialog';
 
@@ -73,9 +73,9 @@ const createMockAccessControlService = (
   }) as AccessControlService;
 
 // Create mock adapter factory
-const createMockAdapter = (
+const createMockRuntime = (
   accessControlService?: AccessControlService | null
-): RoleManagerAdapter => {
+): RoleManagerRuntime => {
   const mockService =
     accessControlService === null
       ? undefined
@@ -83,10 +83,10 @@ const createMockAdapter = (
 
   return {
     networkConfig: mockNetworkConfig,
-    isValidAddress: vi.fn().mockReturnValue(true),
-    getAccessControlService: mockService ? vi.fn().mockReturnValue(mockService) : undefined,
-    getCurrentBlock: vi.fn().mockResolvedValue(1000),
-  } as unknown as RoleManagerAdapter;
+    addressing: { isValidAddress: vi.fn().mockReturnValue(true) },
+    accessControl: mockService ?? undefined,
+    query: { getCurrentBlock: vi.fn().mockResolvedValue(1000) },
+  } as unknown as RoleManagerRuntime;
 };
 
 // Mock useSelectedContract
@@ -154,7 +154,7 @@ let mockExpirationMetadata:
 
 vi.mock('../useExpirationMetadata', () => ({
   useExpirationMetadata: (
-    _adapter: unknown,
+    _runtime: unknown,
     _address: string,
     _type: string,
     options?: { enabled?: boolean }
@@ -199,7 +199,7 @@ const setupDefaultMocks = () => {
       label: 'Test Contract',
       networkId: 'stellar-testnet',
     },
-    adapter: createMockAdapter(),
+    runtime: createMockRuntime(),
     isContractRegistered: true,
   });
 

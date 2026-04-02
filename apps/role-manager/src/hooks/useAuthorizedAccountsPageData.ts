@@ -146,7 +146,7 @@ export function useAuthorizedAccountsPageData(): UseAuthorizedAccountsPageDataRe
   // Context & State
   // =============================================================================
 
-  const { selectedContract, adapter, isContractRegistered } = useSelectedContract();
+  const { selectedContract, runtime, isContractRegistered } = useSelectedContract();
   const contractAddress = selectedContract?.address ?? '';
   const contractId = selectedContract?.id;
 
@@ -166,7 +166,7 @@ export function useAuthorizedAccountsPageData(): UseAuthorizedAccountsPageDataRe
     isLoading: isCapabilitiesLoading,
     error: capabilitiesError,
     isSupported,
-  } = useContractCapabilities(adapter, contractAddress, isContractRegistered);
+  } = useContractCapabilities(runtime, contractAddress, isContractRegistered);
 
   // Enriched roles fetching
   const {
@@ -177,7 +177,7 @@ export function useAuthorizedAccountsPageData(): UseAuthorizedAccountsPageDataRe
     hasError: hasRolesError,
     canRetry: canRetryRoles,
     errorMessage: rolesErrorMessage,
-  } = useContractRolesEnriched(adapter, contractAddress, isContractRegistered);
+  } = useContractRolesEnriched(runtime, contractAddress, isContractRegistered);
 
   // Ownership fetching
   // Only fetch when contract has Ownable capability (prevents errors on AccessControl-only contracts)
@@ -187,7 +187,7 @@ export function useAuthorizedAccountsPageData(): UseAuthorizedAccountsPageDataRe
     isLoading: isOwnershipLoading,
     isFetching: isOwnershipFetching,
     refetch: refetchOwnership,
-  } = useContractOwnership(adapter, contractAddress, isContractRegistered, hasOwnableCapability);
+  } = useContractOwnership(runtime, contractAddress, isContractRegistered, hasOwnableCapability);
 
   // =============================================================================
   // Computed Values

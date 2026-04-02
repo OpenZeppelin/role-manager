@@ -99,14 +99,14 @@ export function AddContractDialog({
 
   // Network adapter for schema loading (set after form submission)
   const [selectedNetwork, setSelectedNetwork] = useState<NetworkConfig | null>(null);
-  const { adapter, isLoading: isAdapterLoading } = useNetworkAdapter(selectedNetwork);
+  const { runtime, isLoading: isRuntimeLoading } = useNetworkAdapter(selectedNetwork);
 
   // Schema loader hook
-  const schemaLoader = useContractSchemaLoader(adapter);
+  const schemaLoader = useContractSchemaLoader(runtime);
 
   // Access control service for capability detection
   const { service: accessControlService, isReady: isAccessControlReady } =
-    useAccessControlService(adapter);
+    useAccessControlService(runtime);
 
   /**
    * Reset all dialog state to initial values
@@ -153,7 +153,7 @@ export function AddContractDialog({
    * Actually load the schema once adapter is ready
    */
   const loadSchema = useCallback(async (): Promise<SchemaLoadResult | null> => {
-    if (!adapter || !pendingFormData) {
+    if (!runtime || !pendingFormData) {
       return null;
     }
 
@@ -162,7 +162,7 @@ export function AddContractDialog({
     };
 
     return schemaLoader.load(pendingFormData.address, artifacts);
-  }, [adapter, pendingFormData, schemaLoader]);
+  }, [runtime, pendingFormData, schemaLoader]);
 
   /**
    * Save contract with schema and capabilities to storage,
@@ -286,14 +286,14 @@ export function AddContractDialog({
   useEffect(() => {
     if (
       step === 'loading-schema' &&
-      adapter &&
-      !isAdapterLoading &&
+      runtime &&
+      !isRuntimeLoading &&
       isAccessControlReady &&
       !loadStartedRef.current
     ) {
       executeLoadAndSave();
     }
-  }, [step, adapter, isAdapterLoading, isAccessControlReady, executeLoadAndSave]);
+  }, [step, runtime, isRuntimeLoading, isAccessControlReady, executeLoadAndSave]);
 
   /**
    * Handle retry after error
@@ -324,7 +324,7 @@ export function AddContractDialog({
 
   // Get explorer URL for the contract address
   const explorerUrl =
-    adapter && pendingFormData ? adapter.getExplorerUrl(pendingFormData.address) : null;
+    runtime && pendingFormData ? runtime.explorer.getExplorerUrl(pendingFormData.address) : null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
