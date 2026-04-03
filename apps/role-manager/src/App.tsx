@@ -74,7 +74,7 @@ function createQueryClient(): QueryClient {
  * switch could remount it and reset selectedNetwork to null, causing a loop.
  *
  * WalletSyncProvider syncs the selected network from ContractContext to
- * WalletStateProvider, enabling the wallet UI to load the correct adapter.
+ * WalletStateProvider, enabling the wallet UI to load the correct runtime session.
  * It also handles EVM chain switching - when users switch between EVM networks,
  * it triggers the wallet's chain switch prompt instead of resetting the wallet session.
  *

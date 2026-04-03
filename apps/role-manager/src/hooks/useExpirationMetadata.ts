@@ -77,8 +77,8 @@ export function useExpirationMetadata(
 
   const networkId = runtime?.networkConfig?.id;
 
-  // Guard: all adapters must implement getExpirationMetadata, but the interface
-  // marks it optional. If somehow missing, the query stays disabled.
+  // Guard: all runtimes expose getExpirationMetadata via the accessControl
+  // capability, but the interface marks it optional. If missing, the query stays disabled.
   const hasMethod = !!service?.getExpirationMetadata;
 
   const query = useQuery({
