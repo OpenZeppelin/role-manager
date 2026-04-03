@@ -12,7 +12,7 @@
  * Example: node scripts/resolve-staging-adapters.cjs rc
  */
 
-const { execSync } = require('child_process');
+const { execFileSync, execSync } = require('child_process');
 
 const ADAPTER_PACKAGES = [
   '@openzeppelin/adapter-evm',
@@ -34,9 +34,12 @@ const WORKSPACE_FILTER = '@openzeppelin/role-manager-app';
  * @returns {string | null}
  */
 function getNpmTagVersion(packageName, tag) {
+  if (!/^[\w@/.-]+$/.test(tag)) {
+    throw new Error(`Invalid dist-tag: ${tag}`);
+  }
   try {
     return (
-      execSync(`npm view ${packageName}@${tag} version`, {
+      execFileSync('npm', ['view', `${packageName}@${tag}`, 'version'], {
         encoding: 'utf8',
         stdio: ['pipe', 'pipe', 'pipe'],
       }).trim() || null

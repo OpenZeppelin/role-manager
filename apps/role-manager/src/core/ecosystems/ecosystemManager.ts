@@ -55,14 +55,22 @@ function attachRelayerCapability(
 
   const relayer = relayerFactory(runtime.networkConfig);
 
-  return {
-    ...runtime,
-    relayer,
-    dispose() {
-      relayer.dispose();
-      runtime.dispose();
+  const extended = Object.create(runtime) as RoleManagerRuntime;
+
+  Object.defineProperties(extended, {
+    relayer: { value: relayer, enumerable: true, configurable: true },
+    dispose: {
+      value() {
+        relayer.dispose();
+        runtime.dispose();
+      },
+      enumerable: true,
+      configurable: true,
+      writable: true,
     },
-  };
+  });
+
+  return extended;
 }
 
 // Full Adapter Module Loading (lazy — static switch required by Vite)

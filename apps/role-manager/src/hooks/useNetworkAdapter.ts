@@ -1,8 +1,7 @@
 /**
- * Hook for loading and managing network adapters
- * Feature: 004-add-contract-record
+ * Hook for loading and managing ecosystem runtimes.
  *
- * Provides a contract adapter for a given network configuration,
+ * Provides a RoleManagerRuntime for a given network configuration,
  * handling loading states, errors, and retry functionality.
  *
  * Lifecycle: superseded runtimes are disposed after their replacement has been
@@ -38,17 +37,17 @@ function safeDispose(runtime: RoleManagerRuntime, label: string): void {
 /**
  * Hook that loads and provides a RoleManagerRuntime for a given network configuration.
  *
- * @param networkConfig - The network configuration to load an adapter for, or null if no network selected
- * @returns Object containing the adapter, loading state, error, and retry function
+ * @param networkConfig - The network configuration to load a runtime for, or null if no network selected
+ * @returns Object containing the runtime, loading state, error, and retry function
  *
  * @example
  * ```tsx
- * const { adapter, isLoading, error, retry } = useNetworkAdapter(selectedNetwork);
+ * const { runtime, isLoading, error, retry } = useNetworkAdapter(selectedNetwork);
  *
  * if (isLoading) return <Spinner />;
  * if (error) return <Error message={error.message} onRetry={retry} />;
- * if (adapter) {
- *   const isValid = adapter.isValidAddress(address);
+ * if (runtime) {
+ *   const isValid = runtime.addressing.isValidAddress(address);
  * }
  * ```
  */

@@ -246,8 +246,8 @@ export function AddContractForm({
   });
 
   // Determine if form is valid for submission
-  // Check that required adapter fields are filled
-  const hasRequiredAdapterFields = useMemo(() => {
+  // Check that the runtime is available and contract definition inputs are present
+  const hasRequiredRuntimeFields = useMemo(() => {
     if (!runtime || contractDefinitionInputs.length === 0) {
       return false;
     }
@@ -264,7 +264,7 @@ export function AddContractForm({
     !!selectedNetwork &&
     !isRuntimeLoading &&
     !runtimeError &&
-    hasRequiredAdapterFields &&
+    hasRequiredRuntimeFields &&
     !hasDuplicateError &&
     !isDuplicateChecking;
 
@@ -367,22 +367,22 @@ export function AddContractForm({
             }}
           />
 
-          {/* Adapter Loading State */}
+          {/* Runtime Loading State */}
           {isRuntimeLoading && (
             <div className="flex items-center gap-2 rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Loading adapter...</span>
+              <span>Loading network runtime...</span>
             </div>
           )}
 
-          {/* Adapter Error */}
+          {/* Runtime Error */}
           {runtimeError && (
             <div
               className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive"
               role="alert"
               aria-live="polite"
             >
-              Failed to load adapter.{' '}
+              Failed to load network runtime.{' '}
               <button
                 type="button"
                 onClick={() => {

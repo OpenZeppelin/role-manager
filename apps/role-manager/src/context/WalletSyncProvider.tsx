@@ -116,7 +116,7 @@ export function WalletSyncProvider({ children }: WalletSyncProviderProps): React
       setActiveNetworkId(newNetworkId);
 
       // Only queue a wallet chain switch for same-ecosystem changes (e.g. EVM→EVM).
-      // Cross-ecosystem switches load an entirely new adapter; no chain switch needed.
+      // Cross-ecosystem switches load an entirely new runtime; no chain switch needed.
       // Initial selection (no prior chain) also doesn't need a switch.
       const isSameEcosystem =
         !isInitialSync && prevEcosystem != null && prevEcosystem === newEcosystem;
