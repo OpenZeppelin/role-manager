@@ -28,8 +28,9 @@ RUN rm -rf /root/.cache/node-gyp /root/.npm /root/.node-gyp || true
 RUN npm install -g pnpm
 
 # Copy workspace configuration files
-# Note: .pnpmfile.cjs is included because pnpm-lock.yaml has a checksum for it
-# The hook is a no-op in Docker (LOCAL_UI env var is not set)
+# Note: .pnpmfile.cjs is included because pnpm-lock.yaml has a checksum for it.
+# The local-dev rewrite hook is a no-op in Docker (LOCAL_* env vars are not set),
+# but the prerelease-widening hook (allowAdapterPrereleases) always runs.
 COPY ./package.json ./pnpm-lock.yaml ./pnpm-workspace.yaml ./.npmrc ./.pnpmfile.cjs ./
 COPY ./tsconfig.json ./tsconfig.base.json ./tsconfig.node.json ./
 

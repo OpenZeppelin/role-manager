@@ -61,7 +61,9 @@ export function AddressBook() {
 
   const resolveAddressing = useCallback(async (network: NetworkConfig) => {
     const rt = await getRuntime(network);
-    return rt.addressing;
+    const { addressing } = rt;
+    rt.dispose();
+    return addressing;
   }, []);
 
   const resolveAddressPlaceholder = useCallback(

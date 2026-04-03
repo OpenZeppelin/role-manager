@@ -12,7 +12,7 @@
  * Example: node scripts/resolve-staging-adapters.cjs rc
  */
 
-const { execFileSync, execSync } = require('child_process');
+const { execFileSync } = require('child_process');
 
 const ADAPTER_PACKAGES = [
   '@openzeppelin/adapter-evm',
@@ -192,11 +192,11 @@ function main() {
   }
 
   // Surgical install: only the adapters that need overriding
-  const addCmd = `pnpm add ${packagesToAdd.join(' ')} --save-exact --filter ${WORKSPACE_FILTER}`;
-  console.log(`\n📦 Running: ${addCmd}\n`);
+  const addArgs = ['add', ...packagesToAdd, '--save-exact', '--filter', WORKSPACE_FILTER];
+  console.log(`\n📦 Running: pnpm ${addArgs.join(' ')}\n`);
 
   try {
-    execSync(addCmd, { stdio: 'inherit' });
+    execFileSync('pnpm', addArgs, { stdio: 'inherit' });
   } catch (error) {
     console.error('❌ Failed to install adapter overrides:', error.message);
     process.exit(1);

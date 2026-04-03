@@ -103,6 +103,12 @@ export function useNetworkAdapter(networkConfig: NetworkConfig | null): UseNetwo
           return;
         }
 
+        const prev = promotedRuntimeRef.current;
+        if (prev) {
+          safeDispose(prev, `error loading ${networkConfig.id}`);
+          promotedRuntimeRef.current = null;
+        }
+
         setError(err instanceof Error ? err : new Error('Failed to load runtime'));
         setRuntime(null);
       })
