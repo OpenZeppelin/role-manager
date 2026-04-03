@@ -214,6 +214,7 @@ jobs:
           build-args: |
             VITE_APP_CFG_FEATURE_FLAG_ANALYTICS_ENABLED=true
             VITE_GA_TAG_ID=${{ secrets.VITE_GA_TAG_ID_STAGING }}
+            ADAPTER_DIST_TAG=rc
           secrets: |
             etherscan_api_key=${{ secrets.VITE_APP_CFG_SERVICE_ETHERSCANV2_API_KEY }}
             routescan_api_key=${{ secrets.VITE_APP_CFG_SERVICE_ROUTESCAN_API_KEY }}

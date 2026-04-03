@@ -33,13 +33,25 @@ RUN npm install -g pnpm
 COPY ./package.json ./pnpm-lock.yaml ./pnpm-workspace.yaml ./.npmrc ./.pnpmfile.cjs ./
 COPY ./tsconfig.json ./tsconfig.base.json ./tsconfig.node.json ./
 
-# Copy all workspace packages and apps
+# Copy all workspace packages, apps, and scripts
 COPY ./packages ./packages/
 COPY ./apps ./apps/
+COPY ./scripts ./scripts/
 
-# Install dependencies directly from the public npm registry
+# Step 1: Install dependencies from frozen lockfile (exact production dependency tree)
 # Retry once on failure after clearing possible corrupted caches to avoid node-gyp issues
 RUN pnpm install --frozen-lockfile || (echo "Install failed, clearing caches and retrying..." && rm -rf /root/.cache/node-gyp /root/.npm /root/.node-gyp && pnpm install --frozen-lockfile)
+
+# Step 2: Surgically override adapter packages for staging builds.
+# When ADAPTER_DIST_TAG is set (e.g. "rc"), the resolution script queries npm for
+# both the requested dist-tag and "latest", picks the newer version per adapter, and
+# runs `pnpm add --save-exact` for only those packages. All non-adapter dependencies
+# remain byte-for-byte identical to the frozen lockfile from Step 1.
+# When ADAPTER_DIST_TAG is unset (production), this step is a no-op.
+ARG ADAPTER_DIST_TAG
+RUN if [ -n "$ADAPTER_DIST_TAG" ]; then \
+      node scripts/resolve-staging-adapters.cjs "$ADAPTER_DIST_TAG"; \
+    fi
 
 # Set Node.js memory limit to prevent OOM during build
 # This is especially important for TypeScript compilation in CI environments
