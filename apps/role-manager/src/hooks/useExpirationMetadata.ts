@@ -2,14 +2,13 @@
  * useExpirationMetadata hook
  * Feature: 017-evm-access-control (Phase 6 — US5)
  *
- * Queries the adapter's getExpirationMetadata() to determine how the UI
- * should handle expiration for ownership and admin transfers.
+ * Queries the runtime's accessControl capability for expiration metadata
+ * to determine how the UI should handle expiration for ownership and
+ * admin transfers.
  *
  * Returns:
- * - ExpirationMetadata from the adapter (mode, label, unit, currentValue)
+ * - ExpirationMetadata (mode, label, unit, currentValue)
  * - Derived booleans for UI rendering decisions
- *
- * All adapters (Stellar, EVM) must implement getExpirationMetadata.
  */
 import { useQuery } from '@tanstack/react-query';
 

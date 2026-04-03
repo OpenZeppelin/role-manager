@@ -97,7 +97,7 @@ export function AddContractDialog({
   // Alias storage for auto-creating alias when a contract is added
   const { save: saveAlias } = useAliasStorage();
 
-  // Network adapter for schema loading (set after form submission)
+  // Runtime for schema loading (set after form submission)
   const [selectedNetwork, setSelectedNetwork] = useState<NetworkConfig | null>(null);
   const { runtime, isLoading: isRuntimeLoading } = useNetworkAdapter(selectedNetwork);
 

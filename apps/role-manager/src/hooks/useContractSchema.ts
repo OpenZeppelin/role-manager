@@ -31,7 +31,7 @@ import { useContractSchemaLoader } from './useContractSchemaLoader';
  * - Handles storage quota errors gracefully (shows schema even if save fails)
  * - Delegates network loading to useContractSchemaLoader (with circuit breaker)
  *
- * @param adapter - The contract adapter to use for loading (or null)
+ * @param runtime - The ecosystem runtime to use for loading (or null)
  * @returns Hook state and functions
  */
 export function useContractSchema(runtime: RoleManagerRuntime | null): UseContractSchemaReturn {
