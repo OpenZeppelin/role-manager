@@ -10,7 +10,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
-import type { AccessControlCapabilities, ContractAdapter } from '@openzeppelin/ui-types';
+import type { AccessControlCapabilities } from '@openzeppelin/ui-types';
+
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 
 import { queryKeys } from './queryKeys';
 import { useAccessControlService } from './useAccessControlService';
@@ -38,18 +40,18 @@ export interface UseContractCapabilitiesReturn {
 /**
  * Hook that detects access control capabilities for a given contract.
  *
- * Uses the AccessControlService from the adapter to determine what
+ * Uses the AccessControlService from the runtime to determine what
  * interfaces the contract implements (AccessControl, Ownable, etc.).
  *
- * @param adapter - The contract adapter instance, or null if not loaded
+ * @param runtime - The ecosystem runtime instance, or null if not loaded
  * @param contractAddress - The contract address to check
  * @param isContractRegistered - Whether the contract is registered with the AccessControlService (default: true for backwards compatibility)
  * @returns Object containing capabilities, loading state, error, and helper functions
  *
  * @example
  * ```tsx
- * const { adapter } = useNetworkAdapter(selectedNetwork);
- * const { capabilities, isLoading, isSupported } = useContractCapabilities(adapter, address, isContractRegistered);
+ * const { runtime } = useNetworkAdapter(selectedNetwork);
+ * const { capabilities, isLoading, isSupported } = useContractCapabilities(runtime, address, isContractRegistered);
  *
  * if (isLoading) return <Spinner />;
  * if (!isSupported) return <UnsupportedContractMessage />;
@@ -63,12 +65,12 @@ export interface UseContractCapabilitiesReturn {
  * ```
  */
 export function useContractCapabilities(
-  adapter: ContractAdapter | null,
+  runtime: RoleManagerRuntime | null,
   contractAddress: string,
   isContractRegistered: boolean = true
 ): UseContractCapabilitiesReturn {
-  // Get the access control service from the adapter
-  const { service, isReady } = useAccessControlService(adapter);
+  // Get the access control service from the runtime
+  const { service, isReady } = useAccessControlService(runtime);
 
   // Query for capabilities using react-query
   const {

@@ -5,7 +5,9 @@
  * These types are used by the form, hooks, and components for managing contract records.
  */
 
-import type { ContractAdapter, NetworkConfig } from '@openzeppelin/ui-types';
+import type { NetworkConfig } from '@openzeppelin/ui-types';
+
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 
 import type { RecentContractRecord } from './storage';
 
@@ -111,10 +113,10 @@ export interface UseContractFormReturn {
   selectedNetwork: NetworkConfig | null;
   /** Set the selected network */
   setSelectedNetwork: (network: NetworkConfig | null) => void;
-  /** Current adapter for the selected network */
-  adapter: ContractAdapter | null;
-  /** Whether adapter is loading */
-  isAdapterLoading: boolean;
+  /** Current runtime for the selected network */
+  runtime: RoleManagerRuntime | null;
+  /** Whether runtime is loading */
+  isRuntimeLoading: boolean;
   /** Address placeholder text based on selected network */
   addressPlaceholder: string;
   /** Reset form to initial state */
@@ -125,13 +127,13 @@ export interface UseContractFormReturn {
  * Return type for useNetworkAdapter hook
  */
 export interface UseNetworkAdapterReturn {
-  /** The loaded adapter, or null if not loaded */
-  adapter: ContractAdapter | null;
-  /** Whether the adapter is currently loading */
+  /** The loaded runtime, or null if not loaded */
+  runtime: RoleManagerRuntime | null;
+  /** Whether the runtime is currently loading */
   isLoading: boolean;
-  /** Error if adapter failed to load */
+  /** Error if runtime failed to load */
   error: Error | null;
-  /** Retry loading the adapter (after error) */
+  /** Retry loading the runtime (after error) */
   retry: () => void;
 }
 

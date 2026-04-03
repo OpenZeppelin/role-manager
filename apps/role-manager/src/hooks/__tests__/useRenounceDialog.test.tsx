@@ -13,7 +13,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { PropsWithChildren } from 'react';
 
 import { useDerivedAccountStatus } from '@openzeppelin/ui-react';
-import type { ContractAdapter } from '@openzeppelin/ui-types';
+
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 
 import { useRenounceOwnership, useRenounceRole } from '../useAccessControlMutations';
 import { useRenounceDialog } from '../useRenounceDialog';
@@ -50,7 +51,7 @@ const CONNECTED_ADDRESS = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8';
 const ROLE_ID = '0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6';
 const ROLE_NAME = 'Minter';
 
-const mockAdapter = {} as ContractAdapter;
+const mockRuntime = {} as RoleManagerRuntime;
 
 const createMockMutation = (overrides?: { isPending?: boolean; status?: string }) => ({
   mutateAsync: vi.fn().mockResolvedValue({ id: 'tx-123' }),
@@ -105,7 +106,7 @@ describe('useRenounceDialog', () => {
 
     mockUseSelectedContract.mockReturnValue({
       selectedContract: { id: '1', address: CONTRACT_ADDRESS },
-      adapter: mockAdapter,
+      runtime: mockRuntime,
     } as never);
 
     mockUseDerivedAccountStatus.mockReturnValue({ address: CONNECTED_ADDRESS } as never);

@@ -13,9 +13,10 @@ import type { PropsWithChildren } from 'react';
 import type {
   AccessControlCapabilities,
   AccessControlService,
-  ContractAdapter,
   NetworkConfig,
 } from '@openzeppelin/ui-types';
+
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 
 import { useContractCapabilities } from '../useContractCapabilities';
 
@@ -89,8 +90,10 @@ const createMockAccessControlService = (
     ...overrides,
   }) as AccessControlService;
 
-// Create mock adapter factory
-const createMockAdapter = (accessControlService?: AccessControlService | null): ContractAdapter => {
+// Create mock runtime factory
+const createMockRuntime = (
+  accessControlService?: AccessControlService | null
+): RoleManagerRuntime => {
   const mockService =
     accessControlService === null
       ? undefined
@@ -98,9 +101,9 @@ const createMockAdapter = (accessControlService?: AccessControlService | null): 
 
   return {
     networkConfig: mockNetworkConfig,
-    isValidAddress: vi.fn().mockReturnValue(true),
-    getAccessControlService: mockService ? vi.fn().mockReturnValue(mockService) : undefined,
-  } as unknown as ContractAdapter;
+    addressing: { isValidAddress: vi.fn().mockReturnValue(true) },
+    accessControl: mockService,
+  } as unknown as RoleManagerRuntime;
 };
 
 // React Query wrapper
@@ -140,7 +143,7 @@ describe('useContractCapabilities', () => {
     });
 
     it('should return null capabilities when address is empty', () => {
-      const mockAdapter = createMockAdapter();
+      const mockAdapter = createMockRuntime();
       const { result } = renderHook(() => useContractCapabilities(mockAdapter, ''), {
         wrapper: createWrapper(),
       });
@@ -150,7 +153,7 @@ describe('useContractCapabilities', () => {
     });
 
     it('should return null capabilities when adapter does not support access control', () => {
-      const mockAdapter = createMockAdapter(null);
+      const mockAdapter = createMockRuntime(null);
       const { result } = renderHook(
         () => useContractCapabilities(mockAdapter, 'CONTRACT_ADDRESS'),
         { wrapper: createWrapper() }
@@ -164,7 +167,7 @@ describe('useContractCapabilities', () => {
   describe('successful capability detection', () => {
     it('should fetch capabilities for valid contract with both interfaces', async () => {
       const mockService = createMockAccessControlService();
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(
         () => useContractCapabilities(mockAdapter, 'CONTRACT_ADDRESS'),
@@ -187,7 +190,7 @@ describe('useContractCapabilities', () => {
       const mockService = createMockAccessControlService({
         getCapabilities: vi.fn().mockResolvedValue(mockCapabilitiesOwnableOnly),
       });
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(
         () => useContractCapabilities(mockAdapter, 'CONTRACT_ADDRESS'),
@@ -206,7 +209,7 @@ describe('useContractCapabilities', () => {
       const mockService = createMockAccessControlService({
         getCapabilities: vi.fn().mockResolvedValue(mockCapabilitiesAccessControlOnly),
       });
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(
         () => useContractCapabilities(mockAdapter, 'CONTRACT_ADDRESS'),
@@ -225,7 +228,7 @@ describe('useContractCapabilities', () => {
       const mockService = createMockAccessControlService({
         getCapabilities: vi.fn().mockResolvedValue(mockCapabilitiesNone),
       });
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(
         () => useContractCapabilities(mockAdapter, 'CONTRACT_ADDRESS'),
@@ -246,7 +249,7 @@ describe('useContractCapabilities', () => {
       const mockService = createMockAccessControlService({
         getCapabilities: vi.fn().mockResolvedValue(mockCapabilitiesAccessControlOnly),
       });
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(
         () => useContractCapabilities(mockAdapter, 'CONTRACT_ADDRESS'),
@@ -264,7 +267,7 @@ describe('useContractCapabilities', () => {
       const mockService = createMockAccessControlService({
         getCapabilities: vi.fn().mockResolvedValue(mockCapabilitiesOwnableOnly),
       });
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(
         () => useContractCapabilities(mockAdapter, 'CONTRACT_ADDRESS'),
@@ -282,7 +285,7 @@ describe('useContractCapabilities', () => {
       const mockService = createMockAccessControlService({
         getCapabilities: vi.fn().mockResolvedValue(mockCapabilitiesNone),
       });
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(
         () => useContractCapabilities(mockAdapter, 'CONTRACT_ADDRESS'),
@@ -310,7 +313,7 @@ describe('useContractCapabilities', () => {
       const mockService = createMockAccessControlService({
         getCapabilities: vi.fn().mockRejectedValue(new Error('Network error')),
       });
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(
         () => useContractCapabilities(mockAdapter, 'CONTRACT_ADDRESS'),
@@ -330,7 +333,7 @@ describe('useContractCapabilities', () => {
       const mockService = createMockAccessControlService({
         getCapabilities: vi.fn().mockRejectedValue('string error'),
       });
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(
         () => useContractCapabilities(mockAdapter, 'CONTRACT_ADDRESS'),
@@ -348,7 +351,7 @@ describe('useContractCapabilities', () => {
   describe('refetch functionality', () => {
     it('should provide refetch function', async () => {
       const mockService = createMockAccessControlService();
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(
         () => useContractCapabilities(mockAdapter, 'CONTRACT_ADDRESS'),
@@ -374,7 +377,7 @@ describe('useContractCapabilities', () => {
   describe('query key management', () => {
     it('should refetch when contract address changes', async () => {
       const mockService = createMockAccessControlService();
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result, rerender } = renderHook(
         ({ address }) => useContractCapabilities(mockAdapter, address),
@@ -404,7 +407,7 @@ describe('useContractCapabilities', () => {
   describe('return type interface', () => {
     it('should match UseContractCapabilitiesReturn interface', async () => {
       const mockService = createMockAccessControlService();
-      const mockAdapter = createMockAdapter(mockService);
+      const mockAdapter = createMockRuntime(mockService);
 
       const { result } = renderHook(
         () => useContractCapabilities(mockAdapter, 'CONTRACT_ADDRESS'),

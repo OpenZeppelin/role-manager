@@ -7,8 +7,9 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ContractAdapter, ContractSchema } from '@openzeppelin/ui-types';
+import type { ContractSchema } from '@openzeppelin/ui-types';
 
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 import type { ContractSchemaMetadata, RecentContractRecord } from '@/types/storage';
 
 import { useContractSchema } from '../useContractSchema';
@@ -106,7 +107,7 @@ const createMockRecord = (overrides?: Partial<RecentContractRecord>): RecentCont
   ...overrides,
 });
 
-const createMockAdapter = (overrides?: Partial<ContractAdapter>): ContractAdapter =>
+const createMockRuntime = (overrides?: Record<string, unknown>): RoleManagerRuntime =>
   ({
     networkConfig: {
       id: 'stellar-testnet',
@@ -116,24 +117,26 @@ const createMockAdapter = (overrides?: Partial<ContractAdapter>): ContractAdapte
       type: 'testnet',
       isTestnet: true,
     },
-    isValidAddress: vi.fn().mockReturnValue(true),
-    getContract: vi.fn(),
-    getContractDefinitionInputs: vi.fn().mockReturnValue([
-      {
-        id: 'contractAddress',
-        name: 'contractAddress',
-        label: 'Contract ID',
-        type: 'blockchain-address',
-        validation: { required: true },
-      },
-    ]),
-    loadContractWithMetadata: vi.fn().mockResolvedValue({
-      schema: mockContractSchema,
-      source: 'fetched',
-      metadata: { rpcUrl: 'https://soroban-testnet.stellar.org' },
-    }),
-    ...overrides,
-  }) as unknown as ContractAdapter;
+    addressing: { isValidAddress: vi.fn().mockReturnValue(true) },
+    contractLoading: {
+      getContract: vi.fn(),
+      getContractDefinitionInputs: vi.fn().mockReturnValue([
+        {
+          id: 'contractAddress',
+          name: 'contractAddress',
+          label: 'Contract ID',
+          type: 'blockchain-address',
+          validation: { required: true },
+        },
+      ]),
+      loadContractWithMetadata: vi.fn().mockResolvedValue({
+        schema: mockContractSchema,
+        source: 'fetched',
+        metadata: { rpcUrl: 'https://soroban-testnet.stellar.org' },
+      }),
+      ...overrides,
+    },
+  }) as unknown as RoleManagerRuntime;
 
 // =============================================================================
 // Tests
@@ -150,7 +153,7 @@ describe('useContractSchema', () => {
 
   describe('initialization', () => {
     it('should initialize with idle state', () => {
-      const mockAdapter = createMockAdapter();
+      const mockAdapter = createMockRuntime();
       const { result } = renderHook(() => useContractSchema(mockAdapter));
 
       expect(result.current.state).toBe('idle');
@@ -176,7 +179,7 @@ describe('useContractSchema', () => {
       mockGetByAddressAndNetwork.mockResolvedValue(mockRecord);
       mockHasSchema.mockResolvedValue(true);
 
-      const mockAdapter = createMockAdapter();
+      const mockAdapter = createMockRuntime();
       const { result } = renderHook(() => useContractSchema(mockAdapter));
 
       await act(async () => {
@@ -204,7 +207,7 @@ describe('useContractSchema', () => {
       mockGetByAddressAndNetwork.mockResolvedValue(mockRecord);
       mockHasSchema.mockResolvedValue(true);
 
-      const mockAdapter = createMockAdapter();
+      const mockAdapter = createMockRuntime();
       const { result } = renderHook(() => useContractSchema(mockAdapter));
 
       await act(async () => {
@@ -250,7 +253,7 @@ describe('useContractSchema', () => {
       mockGetByAddressAndNetwork.mockResolvedValue(mockRecord);
       mockHasSchema.mockResolvedValue(true);
 
-      const mockAdapter = createMockAdapter();
+      const mockAdapter = createMockRuntime();
       const { result } = renderHook(() => useContractSchema(mockAdapter));
 
       await act(async () => {
@@ -270,7 +273,7 @@ describe('useContractSchema', () => {
       mockGetByAddressAndNetwork.mockResolvedValue(mockRecord);
       mockHasSchema.mockResolvedValue(true);
 
-      const mockAdapter = createMockAdapter();
+      const mockAdapter = createMockRuntime();
       const { result } = renderHook(() => useContractSchema(mockAdapter));
 
       await act(async () => {
@@ -293,7 +296,7 @@ describe('useContractSchema', () => {
         metadata: { rpcUrl: 'https://soroban-testnet.stellar.org' },
       });
 
-      const mockAdapter = createMockAdapter();
+      const mockAdapter = createMockRuntime();
       const { result } = renderHook(() => useContractSchema(mockAdapter));
 
       await act(async () => {
@@ -321,7 +324,7 @@ describe('useContractSchema', () => {
         metadata: { rpcUrl: 'https://soroban-testnet.stellar.org' },
       });
 
-      const mockAdapter = createMockAdapter();
+      const mockAdapter = createMockRuntime();
       const { result } = renderHook(() => useContractSchema(mockAdapter));
 
       await act(async () => {
@@ -337,7 +340,7 @@ describe('useContractSchema', () => {
       mockGetByAddressAndNetwork.mockResolvedValue(mockRecord);
       mockHasSchema.mockResolvedValue(true);
 
-      const mockAdapter = createMockAdapter();
+      const mockAdapter = createMockRuntime();
       const { result } = renderHook(() => useContractSchema(mockAdapter));
 
       // First load
@@ -418,7 +421,7 @@ describe('useContractSchema', () => {
       );
       mockHasSchema.mockResolvedValue(true);
 
-      const mockAdapter = createMockAdapter();
+      const mockAdapter = createMockRuntime();
       const { result } = renderHook(() => useContractSchema(mockAdapter));
 
       // Load first contract
@@ -464,7 +467,7 @@ describe('useContractSchema', () => {
       );
       mockHasSchema.mockResolvedValue(true);
 
-      const mockAdapter = createMockAdapter();
+      const mockAdapter = createMockRuntime();
       const { result } = renderHook(() => useContractSchema(mockAdapter));
 
       // Load testnet contract
@@ -567,7 +570,7 @@ describe('useContractSchema', () => {
       );
       mockHasSchema.mockResolvedValue(true);
 
-      const mockAdapter = createMockAdapter();
+      const mockAdapter = createMockRuntime();
       const { result } = renderHook(() => useContractSchema(mockAdapter));
 
       // Load token contract
@@ -609,7 +612,7 @@ describe('useContractSchema', () => {
         metadata: { rpcUrl: 'https://soroban-testnet.stellar.org' },
       });
 
-      const mockAdapter = createMockAdapter();
+      const mockAdapter = createMockRuntime();
       const { result } = renderHook(() => useContractSchema(mockAdapter));
 
       await act(async () => {
@@ -635,7 +638,7 @@ describe('useContractSchema', () => {
       // Mock the loader to fail
       mockLoad.mockResolvedValue(null);
 
-      const mockAdapter = createMockAdapter();
+      const mockAdapter = createMockRuntime();
       const { result } = renderHook(() => useContractSchema(mockAdapter));
 
       await act(async () => {
@@ -662,7 +665,7 @@ describe('useContractSchema', () => {
       // Mock storage quota error
       mockAddOrUpdateWithSchema.mockRejectedValue(new Error('QuotaExceededError'));
 
-      const mockAdapter = createMockAdapter();
+      const mockAdapter = createMockRuntime();
       const { result } = renderHook(() => useContractSchema(mockAdapter));
 
       await act(async () => {
@@ -688,7 +691,7 @@ describe('useContractSchema', () => {
       // Storage fails
       mockAddOrUpdateWithSchema.mockRejectedValue(new Error('Storage error'));
 
-      const mockAdapter = createMockAdapter();
+      const mockAdapter = createMockRuntime();
       const { result } = renderHook(() => useContractSchema(mockAdapter));
 
       await act(async () => {
@@ -707,7 +710,7 @@ describe('useContractSchema', () => {
       mockGetByAddressAndNetwork.mockResolvedValue(mockRecord);
       mockHasSchema.mockResolvedValue(true);
 
-      const mockAdapter = createMockAdapter();
+      const mockAdapter = createMockRuntime();
       const { result } = renderHook(() => useContractSchema(mockAdapter));
 
       // Load a contract
@@ -733,7 +736,7 @@ describe('useContractSchema', () => {
 
   describe('refresh functionality', () => {
     it('should return null when no schema is loaded', async () => {
-      const mockAdapter = createMockAdapter();
+      const mockAdapter = createMockRuntime();
       const { result } = renderHook(() => useContractSchema(mockAdapter));
 
       const refreshResult = await result.current.refresh();
@@ -748,7 +751,7 @@ describe('useContractSchema', () => {
       mockGetByAddressAndNetwork.mockResolvedValue(manualRecord);
       mockHasSchema.mockResolvedValue(true);
 
-      const mockAdapter = createMockAdapter();
+      const mockAdapter = createMockRuntime();
       const { result } = renderHook(() => useContractSchema(mockAdapter));
 
       await act(async () => {
@@ -764,7 +767,7 @@ describe('useContractSchema', () => {
 
   describe('interface compliance', () => {
     it('should match UseContractSchemaReturn interface', () => {
-      const mockAdapter = createMockAdapter();
+      const mockAdapter = createMockRuntime();
       const { result } = renderHook(() => useContractSchema(mockAdapter));
 
       expect(result.current).toHaveProperty('state');

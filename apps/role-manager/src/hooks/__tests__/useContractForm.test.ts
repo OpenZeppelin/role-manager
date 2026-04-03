@@ -7,12 +7,12 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ContractAdapter, NetworkConfig } from '@openzeppelin/ui-types';
+import type { NetworkConfig } from '@openzeppelin/ui-types';
 
 import { getEcosystemMetadata } from '@/core/ecosystems/ecosystemManager';
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 
 import { useContractForm } from '../useContractForm';
-// Import after mock setup
 import { useNetworkAdapter } from '../useNetworkAdapter';
 
 // Mock the useNetworkAdapter hook
@@ -47,11 +47,11 @@ const mockStellarNetwork = {
   isTestnet: false,
 } as NetworkConfig;
 
-const mockAdapter: ContractAdapter = {
+const mockAdapter: RoleManagerRuntime = {
   networkConfig: mockEvmNetwork,
-  isValidAddress: vi.fn(),
-  getContract: vi.fn(),
-} as unknown as ContractAdapter;
+  addressing: { isValidAddress: vi.fn() },
+  contractLoading: { getContract: vi.fn() },
+} as unknown as RoleManagerRuntime;
 
 describe('useContractForm', () => {
   beforeEach(() => {
@@ -59,7 +59,7 @@ describe('useContractForm', () => {
 
     // Default mock implementations
     mockUseNetworkAdapter.mockReturnValue({
-      adapter: null,
+      runtime: null,
       isLoading: false,
       error: null,
       retry: vi.fn(),
@@ -150,10 +150,10 @@ describe('useContractForm', () => {
     });
   });
 
-  describe('adapter integration', () => {
-    it('should expose adapter from useNetworkAdapter', () => {
+  describe('runtime integration', () => {
+    it('should expose runtime from useNetworkAdapter', () => {
       mockUseNetworkAdapter.mockReturnValue({
-        adapter: mockAdapter,
+        runtime: mockAdapter,
         isLoading: false,
         error: null,
         retry: vi.fn(),
@@ -161,12 +161,12 @@ describe('useContractForm', () => {
 
       const { result } = renderHook(() => useContractForm());
 
-      expect(result.current.adapter).toBe(mockAdapter);
+      expect(result.current.runtime).toBe(mockAdapter);
     });
 
-    it('should expose isAdapterLoading state', () => {
+    it('should expose isRuntimeLoading state', () => {
       mockUseNetworkAdapter.mockReturnValue({
-        adapter: null,
+        runtime: null,
         isLoading: true,
         error: null,
         retry: vi.fn(),
@@ -174,7 +174,7 @@ describe('useContractForm', () => {
 
       const { result } = renderHook(() => useContractForm());
 
-      expect(result.current.isAdapterLoading).toBe(true);
+      expect(result.current.isRuntimeLoading).toBe(true);
     });
   });
 
@@ -187,7 +187,7 @@ describe('useContractForm', () => {
 
     it('should return "Loading..." when adapter is loading', () => {
       mockUseNetworkAdapter.mockReturnValue({
-        adapter: null,
+        runtime: null,
         isLoading: true,
         error: null,
         retry: vi.fn(),
@@ -204,7 +204,7 @@ describe('useContractForm', () => {
 
     it('should return ecosystem-specific placeholder when network is selected', () => {
       mockUseNetworkAdapter.mockReturnValue({
-        adapter: mockAdapter,
+        runtime: mockAdapter,
         isLoading: false,
         error: null,
         retry: vi.fn(),
@@ -224,7 +224,7 @@ describe('useContractForm', () => {
   describe('validation', () => {
     it('should require name field', async () => {
       mockUseNetworkAdapter.mockReturnValue({
-        adapter: mockAdapter,
+        runtime: mockAdapter,
         isLoading: false,
         error: null,
         retry: vi.fn(),
@@ -265,11 +265,11 @@ describe('useContractForm', () => {
       const mockIsValidAddress = vi.fn().mockReturnValue(true);
       const adapterWithValidation = {
         ...mockAdapter,
-        isValidAddress: mockIsValidAddress,
-      } as unknown as ContractAdapter;
+        addressing: { isValidAddress: mockIsValidAddress },
+      } as unknown as RoleManagerRuntime;
 
       mockUseNetworkAdapter.mockReturnValue({
-        adapter: adapterWithValidation,
+        runtime: adapterWithValidation,
         isLoading: false,
         error: null,
         retry: vi.fn(),
@@ -283,18 +283,18 @@ describe('useContractForm', () => {
 
       // When form validates address, it should call adapter.isValidAddress
       // This is tested indirectly through form submission
-      expect(adapterWithValidation.isValidAddress).toBeDefined();
+      expect(adapterWithValidation.addressing.isValidAddress).toBeDefined();
     });
 
     it('should show error for invalid address format', async () => {
       const mockIsValidAddress = vi.fn().mockReturnValue(false);
       const adapterWithValidation = {
         ...mockAdapter,
-        isValidAddress: mockIsValidAddress,
-      } as unknown as ContractAdapter;
+        addressing: { isValidAddress: mockIsValidAddress },
+      } as unknown as RoleManagerRuntime;
 
       mockUseNetworkAdapter.mockReturnValue({
-        adapter: adapterWithValidation,
+        runtime: adapterWithValidation,
         isLoading: false,
         error: null,
         retry: vi.fn(),
@@ -314,11 +314,11 @@ describe('useContractForm', () => {
       const mockIsValidAddress = vi.fn().mockReturnValue(true);
       const adapterWithValidation = {
         ...mockAdapter,
-        isValidAddress: mockIsValidAddress,
-      } as unknown as ContractAdapter;
+        addressing: { isValidAddress: mockIsValidAddress },
+      } as unknown as RoleManagerRuntime;
 
       mockUseNetworkAdapter.mockReturnValue({
-        adapter: adapterWithValidation,
+        runtime: adapterWithValidation,
         isLoading: false,
         error: null,
         retry: vi.fn(),
@@ -352,7 +352,7 @@ describe('useContractForm', () => {
 
     it('should reset form to initial state', () => {
       mockUseNetworkAdapter.mockReturnValue({
-        adapter: mockAdapter,
+        runtime: mockAdapter,
         isLoading: false,
         error: null,
         retry: vi.fn(),
@@ -380,11 +380,11 @@ describe('useContractForm', () => {
       const mockIsValidAddress = vi.fn().mockReturnValue(true);
       const adapterWithValidation = {
         ...mockAdapter,
-        isValidAddress: mockIsValidAddress,
-      } as unknown as ContractAdapter;
+        addressing: { isValidAddress: mockIsValidAddress },
+      } as unknown as RoleManagerRuntime;
 
       mockUseNetworkAdapter.mockReturnValue({
-        adapter: adapterWithValidation,
+        runtime: adapterWithValidation,
         isLoading: false,
         error: null,
         retry: vi.fn(),
@@ -416,8 +416,8 @@ describe('useContractForm', () => {
       expect(result.current).toHaveProperty('isValid');
       expect(result.current).toHaveProperty('selectedNetwork');
       expect(result.current).toHaveProperty('setSelectedNetwork');
-      expect(result.current).toHaveProperty('adapter');
-      expect(result.current).toHaveProperty('isAdapterLoading');
+      expect(result.current).toHaveProperty('runtime');
+      expect(result.current).toHaveProperty('isRuntimeLoading');
       expect(result.current).toHaveProperty('addressPlaceholder');
       expect(result.current).toHaveProperty('reset');
     });
@@ -425,21 +425,21 @@ describe('useContractForm', () => {
 
   // T008: EVM-specific address validation and error handling
   describe('EVM address validation', () => {
-    const mockEvmAdapter: ContractAdapter = {
+    const mockEvmAdapter: RoleManagerRuntime = {
       networkConfig: mockEvmNetwork,
-      isValidAddress: vi.fn(),
-      getContract: vi.fn(),
-    } as unknown as ContractAdapter;
+      addressing: { isValidAddress: vi.fn() },
+      contractLoading: { getContract: vi.fn() },
+    } as unknown as RoleManagerRuntime;
 
     it('should accept valid EVM address (0x-prefixed, 42 chars)', () => {
       const validAddress = '0x1234567890abcdef1234567890abcdef12345678';
       const adapterWithValidation = {
         ...mockEvmAdapter,
-        isValidAddress: vi.fn().mockReturnValue(true),
-      } as unknown as ContractAdapter;
+        addressing: { isValidAddress: vi.fn().mockReturnValue(true) },
+      } as unknown as RoleManagerRuntime;
 
       mockUseNetworkAdapter.mockReturnValue({
-        adapter: adapterWithValidation,
+        runtime: adapterWithValidation,
         isLoading: false,
         error: null,
         retry: vi.fn(),
@@ -452,18 +452,18 @@ describe('useContractForm', () => {
       });
 
       // Adapter's isValidAddress should be available for the valid EVM address
-      expect(adapterWithValidation.isValidAddress(validAddress)).toBe(true);
+      expect(adapterWithValidation.addressing.isValidAddress(validAddress)).toBe(true);
     });
 
     it('should reject invalid EVM address (wrong length)', () => {
       const invalidAddress = '0x1234'; // Too short
       const adapterWithValidation = {
         ...mockEvmAdapter,
-        isValidAddress: vi.fn().mockReturnValue(false),
-      } as unknown as ContractAdapter;
+        addressing: { isValidAddress: vi.fn().mockReturnValue(false) },
+      } as unknown as RoleManagerRuntime;
 
       mockUseNetworkAdapter.mockReturnValue({
-        adapter: adapterWithValidation,
+        runtime: adapterWithValidation,
         isLoading: false,
         error: null,
         retry: vi.fn(),
@@ -476,18 +476,18 @@ describe('useContractForm', () => {
       });
 
       // Adapter should reject the short address
-      expect(adapterWithValidation.isValidAddress(invalidAddress)).toBe(false);
+      expect(adapterWithValidation.addressing.isValidAddress(invalidAddress)).toBe(false);
     });
 
     it('should reject EVM address without 0x prefix', () => {
       const noPrefix = '1234567890abcdef1234567890abcdef12345678';
       const adapterWithValidation = {
         ...mockEvmAdapter,
-        isValidAddress: vi.fn().mockReturnValue(false),
-      } as unknown as ContractAdapter;
+        addressing: { isValidAddress: vi.fn().mockReturnValue(false) },
+      } as unknown as RoleManagerRuntime;
 
       mockUseNetworkAdapter.mockReturnValue({
-        adapter: adapterWithValidation,
+        runtime: adapterWithValidation,
         isLoading: false,
         error: null,
         retry: vi.fn(),
@@ -499,17 +499,17 @@ describe('useContractForm', () => {
         result.current.setSelectedNetwork(mockEvmNetwork);
       });
 
-      expect(adapterWithValidation.isValidAddress(noPrefix)).toBe(false);
+      expect(adapterWithValidation.addressing.isValidAddress(noPrefix)).toBe(false);
     });
 
     it('should show EVM-specific error message for invalid address', () => {
       const adapterWithValidation = {
         ...mockEvmAdapter,
-        isValidAddress: vi.fn().mockReturnValue(false),
-      } as unknown as ContractAdapter;
+        addressing: { isValidAddress: vi.fn().mockReturnValue(false) },
+      } as unknown as RoleManagerRuntime;
 
       mockUseNetworkAdapter.mockReturnValue({
-        adapter: adapterWithValidation,
+        runtime: adapterWithValidation,
         isLoading: false,
         error: null,
         retry: vi.fn(),
@@ -534,7 +534,7 @@ describe('useContractForm', () => {
 
     it('should show EVM-specific placeholder when EVM network is selected', () => {
       mockUseNetworkAdapter.mockReturnValue({
-        adapter: mockEvmAdapter,
+        runtime: mockEvmAdapter,
         isLoading: false,
         error: null,
         retry: vi.fn(),
@@ -563,7 +563,7 @@ describe('useContractForm', () => {
   describe('EVM adapter error handling', () => {
     it('should show adapter load error when EVM adapter fails to initialize', () => {
       mockUseNetworkAdapter.mockReturnValue({
-        adapter: null,
+        runtime: null,
         isLoading: false,
         error: new Error('Failed to load EVM adapter'),
         retry: vi.fn(),
@@ -577,12 +577,12 @@ describe('useContractForm', () => {
 
       // Form should not be valid when adapter has an error
       expect(result.current.isValid).toBe(false);
-      expect(result.current.adapter).toBeNull();
+      expect(result.current.runtime).toBeNull();
     });
 
     it('should allow form input while EVM adapter is loading', () => {
       mockUseNetworkAdapter.mockReturnValue({
-        adapter: null,
+        runtime: null,
         isLoading: true,
         error: null,
         retry: vi.fn(),
@@ -595,7 +595,7 @@ describe('useContractForm', () => {
       });
 
       // Adapter should be loading
-      expect(result.current.isAdapterLoading).toBe(true);
+      expect(result.current.isRuntimeLoading).toBe(true);
       // Placeholder should show loading state
       expect(result.current.addressPlaceholder).toBe('Loading...');
     });
@@ -603,12 +603,12 @@ describe('useContractForm', () => {
     it('should re-validate when switching from Stellar to EVM network', () => {
       const evmAdapter = {
         ...mockAdapter,
-        isValidAddress: vi.fn().mockReturnValue(true),
-      } as unknown as ContractAdapter;
+        addressing: { isValidAddress: vi.fn().mockReturnValue(true) },
+      } as unknown as RoleManagerRuntime;
 
       // Start with Stellar adapter
       mockUseNetworkAdapter.mockReturnValue({
-        adapter: mockAdapter,
+        runtime: mockAdapter,
         isLoading: false,
         error: null,
         retry: vi.fn(),
@@ -622,7 +622,7 @@ describe('useContractForm', () => {
 
       // Switch to EVM
       mockUseNetworkAdapter.mockReturnValue({
-        adapter: evmAdapter,
+        runtime: evmAdapter,
         isLoading: false,
         error: null,
         retry: vi.fn(),
@@ -634,7 +634,7 @@ describe('useContractForm', () => {
 
       // Should be using EVM network now
       expect(result.current.selectedNetwork).toEqual(mockEvmNetwork);
-      expect(result.current.adapter).toBe(evmAdapter);
+      expect(result.current.runtime).toBe(evmAdapter);
     });
   });
 });

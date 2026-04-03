@@ -9,7 +9,9 @@ import { act, render, renderHook, screen, waitFor } from '@testing-library/react
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { PropsWithChildren } from 'react';
 
-import type { ContractAdapter, NetworkConfig } from '@openzeppelin/ui-types';
+import type { NetworkConfig } from '@openzeppelin/ui-types';
+
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 
 import type { ContractRecord } from '../../types/contracts';
 import { ContractProvider, useContractContext } from '../ContractContext';
@@ -56,10 +58,10 @@ const mockContracts: ContractRecord[] = [
   },
 ];
 
-const mockAdapter: ContractAdapter = {
+const mockRuntime: RoleManagerRuntime = {
   networkConfig: mockNetworks[0],
   isValidAddress: vi.fn().mockReturnValue(true),
-} as unknown as ContractAdapter;
+} as unknown as RoleManagerRuntime;
 
 // =============================================================================
 // Mocks
@@ -70,8 +72,8 @@ const mocks = {
   networks: mockNetworks,
   isLoadingNetworks: false,
   contracts: mockContracts,
-  adapter: mockAdapter as ContractAdapter | null,
-  isAdapterLoading: false,
+  runtime: mockRuntime as RoleManagerRuntime | null,
+  isRuntimeLoading: false,
 };
 
 // Mock hooks
@@ -94,8 +96,8 @@ vi.mock('../../hooks/useRecentContracts', () => ({
 
 vi.mock('../../hooks/useNetworkAdapter', () => ({
   useNetworkAdapter: () => ({
-    adapter: mocks.adapter,
-    isLoading: mocks.isAdapterLoading,
+    runtime: mocks.runtime,
+    isLoading: mocks.isRuntimeLoading,
     error: null,
     retry: vi.fn(),
   }),
@@ -120,8 +122,8 @@ describe('ContractContext', () => {
     mocks.networks = mockNetworks;
     mocks.isLoadingNetworks = false;
     mocks.contracts = mockContracts;
-    mocks.adapter = mockAdapter;
-    mocks.isAdapterLoading = false;
+    mocks.runtime = mockRuntime;
+    mocks.isRuntimeLoading = false;
   });
 
   afterEach(() => {
@@ -150,8 +152,8 @@ describe('ContractContext', () => {
       expect(result.current).toHaveProperty('setSelectedContract');
       expect(result.current).toHaveProperty('selectedNetwork');
       expect(result.current).toHaveProperty('setSelectedNetwork');
-      expect(result.current).toHaveProperty('adapter');
-      expect(result.current).toHaveProperty('isAdapterLoading');
+      expect(result.current).toHaveProperty('runtime');
+      expect(result.current).toHaveProperty('isRuntimeLoading');
       expect(result.current).toHaveProperty('contracts');
       expect(result.current).toHaveProperty('isContractsLoading');
     });
@@ -187,12 +189,12 @@ describe('ContractContext', () => {
       expect(result.current.contracts).toEqual(mockContracts);
     });
 
-    it('should provide adapter from useNetworkAdapter', () => {
+    it('should provide runtime from useNetworkAdapter', () => {
       const { result } = renderHook(() => useContractContext(), {
         wrapper: TestWrapper,
       });
 
-      expect(result.current.adapter).toBe(mockAdapter);
+      expect(result.current.runtime).toBe(mockRuntime);
     });
   });
 
@@ -322,14 +324,14 @@ describe('ContractContext', () => {
   });
 
   describe('loading states', () => {
-    it('should reflect adapter loading state', () => {
-      mocks.isAdapterLoading = true;
+    it('should reflect runtime loading state', () => {
+      mocks.isRuntimeLoading = true;
 
       const { result } = renderHook(() => useContractContext(), {
         wrapper: TestWrapper,
       });
 
-      expect(result.current.isAdapterLoading).toBe(true);
+      expect(result.current.isRuntimeLoading).toBe(true);
     });
 
     it('should reflect contracts loading state', () => {
@@ -364,14 +366,14 @@ describe('ContractContext', () => {
       expect(result.current.selectedContract).toBeNull();
     });
 
-    it('should handle null adapter', () => {
-      mocks.adapter = null;
+    it('should handle null runtime', () => {
+      mocks.runtime = null;
 
       const { result } = renderHook(() => useContractContext(), {
         wrapper: TestWrapper,
       });
 
-      expect(result.current.adapter).toBeNull();
+      expect(result.current.runtime).toBeNull();
     });
   });
 

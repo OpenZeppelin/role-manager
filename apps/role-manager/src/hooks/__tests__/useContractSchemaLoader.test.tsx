@@ -7,8 +7,9 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ContractAdapter, ContractSchema, NetworkConfig } from '@openzeppelin/ui-types';
+import type { ContractSchema, NetworkConfig } from '@openzeppelin/ui-types';
 
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 import type { SchemaLoadResult } from '@/types/schema';
 import { DEFAULT_CIRCUIT_BREAKER_CONFIG } from '@/types/schema';
 
@@ -50,24 +51,26 @@ const mockLoadResult = {
   },
 };
 
-// Create mock adapter factory
-const createMockAdapter = (overrides?: Partial<ContractAdapter>): ContractAdapter =>
+// Create mock runtime factory
+const createMockRuntime = (overrides?: Record<string, unknown>): RoleManagerRuntime =>
   ({
     networkConfig: mockNetworkConfig,
-    isValidAddress: vi.fn().mockReturnValue(true),
-    getContract: vi.fn(),
-    getContractDefinitionInputs: vi.fn().mockReturnValue([
-      {
-        id: 'contractAddress',
-        name: 'contractAddress',
-        label: 'Contract ID',
-        type: 'blockchain-address',
-        validation: { required: true },
-      },
-    ]),
-    loadContractWithMetadata: vi.fn().mockResolvedValue(mockLoadResult),
-    ...overrides,
-  }) as unknown as ContractAdapter;
+    addressing: { isValidAddress: vi.fn().mockReturnValue(true) },
+    contractLoading: {
+      getContract: vi.fn(),
+      getContractDefinitionInputs: vi.fn().mockReturnValue([
+        {
+          id: 'contractAddress',
+          name: 'contractAddress',
+          label: 'Contract ID',
+          type: 'blockchain-address',
+          validation: { required: true },
+        },
+      ]),
+      loadContractWithMetadata: vi.fn().mockResolvedValue(mockLoadResult),
+      ...overrides,
+    },
+  }) as unknown as RoleManagerRuntime;
 
 describe('useContractSchemaLoader', () => {
   beforeEach(() => {
@@ -82,7 +85,7 @@ describe('useContractSchemaLoader', () => {
 
   describe('initialization', () => {
     it('should initialize with idle state', () => {
-      const mockAdapter = createMockAdapter();
+      const mockAdapter = createMockRuntime();
       const { result } = renderHook(() => useContractSchemaLoader(mockAdapter));
 
       expect(result.current.isLoading).toBe(false);
@@ -101,7 +104,7 @@ describe('useContractSchemaLoader', () => {
   // T019: Write test: load() returns schema on success
   describe('load() success', () => {
     it('should return schema on successful load', async () => {
-      const mockAdapter = createMockAdapter();
+      const mockAdapter = createMockRuntime();
       const { result } = renderHook(() => useContractSchemaLoader(mockAdapter));
 
       let loadResult: SchemaLoadResult | null = null;
@@ -115,7 +118,7 @@ describe('useContractSchemaLoader', () => {
     });
 
     it('should call adapter.loadContractWithMetadata with correct params', async () => {
-      const mockAdapter = createMockAdapter();
+      const mockAdapter = createMockRuntime();
       const { result } = renderHook(() => useContractSchemaLoader(mockAdapter));
 
       const artifacts = { contractAddress: 'CTEST123...' };
@@ -124,11 +127,14 @@ describe('useContractSchemaLoader', () => {
         await result.current.load('CTEST123...', artifacts);
       });
 
-      expect(mockAdapter.loadContractWithMetadata).toHaveBeenCalledWith(artifacts);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((mockAdapter as any).contractLoading.loadContractWithMetadata).toHaveBeenCalledWith(
+        artifacts
+      );
     });
 
     it('should reset circuit breaker state on successful load', async () => {
-      const failingAdapter = createMockAdapter({
+      const failingAdapter = createMockRuntime({
         loadContractWithMetadata: vi
           .fn()
           .mockRejectedValueOnce(new Error('Network error'))
@@ -161,7 +167,7 @@ describe('useContractSchemaLoader', () => {
   describe('load() error handling', () => {
     it('should set error state on load failure', async () => {
       const errorMessage = 'Contract not found';
-      const failingAdapter = createMockAdapter({
+      const failingAdapter = createMockRuntime({
         loadContractWithMetadata: vi.fn().mockRejectedValue(new Error(errorMessage)),
       });
 
@@ -176,7 +182,7 @@ describe('useContractSchemaLoader', () => {
     });
 
     it('should handle non-Error exceptions', async () => {
-      const failingAdapter = createMockAdapter({
+      const failingAdapter = createMockRuntime({
         loadContractWithMetadata: vi.fn().mockRejectedValue('string error'),
       });
 
@@ -204,7 +210,7 @@ describe('useContractSchemaLoader', () => {
     it('should return null when already loading', async () => {
       // Create a resolve function we can control manually
       let resolveLoad: ((value: typeof mockLoadResult) => void) | null = null;
-      const mockAdapter = createMockAdapter({
+      const mockAdapter = createMockRuntime({
         loadContractWithMetadata: vi.fn().mockImplementation(
           () =>
             new Promise((resolve) => {
@@ -251,7 +257,7 @@ describe('useContractSchemaLoader', () => {
   // T017: Write test: circuit breaker blocks after 3 failures
   describe('circuit breaker - blocking after failures', () => {
     it('should activate circuit breaker after 3 consecutive failures within window', async () => {
-      const failingAdapter = createMockAdapter({
+      const failingAdapter = createMockRuntime({
         loadContractWithMetadata: vi.fn().mockRejectedValue(new Error('Network error')),
       });
 
@@ -282,11 +288,14 @@ describe('useContractSchemaLoader', () => {
 
       expect(fourthResult).toBeNull();
       // loadContractWithMetadata should only be called 3 times (4th blocked)
-      expect(failingAdapter.loadContractWithMetadata).toHaveBeenCalledTimes(3);
+
+      expect(
+        vi.mocked(failingAdapter.contractLoading.loadContractWithMetadata)
+      ).toHaveBeenCalledTimes(3);
     });
 
     it('should track failures per contract+network combination', async () => {
-      const failingAdapter = createMockAdapter({
+      const failingAdapter = createMockRuntime({
         loadContractWithMetadata: vi.fn().mockRejectedValue(new Error('Network error')),
       });
 
@@ -312,11 +321,14 @@ describe('useContractSchemaLoader', () => {
       });
 
       // Should have been called (circuit breaker is per-contract)
-      expect(failingAdapter.loadContractWithMetadata).toHaveBeenCalledTimes(4);
+
+      expect(
+        vi.mocked(failingAdapter.contractLoading.loadContractWithMetadata)
+      ).toHaveBeenCalledTimes(4);
     });
 
     it('should reset failure count after window expires', async () => {
-      const failingAdapter = createMockAdapter({
+      const failingAdapter = createMockRuntime({
         loadContractWithMetadata: vi.fn().mockRejectedValue(new Error('Network error')),
       });
 
@@ -348,7 +360,7 @@ describe('useContractSchemaLoader', () => {
     });
 
     it('should display circuit breaker message for configured duration', async () => {
-      const failingAdapter = createMockAdapter({
+      const failingAdapter = createMockRuntime({
         loadContractWithMetadata: vi.fn().mockRejectedValue(new Error('Network error')),
       });
 
@@ -388,7 +400,7 @@ describe('useContractSchemaLoader', () => {
   describe('circuit breaker - reset on success', () => {
     it('should reset circuit breaker after successful load', async () => {
       let callCount = 0;
-      const intermittentAdapter = createMockAdapter({
+      const intermittentAdapter = createMockRuntime({
         loadContractWithMetadata: vi.fn().mockImplementation(() => {
           callCount++;
           if (callCount <= 2) {
@@ -433,7 +445,7 @@ describe('useContractSchemaLoader', () => {
     });
 
     it('should clear circuit breaker state via reset()', async () => {
-      const failingAdapter = createMockAdapter({
+      const failingAdapter = createMockRuntime({
         loadContractWithMetadata: vi.fn().mockRejectedValue(new Error('Network error')),
       });
 
@@ -465,7 +477,7 @@ describe('useContractSchemaLoader', () => {
 
   describe('loading state', () => {
     it('should set isLoading to true during load', async () => {
-      const mockAdapter = createMockAdapter({
+      const mockAdapter = createMockRuntime({
         loadContractWithMetadata: vi
           .fn()
           .mockImplementation(
@@ -494,7 +506,7 @@ describe('useContractSchemaLoader', () => {
     });
 
     it('should set isLoading to false after error', async () => {
-      const failingAdapter = createMockAdapter({
+      const failingAdapter = createMockRuntime({
         loadContractWithMetadata: vi.fn().mockRejectedValue(new Error('Error')),
       });
 
@@ -511,7 +523,7 @@ describe('useContractSchemaLoader', () => {
 
   describe('return type interface', () => {
     it('should match UseContractSchemaLoaderReturn interface', () => {
-      const mockAdapter = createMockAdapter();
+      const mockAdapter = createMockRuntime();
       const { result } = renderHook(() => useContractSchemaLoader(mockAdapter));
 
       expect(result.current).toHaveProperty('load');

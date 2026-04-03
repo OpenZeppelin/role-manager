@@ -3,7 +3,7 @@
  * Feature: 004-add-contract-record
  *
  * Provides form state management using react-hook-form with
- * network-specific address validation via the adapter pattern.
+ * network-specific address validation via the runtime's addressing capability.
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -22,11 +22,11 @@ import { useNetworkAdapter } from './useNetworkAdapter';
  *
  * Features:
  * - react-hook-form integration for form state management
- * - Network-specific address validation via adapter.isValidAddress()
+ * - Network-specific address validation via runtime.addressing.isValidAddress()
  * - Dynamic address placeholder based on selected ecosystem
  * - Re-validation when network changes
  *
- * @returns Form control, handlers, validation state, and adapter info
+ * @returns Form control, handlers, validation state, and runtime info
  *
  * @example
  * ```tsx
@@ -62,14 +62,14 @@ import { useNetworkAdapter } from './useNetworkAdapter';
  * ```
  */
 export function useContractForm(): UseContractFormReturn {
-  // Track selected network separately from form state for adapter loading
+  // Track selected network separately from form state for runtime loading
   const [selectedNetwork, setSelectedNetworkState] = useState<NetworkConfig | null>(null);
 
-  // Load adapter for selected network
+  // Load runtime for selected network
   const {
-    adapter,
-    isLoading: isAdapterLoading,
-    error: adapterError,
+    runtime,
+    isLoading: isRuntimeLoading,
+    error: runtimeError,
   } = useNetworkAdapter(selectedNetwork);
 
   // Initialize react-hook-form
@@ -114,7 +114,7 @@ export function useContractForm(): UseContractFormReturn {
     if (!selectedNetwork) {
       return ADDRESS_PLACEHOLDERS.NO_NETWORK;
     }
-    if (isAdapterLoading) {
+    if (isRuntimeLoading) {
       return ADDRESS_PLACEHOLDERS.LOADING;
     }
 
@@ -141,19 +141,19 @@ export function useContractForm(): UseContractFormReturn {
         return ERROR_MESSAGES.NETWORK_REQUIRED;
       }
 
-      if (!adapter) {
-        // Adapter not loaded yet - allow input but note loading state
-        if (isAdapterLoading) {
+      if (!runtime) {
+        // Runtime not loaded yet — allow input but note loading state
+        if (isRuntimeLoading) {
           return true; // Don't block during loading
         }
-        if (adapterError) {
+        if (runtimeError) {
           return ERROR_MESSAGES.ADAPTER_LOAD_FAILED;
         }
-        return true; // No adapter and no error - probably just selected
+        return true; // No runtime and no error — probably just selected
       }
 
       const trimmedValue = value.trim();
-      if (!adapter.isValidAddress(trimmedValue)) {
+      if (!runtime.addressing.isValidAddress(trimmedValue)) {
         return ERROR_MESSAGES.ADDRESS_INVALID(
           getEcosystemMetadata(selectedNetwork.ecosystem)?.name ?? selectedNetwork.ecosystem
         );
@@ -161,7 +161,7 @@ export function useContractForm(): UseContractFormReturn {
 
       return true;
     },
-    [adapter, selectedNetwork, isAdapterLoading, adapterError]
+    [runtime, selectedNetwork, isRuntimeLoading, runtimeError]
   );
 
   // Custom validation function for name field
@@ -257,8 +257,8 @@ export function useContractForm(): UseContractFormReturn {
     isValid: computedIsValid,
     selectedNetwork,
     setSelectedNetwork,
-    adapter,
-    isAdapterLoading,
+    runtime,
+    isRuntimeLoading,
     addressPlaceholder,
     reset,
   };

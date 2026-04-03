@@ -72,7 +72,7 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
   // Context & State
   // =============================================================================
 
-  const { selectedContract, adapter, isContractRegistered } = useSelectedContract();
+  const { selectedContract, runtime, isContractRegistered } = useSelectedContract();
   const contractAddress = selectedContract?.address ?? '';
   const contractId = selectedContract?.id;
 
@@ -105,7 +105,7 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
     isLoading: isCapabilitiesLoading,
     error: capabilitiesError,
     isSupported,
-  } = useContractCapabilities(adapter, contractAddress, isContractRegistered);
+  } = useContractCapabilities(runtime, contractAddress, isContractRegistered);
 
   // Check if history is supported
   const supportsHistory = capabilities?.supportsHistory ?? false;
@@ -140,7 +140,7 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
     const hasSearch = searchQuery.length > 0;
 
     // Use adapter to validate if it's a valid address (chain-agnostic)
-    const isValidAddress = hasSearch && adapter?.isValidAddress(searchQuery);
+    const isValidAddress = hasSearch && runtime?.addressing.isValidAddress(searchQuery);
 
     return {
       limit: DEFAULT_PAGE_SIZE,
@@ -155,7 +155,7 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
       timestampTo: filters.timestampTo,
     };
   }, [
-    adapter,
+    runtime,
     paginationState.currentCursor,
     filters.roleFilter,
     filters.actionFilter,
@@ -177,14 +177,14 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
     errorMessage: historyErrorMessage,
     canRetry: canRetryHistory,
     refetch: refetchHistory,
-  } = useContractHistory(adapter, contractAddress, shouldFetchHistory, queryOptions);
+  } = useContractHistory(runtime, contractAddress, shouldFetchHistory, queryOptions);
 
   // Contract roles (cached via react-query)
   const {
     roles: contractRoles,
     isLoading: areRolesLoading,
     isFetching: areRolesFetching,
-  } = useContractRoles(adapter, contractAddress, isContractRegistered);
+  } = useContractRoles(runtime, contractAddress, isContractRegistered);
 
   // Custom role aliases for resolving hash-only roles in history display
   const { aliases: customAliases } = useCustomRoleAliases(contractId);
@@ -195,8 +195,8 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
 
   // Create URL generator functions using shared utilities
   // These handle different URL patterns across chains (EVM, Stellar, etc.)
-  const getTransactionUrl = useMemo(() => createGetTransactionUrl(adapter), [adapter]);
-  const getAccountUrl = useMemo(() => createGetAccountUrl(adapter), [adapter]);
+  const getTransactionUrl = useMemo(() => createGetTransactionUrl(runtime), [runtime]);
+  const getAccountUrl = useMemo(() => createGetAccountUrl(runtime), [runtime]);
 
   // =============================================================================
   // Computed Values

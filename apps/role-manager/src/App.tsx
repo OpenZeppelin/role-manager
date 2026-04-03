@@ -7,7 +7,7 @@ import {
   Toaster,
   TooltipProvider,
 } from '@openzeppelin/ui-components';
-import { AdapterProvider, AnalyticsProvider, WalletStateProvider } from '@openzeppelin/ui-react';
+import { AnalyticsProvider, RuntimeProvider, WalletStateProvider } from '@openzeppelin/ui-react';
 import type { NativeConfigLoader } from '@openzeppelin/ui-types';
 
 import { TrackedRoute } from './components/Analytics';
@@ -16,7 +16,7 @@ import { AliasLabelBridge } from './context/AliasLabelBridge';
 import { BlockTimeProvider } from './context/BlockTimeContext';
 import { ContractProvider } from './context/ContractContext';
 import { WalletSyncProvider } from './context/WalletSyncProvider';
-import { getAdapter, getNetworkById } from './core/ecosystems/ecosystemManager';
+import { getNetworkById, getRuntime } from './core/ecosystems/ecosystemManager';
 import { AddressBook } from './pages/AddressBook';
 import { AuthorizedAccounts } from './pages/AuthorizedAccounts';
 import { Dashboard } from './pages/Dashboard';
@@ -62,26 +62,24 @@ function createQueryClient(): QueryClient {
  * - BrowserRouter: Client-side routing
  * - NetworkErrorNotificationProvider: Error notifications with "Configure" action buttons
  * - AnalyticsProvider: Google Analytics tracking (Feature: analytics)
- * - AdapterProvider: Manages adapter singleton instances
+ * - RuntimeProvider: Manages runtime singleton instances
  * - ContractProvider: Shared contract selection state (OUTSIDE WalletStateProvider)
  * - AliasLabelBridge: Bridges alias storage → AddressLabelProvider (auto-labels all AddressDisplay)
  * - WalletStateProvider: Manages wallet connection state
  * - WalletSyncProvider: Syncs ContractContext network → WalletStateProvider + handles EVM chain switches
  *
  * IMPORTANT: ContractProvider must be OUTSIDE WalletStateProvider because
- * WalletStateProvider uses a dynamic key for its internal UI context provider.
- * When the key changes (adapter loads), React remounts children. If ContractProvider
- * were inside, it would remount and reset selectedNetwork to null, causing an
- * infinite loop: network selected → adapter loads → provider remounts → network
- * resets to null → network selected again...
+ * WalletStateProvider remounts its internal wallet UI provider when the active
+ * ecosystem session changes. If ContractProvider were inside, a cross-ecosystem
+ * switch could remount it and reset selectedNetwork to null, causing a loop.
  *
  * WalletSyncProvider syncs the selected network from ContractContext to
  * WalletStateProvider, enabling the wallet UI to load the correct adapter.
  * It also handles EVM chain switching - when users switch between EVM networks,
- * it triggers the wallet's chain switch prompt instead of disconnecting.
+ * it triggers the wallet's chain switch prompt instead of resetting the wallet session.
  *
  * Feature: 007-dashboard-real-data
- * Feature: 013-wallet-connect-header (AdapterProvider, WalletStateProvider, WalletSyncProvider)
+ * Feature: 013-wallet-connect-header (RuntimeProvider, WalletStateProvider, WalletSyncProvider)
  * Feature: network-settings (NetworkErrorNotificationProvider)
  */
 function App() {
@@ -124,7 +122,7 @@ function App() {
         <NetworkErrorNotificationProvider>
           <TooltipProvider delayDuration={300}>
             <AnalyticsProvider tagId={analyticsTagId} autoInit>
-              <AdapterProvider resolveAdapter={getAdapter}>
+              <RuntimeProvider resolveRuntime={getRuntime}>
                 <ContractProvider>
                   <AliasLabelBridge>
                     <BlockTimeProvider>
@@ -183,7 +181,7 @@ function App() {
                     </BlockTimeProvider>
                   </AliasLabelBridge>
                 </ContractProvider>
-              </AdapterProvider>
+              </RuntimeProvider>
             </AnalyticsProvider>
             <Toaster position="top-right" />
           </TooltipProvider>

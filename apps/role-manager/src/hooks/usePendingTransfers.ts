@@ -14,12 +14,13 @@
 import { useCallback, useMemo } from 'react';
 
 import type {
-  ContractAdapter,
   ExpirationMetadata,
   OwnershipInfo,
   PendingAdminTransfer,
   PendingOwnershipTransfer,
 } from '@openzeppelin/ui-types';
+
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 
 import type { PendingTransfer, UsePendingTransfersReturn } from '../types/pending-transfers';
 import {
@@ -69,7 +70,7 @@ function transformOwnershipTransfer(
   pendingTransfer: PendingOwnershipTransfer,
   currentBlock: number | null,
   connectedAddress: string | null | undefined,
-  adapter: ContractAdapter | null,
+  runtime: RoleManagerRuntime | null,
   expirationMetadata: ExpirationMetadata | undefined
 ): PendingTransfer {
   const expirationBlock = pendingTransfer.expirationBlock ?? 0;
@@ -85,7 +86,7 @@ function transformOwnershipTransfer(
     : undefined;
 
   const isPendingOwner = addressesEqual(connectedAddress, pendingTransfer.pendingOwner);
-  const getAccountUrl = createGetAccountUrl(adapter);
+  const getAccountUrl = createGetAccountUrl(runtime);
 
   // canAccept must reflect whether acceptance is actually possible right now:
   // the connected wallet is the pending owner, the transfer hasn't expired,
@@ -121,7 +122,7 @@ function transformAdminTransfer(
   pendingTransfer: PendingAdminTransfer,
   currentBlock: number | null,
   connectedAddress: string | null | undefined,
-  adapter: ContractAdapter | null,
+  runtime: RoleManagerRuntime | null,
   expirationMetadata: ExpirationMetadata | undefined
 ): PendingTransfer {
   const expirationBlock = pendingTransfer.expirationBlock ?? 0;
@@ -137,7 +138,7 @@ function transformAdminTransfer(
     : undefined;
 
   const isPendingAdmin = addressesEqual(connectedAddress, pendingTransfer.pendingAdmin);
-  const getAccountUrl = createGetAccountUrl(adapter);
+  const getAccountUrl = createGetAccountUrl(runtime);
 
   const canAccept =
     isPendingAdmin && !isExpired && (isScheduleReached === undefined || isScheduleReached);
@@ -198,11 +199,11 @@ export function usePendingTransfers(
   const { connectedAddress, includeExpired = false } = options;
 
   // Get contract context
-  const { selectedContract, adapter, isContractRegistered } = useSelectedContract();
+  const { selectedContract, runtime, isContractRegistered } = useSelectedContract();
   const contractAddress = selectedContract?.address ?? '';
 
   // Feature 016: Get capabilities to check for two-step admin support
-  const { capabilities } = useContractCapabilities(adapter, contractAddress, isContractRegistered);
+  const { capabilities } = useContractCapabilities(runtime, contractAddress, isContractRegistered);
   const hasOwnable = capabilities?.hasOwnable ?? false;
   const hasTwoStepAdmin = capabilities?.hasTwoStepAdmin ?? false;
 
@@ -215,7 +216,7 @@ export function usePendingTransfers(
     hasError: ownershipHasError,
     errorMessage: ownershipErrorMessage,
     refetch: refetchOwnership,
-  } = useContractOwnership(adapter, contractAddress, isContractRegistered, hasOwnable);
+  } = useContractOwnership(runtime, contractAddress, isContractRegistered, hasOwnable);
 
   // Feature 016: Fetch admin info (only when contract supports two-step admin)
   const {
@@ -225,17 +226,17 @@ export function usePendingTransfers(
     hasError: adminHasError,
     errorMessage: adminErrorMessage,
     refetch: refetchAdminInfo,
-  } = useContractAdminInfo(adapter, contractAddress, isContractRegistered, hasTwoStepAdmin);
+  } = useContractAdminInfo(runtime, contractAddress, isContractRegistered, hasTwoStepAdmin);
 
   // Fetch expiration metadata for both transfer types (T041)
   const { metadata: ownershipExpirationMetadata } = useExpirationMetadata(
-    adapter,
+    runtime,
     contractAddress,
     'ownership',
     { enabled: hasOwnable }
   );
   const { metadata: adminExpirationMetadata } = useExpirationMetadata(
-    adapter,
+    runtime,
     contractAddress,
     'admin',
     { enabled: hasTwoStepAdmin }
@@ -245,7 +246,7 @@ export function usePendingTransfers(
   // Polling disabled — the Dashboard is a summary view and doesn't need a live
   // countdown.  The block is fetched once on mount; subsequent updates come from
   // the manual `refetch()` action or when the query is invalidated by mutations.
-  const { currentBlock, isLoading: isBlockLoading } = useCurrentBlock(adapter, {
+  const { currentBlock, isLoading: isBlockLoading } = useCurrentBlock(runtime, {
     enabled: !!selectedContract,
     pollInterval: false,
   });
@@ -275,7 +276,7 @@ export function usePendingTransfers(
           ownershipWithPending.pendingTransfer,
           currentBlock,
           connectedAddress,
-          adapter,
+          runtime,
           ownershipExpirationMetadata
         );
 
@@ -299,7 +300,7 @@ export function usePendingTransfers(
         adminInfo.pendingTransfer,
         currentBlock,
         connectedAddress,
-        adapter,
+        runtime,
         adminExpirationMetadata
       );
 
@@ -320,7 +321,7 @@ export function usePendingTransfers(
     currentBlock,
     connectedAddress,
     includeExpired,
-    adapter,
+    runtime,
     ownershipExpirationMetadata,
     adminExpirationMetadata,
   ]);

@@ -12,13 +12,14 @@ import type { PropsWithChildren } from 'react';
 
 import type {
   AccessControlService,
-  ContractAdapter,
   ExecutionConfig,
   NetworkConfig,
   OperationResult,
   TransactionStatusUpdate,
   TxStatus,
 } from '@openzeppelin/ui-types';
+
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 
 import {
   useAcceptOwnership,
@@ -77,8 +78,10 @@ const createMockAccessControlService = (
     ...overrides,
   }) as AccessControlService;
 
-// Create mock adapter factory
-const createMockAdapter = (accessControlService?: AccessControlService | null): ContractAdapter => {
+// Create mock runtime factory
+const createMockRuntime = (
+  accessControlService?: AccessControlService | null
+): RoleManagerRuntime => {
   const mockService =
     accessControlService === null
       ? undefined
@@ -86,9 +89,9 @@ const createMockAdapter = (accessControlService?: AccessControlService | null): 
 
   return {
     networkConfig: mockNetworkConfig,
-    isValidAddress: vi.fn().mockReturnValue(true),
-    getAccessControlService: mockService ? vi.fn().mockReturnValue(mockService) : undefined,
-  } as unknown as ContractAdapter;
+    addressing: { isValidAddress: vi.fn().mockReturnValue(true) },
+    accessControl: mockService ?? undefined,
+  } as unknown as RoleManagerRuntime;
 };
 
 // Error class for network disconnection
@@ -130,12 +133,12 @@ const createWrapper = (queryClient?: QueryClient) => {
 
 describe('useGrantRole', () => {
   let mockService: AccessControlService;
-  let mockAdapter: ContractAdapter;
+  let mockRuntime: RoleManagerRuntime;
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockService = createMockAccessControlService();
-    mockAdapter = createMockAdapter(mockService);
+    mockRuntime = createMockRuntime(mockService);
   });
 
   afterEach(() => {
@@ -144,7 +147,7 @@ describe('useGrantRole', () => {
 
   describe('initialization', () => {
     it('should return idle state initially', () => {
-      const { result } = renderHook(() => useGrantRole(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useGrantRole(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -154,7 +157,7 @@ describe('useGrantRole', () => {
       expect(result.current.statusDetails).toBeNull();
     });
 
-    it('should not be ready when adapter is null', () => {
+    it('should not be ready when runtime is null', () => {
       const { result } = renderHook(() => useGrantRole(null, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
@@ -162,17 +165,17 @@ describe('useGrantRole', () => {
       expect(result.current.isReady).toBe(false);
     });
 
-    it('should not be ready when adapter does not support access control', () => {
-      const adapterWithoutAC = createMockAdapter(null);
-      const { result } = renderHook(() => useGrantRole(adapterWithoutAC, 'CONTRACT_ADDRESS'), {
+    it('should not be ready when runtime does not support access control', () => {
+      const runtimeWithoutAC = createMockRuntime(null);
+      const { result } = renderHook(() => useGrantRole(runtimeWithoutAC, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
       expect(result.current.isReady).toBe(false);
     });
 
-    it('should be ready when adapter supports access control', () => {
-      const { result } = renderHook(() => useGrantRole(mockAdapter, 'CONTRACT_ADDRESS'), {
+    it('should be ready when runtime supports access control', () => {
+      const { result } = renderHook(() => useGrantRole(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -182,7 +185,7 @@ describe('useGrantRole', () => {
 
   describe('successful grant role', () => {
     it('should call grantRole on the service with correct parameters', async () => {
-      const { result } = renderHook(() => useGrantRole(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useGrantRole(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -205,7 +208,7 @@ describe('useGrantRole', () => {
     });
 
     it('should return operation result on success', async () => {
-      const { result } = renderHook(() => useGrantRole(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useGrantRole(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -248,11 +251,11 @@ describe('useGrantRole', () => {
             }
           ),
       });
-      const adapter = createMockAdapter(mockServiceWithStatus);
+      const runtime = createMockRuntime(mockServiceWithStatus);
 
       const { result } = renderHook(
         () =>
-          useGrantRole(adapter, 'CONTRACT_ADDRESS', {
+          useGrantRole(runtime, 'CONTRACT_ADDRESS', {
             onStatusChange: (status, details) => {
               statusChanges.push({ status, details });
             },
@@ -277,7 +280,7 @@ describe('useGrantRole', () => {
     });
 
     it('should support runtime API key', async () => {
-      const { result } = renderHook(() => useGrantRole(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useGrantRole(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -306,9 +309,9 @@ describe('useGrantRole', () => {
       const mockServiceWithError = createMockAccessControlService({
         grantRole: vi.fn().mockRejectedValue(new Error('Transaction failed')),
       });
-      const adapter = createMockAdapter(mockServiceWithError);
+      const runtime = createMockRuntime(mockServiceWithError);
 
-      const { result } = renderHook(() => useGrantRole(adapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useGrantRole(runtime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -332,9 +335,9 @@ describe('useGrantRole', () => {
       const mockServiceWithNetworkError = createMockAccessControlService({
         grantRole: vi.fn().mockRejectedValue(new NetworkDisconnectedError()),
       });
-      const adapter = createMockAdapter(mockServiceWithNetworkError);
+      const runtime = createMockRuntime(mockServiceWithNetworkError);
 
-      const { result } = renderHook(() => useGrantRole(adapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useGrantRole(runtime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -359,9 +362,9 @@ describe('useGrantRole', () => {
       const mockServiceWithRejection = createMockAccessControlService({
         grantRole: vi.fn().mockRejectedValue(new UserRejectedError()),
       });
-      const adapter = createMockAdapter(mockServiceWithRejection);
+      const runtime = createMockRuntime(mockServiceWithRejection);
 
-      const { result } = renderHook(() => useGrantRole(adapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useGrantRole(runtime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -383,8 +386,8 @@ describe('useGrantRole', () => {
     });
 
     it('should throw error when service is not ready', async () => {
-      const adapterWithoutAC = createMockAdapter(null);
-      const { result } = renderHook(() => useGrantRole(adapterWithoutAC, 'CONTRACT_ADDRESS'), {
+      const runtimeWithoutAC = createMockRuntime(null);
+      const { result } = renderHook(() => useGrantRole(runtimeWithoutAC, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -416,7 +419,7 @@ describe('useGrantRole', () => {
 
       const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
-      const { result } = renderHook(() => useGrantRole(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useGrantRole(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(queryClient),
       });
 
@@ -453,9 +456,9 @@ describe('useGrantRole', () => {
       const mockServiceWithError = createMockAccessControlService({
         grantRole: vi.fn().mockRejectedValue(new Error('Failed')),
       });
-      const adapter = createMockAdapter(mockServiceWithError);
+      const runtime = createMockRuntime(mockServiceWithError);
 
-      const { result } = renderHook(() => useGrantRole(adapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useGrantRole(runtime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(queryClient),
       });
 
@@ -491,7 +494,7 @@ describe('useGrantRole', () => {
       const mockQuery = { getObserversCount: () => 1 };
       vi.spyOn(queryClient.getQueryCache(), 'find').mockReturnValue(mockQuery as never);
 
-      const { result } = renderHook(() => useGrantRole(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useGrantRole(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(queryClient),
       });
 
@@ -532,7 +535,7 @@ describe('useGrantRole', () => {
       const mockQuery = { getObserversCount: () => 0 };
       vi.spyOn(queryClient.getQueryCache(), 'find').mockReturnValue(mockQuery as never);
 
-      const { result } = renderHook(() => useGrantRole(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useGrantRole(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(queryClient),
       });
 
@@ -562,9 +565,9 @@ describe('useGrantRole', () => {
       const mockServiceWithError = createMockAccessControlService({
         grantRole: vi.fn().mockRejectedValue(new Error('Transaction failed')),
       });
-      const adapter = createMockAdapter(mockServiceWithError);
+      const runtime = createMockRuntime(mockServiceWithError);
 
-      const { result } = renderHook(() => useGrantRole(adapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useGrantRole(runtime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -594,12 +597,12 @@ describe('useGrantRole', () => {
 
 describe('useRevokeRole', () => {
   let mockService: AccessControlService;
-  let mockAdapter: ContractAdapter;
+  let mockRuntime: RoleManagerRuntime;
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockService = createMockAccessControlService();
-    mockAdapter = createMockAdapter(mockService);
+    mockRuntime = createMockRuntime(mockService);
   });
 
   afterEach(() => {
@@ -608,7 +611,7 @@ describe('useRevokeRole', () => {
 
   describe('initialization', () => {
     it('should return idle state initially', () => {
-      const { result } = renderHook(() => useRevokeRole(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useRevokeRole(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -617,8 +620,8 @@ describe('useRevokeRole', () => {
       expect(result.current.status).toBe('idle');
     });
 
-    it('should be ready when adapter supports access control', () => {
-      const { result } = renderHook(() => useRevokeRole(mockAdapter, 'CONTRACT_ADDRESS'), {
+    it('should be ready when runtime supports access control', () => {
+      const { result } = renderHook(() => useRevokeRole(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -628,7 +631,7 @@ describe('useRevokeRole', () => {
 
   describe('successful revoke role', () => {
     it('should call revokeRole on the service with correct parameters', async () => {
-      const { result } = renderHook(() => useRevokeRole(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useRevokeRole(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -651,7 +654,7 @@ describe('useRevokeRole', () => {
     });
 
     it('should return operation result on success', async () => {
-      const { result } = renderHook(() => useRevokeRole(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useRevokeRole(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -673,9 +676,9 @@ describe('useRevokeRole', () => {
       const mockServiceWithNetworkError = createMockAccessControlService({
         revokeRole: vi.fn().mockRejectedValue(new NetworkDisconnectedError()),
       });
-      const adapter = createMockAdapter(mockServiceWithNetworkError);
+      const runtime = createMockRuntime(mockServiceWithNetworkError);
 
-      const { result } = renderHook(() => useRevokeRole(adapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useRevokeRole(runtime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -698,9 +701,9 @@ describe('useRevokeRole', () => {
       const mockServiceWithRejection = createMockAccessControlService({
         revokeRole: vi.fn().mockRejectedValue(new UserRejectedError()),
       });
-      const adapter = createMockAdapter(mockServiceWithRejection);
+      const runtime = createMockRuntime(mockServiceWithRejection);
 
-      const { result } = renderHook(() => useRevokeRole(adapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useRevokeRole(runtime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -731,7 +734,7 @@ describe('useRevokeRole', () => {
 
       const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
-      const { result } = renderHook(() => useRevokeRole(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useRevokeRole(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(queryClient),
       });
 
@@ -759,12 +762,12 @@ describe('useRevokeRole', () => {
 
 describe('useTransferOwnership', () => {
   let mockService: AccessControlService;
-  let mockAdapter: ContractAdapter;
+  let mockRuntime: RoleManagerRuntime;
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockService = createMockAccessControlService();
-    mockAdapter = createMockAdapter(mockService);
+    mockRuntime = createMockRuntime(mockService);
   });
 
   afterEach(() => {
@@ -773,7 +776,7 @@ describe('useTransferOwnership', () => {
 
   describe('initialization', () => {
     it('should return idle state initially', () => {
-      const { result } = renderHook(() => useTransferOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useTransferOwnership(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -782,8 +785,8 @@ describe('useTransferOwnership', () => {
       expect(result.current.status).toBe('idle');
     });
 
-    it('should be ready when adapter supports access control', () => {
-      const { result } = renderHook(() => useTransferOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
+    it('should be ready when runtime supports access control', () => {
+      const { result } = renderHook(() => useTransferOwnership(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -793,7 +796,7 @@ describe('useTransferOwnership', () => {
 
   describe('successful transfer ownership', () => {
     it('should call transferOwnership on the service with correct parameters', async () => {
-      const { result } = renderHook(() => useTransferOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useTransferOwnership(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -816,7 +819,7 @@ describe('useTransferOwnership', () => {
     });
 
     it('should return operation result on success', async () => {
-      const { result } = renderHook(() => useTransferOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useTransferOwnership(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -854,11 +857,11 @@ describe('useTransferOwnership', () => {
             }
           ),
       });
-      const adapter = createMockAdapter(mockServiceWithStatus);
+      const runtime = createMockRuntime(mockServiceWithStatus);
 
       const { result } = renderHook(
         () =>
-          useTransferOwnership(adapter, 'CONTRACT_ADDRESS', {
+          useTransferOwnership(runtime, 'CONTRACT_ADDRESS', {
             onStatusChange: (status, details) => {
               statusChanges.push({ status, details });
             },
@@ -887,9 +890,9 @@ describe('useTransferOwnership', () => {
       const mockServiceWithNetworkError = createMockAccessControlService({
         transferOwnership: vi.fn().mockRejectedValue(new NetworkDisconnectedError()),
       });
-      const adapter = createMockAdapter(mockServiceWithNetworkError);
+      const runtime = createMockRuntime(mockServiceWithNetworkError);
 
-      const { result } = renderHook(() => useTransferOwnership(adapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useTransferOwnership(runtime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -912,9 +915,9 @@ describe('useTransferOwnership', () => {
       const mockServiceWithRejection = createMockAccessControlService({
         transferOwnership: vi.fn().mockRejectedValue(new UserRejectedError()),
       });
-      const adapter = createMockAdapter(mockServiceWithRejection);
+      const runtime = createMockRuntime(mockServiceWithRejection);
 
-      const { result } = renderHook(() => useTransferOwnership(adapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useTransferOwnership(runtime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -945,7 +948,7 @@ describe('useTransferOwnership', () => {
 
       const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
-      const { result } = renderHook(() => useTransferOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useTransferOwnership(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(queryClient),
       });
 
@@ -968,15 +971,15 @@ describe('useTransferOwnership', () => {
 describe('mutation hook integration', () => {
   it('should allow multiple mutations on the same contract', async () => {
     const mockService = createMockAccessControlService();
-    const mockAdapter = createMockAdapter(mockService);
+    const mockRuntime = createMockRuntime(mockService);
 
     const { result: grantResult } = renderHook(
-      () => useGrantRole(mockAdapter, 'CONTRACT_ADDRESS'),
+      () => useGrantRole(mockRuntime, 'CONTRACT_ADDRESS'),
       { wrapper: createWrapper() }
     );
 
     const { result: revokeResult } = renderHook(
-      () => useRevokeRole(mockAdapter, 'CONTRACT_ADDRESS'),
+      () => useRevokeRole(mockRuntime, 'CONTRACT_ADDRESS'),
       { wrapper: createWrapper() }
     );
 
@@ -1009,7 +1012,7 @@ describe('mutation hook integration', () => {
 
 describe('useExportSnapshot', () => {
   let mockService: AccessControlService;
-  let mockAdapter: ContractAdapter;
+  let mockRuntime: RoleManagerRuntime;
 
   const mockCapabilities = {
     hasOwnable: true,
@@ -1040,7 +1043,7 @@ describe('useExportSnapshot', () => {
       getOwnership: vi.fn().mockResolvedValue(mockOwnership),
       getCurrentRoles: vi.fn().mockResolvedValue(mockRoles),
     });
-    mockAdapter = createMockAdapter(mockService);
+    mockRuntime = createMockRuntime(mockService);
   });
 
   afterEach(() => {
@@ -1051,7 +1054,7 @@ describe('useExportSnapshot', () => {
     it('should return initial state correctly', () => {
       const { result } = renderHook(
         () =>
-          useExportSnapshot(mockAdapter, 'CONTRACT_ADDRESS', {
+          useExportSnapshot(mockRuntime, 'CONTRACT_ADDRESS', {
             networkId: 'stellar-testnet',
             networkName: 'Stellar Testnet',
           }),
@@ -1063,7 +1066,7 @@ describe('useExportSnapshot', () => {
       expect(result.current.isReady).toBe(true);
     });
 
-    it('should not be ready when adapter is null', () => {
+    it('should not be ready when runtime is null', () => {
       const { result } = renderHook(
         () =>
           useExportSnapshot(null, 'CONTRACT_ADDRESS', {
@@ -1076,12 +1079,12 @@ describe('useExportSnapshot', () => {
       expect(result.current.isReady).toBe(false);
     });
 
-    it('should not be ready when adapter lacks access control service', () => {
-      const adapterWithoutService = createMockAdapter(null);
+    it('should not be ready when runtime lacks access control service', () => {
+      const runtimeWithoutService = createMockRuntime(null);
 
       const { result } = renderHook(
         () =>
-          useExportSnapshot(adapterWithoutService, 'CONTRACT_ADDRESS', {
+          useExportSnapshot(runtimeWithoutService, 'CONTRACT_ADDRESS', {
             networkId: 'stellar-testnet',
             networkName: 'Stellar Testnet',
           }),
@@ -1098,7 +1101,7 @@ describe('useExportSnapshot', () => {
 
       const { result } = renderHook(
         () =>
-          useExportSnapshot(mockAdapter, 'CONTRACT_ADDRESS', {
+          useExportSnapshot(mockRuntime, 'CONTRACT_ADDRESS', {
             networkId: 'stellar-testnet',
             networkName: 'Stellar Testnet',
             onSuccess,
@@ -1133,7 +1136,7 @@ describe('useExportSnapshot', () => {
         hasOwnable: mockCapabilities.hasOwnable,
         hasEnumerableRoles: mockCapabilities.hasEnumerableRoles,
       });
-      // pendingOwner is not currently provided by the adapter's OwnershipInfo
+      // pendingOwner is not currently provided by the runtime's OwnershipInfo
       expect(snapshot.ownership).toEqual({
         owner: mockOwnership.owner,
       });
@@ -1157,7 +1160,7 @@ describe('useExportSnapshot', () => {
 
       const { result } = renderHook(
         () =>
-          useExportSnapshot(mockAdapter, 'CONTRACT_ADDRESS', {
+          useExportSnapshot(mockRuntime, 'CONTRACT_ADDRESS', {
             networkId: 'stellar-testnet',
             networkName: 'Stellar Testnet',
             onSuccess,
@@ -1184,7 +1187,7 @@ describe('useExportSnapshot', () => {
       const slowService = createMockAccessControlService({
         getCapabilities: vi.fn().mockReturnValue(capabilitiesPromise),
       });
-      const slowAdapter = createMockAdapter(slowService);
+      const slowAdapter = createMockRuntime(slowService);
 
       const { result } = renderHook(
         () =>
@@ -1217,12 +1220,12 @@ describe('useExportSnapshot', () => {
 
   describe('error handling', () => {
     it('should set error when service is not available', async () => {
-      const adapterWithoutService = createMockAdapter(null);
+      const runtimeWithoutService = createMockRuntime(null);
       const onError = vi.fn();
 
       const { result } = renderHook(
         () =>
-          useExportSnapshot(adapterWithoutService, 'CONTRACT_ADDRESS', {
+          useExportSnapshot(runtimeWithoutService, 'CONTRACT_ADDRESS', {
             networkId: 'stellar-testnet',
             networkName: 'Stellar Testnet',
             onError,
@@ -1244,7 +1247,7 @@ describe('useExportSnapshot', () => {
 
       const { result } = renderHook(
         () =>
-          useExportSnapshot(mockAdapter, '', {
+          useExportSnapshot(mockRuntime, '', {
             networkId: 'stellar-testnet',
             networkName: 'Stellar Testnet',
             onError,
@@ -1265,7 +1268,7 @@ describe('useExportSnapshot', () => {
       const errorService = createMockAccessControlService({
         getCapabilities: vi.fn().mockRejectedValue(new Error('Failed to fetch capabilities')),
       });
-      const errorAdapter = createMockAdapter(errorService);
+      const errorAdapter = createMockRuntime(errorService);
       const onError = vi.fn();
 
       const { result } = renderHook(
@@ -1292,7 +1295,7 @@ describe('useExportSnapshot', () => {
       const errorService = createMockAccessControlService({
         getCapabilities: vi.fn().mockRejectedValue('String error'),
       });
-      const errorAdapter = createMockAdapter(errorService);
+      const errorAdapter = createMockRuntime(errorService);
 
       const { result } = renderHook(
         () =>
@@ -1314,11 +1317,11 @@ describe('useExportSnapshot', () => {
 
   describe('reset functionality', () => {
     it('should reset error state', async () => {
-      const adapterWithoutService = createMockAdapter(null);
+      const runtimeWithoutService = createMockRuntime(null);
 
       const { result } = renderHook(
         () =>
-          useExportSnapshot(adapterWithoutService, 'CONTRACT_ADDRESS', {
+          useExportSnapshot(runtimeWithoutService, 'CONTRACT_ADDRESS', {
             networkId: 'stellar-testnet',
             networkName: 'Stellar Testnet',
           }),
@@ -1348,7 +1351,7 @@ describe('useExportSnapshot', () => {
 
       const { result } = renderHook(
         () =>
-          useExportSnapshot(mockAdapter, 'CONTRACT_ADDRESS', {
+          useExportSnapshot(mockRuntime, 'CONTRACT_ADDRESS', {
             networkId: 'stellar-testnet',
             networkName: 'Stellar Testnet',
             onSuccess,
@@ -1370,7 +1373,7 @@ describe('useExportSnapshot', () => {
 
       const { result } = renderHook(
         () =>
-          useExportSnapshot(mockAdapter, 'CONTRACT_ADDRESS', {
+          useExportSnapshot(mockRuntime, 'CONTRACT_ADDRESS', {
             networkId: 'stellar-testnet',
             networkName: 'Stellar Testnet',
             onSuccess,
@@ -1394,14 +1397,14 @@ describe('useExportSnapshot', () => {
 
 describe('useAcceptOwnership', () => {
   let mockService: AccessControlService;
-  let mockAdapter: ContractAdapter;
+  let mockRuntime: RoleManagerRuntime;
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockService = createMockAccessControlService({
       acceptOwnership: vi.fn().mockResolvedValue(mockOperationResult),
     });
-    mockAdapter = createMockAdapter(mockService);
+    mockRuntime = createMockRuntime(mockService);
   });
 
   afterEach(() => {
@@ -1410,7 +1413,7 @@ describe('useAcceptOwnership', () => {
 
   describe('initialization', () => {
     it('should return idle state initially', () => {
-      const { result } = renderHook(() => useAcceptOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useAcceptOwnership(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -1420,7 +1423,7 @@ describe('useAcceptOwnership', () => {
       expect(result.current.statusDetails).toBeNull();
     });
 
-    it('should not be ready when adapter is null', () => {
+    it('should not be ready when runtime is null', () => {
       const { result } = renderHook(() => useAcceptOwnership(null, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
@@ -1428,10 +1431,10 @@ describe('useAcceptOwnership', () => {
       expect(result.current.isReady).toBe(false);
     });
 
-    it('should not be ready when adapter does not support access control', () => {
-      const adapterWithoutAC = createMockAdapter(null);
+    it('should not be ready when runtime does not support access control', () => {
+      const runtimeWithoutAC = createMockRuntime(null);
       const { result } = renderHook(
-        () => useAcceptOwnership(adapterWithoutAC, 'CONTRACT_ADDRESS'),
+        () => useAcceptOwnership(runtimeWithoutAC, 'CONTRACT_ADDRESS'),
         {
           wrapper: createWrapper(),
         }
@@ -1440,8 +1443,8 @@ describe('useAcceptOwnership', () => {
       expect(result.current.isReady).toBe(false);
     });
 
-    it('should be ready when adapter supports access control', () => {
-      const { result } = renderHook(() => useAcceptOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
+    it('should be ready when runtime supports access control', () => {
+      const { result } = renderHook(() => useAcceptOwnership(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -1451,7 +1454,7 @@ describe('useAcceptOwnership', () => {
 
   describe('successful accept ownership', () => {
     it('should call acceptOwnership on the service with correct parameters', async () => {
-      const { result } = renderHook(() => useAcceptOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useAcceptOwnership(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -1470,7 +1473,7 @@ describe('useAcceptOwnership', () => {
     });
 
     it('should return operation result on success', async () => {
-      const { result } = renderHook(() => useAcceptOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useAcceptOwnership(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -1509,11 +1512,11 @@ describe('useAcceptOwnership', () => {
             }
           ),
       });
-      const adapter = createMockAdapter(mockServiceWithStatus);
+      const runtime = createMockRuntime(mockServiceWithStatus);
 
       const { result } = renderHook(
         () =>
-          useAcceptOwnership(adapter, 'CONTRACT_ADDRESS', {
+          useAcceptOwnership(runtime, 'CONTRACT_ADDRESS', {
             onStatusChange: (status, details) => {
               statusChanges.push({ status, details });
             },
@@ -1536,7 +1539,7 @@ describe('useAcceptOwnership', () => {
     });
 
     it('should support runtime API key', async () => {
-      const { result } = renderHook(() => useAcceptOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useAcceptOwnership(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -1561,9 +1564,9 @@ describe('useAcceptOwnership', () => {
       const mockServiceWithError = createMockAccessControlService({
         acceptOwnership: vi.fn().mockRejectedValue(new Error('Acceptance failed')),
       });
-      const adapter = createMockAdapter(mockServiceWithError);
+      const runtime = createMockRuntime(mockServiceWithError);
 
-      const { result } = renderHook(() => useAcceptOwnership(adapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useAcceptOwnership(runtime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -1585,9 +1588,9 @@ describe('useAcceptOwnership', () => {
       const mockServiceWithNetworkError = createMockAccessControlService({
         acceptOwnership: vi.fn().mockRejectedValue(new NetworkDisconnectedError()),
       });
-      const adapter = createMockAdapter(mockServiceWithNetworkError);
+      const runtime = createMockRuntime(mockServiceWithNetworkError);
 
-      const { result } = renderHook(() => useAcceptOwnership(adapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useAcceptOwnership(runtime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -1609,9 +1612,9 @@ describe('useAcceptOwnership', () => {
       const mockServiceWithRejection = createMockAccessControlService({
         acceptOwnership: vi.fn().mockRejectedValue(new UserRejectedError()),
       });
-      const adapter = createMockAdapter(mockServiceWithRejection);
+      const runtime = createMockRuntime(mockServiceWithRejection);
 
-      const { result } = renderHook(() => useAcceptOwnership(adapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useAcceptOwnership(runtime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -1630,9 +1633,9 @@ describe('useAcceptOwnership', () => {
     });
 
     it('should throw error when service is not ready', async () => {
-      const adapterWithoutAC = createMockAdapter(null);
+      const runtimeWithoutAC = createMockRuntime(null);
       const { result } = renderHook(
-        () => useAcceptOwnership(adapterWithoutAC, 'CONTRACT_ADDRESS'),
+        () => useAcceptOwnership(runtimeWithoutAC, 'CONTRACT_ADDRESS'),
         {
           wrapper: createWrapper(),
         }
@@ -1664,7 +1667,7 @@ describe('useAcceptOwnership', () => {
 
       const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
-      const { result } = renderHook(() => useAcceptOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useAcceptOwnership(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(queryClient),
       });
 
@@ -1693,9 +1696,9 @@ describe('useAcceptOwnership', () => {
       const mockServiceWithError = createMockAccessControlService({
         acceptOwnership: vi.fn().mockRejectedValue(new Error('Failed')),
       });
-      const adapter = createMockAdapter(mockServiceWithError);
+      const runtime = createMockRuntime(mockServiceWithError);
 
-      const { result } = renderHook(() => useAcceptOwnership(adapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useAcceptOwnership(runtime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(queryClient),
       });
 
@@ -1718,9 +1721,9 @@ describe('useAcceptOwnership', () => {
       const mockServiceWithError = createMockAccessControlService({
         acceptOwnership: vi.fn().mockRejectedValue(new Error('Acceptance failed')),
       });
-      const adapter = createMockAdapter(mockServiceWithError);
+      const runtime = createMockRuntime(mockServiceWithError);
 
-      const { result } = renderHook(() => useAcceptOwnership(adapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useAcceptOwnership(runtime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -1752,7 +1755,7 @@ describe('useAcceptOwnership', () => {
 
 /**
  * Tests that useGrantRole and useRevokeRole work correctly with EVM-style
- * adapter mocks, including EVM addresses, bytes32 role hashes, and
+ * runtime mocks, including EVM addresses, bytes32 role hashes, and
  * EVM transaction status flow.
  */
 describe('EVM Adapter: useGrantRole', () => {
@@ -1792,35 +1795,36 @@ describe('EVM Adapter: useGrantRole', () => {
       ...overrides,
     }) as AccessControlService;
 
-  const createEvmAdapter = (service?: AccessControlService | null): ContractAdapter => {
+  const createEvmRuntime = (service?: AccessControlService | null): RoleManagerRuntime => {
     const mockService = service === null ? undefined : (service ?? createEvmMockService());
 
     return {
       networkConfig: evmNetworkConfig,
-      isValidAddress: vi.fn().mockImplementation((addr: string) => {
-        // EVM address validation: 0x-prefixed, 42 chars, hex
-        return /^0x[0-9a-fA-F]{40}$/.test(addr);
-      }),
-      getAccessControlService: mockService ? vi.fn().mockReturnValue(mockService) : undefined,
-    } as unknown as ContractAdapter;
+      addressing: {
+        isValidAddress: vi.fn().mockImplementation((addr: string) => {
+          return /^0x[0-9a-fA-F]{40}$/.test(addr);
+        }),
+      },
+      accessControl: mockService ?? undefined,
+    } as unknown as RoleManagerRuntime;
   };
 
   let evmService: AccessControlService;
-  let evmAdapter: ContractAdapter;
+  let evmRuntime: RoleManagerRuntime;
 
   beforeEach(() => {
     vi.clearAllMocks();
     evmService = createEvmMockService();
-    evmAdapter = createEvmAdapter(evmService);
+    evmRuntime = createEvmRuntime(evmService);
   });
 
   afterEach(() => {
     vi.clearAllMocks();
   });
 
-  describe('initialization with EVM adapter', () => {
-    it('should be ready when EVM adapter supports access control', () => {
-      const { result } = renderHook(() => useGrantRole(evmAdapter, EVM_CONTRACT), {
+  describe('initialization with EVM runtime', () => {
+    it('should be ready when EVM runtime supports access control', () => {
+      const { result } = renderHook(() => useGrantRole(evmRuntime, EVM_CONTRACT), {
         wrapper: createWrapper(),
       });
 
@@ -1829,16 +1833,16 @@ describe('EVM Adapter: useGrantRole', () => {
       expect(result.current.status).toBe('idle');
     });
 
-    it('should validate EVM addresses via adapter.isValidAddress', () => {
-      expect(evmAdapter.isValidAddress!(EVM_ACCOUNT)).toBe(true);
-      expect(evmAdapter.isValidAddress!('0xinvalid')).toBe(false);
-      expect(evmAdapter.isValidAddress!('not-an-address')).toBe(false);
+    it('should validate EVM addresses via runtime.addressing.isValidAddress', () => {
+      expect(evmRuntime.addressing.isValidAddress(EVM_ACCOUNT)).toBe(true);
+      expect(evmRuntime.addressing.isValidAddress('0xinvalid')).toBe(false);
+      expect(evmRuntime.addressing.isValidAddress('not-an-address')).toBe(false);
     });
   });
 
   describe('grant role with EVM bytes32 role hash', () => {
     it('should pass EVM bytes32 role hash to service.grantRole', async () => {
-      const { result } = renderHook(() => useGrantRole(evmAdapter, EVM_CONTRACT), {
+      const { result } = renderHook(() => useGrantRole(evmRuntime, EVM_CONTRACT), {
         wrapper: createWrapper(),
       });
 
@@ -1861,7 +1865,7 @@ describe('EVM Adapter: useGrantRole', () => {
     });
 
     it('should pass DEFAULT_ADMIN_ROLE (zero hash) correctly', async () => {
-      const { result } = renderHook(() => useGrantRole(evmAdapter, EVM_CONTRACT), {
+      const { result } = renderHook(() => useGrantRole(evmRuntime, EVM_CONTRACT), {
         wrapper: createWrapper(),
       });
 
@@ -1884,7 +1888,7 @@ describe('EVM Adapter: useGrantRole', () => {
     });
 
     it('should return operation result on EVM grant success', async () => {
-      const { result } = renderHook(() => useGrantRole(evmAdapter, EVM_CONTRACT), {
+      const { result } = renderHook(() => useGrantRole(evmRuntime, EVM_CONTRACT), {
         wrapper: createWrapper(),
       });
 
@@ -1935,11 +1939,11 @@ describe('EVM Adapter: useGrantRole', () => {
             }
           ),
       });
-      const adapter = createEvmAdapter(evmServiceWithStatus);
+      const runtime = createEvmRuntime(evmServiceWithStatus);
 
       const { result } = renderHook(
         () =>
-          useGrantRole(adapter, EVM_CONTRACT, {
+          useGrantRole(runtime, EVM_CONTRACT, {
             onStatusChange: (status, details) => {
               statusChanges.push({ status, details });
             },
@@ -1974,9 +1978,9 @@ describe('EVM Adapter: useGrantRole', () => {
             new Error('execution reverted: AccessControl: account is missing role')
           ),
       });
-      const adapter = createEvmAdapter(evmServiceWithRevert);
+      const runtime = createEvmRuntime(evmServiceWithRevert);
 
-      const { result } = renderHook(() => useGrantRole(adapter, EVM_CONTRACT), {
+      const { result } = renderHook(() => useGrantRole(runtime, EVM_CONTRACT), {
         wrapper: createWrapper(),
       });
 
@@ -2003,9 +2007,9 @@ describe('EVM Adapter: useGrantRole', () => {
       const evmServiceWithRejection = createEvmMockService({
         grantRole: vi.fn().mockRejectedValue(new Error('user rejected transaction')),
       });
-      const adapter = createEvmAdapter(evmServiceWithRejection);
+      const runtime = createEvmRuntime(evmServiceWithRejection);
 
-      const { result } = renderHook(() => useGrantRole(adapter, EVM_CONTRACT), {
+      const { result } = renderHook(() => useGrantRole(runtime, EVM_CONTRACT), {
         wrapper: createWrapper(),
       });
 
@@ -2033,9 +2037,9 @@ describe('EVM Adapter: useGrantRole', () => {
             new Error('could not detect network (event="noNetwork", code=NETWORK_ERROR)')
           ),
       });
-      const adapter = createEvmAdapter(evmServiceWithNetworkError);
+      const runtime = createEvmRuntime(evmServiceWithNetworkError);
 
-      const { result } = renderHook(() => useGrantRole(adapter, EVM_CONTRACT), {
+      const { result } = renderHook(() => useGrantRole(runtime, EVM_CONTRACT), {
         wrapper: createWrapper(),
       });
 
@@ -2067,7 +2071,7 @@ describe('EVM Adapter: useGrantRole', () => {
 
       const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
-      const { result } = renderHook(() => useGrantRole(evmAdapter, EVM_CONTRACT), {
+      const { result } = renderHook(() => useGrantRole(evmRuntime, EVM_CONTRACT), {
         wrapper: createWrapper(queryClient),
       });
 
@@ -2123,34 +2127,36 @@ describe('EVM Adapter: useRevokeRole', () => {
       ...overrides,
     }) as AccessControlService;
 
-  const createEvmAdapter = (service?: AccessControlService | null): ContractAdapter => {
+  const createEvmRuntime = (service?: AccessControlService | null): RoleManagerRuntime => {
     const mockService = service === null ? undefined : (service ?? createEvmMockService());
 
     return {
       networkConfig: evmNetworkConfig,
-      isValidAddress: vi.fn().mockImplementation((addr: string) => {
-        return /^0x[0-9a-fA-F]{40}$/.test(addr);
-      }),
-      getAccessControlService: mockService ? vi.fn().mockReturnValue(mockService) : undefined,
-    } as unknown as ContractAdapter;
+      addressing: {
+        isValidAddress: vi.fn().mockImplementation((addr: string) => {
+          return /^0x[0-9a-fA-F]{40}$/.test(addr);
+        }),
+      },
+      accessControl: mockService ?? undefined,
+    } as unknown as RoleManagerRuntime;
   };
 
   let evmService: AccessControlService;
-  let evmAdapter: ContractAdapter;
+  let evmRuntime: RoleManagerRuntime;
 
   beforeEach(() => {
     vi.clearAllMocks();
     evmService = createEvmMockService();
-    evmAdapter = createEvmAdapter(evmService);
+    evmRuntime = createEvmRuntime(evmService);
   });
 
   afterEach(() => {
     vi.clearAllMocks();
   });
 
-  describe('revoke role with EVM adapter', () => {
+  describe('revoke role with EVM runtime', () => {
     it('should call revokeRole with EVM addresses and bytes32 role hash', async () => {
-      const { result } = renderHook(() => useRevokeRole(evmAdapter, EVM_CONTRACT), {
+      const { result } = renderHook(() => useRevokeRole(evmRuntime, EVM_CONTRACT), {
         wrapper: createWrapper(),
       });
 
@@ -2173,7 +2179,7 @@ describe('EVM Adapter: useRevokeRole', () => {
     });
 
     it('should return operation result on EVM revoke success', async () => {
-      const { result } = renderHook(() => useRevokeRole(evmAdapter, EVM_CONTRACT), {
+      const { result } = renderHook(() => useRevokeRole(evmRuntime, EVM_CONTRACT), {
         wrapper: createWrapper(),
       });
 
@@ -2199,9 +2205,9 @@ describe('EVM Adapter: useRevokeRole', () => {
             new Error('execution reverted: AccessControl: can only renounce roles for self')
           ),
       });
-      const adapter = createEvmAdapter(evmServiceWithRevert);
+      const runtime = createEvmRuntime(evmServiceWithRevert);
 
-      const { result } = renderHook(() => useRevokeRole(adapter, EVM_CONTRACT), {
+      const { result } = renderHook(() => useRevokeRole(runtime, EVM_CONTRACT), {
         wrapper: createWrapper(),
       });
 
@@ -2227,9 +2233,9 @@ describe('EVM Adapter: useRevokeRole', () => {
       const evmServiceWithRejection = createEvmMockService({
         revokeRole: vi.fn().mockRejectedValue(new UserRejectedError()),
       });
-      const adapter = createEvmAdapter(evmServiceWithRejection);
+      const runtime = createEvmRuntime(evmServiceWithRejection);
 
-      const { result } = renderHook(() => useRevokeRole(adapter, EVM_CONTRACT), {
+      const { result } = renderHook(() => useRevokeRole(runtime, EVM_CONTRACT), {
         wrapper: createWrapper(),
       });
 
@@ -2252,9 +2258,9 @@ describe('EVM Adapter: useRevokeRole', () => {
       const evmServiceWithNetworkError = createEvmMockService({
         revokeRole: vi.fn().mockRejectedValue(new NetworkDisconnectedError()),
       });
-      const adapter = createEvmAdapter(evmServiceWithNetworkError);
+      const runtime = createEvmRuntime(evmServiceWithNetworkError);
 
-      const { result } = renderHook(() => useRevokeRole(adapter, EVM_CONTRACT), {
+      const { result } = renderHook(() => useRevokeRole(runtime, EVM_CONTRACT), {
         wrapper: createWrapper(),
       });
 
@@ -2285,7 +2291,7 @@ describe('EVM Adapter: useRevokeRole', () => {
 
       const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
-      const { result } = renderHook(() => useRevokeRole(evmAdapter, EVM_CONTRACT), {
+      const { result } = renderHook(() => useRevokeRole(evmRuntime, EVM_CONTRACT), {
         wrapper: createWrapper(queryClient),
       });
 
@@ -2313,9 +2319,9 @@ describe('EVM Adapter: useRevokeRole', () => {
       const evmServiceWithError = createEvmMockService({
         revokeRole: vi.fn().mockRejectedValue(new Error('EVM revert')),
       });
-      const adapter = createEvmAdapter(evmServiceWithError);
+      const runtime = createEvmRuntime(evmServiceWithError);
 
-      const { result } = renderHook(() => useRevokeRole(adapter, EVM_CONTRACT), {
+      const { result } = renderHook(() => useRevokeRole(runtime, EVM_CONTRACT), {
         wrapper: createWrapper(),
       });
 
@@ -2385,24 +2391,24 @@ describe('Cross-ecosystem: EVM and Stellar interoperability', () => {
   const createCrossEcosystemAdapter = (
     networkConfig: NetworkConfig,
     service?: AccessControlService
-  ): ContractAdapter => {
+  ): RoleManagerRuntime => {
     const mockService = service ?? createCrossEcosystemService();
     return {
       networkConfig,
-      isValidAddress: vi.fn().mockReturnValue(true),
-      getAccessControlService: vi.fn().mockReturnValue(mockService),
-    } as unknown as ContractAdapter;
+      addressing: { isValidAddress: vi.fn().mockReturnValue(true) },
+      accessControl: mockService,
+    } as unknown as RoleManagerRuntime;
   };
 
   it('should use the same hook interface for both EVM and Stellar grants', async () => {
     const evmService = createCrossEcosystemService();
     const stellarService = createCrossEcosystemService();
-    const evmAdapter = createCrossEcosystemAdapter(evmNetworkConfig, evmService);
+    const evmRuntime = createCrossEcosystemAdapter(evmNetworkConfig, evmService);
     const stellarAdapter = createCrossEcosystemAdapter(stellarNetworkConfig, stellarService);
 
     // Grant on EVM
     const { result: evmResult } = renderHook(
-      () => useGrantRole(evmAdapter, '0x5FbDB2315678afecb367f032d93F642f64180aa3'),
+      () => useGrantRole(evmRuntime, '0x5FbDB2315678afecb367f032d93F642f64180aa3'),
       { wrapper: createWrapper() }
     );
 
@@ -2456,12 +2462,12 @@ describe('Cross-ecosystem: EVM and Stellar interoperability', () => {
   it('should use the same hook interface for both EVM and Stellar revokes', async () => {
     const evmService = createCrossEcosystemService();
     const stellarService = createCrossEcosystemService();
-    const evmAdapter = createCrossEcosystemAdapter(evmNetworkConfig, evmService);
+    const evmRuntime = createCrossEcosystemAdapter(evmNetworkConfig, evmService);
     const stellarAdapter = createCrossEcosystemAdapter(stellarNetworkConfig, stellarService);
 
     // Revoke on EVM
     const { result: evmResult } = renderHook(
-      () => useRevokeRole(evmAdapter, '0x5FbDB2315678afecb367f032d93F642f64180aa3'),
+      () => useRevokeRole(evmRuntime, '0x5FbDB2315678afecb367f032d93F642f64180aa3'),
       { wrapper: createWrapper() }
     );
 
@@ -2499,14 +2505,14 @@ describe('Cross-ecosystem: EVM and Stellar interoperability', () => {
 
 describe('useRenounceOwnership', () => {
   let mockService: AccessControlService;
-  let mockAdapter: ContractAdapter;
+  let mockRuntime: RoleManagerRuntime;
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockService = createMockAccessControlService({
       renounceOwnership: vi.fn().mockResolvedValue(mockOperationResult),
     });
-    mockAdapter = createMockAdapter(mockService);
+    mockRuntime = createMockRuntime(mockService);
   });
 
   afterEach(() => {
@@ -2515,7 +2521,7 @@ describe('useRenounceOwnership', () => {
 
   describe('initialization', () => {
     it('should return idle state initially', () => {
-      const { result } = renderHook(() => useRenounceOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useRenounceOwnership(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -2525,7 +2531,7 @@ describe('useRenounceOwnership', () => {
       expect(result.current.statusDetails).toBeNull();
     });
 
-    it('should not be ready when adapter is null', () => {
+    it('should not be ready when runtime is null', () => {
       const { result } = renderHook(() => useRenounceOwnership(null, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
@@ -2533,10 +2539,10 @@ describe('useRenounceOwnership', () => {
       expect(result.current.isReady).toBe(false);
     });
 
-    it('should not be ready when adapter does not support access control', () => {
-      const adapterWithoutAC = createMockAdapter(null);
+    it('should not be ready when runtime does not support access control', () => {
+      const runtimeWithoutAC = createMockRuntime(null);
       const { result } = renderHook(
-        () => useRenounceOwnership(adapterWithoutAC, 'CONTRACT_ADDRESS'),
+        () => useRenounceOwnership(runtimeWithoutAC, 'CONTRACT_ADDRESS'),
         {
           wrapper: createWrapper(),
         }
@@ -2545,8 +2551,8 @@ describe('useRenounceOwnership', () => {
       expect(result.current.isReady).toBe(false);
     });
 
-    it('should be ready when adapter supports renounceOwnership', () => {
-      const { result } = renderHook(() => useRenounceOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
+    it('should be ready when runtime supports renounceOwnership', () => {
+      const { result } = renderHook(() => useRenounceOwnership(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -2556,7 +2562,7 @@ describe('useRenounceOwnership', () => {
 
   describe('successful renounce ownership', () => {
     it('should call renounceOwnership on the service with correct parameters', async () => {
-      const { result } = renderHook(() => useRenounceOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useRenounceOwnership(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -2575,7 +2581,7 @@ describe('useRenounceOwnership', () => {
     });
 
     it('should return operation result on success', async () => {
-      const { result } = renderHook(() => useRenounceOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useRenounceOwnership(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -2590,7 +2596,7 @@ describe('useRenounceOwnership', () => {
     });
 
     it('should support runtime API key', async () => {
-      const { result } = renderHook(() => useRenounceOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useRenounceOwnership(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -2612,9 +2618,9 @@ describe('useRenounceOwnership', () => {
 
   describe('error handling', () => {
     it('should throw error when service is not available', async () => {
-      const adapterWithoutAC = createMockAdapter(null);
+      const runtimeWithoutAC = createMockRuntime(null);
       const { result } = renderHook(
-        () => useRenounceOwnership(adapterWithoutAC, 'CONTRACT_ADDRESS'),
+        () => useRenounceOwnership(runtimeWithoutAC, 'CONTRACT_ADDRESS'),
         {
           wrapper: createWrapper(),
         }
@@ -2634,13 +2640,13 @@ describe('useRenounceOwnership', () => {
       expect(result.current.error?.message).toContain('not available');
     });
 
-    it('should throw error when adapter does not support renounceOwnership', async () => {
+    it('should throw error when runtime does not support renounceOwnership', async () => {
       const serviceWithoutRenounce = createMockAccessControlService({
         renounceOwnership: undefined,
       } as Partial<AccessControlService>);
-      const adapter = createMockAdapter(serviceWithoutRenounce);
+      const runtime = createMockRuntime(serviceWithoutRenounce);
 
-      const { result } = renderHook(() => useRenounceOwnership(adapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useRenounceOwnership(runtime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -2655,16 +2661,16 @@ describe('useRenounceOwnership', () => {
       });
 
       expect(result.current.error).toBeInstanceOf(Error);
-      expect(result.current.error?.message).toContain('not supported by this adapter');
+      expect(result.current.error?.message).toContain('not supported by this runtime');
     });
 
     it('should detect network error', async () => {
       const mockServiceWithNetworkError = createMockAccessControlService({
         renounceOwnership: vi.fn().mockRejectedValue(new NetworkDisconnectedError()),
       });
-      const adapter = createMockAdapter(mockServiceWithNetworkError);
+      const runtime = createMockRuntime(mockServiceWithNetworkError);
 
-      const { result } = renderHook(() => useRenounceOwnership(adapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useRenounceOwnership(runtime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -2686,9 +2692,9 @@ describe('useRenounceOwnership', () => {
       const mockServiceWithRejection = createMockAccessControlService({
         renounceOwnership: vi.fn().mockRejectedValue(new UserRejectedError()),
       });
-      const adapter = createMockAdapter(mockServiceWithRejection);
+      const runtime = createMockRuntime(mockServiceWithRejection);
 
-      const { result } = renderHook(() => useRenounceOwnership(adapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useRenounceOwnership(runtime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -2718,7 +2724,7 @@ describe('useRenounceOwnership', () => {
 
       const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
-      const { result } = renderHook(() => useRenounceOwnership(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useRenounceOwnership(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(queryClient),
       });
 
@@ -2755,9 +2761,9 @@ describe('useRenounceOwnership', () => {
       const mockServiceWithError = createMockAccessControlService({
         renounceOwnership: vi.fn().mockRejectedValue(new Error('Failed')),
       });
-      const adapter = createMockAdapter(mockServiceWithError);
+      const runtime = createMockRuntime(mockServiceWithError);
 
-      const { result } = renderHook(() => useRenounceOwnership(adapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useRenounceOwnership(runtime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(queryClient),
       });
 
@@ -2782,14 +2788,14 @@ describe('useRenounceOwnership', () => {
 
 describe('useRenounceRole', () => {
   let mockService: AccessControlService;
-  let mockAdapter: ContractAdapter;
+  let mockRuntime: RoleManagerRuntime;
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockService = createMockAccessControlService({
       renounceRole: vi.fn().mockResolvedValue(mockOperationResult),
     });
-    mockAdapter = createMockAdapter(mockService);
+    mockRuntime = createMockRuntime(mockService);
   });
 
   afterEach(() => {
@@ -2798,7 +2804,7 @@ describe('useRenounceRole', () => {
 
   describe('initialization', () => {
     it('should return idle state initially', () => {
-      const { result } = renderHook(() => useRenounceRole(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useRenounceRole(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -2808,7 +2814,7 @@ describe('useRenounceRole', () => {
       expect(result.current.statusDetails).toBeNull();
     });
 
-    it('should not be ready when adapter is null', () => {
+    it('should not be ready when runtime is null', () => {
       const { result } = renderHook(() => useRenounceRole(null, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
@@ -2816,17 +2822,17 @@ describe('useRenounceRole', () => {
       expect(result.current.isReady).toBe(false);
     });
 
-    it('should not be ready when adapter does not support access control', () => {
-      const adapterWithoutAC = createMockAdapter(null);
-      const { result } = renderHook(() => useRenounceRole(adapterWithoutAC, 'CONTRACT_ADDRESS'), {
+    it('should not be ready when runtime does not support access control', () => {
+      const runtimeWithoutAC = createMockRuntime(null);
+      const { result } = renderHook(() => useRenounceRole(runtimeWithoutAC, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
       expect(result.current.isReady).toBe(false);
     });
 
-    it('should be ready when adapter supports renounceRole', () => {
-      const { result } = renderHook(() => useRenounceRole(mockAdapter, 'CONTRACT_ADDRESS'), {
+    it('should be ready when runtime supports renounceRole', () => {
+      const { result } = renderHook(() => useRenounceRole(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -2836,7 +2842,7 @@ describe('useRenounceRole', () => {
 
   describe('successful renounce role', () => {
     it('should call renounceRole on the service with correct parameters (roleId, account)', async () => {
-      const { result } = renderHook(() => useRenounceRole(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useRenounceRole(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -2859,7 +2865,7 @@ describe('useRenounceRole', () => {
     });
 
     it('should return operation result on success', async () => {
-      const { result } = renderHook(() => useRenounceRole(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useRenounceRole(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -2876,7 +2882,7 @@ describe('useRenounceRole', () => {
     });
 
     it('should support runtime API key', async () => {
-      const { result } = renderHook(() => useRenounceRole(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useRenounceRole(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -2902,8 +2908,8 @@ describe('useRenounceRole', () => {
 
   describe('error handling', () => {
     it('should throw error when service is not available', async () => {
-      const adapterWithoutAC = createMockAdapter(null);
-      const { result } = renderHook(() => useRenounceRole(adapterWithoutAC, 'CONTRACT_ADDRESS'), {
+      const runtimeWithoutAC = createMockRuntime(null);
+      const { result } = renderHook(() => useRenounceRole(runtimeWithoutAC, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -2923,13 +2929,13 @@ describe('useRenounceRole', () => {
       expect(result.current.error?.message).toContain('not available');
     });
 
-    it('should throw error when adapter does not support renounceRole', async () => {
+    it('should throw error when runtime does not support renounceRole', async () => {
       const serviceWithoutRenounce = createMockAccessControlService({
         renounceRole: undefined,
       } as Partial<AccessControlService>);
-      const adapter = createMockAdapter(serviceWithoutRenounce);
+      const runtime = createMockRuntime(serviceWithoutRenounce);
 
-      const { result } = renderHook(() => useRenounceRole(adapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useRenounceRole(runtime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -2946,16 +2952,16 @@ describe('useRenounceRole', () => {
       });
 
       expect(result.current.error).toBeInstanceOf(Error);
-      expect(result.current.error?.message).toContain('not supported by this adapter');
+      expect(result.current.error?.message).toContain('not supported by this runtime');
     });
 
     it('should detect network error', async () => {
       const mockServiceWithNetworkError = createMockAccessControlService({
         renounceRole: vi.fn().mockRejectedValue(new NetworkDisconnectedError()),
       });
-      const adapter = createMockAdapter(mockServiceWithNetworkError);
+      const runtime = createMockRuntime(mockServiceWithNetworkError);
 
-      const { result } = renderHook(() => useRenounceRole(adapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useRenounceRole(runtime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -2978,9 +2984,9 @@ describe('useRenounceRole', () => {
       const mockServiceWithRejection = createMockAccessControlService({
         renounceRole: vi.fn().mockRejectedValue(new UserRejectedError()),
       });
-      const adapter = createMockAdapter(mockServiceWithRejection);
+      const runtime = createMockRuntime(mockServiceWithRejection);
 
-      const { result } = renderHook(() => useRenounceRole(adapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useRenounceRole(runtime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -3011,7 +3017,7 @@ describe('useRenounceRole', () => {
 
       const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
-      const { result } = renderHook(() => useRenounceRole(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useRenounceRole(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(queryClient),
       });
 
@@ -3046,9 +3052,9 @@ describe('useRenounceRole', () => {
       const mockServiceWithError = createMockAccessControlService({
         renounceRole: vi.fn().mockRejectedValue(new Error('Failed')),
       });
-      const adapter = createMockAdapter(mockServiceWithError);
+      const runtime = createMockRuntime(mockServiceWithError);
 
-      const { result } = renderHook(() => useRenounceRole(adapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useRenounceRole(runtime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(queryClient),
       });
 
@@ -3073,9 +3079,9 @@ describe('useRenounceRole', () => {
       const mockServiceWithError = createMockAccessControlService({
         renounceRole: vi.fn().mockRejectedValue(new Error('Renounce failed')),
       });
-      const adapter = createMockAdapter(mockServiceWithError);
+      const runtime = createMockRuntime(mockServiceWithError);
 
-      const { result } = renderHook(() => useRenounceRole(adapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useRenounceRole(runtime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -3109,14 +3115,14 @@ describe('useRenounceRole', () => {
 
 describe('useCancelAdminTransfer', () => {
   let mockService: AccessControlService;
-  let mockAdapter: ContractAdapter;
+  let mockRuntime: RoleManagerRuntime;
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockService = createMockAccessControlService({
       cancelAdminTransfer: vi.fn().mockResolvedValue(mockOperationResult),
     });
-    mockAdapter = createMockAdapter(mockService);
+    mockRuntime = createMockRuntime(mockService);
   });
 
   afterEach(() => {
@@ -3125,7 +3131,7 @@ describe('useCancelAdminTransfer', () => {
 
   describe('initialization', () => {
     it('should return idle state initially', () => {
-      const { result } = renderHook(() => useCancelAdminTransfer(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useCancelAdminTransfer(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -3134,7 +3140,7 @@ describe('useCancelAdminTransfer', () => {
       expect(result.current.status).toBe('idle');
     });
 
-    it('should not be ready when adapter is null', () => {
+    it('should not be ready when runtime is null', () => {
       const { result } = renderHook(() => useCancelAdminTransfer(null, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
@@ -3142,8 +3148,8 @@ describe('useCancelAdminTransfer', () => {
       expect(result.current.isReady).toBe(false);
     });
 
-    it('should be ready when adapter supports cancelAdminTransfer', () => {
-      const { result } = renderHook(() => useCancelAdminTransfer(mockAdapter, 'CONTRACT_ADDRESS'), {
+    it('should be ready when runtime supports cancelAdminTransfer', () => {
+      const { result } = renderHook(() => useCancelAdminTransfer(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -3153,7 +3159,7 @@ describe('useCancelAdminTransfer', () => {
 
   describe('successful cancel admin transfer', () => {
     it('should call cancelAdminTransfer on the service with correct parameters', async () => {
-      const { result } = renderHook(() => useCancelAdminTransfer(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useCancelAdminTransfer(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -3181,7 +3187,7 @@ describe('useCancelAdminTransfer', () => {
 
       const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
-      const { result } = renderHook(() => useCancelAdminTransfer(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useCancelAdminTransfer(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(queryClient),
       });
 
@@ -3199,13 +3205,13 @@ describe('useCancelAdminTransfer', () => {
   });
 
   describe('error handling', () => {
-    it('should throw error when adapter does not support cancelAdminTransfer', async () => {
+    it('should throw error when runtime does not support cancelAdminTransfer', async () => {
       const serviceWithoutCancel = createMockAccessControlService({
         cancelAdminTransfer: undefined,
       } as Partial<AccessControlService>);
-      const adapter = createMockAdapter(serviceWithoutCancel);
+      const runtime = createMockRuntime(serviceWithoutCancel);
 
-      const { result } = renderHook(() => useCancelAdminTransfer(adapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useCancelAdminTransfer(runtime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -3220,7 +3226,7 @@ describe('useCancelAdminTransfer', () => {
       });
 
       expect(result.current.error).toBeInstanceOf(Error);
-      expect(result.current.error?.message).toContain('not supported by this adapter');
+      expect(result.current.error?.message).toContain('not supported by this runtime');
     });
   });
 });
@@ -3231,14 +3237,14 @@ describe('useCancelAdminTransfer', () => {
 
 describe('useChangeAdminDelay', () => {
   let mockService: AccessControlService;
-  let mockAdapter: ContractAdapter;
+  let mockRuntime: RoleManagerRuntime;
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockService = createMockAccessControlService({
       changeAdminDelay: vi.fn().mockResolvedValue(mockOperationResult),
     });
-    mockAdapter = createMockAdapter(mockService);
+    mockRuntime = createMockRuntime(mockService);
   });
 
   afterEach(() => {
@@ -3247,7 +3253,7 @@ describe('useChangeAdminDelay', () => {
 
   describe('initialization', () => {
     it('should return idle state initially', () => {
-      const { result } = renderHook(() => useChangeAdminDelay(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useChangeAdminDelay(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -3255,8 +3261,8 @@ describe('useChangeAdminDelay', () => {
       expect(result.current.status).toBe('idle');
     });
 
-    it('should be ready when adapter supports changeAdminDelay', () => {
-      const { result } = renderHook(() => useChangeAdminDelay(mockAdapter, 'CONTRACT_ADDRESS'), {
+    it('should be ready when runtime supports changeAdminDelay', () => {
+      const { result } = renderHook(() => useChangeAdminDelay(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -3266,7 +3272,7 @@ describe('useChangeAdminDelay', () => {
 
   describe('successful change admin delay', () => {
     it('should call changeAdminDelay on the service with correct parameters', async () => {
-      const { result } = renderHook(() => useChangeAdminDelay(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useChangeAdminDelay(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -3296,7 +3302,7 @@ describe('useChangeAdminDelay', () => {
 
       const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
-      const { result } = renderHook(() => useChangeAdminDelay(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useChangeAdminDelay(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(queryClient),
       });
 
@@ -3315,13 +3321,13 @@ describe('useChangeAdminDelay', () => {
   });
 
   describe('error handling', () => {
-    it('should throw error when adapter does not support changeAdminDelay', async () => {
+    it('should throw error when runtime does not support changeAdminDelay', async () => {
       const serviceWithoutChange = createMockAccessControlService({
         changeAdminDelay: undefined,
       } as Partial<AccessControlService>);
-      const adapter = createMockAdapter(serviceWithoutChange);
+      const runtime = createMockRuntime(serviceWithoutChange);
 
-      const { result } = renderHook(() => useChangeAdminDelay(adapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useChangeAdminDelay(runtime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -3337,21 +3343,21 @@ describe('useChangeAdminDelay', () => {
       });
 
       expect(result.current.error).toBeInstanceOf(Error);
-      expect(result.current.error?.message).toContain('not supported by this adapter');
+      expect(result.current.error?.message).toContain('not supported by this runtime');
     });
   });
 });
 
 describe('useRollbackAdminDelay', () => {
   let mockService: AccessControlService;
-  let mockAdapter: ContractAdapter;
+  let mockRuntime: RoleManagerRuntime;
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockService = createMockAccessControlService({
       rollbackAdminDelay: vi.fn().mockResolvedValue(mockOperationResult),
     });
-    mockAdapter = createMockAdapter(mockService);
+    mockRuntime = createMockRuntime(mockService);
   });
 
   afterEach(() => {
@@ -3360,7 +3366,7 @@ describe('useRollbackAdminDelay', () => {
 
   describe('initialization', () => {
     it('should return idle state initially', () => {
-      const { result } = renderHook(() => useRollbackAdminDelay(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useRollbackAdminDelay(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -3368,8 +3374,8 @@ describe('useRollbackAdminDelay', () => {
       expect(result.current.status).toBe('idle');
     });
 
-    it('should be ready when adapter supports rollbackAdminDelay', () => {
-      const { result } = renderHook(() => useRollbackAdminDelay(mockAdapter, 'CONTRACT_ADDRESS'), {
+    it('should be ready when runtime supports rollbackAdminDelay', () => {
+      const { result } = renderHook(() => useRollbackAdminDelay(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -3379,7 +3385,7 @@ describe('useRollbackAdminDelay', () => {
 
   describe('successful rollback admin delay', () => {
     it('should call rollbackAdminDelay on the service with correct parameters', async () => {
-      const { result } = renderHook(() => useRollbackAdminDelay(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useRollbackAdminDelay(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -3407,7 +3413,7 @@ describe('useRollbackAdminDelay', () => {
 
       const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
-      const { result } = renderHook(() => useRollbackAdminDelay(mockAdapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useRollbackAdminDelay(mockRuntime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(queryClient),
       });
 
@@ -3425,13 +3431,13 @@ describe('useRollbackAdminDelay', () => {
   });
 
   describe('error handling', () => {
-    it('should throw error when adapter does not support rollbackAdminDelay', async () => {
+    it('should throw error when runtime does not support rollbackAdminDelay', async () => {
       const serviceWithoutRollback = createMockAccessControlService({
         rollbackAdminDelay: undefined,
       } as Partial<AccessControlService>);
-      const adapter = createMockAdapter(serviceWithoutRollback);
+      const runtime = createMockRuntime(serviceWithoutRollback);
 
-      const { result } = renderHook(() => useRollbackAdminDelay(adapter, 'CONTRACT_ADDRESS'), {
+      const { result } = renderHook(() => useRollbackAdminDelay(runtime, 'CONTRACT_ADDRESS'), {
         wrapper: createWrapper(),
       });
 
@@ -3446,7 +3452,7 @@ describe('useRollbackAdminDelay', () => {
       });
 
       expect(result.current.error).toBeInstanceOf(Error);
-      expect(result.current.error?.message).toContain('not supported by this adapter');
+      expect(result.current.error?.message).toContain('not supported by this runtime');
     });
   });
 });

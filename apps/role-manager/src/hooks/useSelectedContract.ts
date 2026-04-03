@@ -3,7 +3,7 @@
  * Feature: 007-dashboard-real-data
  *
  * Convenience wrapper for ContractContext that provides access to
- * the selected contract, network, and adapter.
+ * the selected contract, network, and runtime.
  *
  * This hook is the primary way for components to access contract
  * selection state throughout the application.
@@ -18,23 +18,23 @@ import type { UseSelectedContractReturn } from '../types/dashboard';
  * This is a convenience wrapper around useContractContext that returns all
  * the values needed by components that need to interact with the selected contract.
  *
- * @returns Selected contract, network, adapter, and related state
+ * @returns Selected contract, network, runtime, and related state
  * @throws Error if used outside of ContractProvider
  *
  * @example
  * ```tsx
  * function Dashboard() {
- *   const { selectedContract, adapter, isAdapterLoading } = useSelectedContract();
+ *   const { selectedContract, runtime, isRuntimeLoading } = useSelectedContract();
  *
  *   if (!selectedContract) {
  *     return <DashboardEmptyState />;
  *   }
  *
- *   if (isAdapterLoading) {
+ *   if (isRuntimeLoading) {
  *     return <LoadingSpinner />;
  *   }
  *
- *   return <DashboardContent contract={selectedContract} adapter={adapter} />;
+ *   return <DashboardContent contract={selectedContract} runtime={runtime} />;
  * }
  * ```
  *
@@ -68,8 +68,8 @@ export function useSelectedContract(): UseSelectedContractReturn {
     setSelectedContract: context.setSelectedContract,
     selectedNetwork: context.selectedNetwork,
     setSelectedNetwork: context.setSelectedNetwork,
-    adapter: context.adapter,
-    isAdapterLoading: context.isAdapterLoading,
+    runtime: context.runtime,
+    isRuntimeLoading: context.isRuntimeLoading,
     contracts: context.contracts,
     isContractsLoading: context.isContractsLoading,
     isContractRegistered: context.isContractRegistered,

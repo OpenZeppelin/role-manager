@@ -5,7 +5,7 @@ import { AddressBookWidget } from '@openzeppelin/ui-renderer';
 import { useAddressBookWidgetProps } from '@openzeppelin/ui-storage';
 import type { NetworkConfig } from '@openzeppelin/ui-types';
 
-import { getAdapter, getEcosystemMetadata } from '@/core/ecosystems/ecosystemManager';
+import { getEcosystemMetadata, getRuntime } from '@/core/ecosystems/ecosystemManager';
 
 import { PageHeader } from '../components/Shared/PageHeader';
 import { db } from '../core/storage/database';
@@ -19,7 +19,7 @@ const ECOSYSTEM_ADDRESS_PATH: Record<string, string> = {
 };
 
 export function AddressBook() {
-  const { selectedNetwork, adapter } = useSelectedContract();
+  const { selectedNetwork, runtime } = useSelectedContract();
   const { networks } = useAllNetworks();
   const [filterNetworkIds, setFilterNetworkIds] = useState<string[]>([]);
 
@@ -38,8 +38,8 @@ export function AddressBook() {
     (address: string, networkId?: string) => {
       if (!networkId) return undefined;
 
-      if (adapter && selectedNetwork?.id === networkId) {
-        return adapter.getExplorerUrl(address) ?? undefined;
+      if (runtime && selectedNetwork?.id === networkId) {
+        return runtime.explorer.getExplorerUrl(address) ?? undefined;
       }
 
       const net = networks.find((n) => n.id === networkId);
@@ -48,18 +48,21 @@ export function AddressBook() {
       const segment = ECOSYSTEM_ADDRESS_PATH[net.ecosystem] ?? 'address';
       return `${baseUrl}/${segment}/${address}`;
     },
-    [adapter, networks, selectedNetwork]
+    [runtime, networks, selectedNetwork]
   );
 
   const addressPlaceholder = useMemo(
     () =>
-      adapter
-        ? (getEcosystemMetadata(adapter.networkConfig.ecosystem)?.addressExample ?? '0x...')
+      runtime
+        ? (getEcosystemMetadata(runtime.networkConfig.ecosystem)?.addressExample ?? '0x...')
         : '0x...',
-    [adapter]
+    [runtime]
   );
 
-  const resolveAdapter = useCallback(async (network: NetworkConfig) => getAdapter(network), []);
+  const resolveAddressing = useCallback(async (network: NetworkConfig) => {
+    const rt = await getRuntime(network);
+    return rt.addressing;
+  }, []);
 
   const resolveAddressPlaceholder = useCallback(
     (network: NetworkConfig) => getEcosystemMetadata(network.ecosystem)?.addressExample ?? '0x...',
@@ -76,8 +79,8 @@ export function AddressBook() {
         {...widgetProps}
         resolveNetwork={resolveNetwork}
         resolveExplorerUrl={resolveExplorerUrl}
-        adapter={adapter ?? undefined}
-        resolveAdapter={resolveAdapter}
+        addressing={runtime?.addressing ?? undefined}
+        resolveAddressing={resolveAddressing}
         addressPlaceholder={addressPlaceholder}
         resolveAddressPlaceholder={resolveAddressPlaceholder}
         networks={networks}

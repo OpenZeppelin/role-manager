@@ -120,7 +120,7 @@ export function AssignRoleDialog({
     });
 
   // Get adapter for address validation
-  const { adapter, isAdapterLoading } = useSelectedContract();
+  const { runtime, isRuntimeLoading } = useSelectedContract();
 
   // React Hook Form setup
   const form = useForm<AssignRoleFormData>({
@@ -254,11 +254,11 @@ export function AssignRoleDialog({
       default:
         return (
           <AssignRoleFormContent
-            // Key forces re-mount when adapter becomes available, ensuring validation rules are updated
-            key={adapter ? 'with-adapter' : 'no-adapter'}
+            // Key forces re-mount when runtime becomes available, ensuring validation rules are updated
+            key={runtime ? 'with-runtime' : 'no-runtime'}
             form={form}
-            adapter={adapter}
-            isAdapterLoading={isAdapterLoading}
+            runtime={runtime}
+            isRuntimeLoading={isRuntimeLoading}
             isWalletConnected={isWalletConnected}
             roleOptions={roleOptions}
             onCancel={handleCancel}
@@ -301,8 +301,8 @@ export function AssignRoleDialog({
 
 interface AssignRoleFormContentProps {
   form: ReturnType<typeof useForm<AssignRoleFormData>>;
-  adapter: ReturnType<typeof useSelectedContract>['adapter'];
-  isAdapterLoading: boolean;
+  runtime: ReturnType<typeof useSelectedContract>['runtime'];
+  isRuntimeLoading: boolean;
   isWalletConnected: boolean;
   roleOptions: Array<{ value: string; label: string }>;
   onCancel: () => void;
@@ -315,8 +315,8 @@ interface AssignRoleFormContentProps {
 
 function AssignRoleFormContent({
   form,
-  adapter,
-  isAdapterLoading,
+  runtime,
+  isRuntimeLoading,
   isWalletConnected,
   roleOptions,
   onCancel,
@@ -334,8 +334,8 @@ function AssignRoleFormContent({
   const canSubmit =
     isValid &&
     !isSubmitting &&
-    !isAdapterLoading &&
-    adapter !== null &&
+    !isRuntimeLoading &&
+    runtime !== null &&
     isWalletConnected &&
     !isRolesLoading &&
     !hasNoRoles;
@@ -371,13 +371,13 @@ function AssignRoleFormContent({
           name="address"
           label="Account Address"
           placeholder={
-            adapter
-              ? (getEcosystemMetadata(adapter.networkConfig.ecosystem)?.addressExample ?? '0x...')
+            runtime
+              ? (getEcosystemMetadata(runtime.networkConfig.ecosystem)?.addressExample ?? '0x...')
               : '0x...'
           }
           helperText="The account address that will receive this role."
           control={control}
-          adapter={adapter ?? undefined}
+          addressing={runtime?.addressing ?? undefined}
           validation={{ required: true }}
         />
       </div>
@@ -416,7 +416,7 @@ function AssignRoleFormContent({
           Cancel
         </Button>
         <Button type="submit" disabled={!canSubmit} aria-label="Assign role to address">
-          {isAdapterLoading || isRolesLoading ? 'Loading...' : 'Assign Role'}
+          {isRuntimeLoading || isRolesLoading ? 'Loading...' : 'Assign Role'}
         </Button>
       </DialogFooter>
     </form>

@@ -15,7 +15,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ContractAdapter } from '@openzeppelin/ui-types';
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 
 import type { EnrichedRoleAssignment } from '../../types/authorized-accounts';
 import { useContractRolesEnriched } from '../useContractRolesEnriched';
@@ -127,7 +127,7 @@ describe('useContractRolesEnriched', () => {
       const { result } = renderHook(
         () =>
           useContractRolesEnriched(
-            { id: 'test' } as unknown as ContractAdapter,
+            { id: 'test' } as unknown as RoleManagerRuntime,
             '0xcontract',
             true
           ),
@@ -147,7 +147,7 @@ describe('useContractRolesEnriched', () => {
       renderHook(
         () =>
           useContractRolesEnriched(
-            { id: 'test' } as unknown as ContractAdapter,
+            { id: 'test' } as unknown as RoleManagerRuntime,
             '0xcontract123',
             true
           ),
@@ -168,7 +168,7 @@ describe('useContractRolesEnriched', () => {
       const { result } = renderHook(
         () =>
           useContractRolesEnriched(
-            { id: 'test' } as unknown as ContractAdapter,
+            { id: 'test' } as unknown as RoleManagerRuntime,
             '0xcontract',
             true
           ),
@@ -182,7 +182,7 @@ describe('useContractRolesEnriched', () => {
       const { result } = renderHook(
         () =>
           useContractRolesEnriched(
-            { id: 'test' } as unknown as ContractAdapter,
+            { id: 'test' } as unknown as RoleManagerRuntime,
             '0xcontract',
             true
           ),
@@ -211,7 +211,7 @@ describe('useContractRolesEnriched', () => {
       const { result } = renderHook(
         () =>
           useContractRolesEnriched(
-            { id: 'test' } as unknown as ContractAdapter,
+            { id: 'test' } as unknown as RoleManagerRuntime,
             '0xcontract',
             true
           ),
@@ -255,7 +255,7 @@ describe('useContractRolesEnriched', () => {
       const { result } = renderHook(
         () =>
           useContractRolesEnriched(
-            { id: 'test' } as unknown as ContractAdapter,
+            { id: 'test' } as unknown as RoleManagerRuntime,
             '0xcontract',
             true
           ),
@@ -278,7 +278,7 @@ describe('useContractRolesEnriched', () => {
       const { result } = renderHook(
         () =>
           useContractRolesEnriched(
-            { id: 'test' } as unknown as ContractAdapter,
+            { id: 'test' } as unknown as RoleManagerRuntime,
             '0xcontract',
             true
           ),
@@ -313,7 +313,7 @@ describe('useContractRolesEnriched', () => {
       const { result } = renderHook(
         () =>
           useContractRolesEnriched(
-            { id: 'test' } as unknown as ContractAdapter,
+            { id: 'test' } as unknown as RoleManagerRuntime,
             '0xcontract',
             false
           ),
@@ -333,7 +333,7 @@ describe('useContractRolesEnriched', () => {
       const { result } = renderHook(
         () =>
           useContractRolesEnriched(
-            { id: 'test' } as unknown as ContractAdapter,
+            { id: 'test' } as unknown as RoleManagerRuntime,
             '0xcontract',
             true
           ),
@@ -350,7 +350,7 @@ describe('useContractRolesEnriched', () => {
       const { result } = renderHook(
         () =>
           useContractRolesEnriched(
-            { id: 'test' } as unknown as ContractAdapter,
+            { id: 'test' } as unknown as RoleManagerRuntime,
             '0xcontract',
             true
           ),
@@ -369,7 +369,7 @@ describe('useContractRolesEnriched', () => {
       const { result } = renderHook(
         () =>
           useContractRolesEnriched(
-            { id: 'test' } as unknown as ContractAdapter,
+            { id: 'test' } as unknown as RoleManagerRuntime,
             '0xcontract',
             true
           ),
@@ -398,7 +398,7 @@ describe('useContractRolesEnriched', () => {
       const { result } = renderHook(
         () =>
           useContractRolesEnriched(
-            { id: 'test' } as unknown as ContractAdapter,
+            { id: 'test' } as unknown as RoleManagerRuntime,
             '0xcontract',
             true
           ),
@@ -416,7 +416,7 @@ describe('useContractRolesEnriched', () => {
       const { result } = renderHook(
         () =>
           useContractRolesEnriched(
-            { id: 'test' } as unknown as ContractAdapter,
+            { id: 'test' } as unknown as RoleManagerRuntime,
             '0xcontract',
             true
           ),

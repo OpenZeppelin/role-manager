@@ -26,13 +26,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type {
   AccessControlService,
-  ContractAdapter,
   ExecutionConfig,
   OperationResult,
   RoleAssignment,
   TransactionStatusUpdate,
   TxStatus,
 } from '@openzeppelin/ui-types';
+
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 
 import { invalidationMap, type MutationType } from './invalidationMap';
 import { queryKeys } from './queryKeys';
@@ -228,12 +229,12 @@ interface FactoryConfig<TArgs> {
  * - Reset function
  */
 function useAccessControlMutationFactory<TArgs>(
-  adapter: ContractAdapter | null,
+  runtime: RoleManagerRuntime | null,
   contractAddress: string,
   config: FactoryConfig<TArgs>,
   options?: MutationHookOptions
 ): UseAccessControlMutationReturn<TArgs> {
-  const { service, isReady } = useAccessControlService(adapter);
+  const { service, isReady } = useAccessControlService(runtime);
   const queryClient = useQueryClient();
 
   const [status, setStatus] = useState<TxStatus>('idle');
@@ -424,12 +425,12 @@ function useAccessControlMutationFactory<TArgs>(
 // ============================================================================
 
 export function useGrantRole(
-  adapter: ContractAdapter | null,
+  runtime: RoleManagerRuntime | null,
   contractAddress: string,
   options?: MutationHookOptions
 ): UseAccessControlMutationReturn<GrantRoleArgs> {
   return useAccessControlMutationFactory<GrantRoleArgs>(
-    adapter,
+    runtime,
     contractAddress,
     {
       mutationType: 'grantRole',
@@ -448,12 +449,12 @@ export function useGrantRole(
 }
 
 export function useRevokeRole(
-  adapter: ContractAdapter | null,
+  runtime: RoleManagerRuntime | null,
   contractAddress: string,
   options?: MutationHookOptions
 ): UseAccessControlMutationReturn<RevokeRoleArgs> {
   return useAccessControlMutationFactory<RevokeRoleArgs>(
-    adapter,
+    runtime,
     contractAddress,
     {
       mutationType: 'revokeRole',
@@ -472,12 +473,12 @@ export function useRevokeRole(
 }
 
 export function useRenounceRole(
-  adapter: ContractAdapter | null,
+  runtime: RoleManagerRuntime | null,
   contractAddress: string,
   options?: MutationHookOptions
 ): UseAccessControlMutationReturn<RenounceRoleArgs> {
   return useAccessControlMutationFactory<RenounceRoleArgs>(
-    adapter,
+    runtime,
     contractAddress,
     {
       mutationType: 'renounceRole',
@@ -498,12 +499,12 @@ export function useRenounceRole(
 }
 
 export function useTransferOwnership(
-  adapter: ContractAdapter | null,
+  runtime: RoleManagerRuntime | null,
   contractAddress: string,
   options?: MutationHookOptions
 ): UseAccessControlMutationReturn<TransferOwnershipArgs> {
   return useAccessControlMutationFactory<TransferOwnershipArgs>(
-    adapter,
+    runtime,
     contractAddress,
     {
       mutationType: 'transferOwnership',
@@ -522,12 +523,12 @@ export function useTransferOwnership(
 }
 
 export function useAcceptOwnership(
-  adapter: ContractAdapter | null,
+  runtime: RoleManagerRuntime | null,
   contractAddress: string,
   options?: MutationHookOptions
 ): UseAccessControlMutationReturn<AcceptOwnershipArgs> {
   return useAccessControlMutationFactory<AcceptOwnershipArgs>(
-    adapter,
+    runtime,
     contractAddress,
     {
       mutationType: 'acceptOwnership',
@@ -546,12 +547,12 @@ export function useAcceptOwnership(
 }
 
 export function useRenounceOwnership(
-  adapter: ContractAdapter | null,
+  runtime: RoleManagerRuntime | null,
   contractAddress: string,
   options?: MutationHookOptions
 ): UseAccessControlMutationReturn<RenounceOwnershipArgs> {
   return useAccessControlMutationFactory<RenounceOwnershipArgs>(
-    adapter,
+    runtime,
     contractAddress,
     {
       mutationType: 'renounceOwnership',
@@ -570,12 +571,12 @@ export function useRenounceOwnership(
 }
 
 export function useTransferAdminRole(
-  adapter: ContractAdapter | null,
+  runtime: RoleManagerRuntime | null,
   contractAddress: string,
   options?: MutationHookOptions
 ): UseAccessControlMutationReturn<TransferAdminRoleArgs> {
   return useAccessControlMutationFactory<TransferAdminRoleArgs>(
-    adapter,
+    runtime,
     contractAddress,
     {
       mutationType: 'transferAdmin',
@@ -596,12 +597,12 @@ export function useTransferAdminRole(
 }
 
 export function useAcceptAdminTransfer(
-  adapter: ContractAdapter | null,
+  runtime: RoleManagerRuntime | null,
   contractAddress: string,
   options?: MutationHookOptions
 ): UseAccessControlMutationReturn<AcceptAdminTransferArgs> {
   return useAccessControlMutationFactory<AcceptAdminTransferArgs>(
-    adapter,
+    runtime,
     contractAddress,
     {
       mutationType: 'acceptAdmin',
@@ -622,12 +623,12 @@ export function useAcceptAdminTransfer(
 }
 
 export function useCancelAdminTransfer(
-  adapter: ContractAdapter | null,
+  runtime: RoleManagerRuntime | null,
   contractAddress: string,
   options?: MutationHookOptions
 ): UseAccessControlMutationReturn<CancelAdminTransferArgs> {
   return useAccessControlMutationFactory<CancelAdminTransferArgs>(
-    adapter,
+    runtime,
     contractAddress,
     {
       mutationType: 'cancelAdmin',
@@ -648,12 +649,12 @@ export function useCancelAdminTransfer(
 }
 
 export function useChangeAdminDelay(
-  adapter: ContractAdapter | null,
+  runtime: RoleManagerRuntime | null,
   contractAddress: string,
   options?: MutationHookOptions
 ): UseAccessControlMutationReturn<ChangeAdminDelayArgs> {
   return useAccessControlMutationFactory<ChangeAdminDelayArgs>(
-    adapter,
+    runtime,
     contractAddress,
     {
       mutationType: 'changeAdminDelay',
@@ -673,12 +674,12 @@ export function useChangeAdminDelay(
 }
 
 export function useRollbackAdminDelay(
-  adapter: ContractAdapter | null,
+  runtime: RoleManagerRuntime | null,
   contractAddress: string,
   options?: MutationHookOptions
 ): UseAccessControlMutationReturn<RollbackAdminDelayArgs> {
   return useAccessControlMutationFactory<RollbackAdminDelayArgs>(
-    adapter,
+    runtime,
     contractAddress,
     {
       mutationType: 'rollbackAdminDelay',
@@ -786,11 +787,11 @@ function downloadJson(data: unknown, filename: string): void {
 }
 
 export function useExportSnapshot(
-  adapter: ContractAdapter | null,
+  runtime: RoleManagerRuntime | null,
   contractAddress: string,
   options: ExportSnapshotOptions
 ): UseExportSnapshotReturn {
-  const { service, isReady } = useAccessControlService(adapter);
+  const { service, isReady } = useAccessControlService(runtime);
   const [isExporting, setIsExporting] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 

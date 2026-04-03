@@ -5,16 +5,16 @@
  *
  * Provides polling for current block/ledger number.
  * Used for:
- * - Displaying current block/ledger in transfer dialogs (label from adapter metadata)
+ * - Displaying current block/ledger in transfer dialogs (label from runtime metadata)
  * - Validating expiration input is in the future
  *
- * Polling is only enabled when the adapter requires expiration input (mode: 'required').
+ * Polling is only enabled when the runtime requires expiration input (mode: 'required').
  * Callers use getCurrentValueLabel() from utils/expiration.ts for display labels.
  */
 import { useQuery } from '@tanstack/react-query';
 import { useCallback } from 'react';
 
-import type { ContractAdapter } from '@openzeppelin/ui-types';
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 
 import { queryKeys } from './queryKeys';
 
@@ -64,16 +64,16 @@ export interface UseCurrentBlockReturn {
 /**
  * Hook for polling the current block number.
  *
- * Uses the adapter's `getCurrentBlock()` method which is chain-agnostic,
+ * Uses the runtime's `query.getCurrentBlock()` method which is chain-agnostic,
  * returning the current block number for any supported chain.
  *
- * @param adapter - The contract adapter instance, or null if not loaded
+ * @param runtime - The ecosystem runtime instance, or null if not loaded
  * @param options - Polling configuration
  * @returns Current block and loading/error states
  *
  * @example
  * ```tsx
- * const { currentBlock, isLoading } = useCurrentBlock(adapter, {
+ * const { currentBlock, isLoading } = useCurrentBlock(runtime, {
  *   pollInterval: 5000,
  *   enabled: hasTwoStepOwnable,
  * });
@@ -82,12 +82,12 @@ export interface UseCurrentBlockReturn {
  * ```
  */
 export function useCurrentBlock(
-  adapter: ContractAdapter | null,
+  runtime: RoleManagerRuntime | null,
   options?: UseCurrentBlockOptions
 ): UseCurrentBlockReturn {
   const { pollInterval = DEFAULT_POLL_INTERVAL_MS, enabled = true } = options ?? {};
 
-  const networkId = adapter?.networkConfig?.id;
+  const networkId = runtime?.networkConfig?.id;
 
   // Resolve polling configuration: `false` disables polling entirely
   const pollMs = typeof pollInterval === 'number' ? pollInterval : undefined;
@@ -95,14 +95,14 @@ export function useCurrentBlock(
   const query = useQuery({
     queryKey: queryKeys.currentBlock(networkId),
     queryFn: async () => {
-      if (!adapter) {
-        throw new Error('Adapter not available');
+      if (!runtime) {
+        throw new Error('Runtime not available');
       }
-      return adapter.getCurrentBlock();
+      return runtime.query.getCurrentBlock();
     },
-    enabled: !!adapter && enabled,
+    enabled: !!runtime && enabled,
     refetchInterval: enabled && pollMs ? pollMs : false,
-    // Don't retry on error - let polling handle recovery
+    // Don't retry on error — let polling handle recovery
     retry: false,
     // Keep stale data while refetching; when no polling, data is never auto-stale
     staleTime: pollMs ? pollMs / 2 : Infinity,

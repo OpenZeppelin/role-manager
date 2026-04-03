@@ -13,7 +13,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import type { ContractAdapter } from '@openzeppelin/ui-types';
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 
 import { useCurrentBlock } from './useCurrentBlock';
 
@@ -162,7 +162,7 @@ function calculateAvgBlockTime(samples: BlockSample[]): number | null {
  * ```
  */
 export function useBlockTimeEstimate(
-  adapter: ContractAdapter | null,
+  runtime: RoleManagerRuntime | null,
   options?: UseBlockTimeEstimateOptions
 ): UseBlockTimeEstimateReturn {
   const {
@@ -181,7 +181,7 @@ export function useBlockTimeEstimate(
   const isFullyCalibrated = sampleCount >= maxSamples;
 
   // Get current block with polling (stops when fully calibrated)
-  const { currentBlock } = useCurrentBlock(adapter, {
+  const { currentBlock } = useCurrentBlock(runtime, {
     pollInterval: isFullyCalibrated ? false : pollInterval,
     enabled,
   });

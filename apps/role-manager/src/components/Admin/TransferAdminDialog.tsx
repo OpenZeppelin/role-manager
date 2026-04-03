@@ -137,7 +137,7 @@ export function TransferAdminDialog({
   });
 
   // Get adapter for address validation
-  const { adapter, isAdapterLoading } = useSelectedContract();
+  const { runtime, isRuntimeLoading } = useSelectedContract();
 
   // React Hook Form setup
   const form = useForm<TransferAdminFormData>({
@@ -270,10 +270,10 @@ export function TransferAdminDialog({
       default:
         return (
           <TransferAdminFormContent
-            key={adapter ? 'with-adapter' : 'no-adapter'}
+            key={runtime ? 'with-runtime' : 'no-runtime'}
             form={form}
-            adapter={adapter}
-            isAdapterLoading={isAdapterLoading}
+            runtime={runtime}
+            isRuntimeLoading={isRuntimeLoading}
             isWalletConnected={isWalletConnected}
             requiresExpiration={requiresExpiration}
             currentBlock={currentBlock}
@@ -325,8 +325,8 @@ export function TransferAdminDialog({
 
 interface TransferAdminFormContentProps {
   form: ReturnType<typeof useForm<TransferAdminFormData>>;
-  adapter: ReturnType<typeof useSelectedContract>['adapter'];
-  isAdapterLoading: boolean;
+  runtime: ReturnType<typeof useSelectedContract>['runtime'];
+  isRuntimeLoading: boolean;
   isWalletConnected: boolean;
   /** Whether expiration input is required (adapter says mode: 'required') */
   requiresExpiration: boolean;
@@ -341,8 +341,8 @@ interface TransferAdminFormContentProps {
 
 function TransferAdminFormContent({
   form,
-  adapter,
-  isAdapterLoading,
+  runtime,
+  isRuntimeLoading,
   isWalletConnected,
   requiresExpiration,
   currentBlock,
@@ -395,8 +395,8 @@ function TransferAdminFormContent({
   const canSubmit =
     isValid &&
     !isSubmitting &&
-    !isAdapterLoading &&
-    adapter !== null &&
+    !isRuntimeLoading &&
+    runtime !== null &&
     isWalletConnected &&
     !expirationError;
 
@@ -422,13 +422,13 @@ function TransferAdminFormContent({
           name="newAdminAddress"
           label="New Admin Address"
           placeholder={
-            adapter
-              ? (getEcosystemMetadata(adapter.networkConfig.ecosystem)?.addressExample ?? '0x...')
+            runtime
+              ? (getEcosystemMetadata(runtime.networkConfig.ecosystem)?.addressExample ?? '0x...')
               : '0x...'
           }
           helperText="The address that will become the new admin of this contract."
           control={control}
-          adapter={adapter ?? undefined}
+          addressing={runtime?.addressing ?? undefined}
           validation={{ required: true }}
         />
       </div>
@@ -502,7 +502,7 @@ function TransferAdminFormContent({
           Cancel
         </Button>
         <Button type="submit" disabled={!canSubmit} aria-label="Transfer admin role to new address">
-          {isAdapterLoading ? 'Loading...' : 'Transfer Admin'}
+          {isRuntimeLoading ? 'Loading...' : 'Transfer Admin'}
         </Button>
       </DialogFooter>
     </form>

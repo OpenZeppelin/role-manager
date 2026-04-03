@@ -118,14 +118,14 @@ export function useAssignRoleDialog(
   // Context & External Data
   // =============================================================================
 
-  const { selectedContract, adapter } = useSelectedContract();
+  const { selectedContract, runtime } = useSelectedContract();
   const contractAddress = selectedContract?.address ?? '';
 
   const { roles } = useRolesPageData();
   const { address: connectedAddress } = useDerivedAccountStatus();
 
   // Mutation hook for grant
-  const grantRole = useGrantRole(adapter, contractAddress);
+  const grantRole = useGrantRole(runtime, contractAddress);
 
   // =============================================================================
   // Transaction Execution (using shared hook)

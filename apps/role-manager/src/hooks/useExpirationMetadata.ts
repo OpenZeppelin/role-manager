@@ -13,7 +13,9 @@
  */
 import { useQuery } from '@tanstack/react-query';
 
-import type { ContractAdapter, ExpirationMetadata } from '@openzeppelin/ui-types';
+import type { ExpirationMetadata } from '@openzeppelin/ui-types';
+
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 
 import { queryKeys } from './queryKeys';
 import { useAccessControlService } from './useAccessControlService';
@@ -66,15 +68,15 @@ export const expirationMetadataQueryKey = queryKeys.expirationMetadata;
  * ```
  */
 export function useExpirationMetadata(
-  adapter: ContractAdapter | null,
+  runtime: RoleManagerRuntime | null,
   contractAddress: string,
   transferType: TransferType,
   options?: UseExpirationMetadataOptions
 ): UseExpirationMetadataReturn {
-  const { service } = useAccessControlService(adapter);
+  const { service } = useAccessControlService(runtime);
   const { enabled = true } = options ?? {};
 
-  const networkId = adapter?.networkConfig?.id;
+  const networkId = runtime?.networkConfig?.id;
 
   // Guard: all adapters must implement getExpirationMetadata, but the interface
   // marks it optional. If somehow missing, the query stays disabled.

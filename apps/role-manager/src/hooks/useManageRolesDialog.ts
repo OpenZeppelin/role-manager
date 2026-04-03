@@ -131,15 +131,15 @@ export function useManageRolesDialog(
   // Context & External Data
   // =============================================================================
 
-  const { selectedContract, adapter } = useSelectedContract();
+  const { selectedContract, runtime } = useSelectedContract();
   const contractAddress = selectedContract?.address ?? '';
 
   const { roles } = useRolesPageData();
   const { address: connectedAddress } = useDerivedAccountStatus();
 
   // Mutation hooks for grant/revoke
-  const grantRole = useGrantRole(adapter, contractAddress);
-  const revokeRole = useRevokeRole(adapter, contractAddress);
+  const grantRole = useGrantRole(runtime, contractAddress);
+  const revokeRole = useRevokeRole(runtime, contractAddress);
 
   // =============================================================================
   // Transaction Execution (using shared hook)

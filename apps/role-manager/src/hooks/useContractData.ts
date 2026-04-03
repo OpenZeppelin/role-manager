@@ -12,12 +12,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import type {
-  AdminInfo,
-  ContractAdapter,
-  OwnershipInfo,
-  RoleAssignment,
-} from '@openzeppelin/ui-types';
+import type { AdminInfo, OwnershipInfo, RoleAssignment } from '@openzeppelin/ui-types';
+
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 
 import { DataError, ErrorCategory, wrapError } from '../utils/errors';
 import { computeAdminRefetchInterval, postMutationRefetchInterval } from './mutationPolling';
@@ -171,11 +168,11 @@ export const adminInfoQueryKey = queryKeys.contractAdminInfo;
  * ```
  */
 export function useContractRoles(
-  adapter: ContractAdapter | null,
+  runtime: RoleManagerRuntime | null,
   contractAddress: string,
   isContractRegistered: boolean = true
 ): UseContractRolesReturn {
-  const { service, isReady } = useAccessControlService(adapter);
+  const { service, isReady } = useAccessControlService(runtime);
 
   const {
     data: roles,
@@ -267,12 +264,12 @@ export function useContractRoles(
  * ```
  */
 export function useContractOwnership(
-  adapter: ContractAdapter | null,
+  runtime: RoleManagerRuntime | null,
   contractAddress: string,
   isContractRegistered: boolean = true,
   enabled: boolean = true
 ): UseContractOwnershipReturn {
-  const { service, isReady } = useAccessControlService(adapter);
+  const { service, isReady } = useAccessControlService(runtime);
 
   const {
     data: ownership,
@@ -362,12 +359,12 @@ export function useContractOwnership(
  * ```
  */
 export function useContractAdminInfo(
-  adapter: ContractAdapter | null,
+  runtime: RoleManagerRuntime | null,
   contractAddress: string,
   isContractRegistered: boolean = true,
   enabled: boolean = true
 ): UseContractAdminInfoReturn {
-  const { service, isReady } = useAccessControlService(adapter);
+  const { service, isReady } = useAccessControlService(runtime);
 
   const {
     data: adminInfo,
@@ -452,12 +449,12 @@ const DEFAULT_PAGE_SIZE = 10;
  * @returns Object containing paginated roles and pagination controls
  */
 export function usePaginatedRoles(
-  adapter: ContractAdapter | null,
+  runtime: RoleManagerRuntime | null,
   contractAddress: string,
   options?: PaginationOptions
 ): UsePaginatedRolesReturn {
   const pageSize = options?.pageSize ?? DEFAULT_PAGE_SIZE;
-  const rolesData = useContractRoles(adapter, contractAddress);
+  const rolesData = useContractRoles(runtime, contractAddress);
   const { roles } = rolesData;
 
   const [currentPage, setCurrentPage] = useState(1);

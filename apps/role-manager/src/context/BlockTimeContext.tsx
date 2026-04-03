@@ -38,13 +38,13 @@ interface BlockTimeProviderProps {
  * ```
  */
 export function BlockTimeProvider({ children }: BlockTimeProviderProps) {
-  const { adapter } = useSelectedContract();
+  const { runtime } = useSelectedContract();
 
-  const blockTimeEstimate = useBlockTimeEstimate(adapter, {
+  const blockTimeEstimate = useBlockTimeEstimate(runtime, {
     pollInterval: 10000, // 10 seconds
     minSamples: 3,
     maxSamples: 20,
-    enabled: !!adapter,
+    enabled: !!runtime,
   });
 
   return (

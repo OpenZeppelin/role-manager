@@ -11,7 +11,9 @@ import { renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { PropsWithChildren } from 'react';
 
-import type { ContractAdapter, NetworkConfig } from '@openzeppelin/ui-types';
+import type { NetworkConfig } from '@openzeppelin/ui-types';
+
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 
 import { useBlockTimeEstimate } from '../useBlockTimeEstimate';
 
@@ -31,11 +33,13 @@ const mockNetworkConfig: NetworkConfig = {
 // Track the current block for controlled testing
 let mockCurrentBlock = 100;
 
-const createMockAdapter = (): ContractAdapter => {
+const createMockRuntime = (): RoleManagerRuntime => {
   return {
     networkConfig: mockNetworkConfig,
-    getCurrentBlock: vi.fn().mockImplementation(() => Promise.resolve(mockCurrentBlock)),
-  } as unknown as ContractAdapter;
+    query: {
+      getCurrentBlock: vi.fn().mockImplementation(() => Promise.resolve(mockCurrentBlock)),
+    },
+  } as unknown as RoleManagerRuntime;
 };
 
 // React Query wrapper factory
@@ -74,9 +78,9 @@ describe('useBlockTimeEstimate', () => {
 
   describe('initialization', () => {
     it('should return initial state with no samples', async () => {
-      const mockAdapter = createMockAdapter();
+      const mockRuntime = createMockRuntime();
 
-      const { result } = renderHook(() => useBlockTimeEstimate(mockAdapter), {
+      const { result } = renderHook(() => useBlockTimeEstimate(mockRuntime), {
         wrapper: createWrapper(),
       });
 
@@ -99,9 +103,9 @@ describe('useBlockTimeEstimate', () => {
     });
 
     it('should not collect samples when enabled is false', async () => {
-      const mockAdapter = createMockAdapter();
+      const mockRuntime = createMockRuntime();
 
-      const { result } = renderHook(() => useBlockTimeEstimate(mockAdapter, { enabled: false }), {
+      const { result } = renderHook(() => useBlockTimeEstimate(mockRuntime, { enabled: false }), {
         wrapper: createWrapper(),
       });
 
@@ -111,10 +115,10 @@ describe('useBlockTimeEstimate', () => {
 
   describe('sample collection', () => {
     it('should start with zero samples', () => {
-      const mockAdapter = createMockAdapter();
+      const mockRuntime = createMockRuntime();
 
       const { result } = renderHook(
-        () => useBlockTimeEstimate(mockAdapter, { pollInterval: 1000, minSamples: 2 }),
+        () => useBlockTimeEstimate(mockRuntime, { pollInterval: 1000, minSamples: 2 }),
         { wrapper: createWrapper() }
       );
 
@@ -123,10 +127,10 @@ describe('useBlockTimeEstimate', () => {
     });
 
     it('should require block changes to record samples (initial block sets reference)', () => {
-      const mockAdapter = createMockAdapter();
+      const mockRuntime = createMockRuntime();
 
       const { result } = renderHook(
-        () => useBlockTimeEstimate(mockAdapter, { pollInterval: 1000, minSamples: 2 }),
+        () => useBlockTimeEstimate(mockRuntime, { pollInterval: 1000, minSamples: 2 }),
         { wrapper: createWrapper() }
       );
 
@@ -139,9 +143,9 @@ describe('useBlockTimeEstimate', () => {
 
   describe('calibration state', () => {
     it('should be calibrating when sample count is below minimum', () => {
-      const mockAdapter = createMockAdapter();
+      const mockRuntime = createMockRuntime();
 
-      const { result } = renderHook(() => useBlockTimeEstimate(mockAdapter, { minSamples: 5 }), {
+      const { result } = renderHook(() => useBlockTimeEstimate(mockRuntime, { minSamples: 5 }), {
         wrapper: createWrapper(),
       });
 
@@ -150,9 +154,9 @@ describe('useBlockTimeEstimate', () => {
     });
 
     it('should use custom minSamples threshold', () => {
-      const mockAdapter = createMockAdapter();
+      const mockRuntime = createMockRuntime();
 
-      const { result } = renderHook(() => useBlockTimeEstimate(mockAdapter, { minSamples: 10 }), {
+      const { result } = renderHook(() => useBlockTimeEstimate(mockRuntime, { minSamples: 10 }), {
         wrapper: createWrapper(),
       });
 
@@ -163,9 +167,9 @@ describe('useBlockTimeEstimate', () => {
 
   describe('confidence levels', () => {
     it('should return low confidence with few samples', () => {
-      const mockAdapter = createMockAdapter();
+      const mockRuntime = createMockRuntime();
 
-      const { result } = renderHook(() => useBlockTimeEstimate(mockAdapter), {
+      const { result } = renderHook(() => useBlockTimeEstimate(mockRuntime), {
         wrapper: createWrapper(),
       });
 
@@ -176,9 +180,9 @@ describe('useBlockTimeEstimate', () => {
 
   describe('formatBlocksToTime', () => {
     it('should return null when still calibrating', () => {
-      const mockAdapter = createMockAdapter();
+      const mockRuntime = createMockRuntime();
 
-      const { result } = renderHook(() => useBlockTimeEstimate(mockAdapter), {
+      const { result } = renderHook(() => useBlockTimeEstimate(mockRuntime), {
         wrapper: createWrapper(),
       });
 
@@ -188,9 +192,9 @@ describe('useBlockTimeEstimate', () => {
     });
 
     it('should return null for zero or negative blocks', () => {
-      const mockAdapter = createMockAdapter();
+      const mockRuntime = createMockRuntime();
 
-      const { result } = renderHook(() => useBlockTimeEstimate(mockAdapter), {
+      const { result } = renderHook(() => useBlockTimeEstimate(mockRuntime), {
         wrapper: createWrapper(),
       });
 
@@ -201,9 +205,9 @@ describe('useBlockTimeEstimate', () => {
 
   describe('getEstimatedMs', () => {
     it('should return null when no average is available', () => {
-      const mockAdapter = createMockAdapter();
+      const mockRuntime = createMockRuntime();
 
-      const { result } = renderHook(() => useBlockTimeEstimate(mockAdapter), {
+      const { result } = renderHook(() => useBlockTimeEstimate(mockRuntime), {
         wrapper: createWrapper(),
       });
 
@@ -211,9 +215,9 @@ describe('useBlockTimeEstimate', () => {
     });
 
     it('should return null for zero blocks', () => {
-      const mockAdapter = createMockAdapter();
+      const mockRuntime = createMockRuntime();
 
-      const { result } = renderHook(() => useBlockTimeEstimate(mockAdapter), {
+      const { result } = renderHook(() => useBlockTimeEstimate(mockRuntime), {
         wrapper: createWrapper(),
       });
 
@@ -221,9 +225,9 @@ describe('useBlockTimeEstimate', () => {
     });
 
     it('should return null for negative blocks', () => {
-      const mockAdapter = createMockAdapter();
+      const mockRuntime = createMockRuntime();
 
-      const { result } = renderHook(() => useBlockTimeEstimate(mockAdapter), {
+      const { result } = renderHook(() => useBlockTimeEstimate(mockRuntime), {
         wrapper: createWrapper(),
       });
 
@@ -233,9 +237,9 @@ describe('useBlockTimeEstimate', () => {
 
   describe('options', () => {
     it('should use default options when not provided', () => {
-      const mockAdapter = createMockAdapter();
+      const mockRuntime = createMockRuntime();
 
-      const { result } = renderHook(() => useBlockTimeEstimate(mockAdapter), {
+      const { result } = renderHook(() => useBlockTimeEstimate(mockRuntime), {
         wrapper: createWrapper(),
       });
 
@@ -244,10 +248,10 @@ describe('useBlockTimeEstimate', () => {
     });
 
     it('should accept custom maxSamples', () => {
-      const mockAdapter = createMockAdapter();
+      const mockRuntime = createMockRuntime();
 
       // Should not throw with custom options
-      const { result } = renderHook(() => useBlockTimeEstimate(mockAdapter, { maxSamples: 50 }), {
+      const { result } = renderHook(() => useBlockTimeEstimate(mockRuntime, { maxSamples: 50 }), {
         wrapper: createWrapper(),
       });
 
@@ -255,10 +259,10 @@ describe('useBlockTimeEstimate', () => {
     });
 
     it('should accept custom pollInterval', () => {
-      const mockAdapter = createMockAdapter();
+      const mockRuntime = createMockRuntime();
 
       const { result } = renderHook(
-        () => useBlockTimeEstimate(mockAdapter, { pollInterval: 5000 }),
+        () => useBlockTimeEstimate(mockRuntime, { pollInterval: 5000 }),
         { wrapper: createWrapper() }
       );
 
@@ -268,9 +272,9 @@ describe('useBlockTimeEstimate', () => {
 
   describe('return type shape', () => {
     it('should return correct shape matching UseBlockTimeEstimateReturn', () => {
-      const mockAdapter = createMockAdapter();
+      const mockRuntime = createMockRuntime();
 
-      const { result } = renderHook(() => useBlockTimeEstimate(mockAdapter), {
+      const { result } = renderHook(() => useBlockTimeEstimate(mockRuntime), {
         wrapper: createWrapper(),
       });
 

@@ -138,7 +138,7 @@ export function TransferOwnershipDialog({
   });
 
   // Get adapter for address validation
-  const { adapter, isAdapterLoading } = useSelectedContract();
+  const { runtime, isRuntimeLoading } = useSelectedContract();
 
   // React Hook Form setup
   const form = useForm<TransferOwnershipFormData>({
@@ -271,10 +271,10 @@ export function TransferOwnershipDialog({
       default:
         return (
           <TransferOwnershipFormContent
-            key={adapter ? 'with-adapter' : 'no-adapter'}
+            key={runtime ? 'with-runtime' : 'no-runtime'}
             form={form}
-            adapter={adapter}
-            isAdapterLoading={isAdapterLoading}
+            runtime={runtime}
+            isRuntimeLoading={isRuntimeLoading}
             isWalletConnected={isWalletConnected}
             requiresExpiration={requiresExpiration}
             currentBlock={currentBlock}
@@ -326,8 +326,8 @@ export function TransferOwnershipDialog({
 
 interface TransferOwnershipFormContentProps {
   form: ReturnType<typeof useForm<TransferOwnershipFormData>>;
-  adapter: ReturnType<typeof useSelectedContract>['adapter'];
-  isAdapterLoading: boolean;
+  runtime: ReturnType<typeof useSelectedContract>['runtime'];
+  isRuntimeLoading: boolean;
   isWalletConnected: boolean;
   requiresExpiration: boolean;
   currentBlock: number | null;
@@ -341,8 +341,8 @@ interface TransferOwnershipFormContentProps {
 
 function TransferOwnershipFormContent({
   form,
-  adapter,
-  isAdapterLoading,
+  runtime,
+  isRuntimeLoading,
   isWalletConnected,
   requiresExpiration,
   currentBlock,
@@ -395,8 +395,8 @@ function TransferOwnershipFormContent({
   const canSubmit =
     isValid &&
     !isSubmitting &&
-    !isAdapterLoading &&
-    adapter !== null &&
+    !isRuntimeLoading &&
+    runtime !== null &&
     isWalletConnected &&
     !expirationError;
 
@@ -422,13 +422,13 @@ function TransferOwnershipFormContent({
           name="newOwnerAddress"
           label="New Owner Address"
           placeholder={
-            adapter
-              ? (getEcosystemMetadata(adapter.networkConfig.ecosystem)?.addressExample ?? '0x...')
+            runtime
+              ? (getEcosystemMetadata(runtime.networkConfig.ecosystem)?.addressExample ?? '0x...')
               : '0x...'
           }
           helperText="The address that will become the new owner of this contract."
           control={control}
-          adapter={adapter ?? undefined}
+          addressing={runtime?.addressing ?? undefined}
           validation={{ required: true }}
         />
       </div>
@@ -502,7 +502,7 @@ function TransferOwnershipFormContent({
           Cancel
         </Button>
         <Button type="submit" disabled={!canSubmit} aria-label="Transfer ownership to new address">
-          {isAdapterLoading ? 'Loading...' : 'Transfer Ownership'}
+          {isRuntimeLoading ? 'Loading...' : 'Transfer Ownership'}
         </Button>
       </DialogFooter>
     </form>

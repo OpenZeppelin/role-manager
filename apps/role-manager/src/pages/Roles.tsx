@@ -154,14 +154,14 @@ export function Roles() {
   const [isCancelAdminTransferDialogOpen, setIsCancelAdminTransferDialogOpen] = useState(false);
 
   // Get contract info for display
-  const { selectedContract, adapter } = useSelectedContract();
+  const { selectedContract, runtime } = useSelectedContract();
 
   // Reactivity feedback: context-specific preview data while polling
   const mutationPreview = useMutationPreview(selectedContract?.address ?? '');
   const contractLabel = useContractDisplayName(selectedContract);
 
   // Create URL generator function for explorer links
-  const getAccountUrl = useMemo(() => createGetAccountUrl(adapter), [adapter]);
+  const getAccountUrl = useMemo(() => createGetAccountUrl(runtime), [runtime]);
 
   // Get network name from networkId
   const { networks } = useAllNetworks();

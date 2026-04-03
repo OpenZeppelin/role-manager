@@ -12,7 +12,7 @@ import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { PropsWithChildren } from 'react';
 
-import type { ContractAdapter } from '@openzeppelin/ui-types';
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 
 import { useChangeAdminDelayDialog } from '../useChangeAdminDelayDialog';
 import { useSelectedContract } from '../useSelectedContract';
@@ -49,7 +49,7 @@ vi.mock('../useTransactionExecution', () => ({
   })),
 }));
 
-const mockAdapter = {} as ContractAdapter;
+const mockRuntime = {} as RoleManagerRuntime;
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
@@ -72,7 +72,7 @@ describe('useChangeAdminDelayDialog', () => {
     vi.clearAllMocks();
     mockUseSelectedContract.mockReturnValue({
       selectedContract: { id: '1', address: '0xCONTRACT' },
-      adapter: mockAdapter,
+      runtime: mockRuntime,
     } as never);
     mockUseTransactionExecution.mockReturnValue({
       step: 'form',

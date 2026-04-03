@@ -8,14 +8,10 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import type {
-  AccessControlService,
-  ContractAdapter,
-  ContractSchema,
-  NetworkConfig,
-} from '@openzeppelin/ui-types';
+import type { AccessControlService, ContractSchema, NetworkConfig } from '@openzeppelin/ui-types';
 import { logger } from '@openzeppelin/ui-utils';
 
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 import type { ContractRecord } from '@/types/contracts';
 
 // =============================================================================
@@ -23,10 +19,10 @@ import type { ContractRecord } from '@/types/contracts';
 // =============================================================================
 
 export interface UseContractRegistrationOptions {
-  /** The loaded adapter for the selected network */
-  adapter: ContractAdapter | null;
-  /** Whether the adapter is still loading */
-  isAdapterLoading: boolean;
+  /** The loaded runtime for the selected network */
+  runtime: RoleManagerRuntime | null;
+  /** Whether the runtime is still loading */
+  isRuntimeLoading: boolean;
   /** Currently selected network */
   selectedNetwork: NetworkConfig | null;
   /** Currently selected contract */
@@ -54,25 +50,22 @@ export interface UseContractRegistrationReturn {
  * - Registers contracts with adapters that support registration
  * - Clears registration cache when ecosystem changes
  * - Provides synchronous isContractRegistered flag for render-time checks
- *
- * @param options - Configuration options
- * @returns Registration state
  */
 export function useContractRegistration({
-  adapter,
-  isAdapterLoading,
+  runtime,
+  isRuntimeLoading,
   selectedNetwork,
   selectedContract,
 }: UseContractRegistrationOptions): UseContractRegistrationReturn {
-  // Track which contracts have been registered to avoid duplicate registrations
-  // Using state (not ref) so changes trigger re-renders and hooks get updated value
+  // Track which contracts have been registered to avoid duplicate registrations.
+  // Using state (not ref) so changes trigger re-renders and hooks get updated value.
   const [registeredContracts, setRegisteredContracts] = useState<Set<string>>(new Set());
 
   // Track previous ecosystem to detect actual ecosystem changes (not just network changes)
   const prevEcosystemRef = useRef<string | null>(null);
 
-  // Compute isContractRegistered synchronously based on current selection
-  // This ensures the value is correct during render, not just after effects
+  // Compute isContractRegistered synchronously based on current selection.
+  // This ensures the value is correct during render, not just after effects.
   const isContractRegistered = useMemo(() => {
     if (!selectedNetwork || !selectedContract) {
       return false;
@@ -81,21 +74,18 @@ export function useContractRegistration({
     return registeredContracts.has(registrationKey);
   }, [selectedNetwork, selectedContract, registeredContracts]);
 
-  // Register contract with access control service when contract/adapter changes
+  // Register contract with access control service when contract/runtime changes
   useEffect(() => {
-    // Skip if no adapter, still loading, no network, or no contract selected
-    if (!adapter || isAdapterLoading || !selectedNetwork || !selectedContract) {
+    if (!runtime || isRuntimeLoading || !selectedNetwork || !selectedContract) {
       return;
     }
 
     const registrationKey = `${selectedNetwork.ecosystem}:${selectedContract.address}`;
 
-    // Skip if already registered
     if (registeredContracts.has(registrationKey)) {
       return;
     }
 
-    // Skip if contract doesn't have a schema
     if (!selectedContract.schema) {
       logger.debug('useContractRegistration', 'Contract has no schema, skipping registration', {
         address: selectedContract.address,
@@ -105,24 +95,21 @@ export function useContractRegistration({
       return;
     }
 
-    // Get access control service from adapter
-    const service = adapter.getAccessControlService?.() as
+    const service = runtime.accessControl as
       | (AccessControlService & {
           registerContract?: (address: string, schema: ContractSchema) => void;
         })
-      | undefined;
+      | null;
 
-    // If adapter doesn't support registration, mark as registered anyway
+    // If runtime doesn't support registration, mark as registered anyway
     if (!service || typeof service.registerContract !== 'function') {
       setRegisteredContracts((prev) => new Set(prev).add(registrationKey));
       return;
     }
 
     try {
-      // Parse the stored schema JSON
       const schema = JSON.parse(selectedContract.schema) as ContractSchema;
 
-      // Register the contract with the service
       service.registerContract(selectedContract.address, schema);
 
       logger.debug('useContractRegistration', 'Registered contract with access control service', {
@@ -137,19 +124,17 @@ export function useContractRegistration({
       // Still mark as registered so hooks don't wait forever (they'll get the error)
       setRegisteredContracts((prev) => new Set(prev).add(registrationKey));
     }
-  }, [adapter, isAdapterLoading, selectedNetwork, selectedContract, registeredContracts]);
+  }, [runtime, isRuntimeLoading, selectedNetwork, selectedContract, registeredContracts]);
 
-  // Clear registration cache when ecosystem changes (new service instance)
+  // Clear registration cache when ecosystem changes (new service instance).
   // Uses a ref to track the previous ecosystem and only clear when it actually changes,
-  // avoiding unnecessary re-registrations when switching between networks of the same ecosystem
+  // avoiding unnecessary re-registrations when switching between networks of the same ecosystem.
   useEffect(() => {
     if (selectedNetwork) {
       const currentEcosystem = selectedNetwork.ecosystem;
 
       // Only clear registrations when ecosystem actually changes
       if (prevEcosystemRef.current !== null && prevEcosystemRef.current !== currentEcosystem) {
-        // When ecosystem changes, the adapter and service are recreated
-        // Clear registrations for other ecosystems
         setRegisteredContracts((prev) => {
           const filtered = Array.from(prev).filter((key) => key.startsWith(`${currentEcosystem}:`));
           if (filtered.length !== prev.size) {
@@ -159,7 +144,6 @@ export function useContractRegistration({
         });
       }
 
-      // Update ref to current ecosystem
       prevEcosystemRef.current = currentEcosystem;
     }
   }, [selectedNetwork]);

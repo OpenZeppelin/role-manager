@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import type { ContractAdapter, NetworkConfig } from '@openzeppelin/ui-types';
+import type { NetworkConfig } from '@openzeppelin/ui-types';
 import {
   filterEnabledServiceForms,
   logger,
   userNetworkServiceConfigService,
 } from '@openzeppelin/ui-utils';
+
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 
 export interface ServiceHealthStatus {
   serviceId: string;
@@ -27,11 +29,11 @@ export interface NetworkHealthCheckResult {
  * Proactively tests network services (RPC, indexer, explorer) when a network is selected.
  * Helps users identify service outages before they try to interact with the network.
  *
- * Uses adapter's getDefaultServiceConfig() for default endpoint values.
+ * Uses runtime's relayer capability for service forms and connection testing.
  * User overrides from the settings dialog take precedence.
  */
 export function useNetworkServiceHealthCheck(
-  adapter: ContractAdapter | null,
+  runtime: RoleManagerRuntime | null,
   networkConfig: NetworkConfig | null
 ): NetworkHealthCheckResult {
   const [isChecking, setIsChecking] = useState(false);
@@ -41,12 +43,12 @@ export function useNetworkServiceHealthCheck(
   const checkServices = useCallback(async () => {
     const currentCheckId = ++checkIdRef.current;
 
-    if (!adapter || !networkConfig || !adapter.testNetworkServiceConnection) {
+    if (!runtime || !networkConfig || !runtime.relayer.testNetworkServiceConnection) {
       setServiceStatuses([]);
       return;
     }
 
-    const serviceForms = filterEnabledServiceForms(adapter.getNetworkServiceForms());
+    const serviceForms = filterEnabledServiceForms(runtime.relayer.getNetworkServiceForms());
     if (!serviceForms || serviceForms.length === 0) {
       setServiceStatuses([]);
       return;
@@ -54,7 +56,7 @@ export function useNetworkServiceHealthCheck(
 
     setIsChecking(true);
     try {
-      const testConnection = adapter.testNetworkServiceConnection.bind(adapter);
+      const testConnection = runtime.relayer.testNetworkServiceConnection.bind(runtime.relayer);
 
       const statusPromises = serviceForms.map(
         async (serviceForm): Promise<ServiceHealthStatus | null> => {
@@ -62,7 +64,7 @@ export function useNetworkServiceHealthCheck(
             let serviceValues = getUserServiceConfigOverride(networkConfig.id, serviceForm.id);
 
             if (!serviceValues) {
-              serviceValues = adapter.getDefaultServiceConfig(serviceForm.id);
+              serviceValues = runtime.relayer.getDefaultServiceConfig(serviceForm.id);
             }
 
             if (!serviceValues || Object.keys(serviceValues).length === 0) {
@@ -108,7 +110,7 @@ export function useNetworkServiceHealthCheck(
         setIsChecking(false);
       }
     }
-  }, [adapter, networkConfig]);
+  }, [runtime, networkConfig]);
 
   useEffect(() => {
     void checkServices();

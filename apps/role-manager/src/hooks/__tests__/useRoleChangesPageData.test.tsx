@@ -139,14 +139,14 @@ function setupDefaultMocks() {
       networkId: 'stellar-testnet',
       label: 'Test Contract',
     },
-    adapter: {
+    runtime: {
       id: 'test-adapter',
       getExplorerUrl: vi.fn().mockReturnValue('https://explorer.example.com/address/0xcontract123'),
       getExplorerTxUrl: vi.fn(
         (txHash: string) => `https://explorer.example.com/transaction/${txHash}`
       ),
     },
-    isAdapterLoading: false,
+    isRuntimeLoading: false,
     isContractRegistered: true,
   });
 
@@ -291,8 +291,8 @@ describe('useRoleChangesPageData', () => {
     it('should return hasContractSelected=false when no contract selected', async () => {
       mockUseSelectedContract.mockReturnValue({
         selectedContract: null,
-        adapter: null,
-        isAdapterLoading: false,
+        runtime: null,
+        isRuntimeLoading: false,
         isContractRegistered: false,
       });
 
@@ -508,14 +508,14 @@ describe('useRoleChangesPageData', () => {
           networkId: 'stellar-testnet',
           label: 'New Contract',
         },
-        adapter: {
+        runtime: {
           id: 'test-adapter',
           getExplorerUrl: vi.fn().mockReturnValue('https://explorer.example.com/address/0xnew'),
           getExplorerTxUrl: vi.fn(
             (txHash: string) => `https://explorer.example.com/transaction/${txHash}`
           ),
         },
-        isAdapterLoading: false,
+        isRuntimeLoading: false,
         isContractRegistered: true,
       });
 
@@ -815,8 +815,8 @@ describe('useRoleChangesPageData', () => {
     it('should return empty state for no contract selected', async () => {
       mockUseSelectedContract.mockReturnValue({
         selectedContract: null,
-        adapter: null,
-        isAdapterLoading: false,
+        runtime: null,
+        isRuntimeLoading: false,
         isContractRegistered: false,
       });
 

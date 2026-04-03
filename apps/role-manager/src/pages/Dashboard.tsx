@@ -50,11 +50,11 @@ import type { PendingTransfer } from '../types/pending-transfers';
 
 export function Dashboard() {
   const navigate = useNavigate();
-  const { selectedContract, selectedNetwork, adapter, isContractRegistered } =
+  const { selectedContract, selectedNetwork, runtime, isContractRegistered } =
     useSelectedContract();
 
   // Proactive network service health check (RPC, indexer, explorer)
-  const { unhealthyServices } = useNetworkServiceHealthCheck(adapter, selectedNetwork);
+  const { unhealthyServices } = useNetworkServiceHealthCheck(runtime, selectedNetwork);
 
   // Resolve contract display name from alias (single source of truth)
   const contractName = useContractDisplayName(selectedContract);
@@ -103,7 +103,7 @@ export function Dashboard() {
     refetch,
     exportSnapshot,
     isExporting,
-  } = useDashboardData(adapter, contractAddress, {
+  } = useDashboardData(runtime, contractAddress, {
     networkId,
     networkName: selectedNetwork?.name ?? '',
     label: contractName,
@@ -132,7 +132,7 @@ export function Dashboard() {
   const hasContract = selectedContract !== null;
 
   const explorerUrl =
-    adapter && selectedContract ? adapter.getExplorerUrl(selectedContract.address) : null;
+    runtime && selectedContract ? runtime.explorer.getExplorerUrl(selectedContract.address) : null;
 
   // Determine if buttons should be disabled
   const actionsDisabled = !hasContract || isLoading || isRefreshing;

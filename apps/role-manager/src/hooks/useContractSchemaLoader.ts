@@ -8,9 +8,9 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import type { ContractAdapter } from '@openzeppelin/ui-types';
 import { simpleHash } from '@openzeppelin/ui-utils';
 
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 import type {
   CircuitBreakerState,
   SchemaLoadResult,
@@ -27,11 +27,11 @@ import { DEFAULT_CIRCUIT_BREAKER_CONFIG } from '@/types/schema';
  * - Auto-resets circuit breaker after display duration
  * - Clears failure state on successful load
  *
- * @param adapter - The contract adapter to use for loading (or null)
+ * @param runtime - The ecosystem runtime to use for loading (or null)
  * @returns Hook state and functions
  */
 export function useContractSchemaLoader(
-  adapter: ContractAdapter | null
+  runtime: RoleManagerRuntime | null
 ): UseContractSchemaLoaderReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -128,15 +128,14 @@ export function useContractSchemaLoader(
   };
 
   /**
-   * Load contract schema via adapter
+   * Load contract schema via the runtime's contractLoading capability
    */
   const load = useCallback(
     async (
       address: string,
       artifacts: Record<string, unknown>
     ): Promise<SchemaLoadResult | null> => {
-      // Return null if no adapter
-      if (!adapter) {
+      if (!runtime) {
         return null;
       }
 
@@ -165,9 +164,9 @@ export function useContractSchemaLoader(
         return null;
       }
 
-      // Check if adapter supports loadContractWithMetadata
-      if (typeof adapter.loadContractWithMetadata !== 'function') {
-        setError('This adapter does not support schema loading');
+      // Check if runtime supports loadContractWithMetadata
+      if (typeof runtime.contractLoading.loadContractWithMetadata !== 'function') {
+        setError('This runtime does not support schema loading');
         return null;
       }
 
@@ -176,7 +175,7 @@ export function useContractSchemaLoader(
       setError(null);
 
       try {
-        const result = await adapter.loadContractWithMetadata(artifacts);
+        const result = await runtime.contractLoading.loadContractWithMetadata(artifacts);
 
         // Clear circuit breaker state on success
         clearCircuitBreakerState(key);
@@ -197,7 +196,7 @@ export function useContractSchemaLoader(
         return null;
       }
     },
-    [adapter]
+    [runtime]
   );
 
   /**

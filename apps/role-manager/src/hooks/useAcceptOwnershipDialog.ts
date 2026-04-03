@@ -93,13 +93,13 @@ export function useAcceptOwnershipDialog(
   // Context & External Data
   // =============================================================================
 
-  const { selectedContract, adapter } = useSelectedContract();
+  const { selectedContract, runtime } = useSelectedContract();
   const contractAddress = selectedContract?.address ?? '';
 
   const { address: connectedAddress } = useDerivedAccountStatus();
 
   // Mutation hook for accept ownership
-  const acceptOwnership = useAcceptOwnership(adapter, contractAddress);
+  const acceptOwnership = useAcceptOwnership(runtime, contractAddress);
 
   // =============================================================================
   // Internal State

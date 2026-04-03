@@ -5,7 +5,9 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ContractAdapter, NetworkConfig } from '@openzeppelin/ui-types';
+import type { NetworkConfig } from '@openzeppelin/ui-types';
+
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 
 import { useNetworkServiceHealthCheck } from '../useNetworkServiceHealthCheck';
 
@@ -44,13 +46,15 @@ const mockNetworkConfig: NetworkConfig = {
   isTestnet: false,
 } as NetworkConfig;
 
-function createMockAdapter(overrides: Partial<ContractAdapter> = {}): ContractAdapter {
+function createMockRuntime(relayerOverrides: Record<string, unknown> = {}): RoleManagerRuntime {
   return {
-    getNetworkServiceForms: vi.fn(() => []),
-    getDefaultServiceConfig: vi.fn(() => ({})),
-    testNetworkServiceConnection: vi.fn(),
-    ...overrides,
-  } as unknown as ContractAdapter;
+    relayer: {
+      getNetworkServiceForms: vi.fn(() => []),
+      getDefaultServiceConfig: vi.fn(() => ({})),
+      testNetworkServiceConnection: vi.fn(),
+      ...relayerOverrides,
+    },
+  } as unknown as RoleManagerRuntime;
 }
 
 const rpcForm = { id: 'rpc', label: 'RPC Endpoint', enabled: true, fields: [] };
@@ -89,7 +93,7 @@ describe('useNetworkServiceHealthCheck', () => {
     });
 
     it('should return empty statuses when networkConfig is null', async () => {
-      const adapter = createMockAdapter();
+      const adapter = createMockRuntime();
       const { result } = renderHook(() => useNetworkServiceHealthCheck(adapter, null));
 
       await waitFor(() => {
@@ -100,7 +104,7 @@ describe('useNetworkServiceHealthCheck', () => {
     });
 
     it('should return empty statuses when adapter has no testNetworkServiceConnection', async () => {
-      const adapter = createMockAdapter({ testNetworkServiceConnection: undefined });
+      const adapter = createMockRuntime({ testNetworkServiceConnection: undefined });
       const { result } = renderHook(() => useNetworkServiceHealthCheck(adapter, mockNetworkConfig));
 
       await waitFor(() => {
@@ -112,7 +116,7 @@ describe('useNetworkServiceHealthCheck', () => {
 
     it('should return empty statuses when no enabled service forms exist', async () => {
       mocks.filterEnabledServiceForms.mockReturnValue([]);
-      const adapter = createMockAdapter();
+      const adapter = createMockRuntime();
       const { result } = renderHook(() => useNetworkServiceHealthCheck(adapter, mockNetworkConfig));
 
       await waitFor(() => {
@@ -131,7 +135,7 @@ describe('useNetworkServiceHealthCheck', () => {
     it('should report all services healthy when checks succeed', async () => {
       mocks.filterEnabledServiceForms.mockReturnValue([rpcForm, indexerForm]);
       const testConnection = vi.fn().mockResolvedValue({ success: true, latency: 50 });
-      const adapter = createMockAdapter({
+      const adapter = createMockRuntime({
         testNetworkServiceConnection: testConnection,
         getDefaultServiceConfig: vi.fn(() => ({ url: 'https://rpc.example.com' })),
       });
@@ -154,7 +158,7 @@ describe('useNetworkServiceHealthCheck', () => {
     it('should use latency from test result', async () => {
       mocks.filterEnabledServiceForms.mockReturnValue([rpcForm]);
       const testConnection = vi.fn().mockResolvedValue({ success: true, latency: 123 });
-      const adapter = createMockAdapter({
+      const adapter = createMockRuntime({
         testNetworkServiceConnection: testConnection,
         getDefaultServiceConfig: vi.fn(() => ({ url: 'https://rpc.example.com' })),
       });
@@ -180,7 +184,7 @@ describe('useNetworkServiceHealthCheck', () => {
         success: false,
         error: 'Connection refused',
       });
-      const adapter = createMockAdapter({
+      const adapter = createMockRuntime({
         testNetworkServiceConnection: testConnection,
         getDefaultServiceConfig: vi.fn(() => ({ url: 'https://rpc.example.com' })),
       });
@@ -205,7 +209,7 @@ describe('useNetworkServiceHealthCheck', () => {
     it('should default isHealthy to false when result is undefined', async () => {
       mocks.filterEnabledServiceForms.mockReturnValue([rpcForm]);
       const testConnection = vi.fn().mockResolvedValue(undefined);
-      const adapter = createMockAdapter({
+      const adapter = createMockRuntime({
         testNetworkServiceConnection: testConnection,
         getDefaultServiceConfig: vi.fn(() => ({ url: 'https://rpc.example.com' })),
       });
@@ -222,7 +226,7 @@ describe('useNetworkServiceHealthCheck', () => {
     it('should handle thrown errors gracefully and mark service unhealthy', async () => {
       mocks.filterEnabledServiceForms.mockReturnValue([rpcForm]);
       const testConnection = vi.fn().mockRejectedValue(new Error('Network timeout'));
-      const adapter = createMockAdapter({
+      const adapter = createMockRuntime({
         testNetworkServiceConnection: testConnection,
         getDefaultServiceConfig: vi.fn(() => ({ url: 'https://rpc.example.com' })),
       });
@@ -245,7 +249,7 @@ describe('useNetworkServiceHealthCheck', () => {
     it('should handle non-Error thrown values', async () => {
       mocks.filterEnabledServiceForms.mockReturnValue([rpcForm]);
       const testConnection = vi.fn().mockRejectedValue('string error');
-      const adapter = createMockAdapter({
+      const adapter = createMockRuntime({
         testNetworkServiceConnection: testConnection,
         getDefaultServiceConfig: vi.fn(() => ({ url: 'https://rpc.example.com' })),
       });
@@ -271,7 +275,7 @@ describe('useNetworkServiceHealthCheck', () => {
 
       const testConnection = vi.fn().mockResolvedValue({ success: true });
       const getDefaultServiceConfig = vi.fn(() => ({ url: 'https://default-rpc.example.com' }));
-      const adapter = createMockAdapter({
+      const adapter = createMockRuntime({
         testNetworkServiceConnection: testConnection,
         getDefaultServiceConfig,
       });
@@ -292,7 +296,7 @@ describe('useNetworkServiceHealthCheck', () => {
 
       const testConnection = vi.fn().mockResolvedValue({ success: true });
       const getDefaultServiceConfig = vi.fn(() => ({ url: 'https://default-rpc.example.com' }));
-      const adapter = createMockAdapter({
+      const adapter = createMockRuntime({
         testNetworkServiceConnection: testConnection,
         getDefaultServiceConfig,
       });
@@ -318,7 +322,7 @@ describe('useNetworkServiceHealthCheck', () => {
         if (serviceId === 'rpc') return { url: 'https://rpc.example.com' };
         return {};
       });
-      const adapter = createMockAdapter({
+      const adapter = createMockRuntime({
         testNetworkServiceConnection: testConnection,
         getDefaultServiceConfig,
       });
@@ -349,7 +353,7 @@ describe('useNetworkServiceHealthCheck', () => {
         callOrder.push(`end-${serviceId}`);
         return { success: true };
       });
-      const adapter = createMockAdapter({
+      const adapter = createMockRuntime({
         testNetworkServiceConnection: testConnection,
         getDefaultServiceConfig: vi.fn(() => ({ url: 'https://example.com' })),
       });
@@ -385,7 +389,7 @@ describe('useNetworkServiceHealthCheck', () => {
         if (serviceId === 'indexer') return { success: false, error: 'Indexer down' };
         return { success: true, latency: 50 };
       });
-      const adapter = createMockAdapter({
+      const adapter = createMockRuntime({
         testNetworkServiceConnection: testConnection,
         getDefaultServiceConfig: vi.fn(() => ({ url: 'https://example.com' })),
       });
@@ -410,7 +414,7 @@ describe('useNetworkServiceHealthCheck', () => {
     it('should reset isChecking to false after checks complete', async () => {
       mocks.filterEnabledServiceForms.mockReturnValue([rpcForm]);
       const testConnection = vi.fn().mockResolvedValue({ success: true });
-      const adapter = createMockAdapter({
+      const adapter = createMockRuntime({
         testNetworkServiceConnection: testConnection,
         getDefaultServiceConfig: vi.fn(() => ({ url: 'https://rpc.example.com' })),
       });
@@ -426,7 +430,7 @@ describe('useNetworkServiceHealthCheck', () => {
     it('should reset isChecking to false even when all checks throw', async () => {
       mocks.filterEnabledServiceForms.mockReturnValue([rpcForm, indexerForm]);
       const testConnection = vi.fn().mockRejectedValue(new Error('Total failure'));
-      const adapter = createMockAdapter({
+      const adapter = createMockRuntime({
         testNetworkServiceConnection: testConnection,
         getDefaultServiceConfig: vi.fn(() => ({ url: 'https://example.com' })),
       });
@@ -452,7 +456,7 @@ describe('useNetworkServiceHealthCheck', () => {
         callCount++;
         return { success: callCount > 1, latency: 50 };
       });
-      const adapter = createMockAdapter({
+      const adapter = createMockRuntime({
         testNetworkServiceConnection: testConnection,
         getDefaultServiceConfig: vi.fn(() => ({ url: 'https://rpc.example.com' })),
       });
@@ -482,7 +486,7 @@ describe('useNetworkServiceHealthCheck', () => {
     it('should re-run checks when networkConfig changes', async () => {
       mocks.filterEnabledServiceForms.mockReturnValue([rpcForm]);
       const testConnection = vi.fn().mockResolvedValue({ success: true });
-      const adapter = createMockAdapter({
+      const adapter = createMockRuntime({
         testNetworkServiceConnection: testConnection,
         getDefaultServiceConfig: vi.fn(() => ({ url: 'https://rpc.example.com' })),
       });

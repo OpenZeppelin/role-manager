@@ -13,7 +13,7 @@
 
 import { useCallback, useMemo, useState } from 'react';
 
-import type { ContractAdapter } from '@openzeppelin/ui-types';
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 
 import type { UseDashboardDataReturn } from '../types/dashboard';
 import { getUniqueAccountsCount } from '../utils/deduplication';
@@ -83,7 +83,7 @@ export interface UseDashboardDataOptions {
  * ```
  */
 export function useDashboardData(
-  adapter: ContractAdapter | null,
+  runtime: RoleManagerRuntime | null,
   contractAddress: string,
   options: UseDashboardDataOptions
 ): UseDashboardDataReturn {
@@ -93,7 +93,7 @@ export function useDashboardData(
 
   // Detect capabilities to gate ownership query (prevents errors on AccessControl-only contracts)
   const { capabilities, isPending: capabilitiesPending } = useContractCapabilities(
-    adapter,
+    runtime,
     contractAddress,
     isContractRegistered
   );
@@ -110,7 +110,7 @@ export function useDashboardData(
     errorMessage: rolesErrorMessage,
     canRetry: rolesCanRetry,
     refetch: rolesRefetch,
-  } = useContractRolesEnriched(adapter, contractAddress, isContractRegistered);
+  } = useContractRolesEnriched(runtime, contractAddress, isContractRegistered);
 
   // Convert enriched roles to basic format for counting
   // (enriched roles have { role, members: { address, grantedAt }[] })
@@ -131,7 +131,7 @@ export function useDashboardData(
     errorMessage: ownershipErrorMessage,
     canRetry: ownershipCanRetry,
     refetch: ownershipRefetch,
-  } = useContractOwnership(adapter, contractAddress, isContractRegistered, hasOwnableCapability);
+  } = useContractOwnership(runtime, contractAddress, isContractRegistered, hasOwnableCapability);
 
   // Use isPending (not isLoading) from TanStack Query v5 for count guards.
   // isPending is true whenever no cached data exists — this covers all gaps:
@@ -141,17 +141,17 @@ export function useDashboardData(
   // isSettling extends this: the query resolved with empty data but the indexer
   // may still be initializing. Return null (loading skeleton) instead of showing 0.
   const rolesCount = useMemo(() => {
-    if (!adapter || !contractAddress) return null;
+    if (!runtime || !contractAddress) return null;
     if (rolesPending || rolesSettling) return null;
     return roles.length;
-  }, [adapter, contractAddress, rolesPending, rolesSettling, roles.length]);
+  }, [runtime, contractAddress, rolesPending, rolesSettling, roles.length]);
 
   // Compute unique accounts count using Set-based deduplication
   const uniqueAccountsCount = useMemo(() => {
-    if (!adapter || !contractAddress) return null;
+    if (!runtime || !contractAddress) return null;
     if (rolesPending || rolesSettling) return null;
     return getUniqueAccountsCount(roles);
-  }, [adapter, contractAddress, rolesPending, rolesSettling, roles]);
+  }, [runtime, contractAddress, rolesPending, rolesSettling, roles]);
 
   // Determine capability flags from detected capabilities (more reliable than inference)
   const hasAccessControl = useMemo(() => {
@@ -228,7 +228,7 @@ export function useDashboardData(
     exportSnapshot: doExportSnapshot,
     isExporting,
     error: exportSnapshotError,
-  } = useExportSnapshot(adapter, contractAddress, {
+  } = useExportSnapshot(runtime, contractAddress, {
     networkId,
     networkName,
     label,

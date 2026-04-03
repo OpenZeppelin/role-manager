@@ -5,7 +5,7 @@
  * Tests the synchronization between ContractContext (network selection)
  * and WalletStateProvider (wallet management).
  */
-import { render } from '@testing-library/react';
+import { render, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { NetworkConfig } from '@openzeppelin/ui-types';
@@ -25,6 +25,16 @@ const mockStellarNetwork: NetworkConfig = {
   isTestnet: true,
 } as NetworkConfig;
 
+const mockEvmMainnet: NetworkConfig = {
+  id: 'ethereum-mainnet',
+  name: 'Ethereum Mainnet',
+  ecosystem: 'evm',
+  network: 'ethereum',
+  type: 'mainnet',
+  isTestnet: false,
+  chainId: 1,
+} as NetworkConfig;
+
 const mockEvmNetwork: NetworkConfig = {
   id: 'ethereum-sepolia',
   name: 'Ethereum Sepolia',
@@ -32,17 +42,36 @@ const mockEvmNetwork: NetworkConfig = {
   network: 'ethereum',
   type: 'testnet',
   isTestnet: true,
+  chainId: 11155111,
 } as NetworkConfig;
+
+function createRuntime(networkConfig: NetworkConfig) {
+  return {
+    networkConfig,
+    wallet: {
+      networkConfig,
+    },
+    networkCatalog: {
+      getNetworks: vi.fn().mockReturnValue([networkConfig]),
+    },
+  };
+}
 
 // =============================================================================
 // Mocks
 // =============================================================================
 
-// Track mock state
-const mocks = {
-  selectedNetwork: null as NetworkConfig | null,
-  setActiveNetworkId: vi.fn(),
-};
+const { mocks, mockUseWalletReconnectionHandler, mockNetworkSwitchManager } = vi.hoisted(() => ({
+  mocks: {
+    selectedNetwork: null as NetworkConfig | null,
+    setActiveNetworkId: vi.fn(),
+    activeRuntime: null as ReturnType<typeof createRuntime> | null,
+    isRuntimeLoading: false,
+    isConnected: false,
+  },
+  mockUseWalletReconnectionHandler: vi.fn(),
+  mockNetworkSwitchManager: vi.fn(() => null),
+}));
 
 // Mock ContractContext hook
 vi.mock('../ContractContext', () => ({
@@ -51,8 +80,8 @@ vi.mock('../ContractContext', () => ({
     setSelectedNetwork: vi.fn(),
     selectedContract: null,
     setSelectedContract: vi.fn(),
-    adapter: null,
-    isAdapterLoading: false,
+    runtime: null,
+    isRuntimeLoading: false,
     contracts: [],
     isContractsLoading: false,
     isContractRegistered: false,
@@ -65,15 +94,20 @@ vi.mock('@openzeppelin/ui-react', () => ({
     setActiveNetworkId: mocks.setActiveNetworkId,
     activeNetworkId: null,
     activeNetworkConfig: null,
-    activeAdapter: null,
-    isAdapterLoading: false,
+    activeRuntime: mocks.activeRuntime,
+    isRuntimeLoading: mocks.isRuntimeLoading,
     walletFacadeHooks: null,
-    reconfigureActiveAdapterUiKit: vi.fn(),
+    reconfigureActiveUiKit: vi.fn(),
   }),
-  // Mock useWalletReconnectionHandler - does nothing in tests
-  useWalletReconnectionHandler: vi.fn(),
-  // Mock NetworkSwitchManager - renders nothing in tests
-  NetworkSwitchManager: () => null,
+  useDerivedAccountStatus: () => ({
+    isConnected: mocks.isConnected,
+    isConnecting: false,
+    isDisconnected: !mocks.isConnected,
+    isReconnecting: false,
+    status: mocks.isConnected ? 'connected' : 'disconnected',
+  }),
+  useWalletReconnectionHandler: mockUseWalletReconnectionHandler,
+  NetworkSwitchManager: mockNetworkSwitchManager,
 }));
 
 // Mock logger from @openzeppelin/ui-utils
@@ -96,6 +130,9 @@ describe('WalletSyncProvider', () => {
     // Reset mock state
     mocks.selectedNetwork = null;
     mocks.setActiveNetworkId.mockClear();
+    mocks.activeRuntime = null;
+    mocks.isRuntimeLoading = false;
+    mocks.isConnected = false;
   });
 
   afterEach(() => {
@@ -263,6 +300,61 @@ describe('WalletSyncProvider', () => {
       );
 
       expect(mocks.setActiveNetworkId).toHaveBeenCalledWith('ethereum-sepolia');
+    });
+
+    it('mounts NetworkSwitchManager only for same-ecosystem EVM switches while connected', async () => {
+      mocks.selectedNetwork = mockEvmMainnet;
+      mocks.activeRuntime = createRuntime(mockEvmMainnet);
+      mocks.isConnected = true;
+
+      const { rerender } = render(
+        <WalletSyncProvider>
+          <div>Test</div>
+        </WalletSyncProvider>
+      );
+
+      expect(mockNetworkSwitchManager).not.toHaveBeenCalled();
+
+      mocks.selectedNetwork = mockEvmNetwork;
+      mocks.activeRuntime = createRuntime(mockEvmNetwork);
+      rerender(
+        <WalletSyncProvider>
+          <div>Test</div>
+        </WalletSyncProvider>
+      );
+
+      await waitFor(() => expect(mockNetworkSwitchManager).toHaveBeenCalled());
+
+      const latestCall = mockNetworkSwitchManager.mock.calls.at(-1)?.[0];
+      expect(latestCall.targetNetworkId).toBe(mockEvmNetwork.id);
+      expect(latestCall.wallet.networkConfig.id).toBe(mockEvmNetwork.id);
+    });
+
+    it('does not mount NetworkSwitchManager for cross-ecosystem switches', async () => {
+      mocks.selectedNetwork = mockEvmMainnet;
+      mocks.activeRuntime = createRuntime(mockEvmMainnet);
+      mocks.isConnected = true;
+
+      const { rerender } = render(
+        <WalletSyncProvider>
+          <div>Test</div>
+        </WalletSyncProvider>
+      );
+
+      expect(mockNetworkSwitchManager).not.toHaveBeenCalled();
+
+      mocks.selectedNetwork = mockStellarNetwork;
+      mocks.activeRuntime = createRuntime(mockStellarNetwork);
+      rerender(
+        <WalletSyncProvider>
+          <div>Test</div>
+        </WalletSyncProvider>
+      );
+
+      await waitFor(() => {
+        expect(mocks.setActiveNetworkId).toHaveBeenCalledWith(mockStellarNetwork.id);
+      });
+      expect(mockNetworkSwitchManager).not.toHaveBeenCalled();
     });
   });
 });

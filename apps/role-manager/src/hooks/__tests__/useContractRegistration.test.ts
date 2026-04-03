@@ -6,7 +6,9 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ContractAdapter, NetworkConfig } from '@openzeppelin/ui-types';
+import type { NetworkConfig } from '@openzeppelin/ui-types';
+
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 
 import type { ContractRecord } from '../../types/contracts';
 import { useContractRegistration } from '../useContractRegistration';
@@ -61,13 +63,13 @@ const mockContractWithoutSchema: ContractRecord = {
 // Mock Adapter Factory
 // =============================================================================
 
-function createMockAdapter(options: {
+function createMockRuntime(options: {
   supportsRegistration?: boolean;
   registerContract?: ReturnType<typeof vi.fn>;
-}): ContractAdapter {
+}): RoleManagerRuntime {
   const { supportsRegistration = true, registerContract = vi.fn() } = options;
 
-  const mockService = supportsRegistration
+  const accessControl = supportsRegistration
     ? {
         registerContract,
         getCapabilities: vi.fn(),
@@ -79,8 +81,8 @@ function createMockAdapter(options: {
   return {
     networkConfig: mockNetworkStellar,
     isValidAddress: vi.fn().mockReturnValue(true),
-    getAccessControlService: vi.fn().mockReturnValue(mockService),
-  } as unknown as ContractAdapter;
+    accessControl,
+  } as unknown as RoleManagerRuntime;
 }
 
 // =============================================================================
@@ -97,11 +99,11 @@ describe('useContractRegistration', () => {
   });
 
   describe('initialization', () => {
-    it('should return false when no adapter', () => {
+    it('should return false when no runtime', () => {
       const { result } = renderHook(() =>
         useContractRegistration({
-          adapter: null,
-          isAdapterLoading: false,
+          runtime: null,
+          isRuntimeLoading: false,
           selectedNetwork: mockNetworkStellar,
           selectedContract: mockContractWithSchema,
         })
@@ -110,11 +112,11 @@ describe('useContractRegistration', () => {
       expect(result.current.isContractRegistered).toBe(false);
     });
 
-    it('should return false when adapter is loading', () => {
+    it('should return false when runtime is loading', () => {
       const { result } = renderHook(() =>
         useContractRegistration({
-          adapter: createMockAdapter({}),
-          isAdapterLoading: true,
+          runtime: createMockRuntime({}),
+          isRuntimeLoading: true,
           selectedNetwork: mockNetworkStellar,
           selectedContract: mockContractWithSchema,
         })
@@ -126,8 +128,8 @@ describe('useContractRegistration', () => {
     it('should return false when no network selected', () => {
       const { result } = renderHook(() =>
         useContractRegistration({
-          adapter: createMockAdapter({}),
-          isAdapterLoading: false,
+          runtime: createMockRuntime({}),
+          isRuntimeLoading: false,
           selectedNetwork: null,
           selectedContract: mockContractWithSchema,
         })
@@ -139,8 +141,8 @@ describe('useContractRegistration', () => {
     it('should return false when no contract selected', () => {
       const { result } = renderHook(() =>
         useContractRegistration({
-          adapter: createMockAdapter({}),
-          isAdapterLoading: false,
+          runtime: createMockRuntime({}),
+          isRuntimeLoading: false,
           selectedNetwork: mockNetworkStellar,
           selectedContract: null,
         })
@@ -153,12 +155,12 @@ describe('useContractRegistration', () => {
   describe('contract registration', () => {
     it('should register contract with schema', async () => {
       const registerContract = vi.fn();
-      const adapter = createMockAdapter({ registerContract });
+      const runtime = createMockRuntime({ registerContract });
 
       const { result } = renderHook(() =>
         useContractRegistration({
-          adapter,
-          isAdapterLoading: false,
+          runtime,
+          isRuntimeLoading: false,
           selectedNetwork: mockNetworkStellar,
           selectedContract: mockContractWithSchema,
         })
@@ -173,12 +175,12 @@ describe('useContractRegistration', () => {
 
     it('should mark as registered without calling registerContract for contract without schema', async () => {
       const registerContract = vi.fn();
-      const adapter = createMockAdapter({ registerContract });
+      const runtime = createMockRuntime({ registerContract });
 
       const { result } = renderHook(() =>
         useContractRegistration({
-          adapter,
-          isAdapterLoading: false,
+          runtime,
+          isRuntimeLoading: false,
           selectedNetwork: mockNetworkStellar,
           selectedContract: mockContractWithoutSchema,
         })
@@ -192,13 +194,13 @@ describe('useContractRegistration', () => {
       expect(registerContract).not.toHaveBeenCalled();
     });
 
-    it('should mark as registered when adapter does not support registration', async () => {
-      const adapter = createMockAdapter({ supportsRegistration: false });
+    it('should mark as registered when runtime does not support registration', async () => {
+      const runtime = createMockRuntime({ supportsRegistration: false });
 
       const { result } = renderHook(() =>
         useContractRegistration({
-          adapter,
-          isAdapterLoading: false,
+          runtime,
+          isRuntimeLoading: false,
           selectedNetwork: mockNetworkStellar,
           selectedContract: mockContractWithSchema,
         })
@@ -211,12 +213,12 @@ describe('useContractRegistration', () => {
 
     it('should not re-register already registered contract', async () => {
       const registerContract = vi.fn();
-      const adapter = createMockAdapter({ registerContract });
+      const runtime = createMockRuntime({ registerContract });
 
       const { result, rerender } = renderHook((props) => useContractRegistration(props), {
         initialProps: {
-          adapter,
-          isAdapterLoading: false,
+          runtime,
+          isRuntimeLoading: false,
           selectedNetwork: mockNetworkStellar,
           selectedContract: mockContractWithSchema,
         },
@@ -230,8 +232,8 @@ describe('useContractRegistration', () => {
 
       // Re-render with same props
       rerender({
-        adapter,
-        isAdapterLoading: false,
+        runtime,
+        isRuntimeLoading: false,
         selectedNetwork: mockNetworkStellar,
         selectedContract: mockContractWithSchema,
       });
@@ -244,17 +246,17 @@ describe('useContractRegistration', () => {
   describe('ecosystem change handling', () => {
     it('should clear registrations when ecosystem changes', async () => {
       const registerContractStellar = vi.fn();
-      const adapterStellar = createMockAdapter({ registerContract: registerContractStellar });
+      const runtimeStellar = createMockRuntime({ registerContract: registerContractStellar });
 
       const registerContractEvm = vi.fn();
-      const adapterEvm = {
+      const runtimeEvm = {
         networkConfig: mockNetworkEvm,
         isValidAddress: vi.fn().mockReturnValue(true),
-        getAccessControlService: vi.fn().mockReturnValue({
+        accessControl: {
           registerContract: registerContractEvm,
           getCapabilities: vi.fn(),
-        }),
-      } as unknown as ContractAdapter;
+        },
+      } as unknown as RoleManagerRuntime;
 
       const evmContract: ContractRecord = {
         ...mockContractWithSchema,
@@ -265,8 +267,8 @@ describe('useContractRegistration', () => {
 
       const { result, rerender } = renderHook((props) => useContractRegistration(props), {
         initialProps: {
-          adapter: adapterStellar,
-          isAdapterLoading: false,
+          runtime: runtimeStellar,
+          isRuntimeLoading: false,
           selectedNetwork: mockNetworkStellar,
           selectedContract: mockContractWithSchema,
         },
@@ -278,8 +280,8 @@ describe('useContractRegistration', () => {
 
       // Switch to EVM ecosystem
       rerender({
-        adapter: adapterEvm,
-        isAdapterLoading: false,
+        runtime: runtimeEvm,
+        isRuntimeLoading: false,
         selectedNetwork: mockNetworkEvm,
         selectedContract: evmContract,
       });
@@ -295,7 +297,7 @@ describe('useContractRegistration', () => {
 
     it('should not clear registrations when switching networks within same ecosystem', async () => {
       const registerContract = vi.fn();
-      const adapter = createMockAdapter({ registerContract });
+      const runtime = createMockRuntime({ registerContract });
 
       const anotherStellarNetwork: NetworkConfig = {
         ...mockNetworkStellar,
@@ -307,8 +309,8 @@ describe('useContractRegistration', () => {
 
       const { result, rerender } = renderHook((props) => useContractRegistration(props), {
         initialProps: {
-          adapter,
-          isAdapterLoading: false,
+          runtime,
+          isRuntimeLoading: false,
           selectedNetwork: mockNetworkStellar,
           selectedContract: mockContractWithSchema,
         },
@@ -322,8 +324,8 @@ describe('useContractRegistration', () => {
 
       // Switch to another Stellar network (same ecosystem)
       rerender({
-        adapter,
-        isAdapterLoading: false,
+        runtime,
+        isRuntimeLoading: false,
         selectedNetwork: anotherStellarNetwork,
         selectedContract: mockContractWithSchema,
       });
@@ -341,12 +343,12 @@ describe('useContractRegistration', () => {
       const registerContract = vi.fn().mockImplementation(() => {
         throw new Error('Registration failed');
       });
-      const adapter = createMockAdapter({ registerContract });
+      const runtime = createMockRuntime({ registerContract });
 
       const { result } = renderHook(() =>
         useContractRegistration({
-          adapter,
-          isAdapterLoading: false,
+          runtime,
+          isRuntimeLoading: false,
           selectedNetwork: mockNetworkStellar,
           selectedContract: mockContractWithSchema,
         })
@@ -362,7 +364,7 @@ describe('useContractRegistration', () => {
 
     it('should handle invalid schema JSON gracefully', async () => {
       const registerContract = vi.fn();
-      const adapter = createMockAdapter({ registerContract });
+      const runtime = createMockRuntime({ registerContract });
 
       const contractWithInvalidSchema: ContractRecord = {
         ...mockContractWithSchema,
@@ -371,8 +373,8 @@ describe('useContractRegistration', () => {
 
       const { result } = renderHook(() =>
         useContractRegistration({
-          adapter,
-          isAdapterLoading: false,
+          runtime,
+          isRuntimeLoading: false,
           selectedNetwork: mockNetworkStellar,
           selectedContract: contractWithInvalidSchema,
         })
@@ -391,8 +393,8 @@ describe('useContractRegistration', () => {
     it('should return isContractRegistered boolean', () => {
       const { result } = renderHook(() =>
         useContractRegistration({
-          adapter: null,
-          isAdapterLoading: false,
+          runtime: null,
+          isRuntimeLoading: false,
           selectedNetwork: null,
           selectedContract: null,
         })

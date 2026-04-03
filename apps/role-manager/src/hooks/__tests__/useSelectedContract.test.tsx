@@ -8,7 +8,9 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { PropsWithChildren } from 'react';
 
-import type { ContractAdapter, NetworkConfig } from '@openzeppelin/ui-types';
+import type { NetworkConfig } from '@openzeppelin/ui-types';
+
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 
 import { ContractProvider } from '../../context/ContractContext';
 import type { ContractRecord } from '../../types/contracts';
@@ -36,10 +38,10 @@ const mockContract: ContractRecord = {
   updatedAt: new Date(),
 };
 
-const mockAdapter: ContractAdapter = {
+const mockRuntime: RoleManagerRuntime = {
   networkConfig: mockNetwork,
   isValidAddress: vi.fn().mockReturnValue(true),
-} as unknown as ContractAdapter;
+} as unknown as RoleManagerRuntime;
 
 // =============================================================================
 // Mocks
@@ -48,8 +50,8 @@ const mockAdapter: ContractAdapter = {
 const mocks = {
   networks: [mockNetwork],
   contracts: [mockContract],
-  adapter: mockAdapter as ContractAdapter | null,
-  isAdapterLoading: false,
+  runtime: mockRuntime as RoleManagerRuntime | null,
+  isRuntimeLoading: false,
 };
 
 vi.mock('../useAllNetworks', () => ({
@@ -71,8 +73,8 @@ vi.mock('../useRecentContracts', () => ({
 
 vi.mock('../useNetworkAdapter', () => ({
   useNetworkAdapter: () => ({
-    adapter: mocks.adapter,
-    isLoading: mocks.isAdapterLoading,
+    runtime: mocks.runtime,
+    isLoading: mocks.isRuntimeLoading,
     error: null,
     retry: vi.fn(),
   }),
@@ -95,8 +97,8 @@ describe('useSelectedContract', () => {
     vi.clearAllMocks();
     mocks.networks = [mockNetwork];
     mocks.contracts = [mockContract];
-    mocks.adapter = mockAdapter;
-    mocks.isAdapterLoading = false;
+    mocks.runtime = mockRuntime;
+    mocks.isRuntimeLoading = false;
   });
 
   afterEach(() => {
@@ -127,8 +129,8 @@ describe('useSelectedContract', () => {
       expect(result.current).toHaveProperty('setSelectedContract');
       expect(result.current).toHaveProperty('selectedNetwork');
       expect(result.current).toHaveProperty('setSelectedNetwork');
-      expect(result.current).toHaveProperty('adapter');
-      expect(result.current).toHaveProperty('isAdapterLoading');
+      expect(result.current).toHaveProperty('runtime');
+      expect(result.current).toHaveProperty('isRuntimeLoading');
       expect(result.current).toHaveProperty('contracts');
       expect(result.current).toHaveProperty('isContractsLoading');
       expect(result.current).toHaveProperty('selectContractById');
@@ -214,35 +216,35 @@ describe('useSelectedContract', () => {
     });
   });
 
-  describe('adapter', () => {
-    it('should return the loaded adapter', async () => {
+  describe('runtime', () => {
+    it('should return the loaded runtime', async () => {
       const { result } = renderHook(() => useSelectedContract(), {
         wrapper: TestWrapper,
       });
 
       await waitFor(() => {
-        expect(result.current.adapter).toBe(mockAdapter);
+        expect(result.current.runtime).toBe(mockRuntime);
       });
     });
 
-    it('should return null when adapter is not loaded', () => {
-      mocks.adapter = null;
+    it('should return null when runtime is not loaded', () => {
+      mocks.runtime = null;
 
       const { result } = renderHook(() => useSelectedContract(), {
         wrapper: TestWrapper,
       });
 
-      expect(result.current.adapter).toBeNull();
+      expect(result.current.runtime).toBeNull();
     });
 
-    it('should reflect adapter loading state', () => {
-      mocks.isAdapterLoading = true;
+    it('should reflect runtime loading state', () => {
+      mocks.isRuntimeLoading = true;
 
       const { result } = renderHook(() => useSelectedContract(), {
         wrapper: TestWrapper,
       });
 
-      expect(result.current.isAdapterLoading).toBe(true);
+      expect(result.current.isRuntimeLoading).toBe(true);
     });
   });
 
@@ -281,7 +283,7 @@ describe('useSelectedContract', () => {
       // Verify all expected properties are present and have correct types
       expect(typeof result.current.setSelectedContract).toBe('function');
       expect(typeof result.current.setSelectedNetwork).toBe('function');
-      expect(typeof result.current.isAdapterLoading).toBe('boolean');
+      expect(typeof result.current.isRuntimeLoading).toBe('boolean');
       expect(typeof result.current.isContractsLoading).toBe('boolean');
       expect(Array.isArray(result.current.contracts)).toBe(true);
     });

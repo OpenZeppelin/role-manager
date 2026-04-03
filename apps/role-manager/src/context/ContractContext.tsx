@@ -109,15 +109,15 @@ export function ContractProvider({ children }: ContractProviderProps): React.Rea
   // Adapter (for selected network)
   // ==========================================================================
 
-  const { adapter, isLoading: isAdapterLoading } = useNetworkAdapter(selectedNetwork);
+  const { runtime, isLoading: isRuntimeLoading } = useNetworkAdapter(selectedNetwork);
 
   // ==========================================================================
   // Contract Registration
   // ==========================================================================
 
   const { isContractRegistered } = useContractRegistration({
-    adapter,
-    isAdapterLoading,
+    runtime,
+    isRuntimeLoading,
     selectedNetwork,
     selectedContract,
   });
@@ -132,8 +132,8 @@ export function ContractProvider({ children }: ContractProviderProps): React.Rea
       setSelectedContract,
       selectedNetwork,
       setSelectedNetwork,
-      adapter,
-      isAdapterLoading,
+      runtime,
+      isRuntimeLoading,
       contracts: contracts ?? [],
       isContractsLoading,
       isContractRegistered,
@@ -144,8 +144,8 @@ export function ContractProvider({ children }: ContractProviderProps): React.Rea
       setSelectedContract,
       selectedNetwork,
       setSelectedNetwork,
-      adapter,
-      isAdapterLoading,
+      runtime,
+      isRuntimeLoading,
       contracts,
       isContractsLoading,
       isContractRegistered,
