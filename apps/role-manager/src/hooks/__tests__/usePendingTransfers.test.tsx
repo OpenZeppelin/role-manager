@@ -77,7 +77,10 @@ describe('usePendingTransfers', () => {
 
     mockRuntime = {
       ecosystem: 'stellar',
-      getExplorerUrl: vi.fn(),
+      explorer: {
+        getExplorerUrl: vi.fn(),
+        getExplorerTxUrl: vi.fn(),
+      },
       createAccessControlService: vi.fn(),
     } as unknown as RoleManagerRuntime;
 

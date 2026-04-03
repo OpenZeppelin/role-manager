@@ -2661,7 +2661,7 @@ describe('useRenounceOwnership', () => {
       });
 
       expect(result.current.error).toBeInstanceOf(Error);
-      expect(result.current.error?.message).toContain('not supported by this runtime');
+      expect(result.current.error?.message).toContain('not supported by this adapter');
     });
 
     it('should detect network error', async () => {
@@ -2952,7 +2952,7 @@ describe('useRenounceRole', () => {
       });
 
       expect(result.current.error).toBeInstanceOf(Error);
-      expect(result.current.error?.message).toContain('not supported by this runtime');
+      expect(result.current.error?.message).toContain('not supported by this adapter');
     });
 
     it('should detect network error', async () => {
@@ -3226,7 +3226,7 @@ describe('useCancelAdminTransfer', () => {
       });
 
       expect(result.current.error).toBeInstanceOf(Error);
-      expect(result.current.error?.message).toContain('not supported by this runtime');
+      expect(result.current.error?.message).toContain('not supported by this adapter');
     });
   });
 });
@@ -3343,7 +3343,7 @@ describe('useChangeAdminDelay', () => {
       });
 
       expect(result.current.error).toBeInstanceOf(Error);
-      expect(result.current.error?.message).toContain('not supported by this runtime');
+      expect(result.current.error?.message).toContain('not supported by this adapter');
     });
   });
 });
@@ -3452,7 +3452,7 @@ describe('useRollbackAdminDelay', () => {
       });
 
       expect(result.current.error).toBeInstanceOf(Error);
-      expect(result.current.error?.message).toContain('not supported by this runtime');
+      expect(result.current.error?.message).toContain('not supported by this adapter');
     });
   });
 });

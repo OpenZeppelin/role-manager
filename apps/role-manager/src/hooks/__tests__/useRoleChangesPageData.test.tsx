@@ -141,10 +141,14 @@ function setupDefaultMocks() {
     },
     runtime: {
       id: 'test-adapter',
-      getExplorerUrl: vi.fn().mockReturnValue('https://explorer.example.com/address/0xcontract123'),
-      getExplorerTxUrl: vi.fn(
-        (txHash: string) => `https://explorer.example.com/transaction/${txHash}`
-      ),
+      explorer: {
+        getExplorerUrl: vi
+          .fn()
+          .mockReturnValue('https://explorer.example.com/address/0xcontract123'),
+        getExplorerTxUrl: vi.fn(
+          (txHash: string) => `https://explorer.example.com/transaction/${txHash}`
+        ),
+      },
     },
     isRuntimeLoading: false,
     isContractRegistered: true,
@@ -510,10 +514,12 @@ describe('useRoleChangesPageData', () => {
         },
         runtime: {
           id: 'test-adapter',
-          getExplorerUrl: vi.fn().mockReturnValue('https://explorer.example.com/address/0xnew'),
-          getExplorerTxUrl: vi.fn(
-            (txHash: string) => `https://explorer.example.com/transaction/${txHash}`
-          ),
+          explorer: {
+            getExplorerUrl: vi.fn().mockReturnValue('https://explorer.example.com/address/0xnew'),
+            getExplorerTxUrl: vi.fn(
+              (txHash: string) => `https://explorer.example.com/transaction/${txHash}`
+            ),
+          },
         },
         isRuntimeLoading: false,
         isContractRegistered: true,

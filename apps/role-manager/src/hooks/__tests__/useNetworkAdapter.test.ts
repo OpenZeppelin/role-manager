@@ -136,6 +136,7 @@ describe('useNetworkAdapter', () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.clearAllMocks();
   });
 
@@ -206,7 +207,7 @@ describe('useNetworkAdapter', () => {
     });
 
     it('disposes the previous runtime after the replacement is promoted', async () => {
-      vi.useFakeTimers();
+      vi.useFakeTimers({ shouldAdvanceTime: true });
       const stellarConfig = {
         id: 'stellar-mainnet',
         name: 'Stellar Mainnet',
@@ -244,7 +245,7 @@ describe('useNetworkAdapter', () => {
     });
 
     it('should reset runtime to null and dispose when networkConfig becomes null', async () => {
-      vi.useFakeTimers();
+      vi.useFakeTimers({ shouldAdvanceTime: true });
       const { result, rerender } = renderHook(({ config }) => useNetworkAdapter(config), {
         initialProps: { config: mockNetworkConfig as NetworkConfig | null },
       });
@@ -265,7 +266,7 @@ describe('useNetworkAdapter', () => {
     });
 
     it('disposes a runtime that finishes loading after the effect was cancelled', async () => {
-      vi.useFakeTimers();
+      vi.useFakeTimers({ shouldAdvanceTime: true });
       const stellarConfig = {
         id: 'stellar-mainnet',
         name: 'Stellar Mainnet',
@@ -405,19 +406,21 @@ describe('useNetworkAdapter', () => {
     });
 
     it('disposes the runtime on unmount', async () => {
-      vi.useFakeTimers();
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+      const freshRuntime = createMockRuntime();
+      mockGetRuntime.mockResolvedValue(freshRuntime);
+
       const { result, unmount } = renderHook(() => useNetworkAdapter(mockNetworkConfig));
 
       await vi.advanceTimersByTimeAsync(0);
       await waitFor(() => {
-        expect(result.current.runtime).toBe(mockRuntime);
+        expect(result.current.runtime).toBe(freshRuntime);
       });
 
       unmount();
 
       await vi.advanceTimersByTimeAsync(0);
-      expect(mockRuntime.dispose).toHaveBeenCalledTimes(1);
-      vi.useRealTimers();
+      expect(freshRuntime.dispose).toHaveBeenCalledTimes(1);
     });
   });
 });
