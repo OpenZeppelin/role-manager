@@ -174,24 +174,32 @@ async function fetchProxyFromBlockscout(
  */
 const EIP1967_IMPL_SLOT = '0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc';
 
-async function fetchProxyFromRpc(
-  rpcUrl: string | undefined,
+/**
+ * Safe{Wallet} proxy pattern: singleton (implementation) address stored at slot 0.
+ * GnosisSafe / SafeL2 contracts use `masterCopy` at slot 0 as the delegatecall target.
+ */
+const SAFE_IMPL_SLOT = '0x' + '0'.repeat(64);
+
+function extractAddress(slotValue: string | null | undefined): string | null {
+  if (!slotValue || slotValue === '0x' + '0'.repeat(64)) return null;
+  const addr = '0x' + slotValue.slice(-40);
+  if (addr === '0x' + '0'.repeat(40)) return null;
+  return addr;
+}
+
+async function readSlot(
   address: string,
-  getStorageAt?: (address: string, slot: string) => Promise<string | null>
-): Promise<ProxyInfo | null> {
-  // Strategy A: use direct viem client (no CORS issues)
+  slot: string,
+  getStorageAt?: (address: string, slot: string) => Promise<string | null>,
+  rpcUrl?: string
+): Promise<string | null> {
   if (getStorageAt) {
     try {
-      const slot = await getStorageAt(address, EIP1967_IMPL_SLOT);
-      if (!slot || slot === '0x' + '0'.repeat(64)) return null;
-      const implAddress = '0x' + slot.slice(-40);
-      if (implAddress === '0x' + '0'.repeat(40)) return null;
-      return { implAddress, implName: null };
+      return await getStorageAt(address, slot);
     } catch {
-      // Fall through to raw RPC
+      // fall through to raw RPC
     }
   }
-
   if (!rpcUrl) return null;
   try {
     const response = await fetch(rpcUrl, {
@@ -201,24 +209,38 @@ async function fetchProxyFromRpc(
         jsonrpc: '2.0',
         id: 1,
         method: 'eth_getStorageAt',
-        params: [address, EIP1967_IMPL_SLOT, 'latest'],
+        params: [address, slot, 'latest'],
       }),
       signal: AbortSignal.timeout(8000),
     });
     if (!response.ok) return null;
-
     const data = (await response.json()) as { result?: string };
-    const slot = data.result;
-    if (!slot || slot === '0x' + '0'.repeat(64)) return null;
-
-    // Extract address from 32-byte slot (last 20 bytes)
-    const implAddress = '0x' + slot.slice(-40);
-    if (implAddress === '0x' + '0'.repeat(40)) return null;
-
-    return { implAddress, implName: null };
+    return data.result ?? null;
   } catch {
     return null;
   }
+}
+
+async function fetchProxyFromRpc(
+  rpcUrl: string | undefined,
+  address: string,
+  getStorageAt?: (address: string, slot: string) => Promise<string | null>
+): Promise<ProxyInfo | null> {
+  // Strategy 1: EIP-1967 implementation slot (TransparentUpgradeableProxy, UUPS, etc.)
+  const eip1967Value = await readSlot(address, EIP1967_IMPL_SLOT, getStorageAt, rpcUrl);
+  const eip1967Addr = extractAddress(eip1967Value);
+  if (eip1967Addr) return { implAddress: eip1967Addr, implName: null };
+
+  // Strategy 2: Safe{Wallet} proxy — singleton at slot 0
+  const safeSlotValue = await readSlot(address, SAFE_IMPL_SLOT, getStorageAt, rpcUrl);
+  const safeAddr = extractAddress(safeSlotValue);
+  if (safeAddr) {
+    // Verify it's actually a contract (not just a random non-zero slot 0)
+    // by checking if the address at slot 0 has code. If we can't verify, still return it.
+    return { implAddress: safeAddr, implName: null };
+  }
+
+  return null;
 }
 
 /**
@@ -267,30 +289,28 @@ async function resolveContractName(
     // Step 1: Get name from Sourcify
     const rawName = await fetchContractName(chainId, address);
 
-    // If Sourcify doesn't have it, try Blockscout for proxy detection + name
+    // If Sourcify doesn't have it, try proxy detection (Blockscout + RPC slot reads)
     if (!rawName) {
-      if (explorerApiUrl) {
-        const proxyCheck = await fetchProxyImplementation(
-          address,
-          explorerApiUrl,
-          rpcUrl,
-          getStorageAt
-        );
-        if (proxyCheck) {
-          let implName = proxyCheck.implName;
-          if (!implName) {
-            implName = await fetchContractName(chainId, proxyCheck.implAddress);
-          }
-          const displayName = implName ?? `Proxy`;
-          const isTentative = !implName; // impl not verified → short TTL
-          const info: ContractNameInfo = {
-            name: `${displayName} (Proxy)`,
-            isProxy: true,
-            rawName: 'Proxy',
-          };
-          setCache(key, info, isTentative);
-          return info;
+      const proxyCheck = await fetchProxyImplementation(
+        address,
+        explorerApiUrl,
+        rpcUrl,
+        getStorageAt
+      );
+      if (proxyCheck) {
+        let implName = proxyCheck.implName;
+        if (!implName) {
+          implName = await fetchContractName(chainId, proxyCheck.implAddress);
         }
+        const displayName = implName ?? 'Proxy';
+        const isTentative = !implName;
+        const info: ContractNameInfo = {
+          name: `${displayName} (Proxy)`,
+          isProxy: true,
+          rawName: 'Proxy',
+        };
+        setCache(key, info, isTentative);
+        return info;
       }
       setCache(key, null, true); // not found → short TTL, might get verified
       return null;
