@@ -5,7 +5,7 @@
     "access_control_indexer": true
   },
   "rpcEndpoints": {
-    "ethereum-mainnet": "https://cloudflare-eth.com",
+    "ethereum-mainnet": "https://eth.llamarpc.com",
     "arbitrum-mainnet": "https://arb1.arbitrum.io/rpc",
     "polygon-mainnet": "https://polygon-rpc.com",
     "optimism-mainnet": "https://mainnet.optimism.io",
