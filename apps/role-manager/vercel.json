@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "outputDirectory": "apps/role-manager/dist",
+  "outputDirectory": "dist",
   "rewrites": [
     {
       "source": "/(.*)",
