@@ -58,9 +58,15 @@ import {
   useMutationPreview,
   useRolesPageData,
 } from '../hooks';
+import {
+  useAMSetGrantDelay,
+  useAMSetRoleAdmin,
+  useAMSetRoleGuardian,
+} from '../hooks/useAccessManagerMutations';
 import { hasAccessManagerCapability } from '../hooks/useContractCapabilities';
 import { useRenounceDialog, type RenounceType } from '../hooks/useRenounceDialog';
 import { useSelectedContract } from '../hooks/useSelectedContract';
+import { DEFAULT_EXECUTION_CONFIG } from '../constants';
 import type { AdminDelayInfo } from '../types/admin';
 import { createGetAccountUrl } from '../utils/explorer-urls';
 
@@ -99,6 +105,7 @@ export function Roles() {
     adminInfo,
     pendingAdminTransfer,
     adminState,
+    amRoles,
   } = useRolesPageData();
 
   // AccessManager contracts use a different admin model — suppress AC-specific actions
@@ -171,6 +178,57 @@ export function Roles() {
   const { networks } = useAllNetworks();
   const network = networks.find((n) => n.id === selectedContract?.networkId);
   const networkName = network?.name || '';
+
+  // Feature 018: AM role config mutations
+  const contractAddress = selectedContract?.address ?? '';
+  const setRoleAdmin = useAMSetRoleAdmin(runtime, contractAddress);
+  const setRoleGuardian = useAMSetRoleGuardian(runtime, contractAddress);
+  const setGrantDelay = useAMSetGrantDelay(runtime, contractAddress);
+
+  const handleSetRoleAdmin = useCallback(
+    async (roleId: string, adminId: string) => {
+      await setRoleAdmin.mutateAsync({
+        roleId,
+        adminId,
+        executionConfig: DEFAULT_EXECUTION_CONFIG,
+      });
+      toast.success('Admin role updated');
+      await refetch();
+    },
+    [setRoleAdmin, refetch]
+  );
+
+  const handleSetRoleGuardian = useCallback(
+    async (roleId: string, guardianId: string) => {
+      await setRoleGuardian.mutateAsync({
+        roleId,
+        guardianId,
+        executionConfig: DEFAULT_EXECUTION_CONFIG,
+      });
+      toast.success('Guardian role updated');
+      await refetch();
+    },
+    [setRoleGuardian, refetch]
+  );
+
+  const handleSetGrantDelay = useCallback(
+    async (roleId: string, delay: number) => {
+      await setGrantDelay.mutateAsync({
+        roleId,
+        delay,
+        executionConfig: DEFAULT_EXECUTION_CONFIG,
+      });
+      toast.success('Grant delay updated');
+      await refetch();
+    },
+    [setGrantDelay, refetch]
+  );
+
+  // AM roles for the role config dropdown (admin/guardian pickers)
+  const amRoleOptions = useMemo(
+    () => amRoles.map((r) => ({ roleId: r.roleId, label: r.label })),
+    [amRoles]
+  );
 
   // T050: Handle refresh with toast notification on error
   const handleRefresh = useCallback(async () => {
@@ -472,6 +530,11 @@ export function Roles() {
                 delayInfo={!hasAccessManager ? delayInfo : undefined}
                 onChangeDelayClick={!hasAccessManager ? handleChangeAdminDelay : undefined}
                 onRollbackClick={!hasAccessManager ? handleRollbackAdminDelay : undefined}
+                // Feature 018: AM role config editing
+                amRoles={hasAccessManager ? amRoleOptions : undefined}
+                onSetRoleAdmin={hasAccessManager ? handleSetRoleAdmin : undefined}
+                onSetRoleGuardian={hasAccessManager ? handleSetRoleGuardian : undefined}
+                onSetGrantDelay={hasAccessManager ? handleSetGrantDelay : undefined}
                 mutationPreview={mutationPreview}
               />
             ) : (

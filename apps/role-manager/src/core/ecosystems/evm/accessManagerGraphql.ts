@@ -13,6 +13,7 @@
 
 import { userNetworkServiceConfigService } from '@openzeppelin/ui-utils';
 
+import { AM_PUBLIC_ROLE_ID } from '../../../constants';
 import type {
   AccessManagerMember,
   AccessManagerRole,
@@ -203,7 +204,7 @@ export async function isSubgraphAvailable(
     networkId
   );
 
-  const available = (rolesCheck?.roles?.totalCount ?? 0) >= 0;
+  const available = rolesCheck?.roles?.totalCount !== undefined;
   availabilityCache.set(key, { available, checkedAt: Date.now() });
   return available;
 }
@@ -249,8 +250,8 @@ export async function fetchRolesFromSubgraph(
   return data.roles.items.map((r) => ({
     roleId: String(r.id),
     label: r.label,
-    adminRoleId: r.adminRoleId ? String(r.adminRoleId) : '0',
-    guardianRoleId: r.guardianRoleId ? String(r.guardianRoleId) : '0',
+    adminRoleId: r.adminRoleId ? String(r.adminRoleId) : AM_PUBLIC_ROLE_ID,
+    guardianRoleId: r.guardianRoleId ? String(r.guardianRoleId) : AM_PUBLIC_ROLE_ID,
     grantDelay: r.grantDelay,
     members: r.members.items.map(
       (m): AccessManagerMember => ({

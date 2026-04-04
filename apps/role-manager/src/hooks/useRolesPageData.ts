@@ -160,6 +160,13 @@ export interface UseRolesPageDataReturn {
    * Feature 016: Function to manually refetch admin info
    */
   refetchAdminInfo: () => Promise<void>;
+
+  // =============================================================================
+  // Feature 018: AccessManager Role Config
+  // =============================================================================
+
+  /** AM roles with IDs and labels (for admin/guardian config dropdowns) */
+  amRoles: Array<{ roleId: string; label: string | null }>;
 }
 
 // =============================================================================
@@ -651,6 +658,8 @@ export function useRolesPageData(): UseRolesPageDataReturn {
       pendingAdminTransfer: null,
       adminState: null,
       refetchAdminInfo: async () => {},
+      // Feature 018: AM roles for config editing
+      amRoles: [],
     };
   }
 
@@ -692,5 +701,7 @@ export function useRolesPageData(): UseRolesPageDataReturn {
     pendingAdminTransfer,
     adminState,
     refetchAdminInfo: refetchAdminInfoCallback,
+    // Feature 018: AM roles for config editing
+    amRoles,
   };
 }

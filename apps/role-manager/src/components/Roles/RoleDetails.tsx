@@ -13,7 +13,8 @@
  * Phase 6: Edit button opens EditRoleDialog for description editing.
  */
 
-import { Crown, Pencil, Plus, Shield } from 'lucide-react';
+import { Check, Crown, Pencil, Plus, Shield, X } from 'lucide-react';
+import { useCallback, useState } from 'react';
 
 import {
   Button,
@@ -151,11 +152,222 @@ export interface RoleDetailsProps {
   /** Feature 017 (T067): Open rollback dialog */
   onRollbackClick?: () => void;
 
+  // =============================================================================
+  // Feature 018: AccessManager Role Config Editing
+  // =============================================================================
+
+  /** All AM roles (for admin/guardian dropdown). Only provided for AM contracts. */
+  amRoles?: Array<{ roleId: string; label: string | null }>;
+  /** Set the admin role for this role */
+  onSetRoleAdmin?: (roleId: string, adminId: string) => Promise<void>;
+  /** Set the guardian role for this role */
+  onSetRoleGuardian?: (roleId: string, guardianId: string) => Promise<void>;
+  /** Set the grant delay for this role */
+  onSetGrantDelay?: (roleId: string, delay: number) => Promise<void>;
+
   /** Active mutation preview data for context-specific inline indicators */
   mutationPreview?: MutationPreviewData | null;
 
   /** Additional CSS classes */
   className?: string;
+}
+
+// =============================================================================
+// Inline AM Metadata Panel with edit support
+// =============================================================================
+
+function formatRoleLabel(
+  roleId: string,
+  amRoles?: Array<{ roleId: string; label: string | null }>
+): string {
+  if (roleId === '0') return 'Admin (0)';
+  if (roleId === AM_PUBLIC_ROLE_ID) return 'Public';
+  const found = amRoles?.find((r) => r.roleId === roleId);
+  if (found?.label) return `${found.label} (#${roleId})`;
+  return `Role #${roleId}`;
+}
+
+function AMMetadataPanel({
+  role,
+  amRoles,
+  onSetRoleAdmin,
+  onSetRoleGuardian,
+  onSetGrantDelay,
+}: {
+  role: RoleWithDescription;
+  amRoles?: Array<{ roleId: string; label: string | null }>;
+  onSetRoleAdmin?: (roleId: string, adminId: string) => Promise<void>;
+  onSetRoleGuardian?: (roleId: string, guardianId: string) => Promise<void>;
+  onSetGrantDelay?: (roleId: string, delay: number) => Promise<void>;
+}) {
+  // Inline edit state
+  const [editingField, setEditingField] = useState<'admin' | 'guardian' | 'delay' | null>(null);
+  const [editValue, setEditValue] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  const startEdit = useCallback(
+    (field: 'admin' | 'guardian' | 'delay') => {
+      setEditingField(field);
+      if (field === 'admin') setEditValue(role.adminRoleId ?? '0');
+      else if (field === 'guardian') setEditValue(role.guardianRoleId ?? AM_PUBLIC_ROLE_ID);
+      else if (field === 'delay') setEditValue(String(role.grantDelay ?? 0));
+    },
+    [role]
+  );
+
+  const cancelEdit = useCallback(() => {
+    setEditingField(null);
+    setEditValue('');
+  }, []);
+
+  const saveEdit = useCallback(async () => {
+    if (!editingField) return;
+    setIsSaving(true);
+    try {
+      if (editingField === 'admin' && onSetRoleAdmin) {
+        await onSetRoleAdmin(role.roleId, editValue);
+      } else if (editingField === 'guardian' && onSetRoleGuardian) {
+        await onSetRoleGuardian(role.roleId, editValue);
+      } else if (editingField === 'delay' && onSetGrantDelay) {
+        const delayNum = parseInt(editValue, 10);
+        if (isNaN(delayNum) || delayNum < 0) return;
+        await onSetGrantDelay(role.roleId, delayNum);
+      }
+      setEditingField(null);
+      setEditValue('');
+    } finally {
+      setIsSaving(false);
+    }
+  }, [editingField, editValue, role.roleId, onSetRoleAdmin, onSetRoleGuardian, onSetGrantDelay]);
+
+  const roleOptions = amRoles ?? [];
+
+  return (
+    <div className="mb-4 p-3 bg-muted/50 rounded-lg border text-sm space-y-1.5">
+      {/* Admin Role */}
+      <div className="flex items-center gap-2 min-h-[28px]">
+        <span className="text-muted-foreground w-28 shrink-0">Admin Role:</span>
+        {editingField === 'admin' ? (
+          <div className="flex items-center gap-1.5 flex-1">
+            <select
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              className="h-7 text-xs border rounded bg-background px-2 flex-1 max-w-[180px]"
+              disabled={isSaving}
+            >
+              {roleOptions.map((r) => (
+                <option key={r.roleId} value={r.roleId}>
+                  {formatRoleLabel(r.roleId, amRoles)}
+                </option>
+              ))}
+            </select>
+            <button onClick={saveEdit} disabled={isSaving} className="text-green-600 hover:text-green-700">
+              <Check className="h-3.5 w-3.5" />
+            </button>
+            <button onClick={cancelEdit} disabled={isSaving} className="text-muted-foreground hover:text-foreground">
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5">
+            <span className="font-medium">
+              {formatRoleLabel(role.adminRoleId!, amRoles)}
+            </span>
+            {onSetRoleAdmin && (
+              <button onClick={() => startEdit('admin')} className="text-muted-foreground hover:text-foreground">
+                <Pencil className="h-3 w-3" />
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Guardian Role */}
+      {role.guardianRoleId !== undefined && (
+        <div className="flex items-center gap-2 min-h-[28px]">
+          <span className="text-muted-foreground w-28 shrink-0">Guardian Role:</span>
+          {editingField === 'guardian' ? (
+            <div className="flex items-center gap-1.5 flex-1">
+              <select
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                className="h-7 text-xs border rounded bg-background px-2 flex-1 max-w-[180px]"
+                disabled={isSaving}
+              >
+                <option value={AM_PUBLIC_ROLE_ID}>None (Public)</option>
+                {roleOptions
+                  .filter((r) => r.roleId !== AM_PUBLIC_ROLE_ID)
+                  .map((r) => (
+                    <option key={r.roleId} value={r.roleId}>
+                      {formatRoleLabel(r.roleId, amRoles)}
+                    </option>
+                  ))}
+              </select>
+              <button onClick={saveEdit} disabled={isSaving} className="text-green-600 hover:text-green-700">
+                <Check className="h-3.5 w-3.5" />
+              </button>
+              <button onClick={cancelEdit} disabled={isSaving} className="text-muted-foreground hover:text-foreground">
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5">
+              <span className="font-medium">
+                {role.guardianRoleId === '0'
+                  ? 'Admin (0)'
+                  : role.guardianRoleId === AM_PUBLIC_ROLE_ID
+                    ? 'None'
+                    : formatRoleLabel(role.guardianRoleId, amRoles)}
+              </span>
+              {onSetRoleGuardian && (
+                <button onClick={() => startEdit('guardian')} className="text-muted-foreground hover:text-foreground">
+                  <Pencil className="h-3 w-3" />
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Grant Delay */}
+      {role.grantDelay !== undefined && (
+        <div className="flex items-center gap-2 min-h-[28px]">
+          <span className="text-muted-foreground w-28 shrink-0">Grant Delay:</span>
+          {editingField === 'delay' ? (
+            <div className="flex items-center gap-1.5 flex-1">
+              <input
+                type="number"
+                min="0"
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                className="h-7 text-xs border rounded bg-background px-2 w-24 font-mono"
+                disabled={isSaving}
+                placeholder="seconds"
+              />
+              <span className="text-xs text-muted-foreground">seconds</span>
+              <button onClick={saveEdit} disabled={isSaving} className="text-green-600 hover:text-green-700">
+                <Check className="h-3.5 w-3.5" />
+              </button>
+              <button onClick={cancelEdit} disabled={isSaving} className="text-muted-foreground hover:text-foreground">
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5">
+              <span className="font-medium">
+                {role.grantDelay > 0 ? formatSecondsToReadable(role.grantDelay) : 'None'}
+              </span>
+              {onSetGrantDelay && (
+                <button onClick={() => startEdit('delay')} className="text-muted-foreground hover:text-foreground">
+                  <Pencil className="h-3 w-3" />
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 /**
@@ -196,6 +408,11 @@ export function RoleDetails({
   delayInfo,
   onChangeDelayClick,
   onRollbackClick,
+  // Feature 018: AM role config editing
+  amRoles,
+  onSetRoleAdmin,
+  onSetRoleGuardian,
+  onSetGrantDelay,
   // Reactivity feedback
   mutationPreview,
   className,
@@ -301,34 +518,13 @@ export function RoleDetails({
       <CardContent className="pb-6">
         {/* AccessManager Role Metadata */}
         {role.adminRoleId !== undefined && (
-          <div className="mb-4 p-3 bg-muted/50 rounded-lg border text-sm space-y-1.5">
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground w-28 shrink-0">Admin Role:</span>
-              <span className="font-medium">
-                {role.adminRoleId === '0' ? 'Admin' : `Role #${role.adminRoleId}`}
-              </span>
-            </div>
-            {role.guardianRoleId !== undefined && (
-              <div className="flex items-center gap-2">
-                <span className="text-muted-foreground w-28 shrink-0">Guardian Role:</span>
-                <span className="font-medium">
-                  {role.guardianRoleId === '0'
-                    ? 'Admin'
-                    : role.guardianRoleId === AM_PUBLIC_ROLE_ID
-                      ? 'None'
-                      : `Role #${role.guardianRoleId}`}
-                </span>
-              </div>
-            )}
-            {role.grantDelay !== undefined && (
-              <div className="flex items-center gap-2">
-                <span className="text-muted-foreground w-28 shrink-0">Grant Delay:</span>
-                <span className="font-medium">
-                  {role.grantDelay > 0 ? formatSecondsToReadable(role.grantDelay) : 'None'}
-                </span>
-              </div>
-            )}
-          </div>
+          <AMMetadataPanel
+            role={role}
+            amRoles={amRoles}
+            onSetRoleAdmin={onSetRoleAdmin}
+            onSetRoleGuardian={onSetRoleGuardian}
+            onSetGrantDelay={onSetGrantDelay}
+          />
         )}
 
         {/* Assigned Accounts */}

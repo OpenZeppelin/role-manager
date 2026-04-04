@@ -38,6 +38,10 @@ import {
 import { getShortFunctionName, useFunctionSignatures } from '../hooks/useFunctionSignatures';
 import { useKnownContracts } from '../hooks/useKnownContracts';
 import { useSelectedContract } from '../hooks/useSelectedContract';
+import {
+  isValidAccessManagerAddress,
+  normalizeFunctionSelector,
+} from '../utils/access-manager-form';
 import { buildRoleNameMap } from '../utils/am-role-names';
 import { createGetAccountUrl } from '../utils/explorer-urls';
 
@@ -154,9 +158,13 @@ export function Targets() {
       toast.error('All fields are required');
       return;
     }
-    // Normalize selector to bytes4
-    const selector = newSelector.startsWith('0x') ? newSelector : `0x${newSelector}`;
-    if (selector.length !== 10) {
+    if (!isValidAccessManagerAddress(newTarget)) {
+      toast.error('Target must be a valid address');
+      return;
+    }
+
+    const selector = normalizeFunctionSelector(newSelector);
+    if (!selector) {
       toast.error('Selector must be 4 bytes (e.g., 0x12345678)');
       return;
     }

@@ -66,7 +66,12 @@ function FunctionCard({
           args,
           contractSchema
         );
-        setResult(runtime.query.formatFunctionResult(res, fn));
+        const formattedResult = runtime.query.formatFunctionResult(res, fn);
+        setResult(
+          typeof formattedResult === 'string'
+            ? formattedResult
+            : JSON.stringify(formattedResult, null, 2)
+        );
       } else {
         // Write call — use runtime signAndBroadcast
         const submittedInputs: Record<string, unknown> = {};

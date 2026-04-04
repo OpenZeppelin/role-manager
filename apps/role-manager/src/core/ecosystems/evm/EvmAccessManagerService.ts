@@ -44,6 +44,7 @@ import { ACCESS_MANAGER_ABI } from './accessManagerAbi';
 export type WalletClientProvider = () => Promise<import('viem').WalletClient | null>;
 
 export class EvmAccessManagerService implements AccessManagerService {
+  private static readonly EXTERNAL_API_TIMEOUT_MS = 10_000;
   private deploymentBlockCache = new Map<string, bigint>();
   private walletClientProvider: WalletClientProvider | null = null;
 
@@ -107,7 +108,9 @@ export class EvmAccessManagerService implements AccessManagerService {
     try {
       const chainId = this.chainId ?? 1;
       const url = `https://sourcify.dev/server/v2/contract/${chainId}/${contractAddress}?fields=deployment`;
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        signal: AbortSignal.timeout(EvmAccessManagerService.EXTERNAL_API_TIMEOUT_MS),
+      });
       if (!response.ok) return null;
 
       const data = (await response.json()) as {
@@ -141,7 +144,9 @@ export class EvmAccessManagerService implements AccessManagerService {
   private async getDeploymentBlockFromEtherscan(contractAddress: Address): Promise<bigint | null> {
     try {
       const url = `https://api.etherscan.io/v2/api?chainid=${this.chainId}&module=contract&action=getcontractcreation&contractaddresses=${contractAddress}&apikey=${this.etherscanApiKey}`;
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        signal: AbortSignal.timeout(EvmAccessManagerService.EXTERNAL_API_TIMEOUT_MS),
+      });
       if (!response.ok) return null;
 
       const data = (await response.json()) as {
@@ -180,10 +185,10 @@ export class EvmAccessManagerService implements AccessManagerService {
   Promise<any[]> {
     const allLogs: unknown[] = [];
     let current = params.fromBlock;
-    const total = params.toBlock - params.fromBlock;
+    const total = params.toBlock - params.fromBlock + 1n;
 
     while (current <= params.toBlock) {
-      const chunkEnd = current + EvmAccessManagerService.LOG_CHUNK_SIZE;
+      const chunkEnd = current + EvmAccessManagerService.LOG_CHUNK_SIZE - 1n;
       const end = chunkEnd > params.toBlock ? params.toBlock : chunkEnd;
 
       const logs = await this.publicClient.getLogs({
@@ -196,7 +201,7 @@ export class EvmAccessManagerService implements AccessManagerService {
       allLogs.push(...logs);
       current = end + 1n;
 
-      params.onChunkComplete?.(current - params.fromBlock, total);
+      params.onChunkComplete?.(end - params.fromBlock + 1n, total);
 
       // Small delay between chunks to avoid rate-limiting on public RPCs
       if (current <= params.toBlock) {
@@ -368,8 +373,8 @@ export class EvmAccessManagerService implements AccessManagerService {
           })) as unknown as [bigint, number, number, bigint];
           [since, currentDelay, pendingDelay, effect] = result;
         } catch {
-          // If getAccess fails, include the member with minimal info
-          since = BigInt(Math.floor(Date.now() / 1000));
+          // If getAccess fails, exclude the member until a successful sync can confirm it.
+          since = 0n;
           currentDelay = 0;
           pendingDelay = 0;
           effect = 0n;

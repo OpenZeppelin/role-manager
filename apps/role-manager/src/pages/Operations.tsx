@@ -11,7 +11,7 @@
  * Also displays global AM config: expiration window and min setback.
  */
 
-import { Ban, Calendar, Clock, Play, Plus, RefreshCw, X } from 'lucide-react';
+import { Ban, Calendar, Clock, Play, Plus, RefreshCw, X, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -38,6 +38,10 @@ import { useContractDisplayName } from '../hooks';
 import { useAMCancel, useAMExecute, useAMSchedule } from '../hooks/useAccessManagerMutations';
 import { useKnownContracts } from '../hooks/useKnownContracts';
 import { useSelectedContract } from '../hooks/useSelectedContract';
+import {
+  isValidAccessManagerAddress,
+  isValidAccessManagerCalldata,
+} from '../utils/access-manager-form';
 import { formatEffectAtDate } from '../utils/delay-format';
 import { createGetAccountUrl } from '../utils/explorer-urls';
 
@@ -74,35 +78,38 @@ export function Operations() {
   // Known contracts for target dropdown
   const { contracts: knownContracts, loadFunctionsFor } = useKnownContracts();
 
-  // Schedule form state
-  const [showScheduleForm, setShowScheduleForm] = useState(false);
-  const [schedTarget, setSchedTarget] = useState('');
-  const [schedFunctionId, setSchedFunctionId] = useState('');
-  const [schedFunctionArgs, setSchedFunctionArgs] = useState<Record<string, string>>({});
-  const [schedData, setSchedData] = useState('');
-  const [schedWhen, setSchedWhen] = useState('');
-  const [useRawCalldata, setUseRawCalldata] = useState(false);
+  // Form mode: 'schedule' | 'execute' | null
+  const [formMode, setFormMode] = useState<'schedule' | 'execute' | null>(null);
 
-  // Get functions for selected target
-  const selectedTargetContract = useMemo(
-    () => knownContracts.find((c) => c.address.toLowerCase() === schedTarget.toLowerCase()),
-    [knownContracts, schedTarget]
+  // Shared form state — only one form is visible at a time
+  const [formTarget, setFormTarget] = useState('');
+  const [formFunctionId, setFormFunctionId] = useState('');
+  const [formFunctionArgs, setFormFunctionArgs] = useState<Record<string, string>>({});
+  const [formData, setFormData] = useState('');
+  const [formWhen, setFormWhen] = useState('');
+  const [formUseRawCalldata, setFormUseRawCalldata] = useState(false);
+
+  // Get functions for selected target (shared by both Schedule and Execute forms)
+  const formTargetContract = useMemo(
+    () => knownContracts.find((c) => c.address.toLowerCase() === formTarget.toLowerCase()),
+    [knownContracts, formTarget]
   );
-  const targetWriteFunctions = useMemo(
-    () => selectedTargetContract?.functions?.filter((f) => !f.isView) ?? [],
-    [selectedTargetContract]
+  const formWriteFunctions = useMemo(
+    () => formTargetContract?.functions?.filter((f) => !f.isView) ?? [],
+    [formTargetContract]
   );
-  const selectedFunction = useMemo(
-    () => targetWriteFunctions.find((f) => f.selector === schedFunctionId || f.name === schedFunctionId),
-    [targetWriteFunctions, schedFunctionId]
+  const formSelectedFunction = useMemo(
+    () =>
+      formWriteFunctions.find((f) => f.selector === formFunctionId || f.name === formFunctionId),
+    [formWriteFunctions, formFunctionId]
   );
 
-  const handleSchedTargetChange = useCallback(
+  const handleFormTargetChange = useCallback(
     (addr: string) => {
-      setSchedTarget(addr);
-      setSchedFunctionId('');
-      setSchedFunctionArgs({});
-      setSchedData('');
+      setFormTarget(addr);
+      setFormFunctionId('');
+      setFormFunctionArgs({});
+      setFormData('');
       if (addr && addr !== '__custom__') loadFunctionsFor(addr);
     },
     [loadFunctionsFor]
@@ -110,12 +117,13 @@ export function Operations() {
 
   // Encode calldata when function + args change
   useEffect(() => {
-    if (useRawCalldata || !runtime || !schedTarget || !selectedFunction) return;
+    if (formUseRawCalldata || !runtime || !formTarget || !formSelectedFunction) return;
     const encodeFn = async () => {
       try {
-        const schema = await runtime.contractLoading.loadContract(schedTarget);
+        const schema = await runtime.contractLoading.loadContract(formTarget);
         const fn = schema.functions.find(
-          (f: import('@openzeppelin/ui-types').ContractFunction) => f.name === selectedFunction.name
+          (f: import('@openzeppelin/ui-types').ContractFunction) =>
+            f.name === formSelectedFunction.name
         );
         if (!fn) return;
         const fields = (fn.inputs ?? []).map((p: { name: string; type: string }) => ({
@@ -130,17 +138,17 @@ export function Operations() {
         const txData = runtime.execution.formatTransactionData(
           schema,
           fn.id,
-          schedFunctionArgs as Record<string, unknown>,
+          formFunctionArgs as Record<string, unknown>,
           fields
         );
         const encoded = (txData as { data?: string }).data ?? '';
-        if (encoded) setSchedData(encoded);
+        if (encoded) setFormData(encoded);
       } catch {
         // encoding failed — user can still paste raw calldata
       }
     };
     void encodeFn();
-  }, [runtime, schedTarget, selectedFunction, schedFunctionArgs, useRawCalldata]);
+  }, [runtime, formTarget, formSelectedFunction, formFunctionArgs, formUseRawCalldata]);
 
   const sortedOperations = useMemo(() => {
     return [...operations].sort((a, b) => {
@@ -187,15 +195,54 @@ export function Operations() {
     [cancelOp, refetch]
   );
 
-  const handleSchedule = useCallback(async () => {
-    if (!schedTarget || !schedData) {
+  const handleImmediateExecute = useCallback(async () => {
+    if (!formTarget || !formData) {
       toast.error('Target and calldata are required');
+      return;
+    }
+    if (!isValidAccessManagerAddress(formTarget)) {
+      toast.error('Target must be a valid address');
+      return;
+    }
+    if (!isValidAccessManagerCalldata(formData)) {
+      toast.error('Calldata must be valid hex bytes');
+      return;
+    }
+    try {
+      await executeOp.mutateAsync({
+        target: formTarget,
+        data: formData,
+        executionConfig: DEFAULT_EXECUTION_CONFIG,
+      });
+      toast.success('Operation executed');
+      setFormMode(null);
+      setFormTarget('');
+      setFormData('');
+      setFormFunctionId('');
+      setFormFunctionArgs({});
+      await refetch();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to execute operation');
+    }
+  }, [formTarget, formData, executeOp, refetch]);
+
+  const handleSchedule = useCallback(async () => {
+    if (!formTarget || !formData) {
+      toast.error('Target and calldata are required');
+      return;
+    }
+    if (!isValidAccessManagerAddress(formTarget)) {
+      toast.error('Target must be a valid address');
+      return;
+    }
+    if (!isValidAccessManagerCalldata(formData)) {
+      toast.error('Calldata must be valid hex bytes');
       return;
     }
     // Convert datetime to unix timestamp, or 0 for "as soon as possible"
     let when = 0;
-    if (schedWhen) {
-      const ts = Math.floor(new Date(schedWhen).getTime() / 1000);
+    if (formWhen) {
+      const ts = Math.floor(new Date(formWhen).getTime() / 1000);
       if (isNaN(ts) || ts <= 0) {
         toast.error('Invalid schedule time');
         return;
@@ -204,21 +251,22 @@ export function Operations() {
     }
     try {
       await scheduleOp.mutateAsync({
-        target: schedTarget,
-        data: schedData,
+        target: formTarget,
+        data: formData,
         when,
         executionConfig: DEFAULT_EXECUTION_CONFIG,
       });
       toast.success('Operation scheduled');
-      setShowScheduleForm(false);
-      setSchedTarget('');
-      setSchedData('');
-      setSchedWhen('');
+      setFormMode(null);
+
+      setFormTarget('');
+      setFormData('');
+      setFormWhen('');
       await refetch();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to schedule operation');
     }
-  }, [schedTarget, schedData, schedWhen, scheduleOp, refetch]);
+  }, [formTarget, formData, formWhen, scheduleOp, refetch]);
 
   const isConnected = !!connectedAddress;
   const isMutating = executeOp.isPending || cancelOp.isPending || scheduleOp.isPending;
@@ -245,15 +293,43 @@ export function Operations() {
           }
           actions={
             <div className="flex items-center gap-2">
-              {isConnected && (
+              {isConnected && formMode !== null && (
                 <Button
                   size="sm"
-                  onClick={() => setShowScheduleForm(!showScheduleForm)}
+                  variant="outline"
+                  onClick={() => {
+                    setFormMode(null);
+                  }}
                   className="gap-1"
                 >
-                  {showScheduleForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-                  {showScheduleForm ? 'Cancel' : 'Schedule'}
+                  <X className="h-4 w-4" />
+                  Cancel
                 </Button>
+              )}
+              {isConnected && formMode === null && (
+                <>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setFormMode('execute');
+                    }}
+                    className="gap-1"
+                  >
+                    <Zap className="h-4 w-4" />
+                    Execute
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      setFormMode('schedule');
+                    }}
+                    className="gap-1"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Schedule
+                  </Button>
+                </>
               )}
               <Button
                 variant="outline"
@@ -297,20 +373,20 @@ export function Operations() {
           </div>
         )}
 
-        {/* Schedule Form */}
-        {showScheduleForm && (
+        {/* Execute Immediately Form */}
+        {formMode === 'execute' && (
           <Card className="p-4 shadow-none space-y-3">
-            <h3 className="text-sm font-semibold">Schedule Operation</h3>
+            <h3 className="text-sm font-semibold">Execute Immediately</h3>
             <p className="text-xs text-muted-foreground">
-              Schedule a delayed call through the AccessManager. The caller must have a role with an
-              execution delay for the target function.
+              Execute a function call directly through the AccessManager. The caller must have a
+              role that allows immediate execution (no delay) for the target function.
             </p>
             <div className="grid grid-cols-1 gap-3">
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-medium text-muted-foreground">Target Contract</label>
                 {knownContracts.length > 0 ? (
                   <>
-                    <Select value={schedTarget} onValueChange={handleSchedTargetChange}>
+                    <Select value={formTarget} onValueChange={handleFormTargetChange}>
                       <SelectTrigger className="h-9 text-sm font-mono">
                         <SelectValue placeholder="Select target" />
                       </SelectTrigger>
@@ -323,12 +399,12 @@ export function Operations() {
                         <SelectItem value="__custom__">Custom address...</SelectItem>
                       </SelectContent>
                     </Select>
-                    {schedTarget === '__custom__' && (
+                    {formTarget === '__custom__' && (
                       <input
                         type="text"
                         onChange={(e) => {
                           const v = e.target.value;
-                          if (v.length === 42) handleSchedTargetChange(v);
+                          if (v.length === 42) handleFormTargetChange(v);
                         }}
                         placeholder="Paste address 0x..."
                         className="mt-1 px-3 py-1.5 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring font-mono"
@@ -338,51 +414,47 @@ export function Operations() {
                 ) : (
                   <input
                     type="text"
-                    value={schedTarget}
-                    onChange={(e) => handleSchedTargetChange(e.target.value)}
+                    value={formTarget}
+                    onChange={(e) => handleFormTargetChange(e.target.value)}
                     placeholder="0x..."
                     className="px-3 py-1.5 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring font-mono"
                   />
                 )}
               </div>
               {/* Function picker or raw calldata */}
-              {targetWriteFunctions.length > 0 && !useRawCalldata ? (
+              {formWriteFunctions.length > 0 && !formUseRawCalldata ? (
                 <>
                   <div className="flex flex-col gap-1">
                     <label className="text-xs font-medium text-muted-foreground">Function</label>
                     <Select
-                      value={schedFunctionId}
+                      value={formFunctionId}
                       onValueChange={(v) => {
-                        setSchedFunctionId(v);
-                        setSchedFunctionArgs({});
+                        setFormFunctionId(v);
+                        setFormFunctionArgs({});
                       }}
                     >
                       <SelectTrigger className="h-9 text-sm">
                         <SelectValue placeholder="Select function" />
                       </SelectTrigger>
                       <SelectContent>
-                        {targetWriteFunctions.map((fn) => (
-                          <SelectItem
-                            key={fn.selector || fn.name}
-                            value={fn.selector || fn.name}
-                          >
+                        {formWriteFunctions.map((fn) => (
+                          <SelectItem key={fn.selector || fn.name} value={fn.selector || fn.name}>
                             <span className="font-mono text-xs">{fn.name}</span>
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
-                  {/* Function args */}
-                  {selectedFunction && (
+                  {formSelectedFunction && (
                     <div className="flex flex-col gap-2 border rounded-md p-3 bg-muted/30">
                       <span className="text-xs font-medium text-muted-foreground">
                         Arguments for{' '}
-                        <code className="font-mono">{selectedFunction.signature}</code>
+                        <code className="font-mono">{formSelectedFunction.signature}</code>
                       </span>
-                      {selectedFunction.signature
+                      {formSelectedFunction.signature
                         .slice(
-                          selectedFunction.signature.indexOf('(') + 1,
-                          selectedFunction.signature.indexOf(')')
+                          formSelectedFunction.signature.indexOf('(') + 1,
+                          formSelectedFunction.signature.indexOf(')')
                         )
                         .split(',')
                         .filter(Boolean)
@@ -393,9 +465,9 @@ export function Operations() {
                             </label>
                             <input
                               type="text"
-                              value={schedFunctionArgs[`arg${i}`] ?? ''}
+                              value={formFunctionArgs[`arg${i}`] ?? ''}
                               onChange={(e) =>
-                                setSchedFunctionArgs((prev) => ({
+                                setFormFunctionArgs((prev) => ({
                                   ...prev,
                                   [`arg${i}`]: e.target.value,
                                 }))
@@ -407,18 +479,18 @@ export function Operations() {
                         ))}
                     </div>
                   )}
-                  {schedData && (
+                  {formData && (
                     <div className="flex flex-col gap-0.5">
                       <span className="text-xs text-muted-foreground">Encoded calldata</span>
                       <code className="text-xs bg-muted p-2 rounded font-mono break-all">
-                        {schedData.slice(0, 66)}
-                        {schedData.length > 66 ? '...' : ''}
+                        {formData.slice(0, 66)}
+                        {formData.length > 66 ? '...' : ''}
                       </code>
                     </div>
                   )}
                   <button
                     type="button"
-                    onClick={() => setUseRawCalldata(true)}
+                    onClick={() => setFormUseRawCalldata(true)}
                     className="text-xs text-muted-foreground underline self-start"
                   >
                     Paste raw calldata instead
@@ -431,15 +503,183 @@ export function Operations() {
                   </label>
                   <input
                     type="text"
-                    value={schedData}
-                    onChange={(e) => setSchedData(e.target.value)}
+                    value={formData}
+                    onChange={(e) => setFormData(e.target.value)}
                     placeholder="0x..."
                     className="px-3 py-1.5 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring font-mono"
                   />
-                  {targetWriteFunctions.length > 0 && (
+                  {formWriteFunctions.length > 0 && (
                     <button
                       type="button"
-                      onClick={() => setUseRawCalldata(false)}
+                      onClick={() => setFormUseRawCalldata(false)}
+                      className="text-xs text-muted-foreground underline self-start"
+                    >
+                      Use function picker instead
+                    </button>
+                  )}
+                  <span className="text-xs text-muted-foreground">
+                    Encoded function call (selector + args).
+                  </span>
+                </div>
+              )}
+            </div>
+            <div className="flex justify-end">
+              <Button
+                size="sm"
+                onClick={handleImmediateExecute}
+                disabled={!formTarget || !formData || executeOp.isPending}
+              >
+                {executeOp.isPending ? (
+                  <RefreshCw className="h-3 w-3 animate-spin mr-1" />
+                ) : (
+                  <Zap className="h-3 w-3 mr-1" />
+                )}
+                Execute
+              </Button>
+            </div>
+          </Card>
+        )}
+
+        {/* Schedule Form */}
+        {formMode === 'schedule' && (
+          <Card className="p-4 shadow-none space-y-3">
+            <h3 className="text-sm font-semibold">Schedule Operation</h3>
+            <p className="text-xs text-muted-foreground">
+              Schedule a delayed call through the AccessManager. The caller must have a role with an
+              execution delay for the target function.
+            </p>
+            <div className="grid grid-cols-1 gap-3">
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-muted-foreground">Target Contract</label>
+                {knownContracts.length > 0 ? (
+                  <>
+                    <Select value={formTarget} onValueChange={handleFormTargetChange}>
+                      <SelectTrigger className="h-9 text-sm font-mono">
+                        <SelectValue placeholder="Select target" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {knownContracts.map((c) => (
+                          <SelectItem key={c.address} value={c.address}>
+                            {truncateMiddle(c.address, 6, 4)}
+                          </SelectItem>
+                        ))}
+                        <SelectItem value="__custom__">Custom address...</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {formTarget === '__custom__' && (
+                      <input
+                        type="text"
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          if (v.length === 42) handleFormTargetChange(v);
+                        }}
+                        placeholder="Paste address 0x..."
+                        className="mt-1 px-3 py-1.5 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring font-mono"
+                      />
+                    )}
+                  </>
+                ) : (
+                  <input
+                    type="text"
+                    value={formTarget}
+                    onChange={(e) => handleFormTargetChange(e.target.value)}
+                    placeholder="0x..."
+                    className="px-3 py-1.5 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring font-mono"
+                  />
+                )}
+              </div>
+              {/* Function picker or raw calldata */}
+              {formWriteFunctions.length > 0 && !formUseRawCalldata ? (
+                <>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-medium text-muted-foreground">Function</label>
+                    <Select
+                      value={formFunctionId}
+                      onValueChange={(v) => {
+                        setFormFunctionId(v);
+                        setFormFunctionArgs({});
+                      }}
+                    >
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue placeholder="Select function" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {formWriteFunctions.map((fn) => (
+                          <SelectItem key={fn.selector || fn.name} value={fn.selector || fn.name}>
+                            <span className="font-mono text-xs">{fn.name}</span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {/* Function args */}
+                  {formSelectedFunction && (
+                    <div className="flex flex-col gap-2 border rounded-md p-3 bg-muted/30">
+                      <span className="text-xs font-medium text-muted-foreground">
+                        Arguments for{' '}
+                        <code className="font-mono">{formSelectedFunction.signature}</code>
+                      </span>
+                      {formSelectedFunction.signature
+                        .slice(
+                          formSelectedFunction.signature.indexOf('(') + 1,
+                          formSelectedFunction.signature.indexOf(')')
+                        )
+                        .split(',')
+                        .filter(Boolean)
+                        .map((paramType, i) => (
+                          <div key={i} className="flex flex-col gap-0.5">
+                            <label className="text-xs text-muted-foreground">
+                              arg{i} <span className="opacity-60">({paramType.trim()})</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={formFunctionArgs[`arg${i}`] ?? ''}
+                              onChange={(e) =>
+                                setFormFunctionArgs((prev) => ({
+                                  ...prev,
+                                  [`arg${i}`]: e.target.value,
+                                }))
+                              }
+                              placeholder={paramType.trim()}
+                              className="px-3 py-1.5 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring font-mono"
+                            />
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                  {formData && (
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-xs text-muted-foreground">Encoded calldata</span>
+                      <code className="text-xs bg-muted p-2 rounded font-mono break-all">
+                        {formData.slice(0, 66)}
+                        {formData.length > 66 ? '...' : ''}
+                      </code>
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setFormUseRawCalldata(true)}
+                    className="text-xs text-muted-foreground underline self-start"
+                  >
+                    Paste raw calldata instead
+                  </button>
+                </>
+              ) : (
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-medium text-muted-foreground">
+                    Calldata (ABI-encoded)
+                  </label>
+                  <input
+                    type="text"
+                    value={formData}
+                    onChange={(e) => setFormData(e.target.value)}
+                    placeholder="0x..."
+                    className="px-3 py-1.5 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring font-mono"
+                  />
+                  {formWriteFunctions.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setFormUseRawCalldata(false)}
                       className="text-xs text-muted-foreground underline self-start"
                     >
                       Use function picker instead
@@ -456,8 +696,8 @@ export function Operations() {
                 </label>
                 <input
                   type="datetime-local"
-                  value={schedWhen}
-                  onChange={(e) => setSchedWhen(e.target.value)}
+                  value={formWhen}
+                  onChange={(e) => setFormWhen(e.target.value)}
                   className="px-3 py-1.5 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring"
                 />
                 <span className="text-xs text-muted-foreground">
@@ -469,7 +709,7 @@ export function Operations() {
               <Button
                 size="sm"
                 onClick={handleSchedule}
-                disabled={!schedTarget || !schedData || scheduleOp.isPending}
+                disabled={!formTarget || !formData || scheduleOp.isPending}
               >
                 {scheduleOp.isPending ? (
                   <RefreshCw className="h-3 w-3 animate-spin mr-1" />
@@ -482,7 +722,7 @@ export function Operations() {
           </Card>
         )}
 
-        {sortedOperations.length === 0 && !showScheduleForm ? (
+        {sortedOperations.length === 0 && formMode === null ? (
           <PageEmptyState
             title="No Operations"
             description="No scheduled operations found for this AccessManager."
