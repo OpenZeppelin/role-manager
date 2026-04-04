@@ -4,13 +4,8 @@
     "analytics_enabled": true,
     "access_control_indexer": true
   },
-  "rpcEndpoints": {
-    "ethereum-mainnet": "/api/rpc/ethereum",
-    "arbitrum-mainnet": "/api/rpc/arbitrum",
-    "polygon-mainnet": "/api/rpc/polygon",
-    "optimism-mainnet": "/api/rpc/optimism",
-    "base-mainnet": "/api/rpc/base"
-  },
+  "$rpcComment": "Set VITE_RPC_PROXY_URL env var to your deployed rpc-proxy worker URL",
+  "rpcEndpoints": {},
   "indexerEndpoints": {},
   "globalServiceConfigs": {
     "walletconnect": {

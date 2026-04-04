@@ -1,0 +1,18 @@
+name = "rpc-proxy"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+
+# Optional: set primary RPCs as secrets via `wrangler secret put RPC_1`
+# The worker will fall back to chainlist + hardcoded RPCs if not set.
+#
+# Supported env vars:
+#   RPC_1       = Ethereum mainnet
+#   RPC_42161   = Arbitrum One
+#   RPC_137     = Polygon
+#   RPC_10      = Optimism
+#   RPC_8453    = Base
+
+# Custom domain (configure after first deploy):
+# routes = [
+#   { pattern = "rpc.yourdomain.com/*", custom_domain = true }
+# ]
