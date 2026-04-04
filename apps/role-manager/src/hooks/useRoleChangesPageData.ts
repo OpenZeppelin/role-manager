@@ -20,10 +20,12 @@ import {
   type HistoryQueryOptions,
   type UseRoleChangesPageDataReturn,
 } from '../types/role-changes';
+import { buildRoleNameMap } from '../utils/am-role-names';
 import { createGetAccountUrl, createGetTransactionUrl } from '../utils/explorer-urls';
 import { buildFilterRoles } from '../utils/filter-roles';
 import { transformHistoryEntries } from '../utils/history-transformer';
-import { useContractCapabilities } from './useContractCapabilities';
+import { useAccessManagerRoles } from './useAccessManagerRoles';
+import { useContractCapabilities, type ExtendedCapabilities } from './useContractCapabilities';
 import { useContractRoles } from './useContractData';
 import { DEFAULT_PAGE_SIZE, useContractHistory } from './useContractHistory';
 import { useCustomRoleAliases } from './useCustomRoleAliases';
@@ -105,10 +107,17 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
     isLoading: isCapabilitiesLoading,
     error: capabilitiesError,
     isSupported,
-  } = useContractCapabilities(runtime, contractAddress, isContractRegistered);
+  } = useContractCapabilities(
+    runtime,
+    contractAddress,
+    isContractRegistered,
+    selectedContract?.capabilities
+  );
 
-  // Check if history is supported
-  const supportsHistory = capabilities?.supportsHistory ?? false;
+  const hasAccessManager = (capabilities as ExtendedCapabilities)?.hasAccessManager ?? false;
+
+  // AccessManager: history from synced events. Standard AC/Ownable: SubQuery indexer.
+  const supportsHistory = hasAccessManager ? true : (capabilities?.supportsHistory ?? false);
 
   // Build query options with server-side filters (role, changeType, search, timestamps)
   // Map UI action filter to API changeType for server-side filtering
@@ -165,7 +174,9 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
   ]);
 
   // Determine if history fetch should be enabled
-  const shouldFetchHistory = isContractRegistered && isSupported && supportsHistory;
+  // AM contracts use their own event history from sync — don't call the AC indexer
+  const shouldFetchHistory =
+    !hasAccessManager && isContractRegistered && isSupported && supportsHistory;
 
   // History data fetching
   const {
@@ -184,7 +195,19 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
     roles: contractRoles,
     isLoading: areRolesLoading,
     isFetching: areRolesFetching,
-  } = useContractRoles(runtime, contractAddress, isContractRegistered);
+  } = useContractRoles(runtime, contractAddress, isContractRegistered && !hasAccessManager);
+
+  // AccessManager event history
+  const {
+    roles: amRolesData,
+    eventHistory: amEventHistory,
+    isSyncing: _isAmSyncing,
+  } = useAccessManagerRoles(
+    runtime,
+    contractAddress,
+    hasAccessManager,
+    selectedContract?.networkId ?? ''
+  );
 
   // Custom role aliases for resolving hash-only roles in history display
   const { aliases: customAliases } = useCustomRoleAliases(contractId);
@@ -213,7 +236,46 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
     [historyItems, getTransactionUrl, getAccountUrl, customAliases]
   );
 
-  const events = transformedEvents;
+  // For AccessManager: transform synced event history into RoleChangeEventView
+  const amEvents = useMemo(() => {
+    if (!hasAccessManager || !amEventHistory?.length) return [];
+
+    const roleNameMap = buildRoleNameMap(amRolesData);
+
+    type RCA = import('../types/role-changes').RoleChangeAction;
+    const actionMap: Record<string, RCA> = {
+      grant: 'grant',
+      revoke: 'revoke',
+      'target-role': 'grant',
+      label: 'grant',
+    };
+
+    return amEventHistory.map((e, i) => {
+      const action = actionMap[e.type] ?? 'unknown';
+      const roleName = roleNameMap.get(e.roleId ?? '') ?? `Role #${e.roleId}`;
+
+      return {
+        id: `${e.transactionHash}-${i}`,
+        timestamp: e.timestamp && e.timestamp > 0 ? new Date(e.timestamp * 1000).toISOString() : '',
+        action,
+        roleId: e.roleId ?? '',
+        roleName,
+        account: e.account ?? '',
+        accountUrl: e.account ? getAccountUrl(e.account) : null,
+        transactionHash: e.transactionHash,
+        transactionUrl: getTransactionUrl(e.transactionHash),
+        ledger: e.blockNumber,
+        // AM-specific fields
+        amEventType: e.type as import('../types/role-changes').AccessManagerEventType,
+        target: e.target,
+        targetUrl: e.target ? getAccountUrl(e.target) : null,
+        selector: e.selector,
+        labelText: e.label,
+      };
+    });
+  }, [hasAccessManager, amEventHistory, amRolesData, getAccountUrl, getTransactionUrl]);
+
+  const events = hasAccessManager ? amEvents : transformedEvents;
 
   // Available roles for filter dropdown (reuses cached roles query)
   // Includes synthetic Owner and Admin roles for filtering ownership/admin transfer events

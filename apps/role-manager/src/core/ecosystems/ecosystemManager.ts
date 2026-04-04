@@ -124,6 +124,60 @@ export function getEcosystemMetadata(ecosystem: Ecosystem): EcosystemMetadata | 
 }
 
 // =============================================================================
+// Custom EVM Networks (not yet in @openzeppelin/adapter-evm)
+// =============================================================================
+
+/**
+ * Custom EVM network configs for chains not yet included in the adapter package.
+ * Uses viem chain definitions for RPC/explorer URLs and wallet support.
+ * These are appended to the adapter-provided networks at load time.
+ */
+let customEvmNetworksPromise: Promise<NetworkConfig[]> | null = null;
+
+async function getCustomEvmNetworks(): Promise<NetworkConfig[]> {
+  if (customEvmNetworksPromise) return customEvmNetworksPromise;
+  customEvmNetworksPromise = (async () => {
+    const [{ rise, riseTestnet }, { RiseChainIcon }] = await Promise.all([
+      import('viem/chains'),
+      import('../../components/Shared/RiseChainIcon'),
+    ]);
+    return [
+      {
+        id: 'rise-mainnet',
+        name: 'RISE',
+        ecosystem: 'evm' as Ecosystem,
+        network: 'rise',
+        type: 'mainnet',
+        isTestnet: false,
+        chainId: 4153,
+        rpcUrl: rise.rpcUrls.default.http[0],
+        explorerUrl: 'https://explorer.risechain.com',
+        apiUrl: 'https://explorer.risechain.com/api',
+        nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+        viemChain: rise,
+        iconComponent: RiseChainIcon,
+      } as NetworkConfig,
+      {
+        id: 'rise-testnet',
+        name: 'RISE Testnet',
+        ecosystem: 'evm' as Ecosystem,
+        network: 'rise',
+        type: 'testnet',
+        isTestnet: true,
+        chainId: 11155931,
+        rpcUrl: riseTestnet.rpcUrls.default.http[0],
+        explorerUrl: 'https://explorer.testnet.riselabs.xyz',
+        apiUrl: 'https://explorer.testnet.riselabs.xyz/api',
+        nativeCurrency: { name: 'RISE Testnet Ether', symbol: 'ETH', decimals: 18 },
+        viemChain: riseTestnet,
+        iconComponent: RiseChainIcon,
+      } as NetworkConfig,
+    ];
+  })();
+  return customEvmNetworksPromise;
+}
+
+// =============================================================================
 // Lightweight Network Loading (lazy — only loads network configs, not adapters)
 // =============================================================================
 
@@ -166,8 +220,26 @@ async function loadNetworksModule(ecosystem: Ecosystem): Promise<NetworkConfig[]
       }
     }
 
-    networksByEcosystemCache[ecosystem] = mod.networks;
-    return mod.networks;
+    let allNetworks = mod.networks;
+
+    // Append custom EVM networks not yet in the adapter package
+    if (ecosystem === 'evm') {
+      try {
+        const customNetworks = await getCustomEvmNetworks();
+        if (customNetworks.length > 0) {
+          const existingIds = new Set(allNetworks.map((n) => n.id));
+          const custom = customNetworks.filter((n) => !existingIds.has(n.id));
+          if (custom.length > 0) {
+            allNetworks = [...allNetworks, ...custom];
+          }
+        }
+      } catch (err) {
+        logger.warn('EcosystemManager', 'Failed to load custom EVM networks', err);
+      }
+    }
+
+    networksByEcosystemCache[ecosystem] = allNetworks;
+    return allNetworks;
   })();
 
   networkPromiseCache[ecosystem] = promise;

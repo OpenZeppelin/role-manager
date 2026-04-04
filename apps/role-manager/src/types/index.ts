@@ -38,6 +38,22 @@ export type {
   UsePendingTransfersReturn,
 } from './pending-transfers';
 
+// AccessManager types (Feature: 018-access-manager)
+export type {
+  AccessManagerMember,
+  AccessManagerRole,
+  AccessManagerService,
+  AccessManagerStatusCallback,
+  CanCallResult,
+  FunctionRoleMapping,
+  ScheduledOperation,
+  SyncPhase,
+  SyncProgress,
+  SyncProgressCallback,
+  SyncReadOptions,
+  TargetConfig,
+} from './access-manager';
+
 // Role Changes types (Feature: 012-role-changes-data)
 export {
   // Domain types

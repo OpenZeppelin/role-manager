@@ -22,6 +22,8 @@ import type {
 
 import type { DialogTransactionStep } from '../types/role-dialogs';
 import { useRevokeRole, type RevokeRoleArgs } from './useAccessControlMutations';
+import { useAMRevokeRole } from './useAccessManagerMutations';
+import { type ExtendedCapabilities } from './useContractCapabilities';
 import { useSelectedContract } from './useSelectedContract';
 import { useTransactionExecution } from './useTransactionExecution';
 
@@ -120,11 +122,31 @@ export function useRevokeRoleDialog(
 
   const { selectedContract, runtime } = useSelectedContract();
   const contractAddress = selectedContract?.address ?? '';
+  const isAccessManager = !!(selectedContract?.capabilities as ExtendedCapabilities | undefined)
+    ?.hasAccessManager;
 
   const { address: connectedAddress } = useDerivedAccountStatus();
 
-  // Mutation hook for revoke
-  const revokeRole = useRevokeRole(runtime, contractAddress);
+  // Mutation hooks — use AM or AC based on contract type
+  const acRevokeRole = useRevokeRole(runtime, contractAddress);
+  const amRevokeRole = useAMRevokeRole(runtime, contractAddress);
+
+  // For AM: wrap to match RevokeRoleArgs shape
+  const amWrapper = useMemo(
+    () => ({
+      ...amRevokeRole,
+      mutateAsync: async (args: RevokeRoleArgs): Promise<OperationResult> => {
+        return amRevokeRole.mutateAsync({
+          roleId: args.roleId,
+          account: args.account,
+          executionConfig: args.executionConfig,
+        });
+      },
+    }),
+    [amRevokeRole]
+  );
+
+  const revokeRole = isAccessManager ? (amWrapper as typeof acRevokeRole) : acRevokeRole;
 
   // =============================================================================
   // Transaction Execution (using shared hook)

@@ -22,10 +22,12 @@ import type { ExpirationMetadata } from '@openzeppelin/ui-types';
 /**
  * Type of pending transfer
  * - ownership: Two-step Ownable transfer pending acceptance
- * - admin: Admin role transfer (future)
+ * - admin: Admin role transfer
  * - multisig: Multisig signer change (future)
+ * - am-grant: AccessManager delayed role grant (grant delay not yet elapsed)
+ * - am-operation: AccessManager scheduled operation awaiting execution
  */
-export type PendingTransferType = 'ownership' | 'admin' | 'multisig';
+export type PendingTransferType = 'ownership' | 'admin' | 'multisig' | 'am-grant' | 'am-operation';
 
 // =============================================================================
 // Core Data Model

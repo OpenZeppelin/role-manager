@@ -70,4 +70,17 @@ export interface RoleWithDescription {
   isHashDisplay: boolean;
   /** User-defined alias for this role (per-contract, only for hash-display roles) */
   alias?: string;
+
+  // =============================================================================
+  // AccessManager-specific metadata (Feature 018)
+  // =============================================================================
+
+  /** Admin role ID (uint64) — the role that can grant/revoke this role (AM only) */
+  adminRoleId?: string;
+  /** Guardian role ID (uint64) — the role that can cancel grants of this role (AM only) */
+  guardianRoleId?: string;
+  /** Delay in seconds before a role grant becomes effective (AM only) */
+  grantDelay?: number;
+  /** Per-member execution delays: address → delay in seconds (AM only) */
+  memberExecutionDelays?: Record<string, number>;
 }

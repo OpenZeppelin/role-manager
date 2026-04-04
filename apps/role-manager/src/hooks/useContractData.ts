@@ -227,15 +227,17 @@ export function useContractRoles(
     await queryRefetch();
   };
 
-  const hasError = error !== null;
-  const canRetry = error?.canRetry ?? false;
-  const errorMessage = error?.getUserMessage() ?? null;
+  // Only report errors when the query is enabled
+  const isEnabled = isReady && !!contractAddress && isContractRegistered;
+  const hasError = isEnabled && error !== null;
+  const canRetry = isEnabled && (error?.canRetry ?? false);
+  const errorMessage = isEnabled ? (error?.getUserMessage() ?? null) : null;
 
   return {
     roles: roles ?? [],
     isLoading,
     isFetching,
-    error,
+    error: isEnabled ? error : null,
     refetch,
     isEmpty,
     totalMemberCount,
@@ -320,16 +322,19 @@ export function useContractOwnership(
     await queryRefetch();
   };
 
-  const hasError = error !== null;
-  const canRetry = error?.canRetry ?? false;
-  const errorMessage = error?.getUserMessage() ?? null;
+  // Only report errors when the query is enabled — prevents stale cached errors
+  // from surfacing when the query is disabled (e.g., AccessManager contracts)
+  const isEnabled = isReady && !!contractAddress && isContractRegistered && enabled;
+  const hasError = isEnabled && error !== null;
+  const canRetry = isEnabled && (error?.canRetry ?? false);
+  const errorMessage = isEnabled ? (error?.getUserMessage() ?? null) : null;
 
   return {
     ownership: ownership ?? null,
     isLoading,
     isPending,
     isFetching,
-    error,
+    error: isEnabled ? error : null,
     refetch,
     hasOwner,
     hasError,
@@ -421,15 +426,17 @@ export function useContractAdminInfo(
     await queryRefetch();
   };
 
-  const hasError = error !== null;
-  const canRetry = error?.canRetry ?? false;
-  const errorMessage = error?.getUserMessage() ?? null;
+  // Only report errors when the query is enabled
+  const isEnabled = isReady && !!contractAddress && isContractRegistered && enabled;
+  const hasError = isEnabled && error !== null;
+  const canRetry = isEnabled && (error?.canRetry ?? false);
+  const errorMessage = isEnabled ? (error?.getUserMessage() ?? null) : null;
 
   return {
     adminInfo: adminInfo ?? null,
     isLoading,
     isFetching,
-    error,
+    error: isEnabled ? error : null,
     refetch,
     hasAdmin,
     hasError,

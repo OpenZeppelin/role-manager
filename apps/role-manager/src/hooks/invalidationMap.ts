@@ -40,6 +40,23 @@ export type MutationType =
   | 'changeAdminDelay'
   | 'rollbackAdminDelay';
 
+/** AccessManager mutation types (Feature: 018-access-manager) */
+export type AccessManagerMutationType =
+  | 'amGrantRole'
+  | 'amRevokeRole'
+  | 'amRenounceRole'
+  | 'amLabelRole'
+  | 'amSetRoleAdmin'
+  | 'amSetRoleGuardian'
+  | 'amSetGrantDelay'
+  | 'amSetTargetFunctionRole'
+  | 'amSetTargetClosed'
+  | 'amSetTargetAdminDelay'
+  | 'amUpdateAuthority'
+  | 'amSchedule'
+  | 'amExecute'
+  | 'amCancel';
+
 /** Configuration for post-mutation query invalidation */
 export interface InvalidationConfig {
   /** Query key factories to invalidate (called with contractAddress) */
@@ -145,5 +162,80 @@ export const invalidationMap: Record<MutationType, InvalidationConfig> = {
   rollbackAdminDelay: {
     keys: (addr) => [queryKeys.contractAdminInfo(addr), queryKeys.contractHistory(addr)],
     deferredRefetchMs: 3000,
+  },
+};
+
+// =============================================================================
+// AccessManager Invalidation Map (Feature: 018-access-manager)
+// =============================================================================
+
+export const accessManagerInvalidationMap: Record<AccessManagerMutationType, InvalidationConfig> = {
+  // ── Role mutations ──
+
+  amGrantRole: {
+    keys: (addr) => [queryKeys.accessManagerRoles(addr), queryKeys.contractHistory(addr)],
+  },
+
+  amRevokeRole: {
+    keys: (addr) => [queryKeys.accessManagerRoles(addr), queryKeys.contractHistory(addr)],
+  },
+
+  amRenounceRole: {
+    keys: (addr) => [queryKeys.accessManagerRoles(addr), queryKeys.contractHistory(addr)],
+  },
+
+  amLabelRole: {
+    keys: (addr) => [queryKeys.accessManagerRoles(addr), queryKeys.contractHistory(addr)],
+  },
+
+  amSetRoleAdmin: {
+    keys: (addr) => [queryKeys.accessManagerRoles(addr), queryKeys.contractHistory(addr)],
+  },
+
+  amSetRoleGuardian: {
+    keys: (addr) => [queryKeys.accessManagerRoles(addr), queryKeys.contractHistory(addr)],
+  },
+
+  amSetGrantDelay: {
+    keys: (addr) => [queryKeys.accessManagerRoles(addr), queryKeys.contractHistory(addr)],
+    deferredRefetchMs: 3000,
+  },
+
+  // ── Target mutations ──
+
+  amSetTargetFunctionRole: {
+    keys: (addr) => [queryKeys.accessManagerTargets(addr), queryKeys.contractHistory(addr)],
+  },
+
+  amSetTargetClosed: {
+    keys: (addr) => [queryKeys.accessManagerTargets(addr), queryKeys.contractHistory(addr)],
+  },
+
+  amSetTargetAdminDelay: {
+    keys: (addr) => [queryKeys.accessManagerTargets(addr), queryKeys.contractHistory(addr)],
+    deferredRefetchMs: 3000,
+  },
+
+  amUpdateAuthority: {
+    keys: (addr) => [queryKeys.accessManagerTargets(addr), queryKeys.contractHistory(addr)],
+  },
+
+  // ── Operation lifecycle mutations ──
+
+  amSchedule: {
+    keys: (addr) => [queryKeys.accessManagerOperations(addr), queryKeys.contractHistory(addr)],
+  },
+
+  amExecute: {
+    keys: (addr) => [
+      queryKeys.accessManagerOperations(addr),
+      queryKeys.accessManagerRoles(addr),
+      queryKeys.accessManagerTargets(addr),
+      queryKeys.contractHistory(addr),
+    ],
+  },
+
+  amCancel: {
+    keys: (addr) => [queryKeys.accessManagerOperations(addr), queryKeys.contractHistory(addr)],
   },
 };

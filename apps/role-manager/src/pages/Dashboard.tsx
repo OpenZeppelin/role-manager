@@ -26,8 +26,9 @@ import { toast } from 'sonner';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { Button } from '@openzeppelin/ui-components';
+import { Button, Card, CardContent, CardHeader, CardTitle } from '@openzeppelin/ui-components';
 import { useDerivedAccountStatus } from '@openzeppelin/ui-react';
+import { formatSecondsToReadable } from '@openzeppelin/ui-utils';
 
 import { AcceptAdminTransferDialog } from '../components/Admin/AcceptAdminTransferDialog';
 import { ContractInfoCard } from '../components/Dashboard/ContractInfoCard';
@@ -35,8 +36,10 @@ import { DashboardEmptyState } from '../components/Dashboard/DashboardEmptyState
 import { DashboardStatsCard } from '../components/Dashboard/DashboardStatsCard';
 import { NetworkHealthBanner } from '../components/Dashboard/NetworkHealthBanner';
 import { PendingChangesCard } from '../components/Dashboard/PendingChangesCard';
+import { SyncProgressBanner } from '../components/Dashboard/SyncProgressBanner';
 import { AcceptOwnershipDialog } from '../components/Ownership/AcceptOwnershipDialog';
 import { PageHeader } from '../components/Shared/PageHeader';
+import { useSharedAccessManagerSync } from '../context/AccessManagerSyncContext';
 import { useAliasStorage } from '../core/storage/aliasStorage';
 import {
   useContractDisplayName,
@@ -95,6 +98,9 @@ export function Dashboard() {
     rolesCount,
     uniqueAccountsCount,
     hasAccessControl,
+    hasAccessManager,
+    isSyncing,
+    syncProgress,
     isLoading,
     isRefreshing,
     hasError,
@@ -109,6 +115,7 @@ export function Dashboard() {
     label: contractName,
     aliases: snapshotAliases,
     isContractRegistered,
+    storedCapabilities: selectedContract?.capabilities,
   });
 
   // Phase 6.5: Get pending transfers for the card
@@ -227,11 +234,15 @@ export function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column */}
         <div className="lg:col-span-2 space-y-6">
-          {selectedNetwork && (
+          {selectedNetwork && !hasAccessManager && (
             <NetworkHealthBanner
               networkConfig={selectedNetwork}
               unhealthyServices={unhealthyServices}
             />
+          )}
+
+          {isSyncing && syncProgress && (
+            <SyncProgressBanner syncProgress={syncProgress} isSyncing={isSyncing} />
           )}
 
           <ContractInfoCard
@@ -240,6 +251,9 @@ export function Dashboard() {
             network={selectedNetwork}
             explorerUrl={explorerUrl}
           />
+
+          {/* AccessManager global config */}
+          {hasAccessManager && <AccessManagerConfigCard />}
 
           {/* Phase 6.5: PendingChangesCard with real data */}
           <PendingChangesCard
@@ -259,11 +273,11 @@ export function Dashboard() {
             icon={<Shield className="h-5 w-5" />}
             onClick={() => navigate('/roles')}
             isLoading={isDataLoading}
-            hasError={hasError && !hasAccessControl}
+            hasError={hasError && !(hasAccessControl || hasAccessManager)}
             errorMessage={errorMessage}
             onRetry={canRetry ? refetch : undefined}
-            isNotSupported={!hasAccessControl && !isDataLoading && !hasError}
-            disabled={!hasAccessControl}
+            isNotSupported={!(hasAccessControl || hasAccessManager) && !isDataLoading && !hasError}
+            disabled={!(hasAccessControl || hasAccessManager)}
           />
 
           <DashboardStatsCard
@@ -294,5 +308,43 @@ export function Dashboard() {
         onSuccess={handleAcceptSuccess}
       />
     </div>
+  );
+}
+
+/**
+ * Displays AccessManager global configuration:
+ * - Operation expiration window (default 1 week)
+ * - Minimum setback for delay changes (default 5 days)
+ */
+function AccessManagerConfigCard() {
+  const { expiration, minSetback } = useSharedAccessManagerSync();
+
+  if (expiration === null && minSetback === null) return null;
+
+  return (
+    <Card className="shadow-none">
+      <CardHeader className="pb-3 pt-4">
+        <CardTitle className="text-base font-medium flex items-center gap-2">
+          <Shield className="h-4 w-4 text-purple-600" />
+          AccessManager Configuration
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="pb-4">
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <span className="text-muted-foreground">Operation Expiration</span>
+            <p className="font-medium">
+              {expiration !== null ? formatSecondsToReadable(expiration) : '—'}
+            </p>
+          </div>
+          <div>
+            <span className="text-muted-foreground">Minimum Setback</span>
+            <p className="font-medium">
+              {minSetback !== null ? formatSecondsToReadable(minSetback) : '—'}
+            </p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

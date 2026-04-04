@@ -99,7 +99,22 @@ export interface RoleChangeEventView {
   transactionUrl: string | null;
   /** Block/ledger number */
   ledger: number | null;
+
+  // AccessManager-specific fields
+  /** Target contract address (for target-role events) */
+  target?: string;
+  /** Block explorer URL for the target (null if unavailable) */
+  targetUrl?: string | null;
+  /** Function selector (for target-role events, e.g. "0x12345678") */
+  selector?: string;
+  /** Label text (for label events) */
+  labelText?: string;
+  /** Raw event type from AM */
+  amEventType?: AccessManagerEventType;
 }
+
+/** Discriminated event types from AccessManager contract events */
+export type AccessManagerEventType = 'grant' | 'revoke' | 'target-role' | 'label';
 
 // =============================================================================
 // Filter Types

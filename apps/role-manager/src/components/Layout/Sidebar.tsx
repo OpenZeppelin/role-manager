@@ -1,4 +1,13 @@
-import { ArrowRightLeft, BookUser, Key, LayoutDashboard, Users } from 'lucide-react';
+import {
+  ArrowRightLeft,
+  BookUser,
+  Clock,
+  Code,
+  Key,
+  LayoutDashboard,
+  Shield,
+  Users,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import React, { useCallback, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -12,6 +21,7 @@ import {
 } from '@openzeppelin/ui-components';
 import { logger } from '@openzeppelin/ui-utils';
 
+import { useSharedAccessManagerSync } from '../../context/AccessManagerSyncContext';
 import { getEcosystemMetadata } from '../../core/ecosystems/ecosystemManager';
 import { useAllNetworks } from '../../hooks/useAllNetworks';
 import { useRecentContracts } from '../../hooks/useRecentContracts';
@@ -51,6 +61,9 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps): React
     contracts,
     selectContractById,
   } = useSelectedContract();
+
+  // AccessManager detection for conditional nav links
+  const { isAccessManager } = useSharedAccessManagerSync();
 
   // Contracts data - for delete operation
   const { deleteContract } = useRecentContracts(selectedNetwork?.id);
@@ -156,8 +169,33 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps): React
           >
             Role Changes
           </SidebarButton>
+          {isAccessManager && (
+            <>
+              <SidebarButton
+                icon={<Shield className="size-4" />}
+                isSelected={location.pathname === '/targets'}
+                onClick={() => handleNavigation('/targets')}
+              >
+                Targets
+              </SidebarButton>
+              <SidebarButton
+                icon={<Clock className="size-4" />}
+                isSelected={location.pathname === '/operations'}
+                onClick={() => handleNavigation('/operations')}
+              >
+                Operations
+              </SidebarButton>
+            </>
+          )}
         </SidebarSection>
         <SidebarSection>
+          <SidebarButton
+            icon={<Code className="size-4" />}
+            isSelected={location.pathname === '/contract'}
+            onClick={() => handleNavigation('/contract')}
+          >
+            Contract
+          </SidebarButton>
           <SidebarButton
             icon={<BookUser className="size-4" />}
             isSelected={location.pathname === '/address-book'}

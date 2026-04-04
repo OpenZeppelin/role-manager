@@ -12,6 +12,7 @@ import type { NativeConfigLoader } from '@openzeppelin/ui-types';
 
 import { TrackedRoute } from './components/Analytics';
 import { MainLayout } from './components/Layout/MainLayout';
+import { AccessManagerSyncProvider } from './context/AccessManagerSyncContext';
 import { AliasLabelBridge } from './context/AliasLabelBridge';
 import { BlockTimeProvider } from './context/BlockTimeContext';
 import { ContractProvider } from './context/ContractContext';
@@ -19,9 +20,12 @@ import { WalletSyncProvider } from './context/WalletSyncProvider';
 import { getNetworkById, getRuntime } from './core/ecosystems/ecosystemManager';
 import { AddressBook } from './pages/AddressBook';
 import { AuthorizedAccounts } from './pages/AuthorizedAccounts';
+import { ContractInteraction } from './pages/ContractInteraction';
 import { Dashboard } from './pages/Dashboard';
+import { Operations } from './pages/Operations';
 import { RoleChanges } from './pages/RoleChanges';
 import { Roles } from './pages/Roles';
+import { Targets } from './pages/Targets';
 
 /**
  * Vite glob import for wallet UI kit configuration files.
@@ -124,62 +128,88 @@ function App() {
             <AnalyticsProvider tagId={analyticsTagId} autoInit>
               <RuntimeProvider resolveRuntime={getRuntime}>
                 <ContractProvider>
-                  <AliasLabelBridge>
-                    <BlockTimeProvider>
-                      <WalletStateProvider
-                        initialNetworkId={null}
-                        getNetworkConfigById={getNetworkById}
-                        loadConfigModule={loadAppConfigModule}
-                      >
-                        <WalletSyncProvider>
-                          <MainLayout>
-                            <Routes>
-                              <Route
-                                path="/"
-                                element={
-                                  <TrackedRoute name="Dashboard">
-                                    <Dashboard />
-                                  </TrackedRoute>
-                                }
-                              />
-                              <Route
-                                path="/authorized-accounts"
-                                element={
-                                  <TrackedRoute name="Authorized Accounts">
-                                    <AuthorizedAccounts />
-                                  </TrackedRoute>
-                                }
-                              />
-                              <Route
-                                path="/roles"
-                                element={
-                                  <TrackedRoute name="Roles">
-                                    <Roles />
-                                  </TrackedRoute>
-                                }
-                              />
-                              <Route
-                                path="/role-changes"
-                                element={
-                                  <TrackedRoute name="Role Changes">
-                                    <RoleChanges />
-                                  </TrackedRoute>
-                                }
-                              />
-                              <Route
-                                path="/address-book"
-                                element={
-                                  <TrackedRoute name="Address Book">
-                                    <AddressBook />
-                                  </TrackedRoute>
-                                }
-                              />
-                            </Routes>
-                          </MainLayout>
-                        </WalletSyncProvider>
-                      </WalletStateProvider>
-                    </BlockTimeProvider>
-                  </AliasLabelBridge>
+                  <AccessManagerSyncProvider>
+                    <AliasLabelBridge>
+                      <BlockTimeProvider>
+                        <WalletStateProvider
+                          initialNetworkId={null}
+                          getNetworkConfigById={getNetworkById}
+                          loadConfigModule={loadAppConfigModule}
+                        >
+                          <WalletSyncProvider>
+                            <MainLayout>
+                              <Routes>
+                                <Route
+                                  path="/"
+                                  element={
+                                    <TrackedRoute name="Dashboard">
+                                      <Dashboard />
+                                    </TrackedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/authorized-accounts"
+                                  element={
+                                    <TrackedRoute name="Authorized Accounts">
+                                      <AuthorizedAccounts />
+                                    </TrackedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/roles"
+                                  element={
+                                    <TrackedRoute name="Roles">
+                                      <Roles />
+                                    </TrackedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/role-changes"
+                                  element={
+                                    <TrackedRoute name="Role Changes">
+                                      <RoleChanges />
+                                    </TrackedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/targets"
+                                  element={
+                                    <TrackedRoute name="Targets">
+                                      <Targets />
+                                    </TrackedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/operations"
+                                  element={
+                                    <TrackedRoute name="Operations">
+                                      <Operations />
+                                    </TrackedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/contract"
+                                  element={
+                                    <TrackedRoute name="Contract">
+                                      <ContractInteraction />
+                                    </TrackedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/address-book"
+                                  element={
+                                    <TrackedRoute name="Address Book">
+                                      <AddressBook />
+                                    </TrackedRoute>
+                                  }
+                                />
+                              </Routes>
+                            </MainLayout>
+                          </WalletSyncProvider>
+                        </WalletStateProvider>
+                      </BlockTimeProvider>
+                    </AliasLabelBridge>
+                  </AccessManagerSyncProvider>
                 </ContractProvider>
               </RuntimeProvider>
             </AnalyticsProvider>

@@ -30,6 +30,8 @@ import {
   type RenounceOwnershipArgs,
   type RenounceRoleArgs,
 } from './useAccessControlMutations';
+import { useAMRenounceRole, type AMRenounceRoleArgs } from './useAccessManagerMutations';
+import { type ExtendedCapabilities } from './useContractCapabilities';
 import { useSelectedContract } from './useSelectedContract';
 import { useTransactionExecution } from './useTransactionExecution';
 
@@ -124,15 +126,19 @@ export function useRenounceDialog(options: UseRenounceDialogOptions): UseRenounc
 
   const { selectedContract, runtime } = useSelectedContract();
   const contractAddress = selectedContract?.address ?? '';
+  const isAccessManager = !!(selectedContract?.capabilities as ExtendedCapabilities | undefined)
+    ?.hasAccessManager;
 
   const { address: connectedAddress } = useDerivedAccountStatus();
 
-  // Mutation hooks
+  // Mutation hooks — use AM or AC based on contract type
   const renounceOwnership = useRenounceOwnership(runtime, contractAddress);
-  const renounceRole = useRenounceRole(runtime, contractAddress);
+  const acRenounceRole = useRenounceRole(runtime, contractAddress);
+  const amRenounceRole = useAMRenounceRole(runtime, contractAddress);
 
-  // Select the appropriate mutation based on type
-  const mutation = type === 'ownership' ? renounceOwnership : renounceRole;
+  // Select the appropriate mutation based on type and AM detection
+  const mutation =
+    type === 'ownership' ? renounceOwnership : isAccessManager ? amRenounceRole : acRenounceRole;
 
   // =============================================================================
   // Transaction Execution
@@ -143,12 +149,18 @@ export function useRenounceDialog(options: UseRenounceDialogOptions): UseRenounc
     onSuccess,
   });
 
-  const roleExecution = useTransactionExecution<RenounceRoleArgs>(renounceRole, {
+  const acRoleExecution = useTransactionExecution<RenounceRoleArgs>(acRenounceRole, {
     onClose,
     onSuccess,
   });
 
-  // Select execution context based on type
+  const amRoleExecution = useTransactionExecution<AMRenounceRoleArgs>(amRenounceRole, {
+    onClose,
+    onSuccess,
+  });
+
+  // Select execution context based on type and AM detection
+  const roleExecution = isAccessManager ? amRoleExecution : acRoleExecution;
   const step = type === 'ownership' ? ownershipExecution.step : roleExecution.step;
   const errorMessage =
     type === 'ownership' ? ownershipExecution.errorMessage : roleExecution.errorMessage;
@@ -166,17 +178,31 @@ export function useRenounceDialog(options: UseRenounceDialogOptions): UseRenounc
       await ownershipExecution.execute({
         executionConfig,
       });
+    } else if (isAccessManager) {
+      // AM renounce needs callerConfirmation (connected wallet address)
+      if (!roleId || !connectedAddress) return;
+      await amRoleExecution.execute({
+        roleId,
+        callerConfirmation: connectedAddress,
+        executionConfig,
+      });
     } else {
-      if (!roleId || !connectedAddress) {
-        return;
-      }
-      await roleExecution.execute({
+      if (!roleId || !connectedAddress) return;
+      await acRoleExecution.execute({
         roleId,
         account: connectedAddress,
         executionConfig,
       });
     }
-  }, [type, ownershipExecution, roleExecution, roleId, connectedAddress]);
+  }, [
+    type,
+    isAccessManager,
+    ownershipExecution,
+    acRoleExecution,
+    amRoleExecution,
+    roleId,
+    connectedAddress,
+  ]);
 
   // =============================================================================
   // Configuration

@@ -52,12 +52,19 @@ import type { AccountData } from '../components/Roles/RoleDetails';
 import { PageEmptyState } from '../components/Shared/PageEmptyState';
 import { PageHeader } from '../components/Shared/PageHeader';
 import { TypeToConfirmDialog } from '../components/Shared/TypeToConfirmDialog';
+import { DEFAULT_EXECUTION_CONFIG } from '../constants';
 import {
   useAllNetworks,
   useContractDisplayName,
   useMutationPreview,
   useRolesPageData,
 } from '../hooks';
+import {
+  useAMSetGrantDelay,
+  useAMSetRoleAdmin,
+  useAMSetRoleGuardian,
+} from '../hooks/useAccessManagerMutations';
+import { hasAccessManagerCapability } from '../hooks/useContractCapabilities';
 import { useRenounceDialog, type RenounceType } from '../hooks/useRenounceDialog';
 import { useSelectedContract } from '../hooks/useSelectedContract';
 import type { AdminDelayInfo } from '../types/admin';
@@ -98,7 +105,11 @@ export function Roles() {
     adminInfo,
     pendingAdminTransfer,
     adminState,
+    amRoles,
   } = useRolesPageData();
+
+  // AccessManager contracts use a different admin model — suppress AC-specific actions
+  const hasAccessManager = hasAccessManagerCapability(capabilities);
 
   // Effect to handle deep linking: select role from URL param
   useEffect(() => {
@@ -168,6 +179,57 @@ export function Roles() {
   const network = networks.find((n) => n.id === selectedContract?.networkId);
   const networkName = network?.name || '';
 
+  // Feature 018: AM role config mutations
+  const contractAddress = selectedContract?.address ?? '';
+  const setRoleAdmin = useAMSetRoleAdmin(runtime, contractAddress);
+  const setRoleGuardian = useAMSetRoleGuardian(runtime, contractAddress);
+  const setGrantDelay = useAMSetGrantDelay(runtime, contractAddress);
+
+  const handleSetRoleAdmin = useCallback(
+    async (roleId: string, adminId: string) => {
+      await setRoleAdmin.mutateAsync({
+        roleId,
+        adminId,
+        executionConfig: DEFAULT_EXECUTION_CONFIG,
+      });
+      toast.success('Admin role updated');
+      await refetch();
+    },
+    [setRoleAdmin, refetch]
+  );
+
+  const handleSetRoleGuardian = useCallback(
+    async (roleId: string, guardianId: string) => {
+      await setRoleGuardian.mutateAsync({
+        roleId,
+        guardianId,
+        executionConfig: DEFAULT_EXECUTION_CONFIG,
+      });
+      toast.success('Guardian role updated');
+      await refetch();
+    },
+    [setRoleGuardian, refetch]
+  );
+
+  const handleSetGrantDelay = useCallback(
+    async (roleId: string, delay: number) => {
+      await setGrantDelay.mutateAsync({
+        roleId,
+        delay,
+        executionConfig: DEFAULT_EXECUTION_CONFIG,
+      });
+      toast.success('Grant delay updated');
+      await refetch();
+    },
+    [setGrantDelay, refetch]
+  );
+
+  // AM roles for the role config dropdown (admin/guardian pickers)
+  const amRoleOptions = useMemo(
+    () => amRoles.map((r) => ({ roleId: r.roleId, label: r.label })),
+    [amRoles]
+  );
+
   // T050: Handle refresh with toast notification on error
   const handleRefresh = useCallback(async () => {
     try {
@@ -189,6 +251,9 @@ export function Roles() {
         ? address.toLowerCase() === connectedAddress.toLowerCase()
         : false,
       explorerUrl: getAccountUrl(address) ?? undefined,
+      executionDelay:
+        selectedRole.memberExecutionDelays?.[address.toLowerCase()] ??
+        selectedRole.memberExecutionDelays?.[address],
     }));
   }, [selectedRole, connectedAddress, getAccountUrl]);
 
@@ -420,43 +485,56 @@ export function Roles() {
                 onEdit={handleOpenEditDialog}
                 onAssign={handleAssignRole}
                 onRevoke={handleRevokeRole}
-                onTransferOwnership={handleTransferOwnership}
-                onAcceptOwnership={handleAcceptOwnership}
-                canAcceptOwnership={canAcceptOwnership}
-                pendingTransfer={pendingTransfer}
-                ownershipState={ownershipState}
+                // AC-specific ownership/admin actions — suppressed for AccessManager
+                onTransferOwnership={!hasAccessManager ? handleTransferOwnership : undefined}
+                onAcceptOwnership={!hasAccessManager ? handleAcceptOwnership : undefined}
+                canAcceptOwnership={!hasAccessManager && canAcceptOwnership}
+                pendingTransfer={!hasAccessManager ? pendingTransfer : undefined}
+                ownershipState={!hasAccessManager ? ownershipState : undefined}
                 pendingRecipientUrl={
-                  pendingTransfer?.pendingOwner
+                  !hasAccessManager && pendingTransfer?.pendingOwner
                     ? (getAccountUrl(pendingTransfer.pendingOwner) ?? undefined)
                     : undefined
                 }
-                currentBlock={currentBlock}
-                ownershipExpirationMetadata={ownershipExpirationMetadata}
-                adminExpirationMetadata={adminExpirationMetadata}
-                // Feature 016: Admin-related props
-                onTransferAdmin={handleTransferAdmin}
-                pendingAdminTransfer={pendingAdminTransfer}
-                adminState={adminState}
+                currentBlock={!hasAccessManager ? currentBlock : undefined}
+                ownershipExpirationMetadata={
+                  !hasAccessManager ? ownershipExpirationMetadata : undefined
+                }
+                adminExpirationMetadata={!hasAccessManager ? adminExpirationMetadata : undefined}
+                // Feature 016: AC admin transfer — suppressed for AccessManager
+                onTransferAdmin={!hasAccessManager ? handleTransferAdmin : undefined}
+                pendingAdminTransfer={!hasAccessManager ? pendingAdminTransfer : undefined}
+                adminState={!hasAccessManager ? adminState : undefined}
                 pendingAdminRecipientUrl={
-                  pendingAdminTransfer?.pendingAdmin
+                  !hasAccessManager && pendingAdminTransfer?.pendingAdmin
                     ? (getAccountUrl(pendingAdminTransfer.pendingAdmin) ?? undefined)
                     : undefined
                 }
-                // Phase 5 (T036): Accept admin transfer props
-                canAcceptAdminTransfer={canAcceptAdminTransfer}
-                onAcceptAdminTransfer={handleAcceptAdminTransfer}
-                // Feature 017 (T054): Renounce props
-                hasRenounceOwnership={capabilities?.hasRenounceOwnership ?? false}
-                onRenounceOwnership={handleRenounceOwnership}
-                hasRenounceRole={capabilities?.hasRenounceRole ?? false}
+                canAcceptAdminTransfer={!hasAccessManager && canAcceptAdminTransfer}
+                onAcceptAdminTransfer={!hasAccessManager ? handleAcceptAdminTransfer : undefined}
+                // Feature 017: Renounce — ownership renounce is AC-only, role renounce works for AM
+                hasRenounceOwnership={
+                  !hasAccessManager && (capabilities?.hasRenounceOwnership ?? false)
+                }
+                onRenounceOwnership={!hasAccessManager ? handleRenounceOwnership : undefined}
+                hasRenounceRole={hasAccessManager || (capabilities?.hasRenounceRole ?? false)}
                 onRenounceRole={handleRenounceRole}
-                // Feature 017 (T066, T067): Cancel admin transfer & admin delay
-                hasCancelAdminTransfer={capabilities?.hasCancelAdminTransfer ?? false}
-                onCancelAdminTransfer={handleCancelAdminTransfer}
-                hasAdminDelayManagement={capabilities?.hasAdminDelayManagement ?? false}
-                delayInfo={delayInfo}
-                onChangeDelayClick={handleChangeAdminDelay}
-                onRollbackClick={handleRollbackAdminDelay}
+                // Feature 017: AC admin delay management — suppressed for AccessManager
+                hasCancelAdminTransfer={
+                  !hasAccessManager && (capabilities?.hasCancelAdminTransfer ?? false)
+                }
+                onCancelAdminTransfer={!hasAccessManager ? handleCancelAdminTransfer : undefined}
+                hasAdminDelayManagement={
+                  !hasAccessManager && (capabilities?.hasAdminDelayManagement ?? false)
+                }
+                delayInfo={!hasAccessManager ? delayInfo : undefined}
+                onChangeDelayClick={!hasAccessManager ? handleChangeAdminDelay : undefined}
+                onRollbackClick={!hasAccessManager ? handleRollbackAdminDelay : undefined}
+                // Feature 018: AM role config editing
+                amRoles={hasAccessManager ? amRoleOptions : undefined}
+                onSetRoleAdmin={hasAccessManager ? handleSetRoleAdmin : undefined}
+                onSetRoleGuardian={hasAccessManager ? handleSetRoleGuardian : undefined}
+                onSetGrantDelay={hasAccessManager ? handleSetGrantDelay : undefined}
                 mutationPreview={mutationPreview}
               />
             ) : (

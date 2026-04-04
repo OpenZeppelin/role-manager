@@ -10,6 +10,7 @@ import type { AccessControlCapabilities, NetworkConfig } from '@openzeppelin/ui-
 
 import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 
+import type { SyncProgress } from './access-manager';
 import type { ContractRecord } from './contracts';
 
 // =============================================================================
@@ -118,6 +119,13 @@ export interface UseDashboardDataReturn {
   hasAccessControl: boolean;
   /** Whether contract supports Ownable */
   hasOwnable: boolean;
+  /** Whether contract is an AccessManager (Feature: 018-access-manager) */
+  hasAccessManager: boolean;
+
+  /** Whether AccessManager data is syncing (Feature: 018) */
+  isSyncing: boolean;
+  /** AccessManager sync progress (Feature: 018) */
+  syncProgress: SyncProgress | null;
 
   /** Whether initial data is loading */
   isLoading: boolean;

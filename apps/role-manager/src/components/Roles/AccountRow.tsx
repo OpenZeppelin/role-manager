@@ -10,10 +10,10 @@
  * - Assignment date display/hide logic (hide when unavailable)
  */
 
-import { Ban, Trash2 } from 'lucide-react';
+import { Ban, Clock, Trash2 } from 'lucide-react';
 
 import { AddressDisplay, Button } from '@openzeppelin/ui-components';
-import { cn } from '@openzeppelin/ui-utils';
+import { cn, formatSecondsToReadable } from '@openzeppelin/ui-utils';
 
 import { formatDateTime } from '../../utils/date';
 import { TransferRoleButton } from '../Shared/TransferRoleButton';
@@ -35,6 +35,8 @@ export interface AccountRowProps {
   isAdminRole?: boolean;
   /** Explorer URL for the address (optional) */
   explorerUrl?: string;
+  /** Execution delay in seconds (AccessManager only) */
+  executionDelay?: number;
   /** Revoke action handler (non-owner roles) */
   onRevoke?: () => void;
   /** Transfer ownership handler (owner role only) */
@@ -67,6 +69,7 @@ export function AccountRow({
   isOwnerRole,
   isAdminRole = false,
   explorerUrl,
+  executionDelay,
   onRevoke,
   onTransferOwnership,
   onTransferAdmin,
@@ -89,6 +92,16 @@ export function AccountRow({
         />
         {/* T032: "You" badge - shown when isCurrentUser is true */}
         {isCurrentUser && <YouBadge />}
+        {/* Execution delay badge (AccessManager only) */}
+        {executionDelay != null && executionDelay > 0 && (
+          <span
+            className="inline-flex items-center gap-0.5 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-1.5 py-0.5"
+            title={`Execution delay: ${formatSecondsToReadable(executionDelay)}`}
+          >
+            <Clock className="h-2.5 w-2.5" />
+            {formatSecondsToReadable(executionDelay)}
+          </span>
+        )}
       </div>
       <div className="flex items-center gap-2">
         {isOwnerRole ? (
@@ -110,16 +123,12 @@ export function AccountRow({
               <TransferRoleButton roleType="ownership" onClick={onTransferOwnership} />
             )}
           </>
-        ) : isAdminRole ? (
-          <>
-            {/* Feature 016 (T026): Transfer Admin button only visible when connected wallet is current admin */}
-            {isCurrentUser && onTransferAdmin && (
-              <TransferRoleButton roleType="admin" onClick={onTransferAdmin} />
-            )}
-          </>
+        ) : isAdminRole && onTransferAdmin ? (
+          /* AC DefaultAdminRules pattern: Transfer Admin button only */
+          <>{isCurrentUser && <TransferRoleButton roleType="admin" onClick={onTransferAdmin} />}</>
         ) : (
           <>
-            {/* Enumerable roles: Show assignment date and Revoke button */}
+            {/* Normal roles (and AM admin when onTransferAdmin is suppressed) */}
             {/* T033: Only show assignment date when available (UTC for blockchain timestamps) */}
             {assignedAt && (
               <span className="text-xs text-muted-foreground whitespace-nowrap">

@@ -22,6 +22,8 @@ import type {
 
 import type { DialogTransactionStep } from '../types/role-dialogs';
 import { useGrantRole, type GrantRoleArgs } from './useAccessControlMutations';
+import { useAMGrantRole } from './useAccessManagerMutations';
+import { type ExtendedCapabilities } from './useContractCapabilities';
 import { useRolesPageData } from './useRolesPageData';
 import { useSelectedContract } from './useSelectedContract';
 import { useTransactionExecution } from './useTransactionExecution';
@@ -120,19 +122,40 @@ export function useAssignRoleDialog(
 
   const { selectedContract, runtime } = useSelectedContract();
   const contractAddress = selectedContract?.address ?? '';
+  const isAccessManager = !!(selectedContract?.capabilities as ExtendedCapabilities | undefined)
+    ?.hasAccessManager;
 
   const { roles } = useRolesPageData();
   const { address: connectedAddress } = useDerivedAccountStatus();
 
-  // Mutation hook for grant
-  const grantRole = useGrantRole(runtime, contractAddress);
+  // Mutation hooks — use AM or AC based on contract type
+  const acGrantRole = useGrantRole(runtime, contractAddress);
+  const amGrantRole = useAMGrantRole(runtime, contractAddress);
 
   // =============================================================================
   // Transaction Execution (using shared hook)
   // =============================================================================
 
+  // For AM: wrap AM hook to match the GrantRoleArgs shape
+  const amExecuteWrapper = useMemo(
+    () => ({
+      ...amGrantRole,
+      mutateAsync: async (args: GrantRoleArgs): Promise<OperationResult> => {
+        return amGrantRole.mutateAsync({
+          roleId: args.roleId,
+          account: args.account,
+          executionDelay: 0, // Default: no delay
+          executionConfig: args.executionConfig,
+        });
+      },
+    }),
+    [amGrantRole]
+  );
+
+  const activeMutation = isAccessManager ? amExecuteWrapper : acGrantRole;
+
   const { step, errorMessage, execute, retry, reset } = useTransactionExecution<GrantRoleArgs>(
-    grantRole,
+    activeMutation as typeof acGrantRole,
     {
       onClose,
       onSuccess,
@@ -188,8 +211,8 @@ export function useAssignRoleDialog(
   // Transaction Status
   // =============================================================================
 
-  const txStatus = grantRole.status;
-  const txStatusDetails = grantRole.statusDetails;
+  const txStatus = activeMutation.status;
+  const txStatusDetails = activeMutation.statusDetails;
 
   // =============================================================================
   // Derived State

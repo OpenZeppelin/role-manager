@@ -1,4 +1,4 @@
-import type { AccessControlCapabilities } from '@openzeppelin/ui-types';
+import type { ExtendedCapabilities } from '../hooks/useContractCapabilities';
 
 export type FeatureBadgeVariant = 'blue' | 'purple' | 'green' | 'amber' | 'slate' | 'cyan' | 'teal';
 
@@ -8,7 +8,7 @@ export interface CapabilityDescriptor {
   description: string;
 }
 
-type CapabilityKey = keyof AccessControlCapabilities;
+type CapabilityKey = keyof ExtendedCapabilities;
 
 /**
  * Core contract types — the primary access control model(s) the contract implements.
@@ -25,7 +25,13 @@ export const CONTRACT_TYPES: Record<string, CapabilityDescriptor> = {
     variant: 'blue',
     description: 'Single-owner access control pattern.',
   },
-} as const satisfies Partial<Record<CapabilityKey, CapabilityDescriptor>>;
+  hasAccessManager: {
+    label: 'AccessManager',
+    variant: 'amber',
+    description:
+      'Centralized authority managing roles, target-function permissions, execution delays, and scheduled operations.',
+  },
+} as const;
 
 /**
  * Contract features — additional capabilities layered on top of the core type.
@@ -54,14 +60,24 @@ export const CONTRACT_FEATURES: Record<string, CapabilityDescriptor> = {
     variant: 'amber',
     description: 'On-chain history of role changes is available via an indexer.',
   },
-} as const satisfies Partial<Record<CapabilityKey, CapabilityDescriptor>>;
+  hasScheduledOperations: {
+    label: 'Scheduled Operations',
+    variant: 'slate',
+    description: 'Supports time-delayed operation scheduling with execute/cancel lifecycle.',
+  },
+  hasTargetManagement: {
+    label: 'Target Management',
+    variant: 'cyan',
+    description: 'Manages function-level permissions on target contracts with admin delays.',
+  },
+} as const;
 
 /**
  * Resolve active entries from a descriptor map against detected capabilities.
  * Returns only entries whose corresponding capability flag is truthy.
  */
 export function resolveCapabilities(
-  capabilities: AccessControlCapabilities | null | undefined,
+  capabilities: ExtendedCapabilities | null | undefined,
   descriptors: Record<string, CapabilityDescriptor>
 ): CapabilityDescriptor[] {
   if (!capabilities) return [];
