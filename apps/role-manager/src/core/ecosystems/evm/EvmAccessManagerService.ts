@@ -904,6 +904,40 @@ export class EvmAccessManagerService implements AccessManagerService {
     });
   }
 
+  private isSafeIframe(): boolean {
+    return typeof window !== 'undefined' && window.parent !== window;
+  }
+
+  private async writeTxViaSafe(
+    managerAddress: string,
+    functionName: string,
+    args: unknown[],
+    onStatus: AccessManagerStatusCallback
+  ): Promise<OperationResult> {
+    const { encodeFunctionData } = await import('viem');
+    const data = encodeFunctionData({
+      abi: ACCESS_MANAGER_ABI,
+      functionName: functionName as 'grantRole',
+      args: args as never,
+    });
+
+    onStatus('pending' as never, {});
+
+    const SafeAppsSDK = (await import('@safe-global/safe-apps-sdk')).default;
+    const sdk = new SafeAppsSDK();
+    const { safeTxHash } = await sdk.txs.send({
+      txs: [
+        {
+          to: managerAddress,
+          value: '0',
+          data,
+        },
+      ],
+    });
+
+    return { id: safeTxHash };
+  }
+
   private async writeTx(
     managerAddress: string,
     functionName: string,
@@ -911,6 +945,11 @@ export class EvmAccessManagerService implements AccessManagerService {
     config: ExecutionConfig,
     onStatus: AccessManagerStatusCallback
   ): Promise<OperationResult> {
+    // Safe iframe: use Safe Apps SDK directly to create a proposal
+    if (this.isSafeIframe()) {
+      return this.writeTxViaSafe(managerAddress, functionName, args, onStatus);
+    }
+
     const transactionData: Record<string, unknown> = {
       address: managerAddress as Address,
       abi: ACCESS_MANAGER_ABI,
