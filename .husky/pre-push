@@ -4,14 +4,14 @@ echo "🔍 Running linting and formatting before push..."
 
 # Try to use NVM's Node.js if available
 if [ -s "$HOME/.nvm/nvm.sh" ]; then
-  # Load NVM
   export NVM_DIR="$HOME/.nvm"
-  \. "$NVM_DIR/nvm.sh" # This loads nvm
-  
-  # Use Node.js 20+
+  \. "$NVM_DIR/nvm.sh"
   nvm use 20 >/dev/null 2>&1
-  
   echo "✅ Using Node.js $(node -v) from NVM"
+elif command -v fnm >/dev/null 2>&1; then
+  eval "$(fnm env --shell bash)"
+  corepack enable >/dev/null 2>&1 || true
+  echo "✅ Using Node.js $(node -v) from fnm"
 fi
 
 # Require Node.js 20+ as specified in package.json
