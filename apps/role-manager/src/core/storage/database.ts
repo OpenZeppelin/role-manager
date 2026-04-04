@@ -57,4 +57,13 @@ export const db = createDexieDatabase('RoleManager', [
       }
     },
   },
+  {
+    version: 5,
+    stores: {
+      recentContracts: '++id, &[networkId+address], [networkId+lastAccessed], source',
+      userPreferences: '&key',
+      ...ALIAS_SCHEMA,
+      accessManagerSync: '&[networkId+address]',
+    },
+  },
 ]);

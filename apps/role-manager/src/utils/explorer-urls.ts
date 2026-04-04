@@ -17,6 +17,13 @@ export type GetExplorerUrlFn = (value: string) => string | null;
 /**
  * Create a function that generates transaction explorer URLs using the runtime.
  *
+ * Uses runtime.explorer.getExplorerTxUrl() when available. Falls back to deriving
+ * the tx URL from runtime.explorer.getExplorerUrl() by replacing the /address/ segment
+ * with /tx/, which works for all standard block explorers (Etherscan, Blockscout, etc.).
+ *
+ * @param runtime - The runtime instance (or null if not available)
+ * @returns A function that takes a transaction hash and returns the explorer URL
+ *
  * @example
  * ```typescript
  * const getTransactionUrl = createGetTransactionUrl(runtime);
@@ -25,8 +32,26 @@ export type GetExplorerUrlFn = (value: string) => string | null;
  */
 export function createGetTransactionUrl(runtime: RoleManagerRuntime | null): GetExplorerUrlFn {
   return (txHash: string): string | null => {
-    if (!runtime) return null;
-    return runtime.explorer.getExplorerTxUrl?.(txHash) ?? null;
+    if (!runtime || !txHash) return null;
+
+    // Primary: use the runtime's dedicated tx URL method
+    const directUrl = runtime.explorer.getExplorerTxUrl?.(txHash);
+    if (directUrl) return directUrl;
+
+    // Fallback: derive from address explorer URL pattern
+    // getExplorerUrl("0x0") → "https://etherscan.io/address/0x0"
+    // Replace /address/0x0 with /tx/{txHash}
+    const probeUrl = runtime.explorer.getExplorerUrl?.(
+      '0x0000000000000000000000000000000000000000'
+    );
+    if (probeUrl) {
+      const addressSegment = '/address/0x0000000000000000000000000000000000000000';
+      if (probeUrl.includes(addressSegment)) {
+        return probeUrl.replace(addressSegment, `/tx/${txHash}`);
+      }
+    }
+
+    return null;
   };
 }
 

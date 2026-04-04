@@ -27,6 +27,10 @@ export interface ChangesTableProps {
   onRoleClick?: (roleId: string) => void;
   /** Optional content to render when events array is empty */
   emptyState?: React.ReactNode;
+  /** Resolved function signature map for target-role events (selector → name) */
+  signatureMap?: Map<string, string>;
+  /** Whether the contract is an AccessManager (changes column header) */
+  isAccessManager?: boolean;
 }
 
 /**
@@ -40,6 +44,11 @@ const COLUMNS = [
   { id: 'transaction', label: 'Transaction', width: 'w-36' },
 ] as const;
 
+/** Pre-computed column headers for AccessManager contracts */
+const AM_COLUMNS = COLUMNS.map((c) =>
+  c.id === 'account' ? { ...c, label: 'Account / Target' } : c
+);
+
 /**
  * ChangesTable - Data table for role change history
  *
@@ -48,14 +57,21 @@ const COLUMNS = [
  * - Event rows via ChangeRow component
  * - Empty state slot for no-data scenarios
  */
-export function ChangesTable({ events, onRoleClick, emptyState }: ChangesTableProps) {
+export function ChangesTable({
+  events,
+  onRoleClick,
+  emptyState,
+  signatureMap,
+  isAccessManager,
+}: ChangesTableProps) {
+  const columns = isAccessManager ? AM_COLUMNS : COLUMNS;
   return (
     <div className="overflow-x-auto">
       <table className="w-full" aria-label="Role changes history">
         {/* Table Header */}
         <thead className="border-b bg-muted/50">
           <tr>
-            {COLUMNS.map((column) => (
+            {columns.map((column) => (
               <th
                 key={column.id}
                 className={cn(
@@ -79,7 +95,12 @@ export function ChangesTable({ events, onRoleClick, emptyState }: ChangesTablePr
             </tr>
           ) : (
             events.map((event) => (
-              <ChangeRow key={event.id} event={event} onRoleClick={onRoleClick} />
+              <ChangeRow
+                key={event.id}
+                event={event}
+                onRoleClick={onRoleClick}
+                signatureMap={signatureMap}
+              />
             ))
           )}
         </tbody>

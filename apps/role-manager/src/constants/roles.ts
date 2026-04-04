@@ -36,3 +36,27 @@ export const ADMIN_ROLE_NAME = 'Contract Admin';
 /** Default description for the contract admin role */
 export const ADMIN_ROLE_DESCRIPTION =
   'The Contract Admin has the highest privileges for managing access control settings. Transferred via two-step process.';
+
+// =============================================================================
+// AccessManager Role Constants (Feature: 018-access-manager)
+// =============================================================================
+
+/** AccessManager ADMIN_ROLE = uint64(0) */
+export const AM_ADMIN_ROLE_ID = '0';
+
+/** Display name for the AccessManager admin role */
+export const AM_ADMIN_ROLE_NAME = 'Admin';
+
+/** Default description for the AccessManager admin role */
+export const AM_ADMIN_ROLE_DESCRIPTION =
+  'Root authority role with full administrative privileges over the AccessManager.';
+
+/** AccessManager PUBLIC_ROLE = type(uint64).max */
+export const AM_PUBLIC_ROLE_ID = '18446744073709551615';
+
+/** Display name for the AccessManager public role */
+export const AM_PUBLIC_ROLE_NAME = 'Public';
+
+/** Default description for the AccessManager public role */
+export const AM_PUBLIC_ROLE_DESCRIPTION =
+  'Special role that grants access to all accounts. Functions assigned to this role are callable by anyone.';

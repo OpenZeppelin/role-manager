@@ -15,19 +15,22 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useDerivedAccountStatus } from '@openzeppelin/ui-react';
-import type {
-  ExecutionConfig,
-  OperationResult,
-  TransactionStatusUpdate,
-  TxStatus,
-} from '@openzeppelin/ui-types';
+import type { OperationResult, TransactionStatusUpdate, TxStatus } from '@openzeppelin/ui-types';
 
+import { DEFAULT_EXECUTION_CONFIG } from '../constants';
 import type {
   DialogTransactionStep,
   PendingRoleChange,
   RoleCheckboxItem,
 } from '../types/role-dialogs';
-import { useGrantRole, useRevokeRole } from './useAccessControlMutations';
+import {
+  useGrantRole,
+  useRevokeRole,
+  type GrantRoleArgs,
+  type RevokeRoleArgs,
+} from './useAccessControlMutations';
+import { useAMGrantRole, useAMRevokeRole } from './useAccessManagerMutations';
+import { type ExtendedCapabilities } from './useContractCapabilities';
 import { useRolesPageData } from './useRolesPageData';
 import { useSelectedContract } from './useSelectedContract';
 import { useMultiMutationExecution } from './useTransactionExecution';
@@ -133,13 +136,50 @@ export function useManageRolesDialog(
 
   const { selectedContract, runtime } = useSelectedContract();
   const contractAddress = selectedContract?.address ?? '';
+  const isAccessManager = !!(selectedContract?.capabilities as ExtendedCapabilities | undefined)
+    ?.hasAccessManager;
 
   const { roles } = useRolesPageData();
   const { address: connectedAddress } = useDerivedAccountStatus();
 
-  // Mutation hooks for grant/revoke
-  const grantRole = useGrantRole(runtime, contractAddress);
-  const revokeRole = useRevokeRole(runtime, contractAddress);
+  // Mutation hooks — use AM or AC based on contract type
+  const acGrantRole = useGrantRole(runtime, contractAddress);
+  const acRevokeRole = useRevokeRole(runtime, contractAddress);
+  const amGrantRole = useAMGrantRole(runtime, contractAddress);
+  const amRevokeRole = useAMRevokeRole(runtime, contractAddress);
+
+  // Wrap AM hooks to match AC arg shapes
+  const amGrantWrapper = useMemo(
+    () => ({
+      ...amGrantRole,
+      mutateAsync: async (args: GrantRoleArgs): Promise<OperationResult> => {
+        return amGrantRole.mutateAsync({
+          roleId: args.roleId,
+          account: args.account,
+          executionDelay: 0,
+          executionConfig: args.executionConfig,
+        });
+      },
+    }),
+    [amGrantRole]
+  );
+
+  const amRevokeWrapper = useMemo(
+    () => ({
+      ...amRevokeRole,
+      mutateAsync: async (args: RevokeRoleArgs): Promise<OperationResult> => {
+        return amRevokeRole.mutateAsync({
+          roleId: args.roleId,
+          account: args.account,
+          executionConfig: args.executionConfig,
+        });
+      },
+    }),
+    [amRevokeRole]
+  );
+
+  const grantRole = isAccessManager ? amGrantWrapper : acGrantRole;
+  const revokeRole = isAccessManager ? amRevokeWrapper : acRevokeRole;
 
   // =============================================================================
   // Transaction Execution (using shared hook)
@@ -277,7 +317,7 @@ export function useManageRolesDialog(
     const mutationArgs = {
       roleId: pendingChange.roleId,
       account: accountAddress,
-      executionConfig: { method: 'eoa', allowAny: true } as ExecutionConfig,
+      executionConfig: DEFAULT_EXECUTION_CONFIG,
     };
 
     await execute(() =>

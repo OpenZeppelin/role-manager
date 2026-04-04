@@ -13,6 +13,12 @@ import { useDerivedAccountStatus } from '@openzeppelin/ui-react';
 import type { AccessControlCapabilities } from '@openzeppelin/ui-types';
 
 import {
+  AM_ADMIN_ROLE_ID,
+  AM_ADMIN_ROLE_NAME,
+  AM_PUBLIC_ROLE_ID,
+  AM_PUBLIC_ROLE_NAME,
+} from '../constants';
+import {
   DEFAULT_FILTER_STATE,
   type AccountsFilterState,
   type AuthorizedAccountView,
@@ -20,7 +26,8 @@ import {
 } from '../types/authorized-accounts';
 import { applyAccountsFilters, transformRolesToAccounts } from '../utils/account-transformer';
 import { buildFilterRolesFromBadges } from '../utils/filter-roles';
-import { useContractCapabilities } from './useContractCapabilities';
+import { useAccessManagerRoles } from './useAccessManagerRoles';
+import { useContractCapabilities, type ExtendedCapabilities } from './useContractCapabilities';
 import { useContractOwnership } from './useContractData';
 import { useContractRolesEnriched } from './useContractRolesEnriched';
 import { useSelectedContract } from './useSelectedContract';
@@ -166,9 +173,16 @@ export function useAuthorizedAccountsPageData(): UseAuthorizedAccountsPageDataRe
     isLoading: isCapabilitiesLoading,
     error: capabilitiesError,
     isSupported,
-  } = useContractCapabilities(runtime, contractAddress, isContractRegistered);
+  } = useContractCapabilities(
+    runtime,
+    contractAddress,
+    isContractRegistered,
+    selectedContract?.capabilities
+  );
 
-  // Enriched roles fetching
+  const hasAccessManager = (capabilities as ExtendedCapabilities)?.hasAccessManager ?? false;
+
+  // Enriched roles fetching (disabled for AccessManager contracts)
   const {
     roles: enrichedRoles,
     isLoading: isRolesLoading,
@@ -177,7 +191,20 @@ export function useAuthorizedAccountsPageData(): UseAuthorizedAccountsPageDataRe
     hasError: hasRolesError,
     canRetry: canRetryRoles,
     errorMessage: rolesErrorMessage,
-  } = useContractRolesEnriched(runtime, contractAddress, isContractRegistered);
+  } = useContractRolesEnriched(runtime, contractAddress, isContractRegistered && !hasAccessManager);
+
+  // AccessManager roles (Feature 018)
+  const {
+    roles: amRoles,
+    isLoading: isAmRolesLoading,
+    error: amRolesError,
+    refetch: refetchAmRoles,
+  } = useAccessManagerRoles(
+    runtime,
+    contractAddress,
+    hasAccessManager,
+    selectedContract?.networkId ?? ''
+  );
 
   // Ownership fetching
   // Only fetch when contract has Ownable capability (prevents errors on AccessControl-only contracts)
@@ -194,10 +221,39 @@ export function useAuthorizedAccountsPageData(): UseAuthorizedAccountsPageDataRe
   // =============================================================================
 
   // Transform to account-centric view
-  const allAccountsUnfiltered = useMemo(
-    () => transformRolesToAccounts(enrichedRoles, ownership),
-    [enrichedRoles, ownership]
-  );
+  // For AccessManager: build accounts from AM roles directly
+  const allAccountsUnfiltered = useMemo(() => {
+    if (hasAccessManager) {
+      const accountMap = new Map<string, AuthorizedAccountView>();
+      for (const role of amRoles) {
+        let roleName: string;
+        if (role.label) roleName = role.label;
+        else if (role.roleId === AM_ADMIN_ROLE_ID) roleName = AM_ADMIN_ROLE_NAME;
+        else if (role.roleId === AM_PUBLIC_ROLE_ID) roleName = AM_PUBLIC_ROLE_NAME;
+        else roleName = `Role #${role.roleId}`;
+
+        for (const member of role.members) {
+          const addr = member.address.toLowerCase();
+          if (!accountMap.has(addr)) {
+            accountMap.set(addr, {
+              id: member.address,
+              address: member.address,
+              status: 'active',
+              dateAdded: member.since > 0 ? new Date(member.since * 1000).toISOString() : null,
+              roles: [],
+            });
+          }
+          const account = accountMap.get(addr)!;
+          account.roles.push({
+            id: role.roleId,
+            name: roleName,
+          });
+        }
+      }
+      return Array.from(accountMap.values());
+    }
+    return transformRolesToAccounts(enrichedRoles, ownership);
+  }, [hasAccessManager, amRoles, enrichedRoles, ownership]);
 
   // Extract available roles for filter dropdown
   // Uses consistent sorting: Owner, Admin at top, then enumerated roles alphabetically
@@ -255,12 +311,21 @@ export function useAuthorizedAccountsPageData(): UseAuthorizedAccountsPageDataRe
   // When contract is selected but not yet registered, queries are disabled
   // and their isLoading is false, but we're still "loading" from user perspective
   const isWaitingForRegistration = !!selectedContract && !isContractRegistered;
-  const isLoading =
-    isWaitingForRegistration || isCapabilitiesLoading || isRolesLoading || isOwnershipLoading;
-  const isRefreshing = !isLoading && (isRolesFetching || isOwnershipFetching);
-  const hasError = !!capabilitiesError || hasRolesError;
-  const errorMessage = rolesErrorMessage ?? capabilitiesError?.message ?? null;
-  const canRetry = canRetryRoles || !!capabilitiesError;
+  const isLoading = hasAccessManager
+    ? isWaitingForRegistration || isCapabilitiesLoading || isAmRolesLoading
+    : isWaitingForRegistration || isCapabilitiesLoading || isRolesLoading || isOwnershipLoading;
+  const isRefreshing = hasAccessManager
+    ? false
+    : !isLoading && (isRolesFetching || isOwnershipFetching);
+  const hasError = hasAccessManager
+    ? !!capabilitiesError || !!amRolesError
+    : !!capabilitiesError || hasRolesError;
+  const errorMessage = hasAccessManager
+    ? (amRolesError?.message ?? capabilitiesError?.message ?? null)
+    : (rolesErrorMessage ?? capabilitiesError?.message ?? null);
+  const canRetry = hasAccessManager
+    ? !!amRolesError || !!capabilitiesError
+    : canRetryRoles || !!capabilitiesError;
 
   // =============================================================================
   // Actions
@@ -268,8 +333,12 @@ export function useAuthorizedAccountsPageData(): UseAuthorizedAccountsPageDataRe
 
   // Combined refetch function
   const refetch = useCallback(async (): Promise<void> => {
+    if (hasAccessManager) {
+      await refetchAmRoles();
+      return;
+    }
     await Promise.all([refetchRoles(), refetchOwnership()]);
-  }, [refetchRoles, refetchOwnership]);
+  }, [hasAccessManager, refetchAmRoles, refetchRoles, refetchOwnership]);
 
   // Reset filters to default
   const resetFilters = useCallback(() => {

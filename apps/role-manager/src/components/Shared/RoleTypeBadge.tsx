@@ -60,6 +60,8 @@ const TYPE_LABELS: Record<PendingTransferType, string> = {
   ownership: 'Owner',
   admin: 'Admin',
   multisig: 'Multisig',
+  'am-grant': 'Grant',
+  'am-operation': 'Operation',
 };
 
 // =============================================================================

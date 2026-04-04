@@ -22,6 +22,7 @@ import type {
 
 import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 
+import { useSharedAccessManagerSync } from '../context/AccessManagerSyncContext';
 import type { PendingTransfer, UsePendingTransfersReturn } from '../types/pending-transfers';
 import {
   hasNoExpiration,
@@ -29,7 +30,7 @@ import {
   isScheduleTimestampReached,
 } from '../utils/expiration';
 import { createGetAccountUrl } from '../utils/explorer-urls';
-import { useContractCapabilities } from './useContractCapabilities';
+import { useContractCapabilities, type ExtendedCapabilities } from './useContractCapabilities';
 import { useContractAdminInfo, useContractOwnership } from './useContractData';
 import { useCurrentBlock } from './useCurrentBlock';
 import { useExpirationMetadata } from './useExpirationMetadata';
@@ -203,9 +204,18 @@ export function usePendingTransfers(
   const contractAddress = selectedContract?.address ?? '';
 
   // Feature 016: Get capabilities to check for two-step admin support
-  const { capabilities } = useContractCapabilities(runtime, contractAddress, isContractRegistered);
+  const { capabilities } = useContractCapabilities(
+    runtime,
+    contractAddress,
+    isContractRegistered,
+    selectedContract?.capabilities
+  );
   const hasOwnable = capabilities?.hasOwnable ?? false;
   const hasTwoStepAdmin = capabilities?.hasTwoStepAdmin ?? false;
+  const hasAccessManager = (capabilities as ExtendedCapabilities)?.hasAccessManager ?? false;
+
+  // AccessManager data (roles with pending grants, scheduled operations)
+  const amSync = useSharedAccessManagerSync();
 
   // Fetch ownership data (includes pendingTransfer if available)
   // Only fetch when contract has Ownable capability (prevents errors on AccessControl-only contracts)
@@ -310,7 +320,65 @@ export function usePendingTransfers(
       }
     }
 
-    // Future: Add multisig signer changes
+    // Feature 018: AccessManager pending changes
+    if (hasAccessManager) {
+      const now = Math.floor(Date.now() / 1000);
+      const getAccountUrl = createGetAccountUrl(runtime);
+
+      // Pending role grants: members with `since` in the future (grant delay not elapsed)
+      for (const role of amSync.roles) {
+        for (const member of role.members) {
+          if (member.since > now) {
+            result.push({
+              id: `am-grant-${role.roleId}-${member.address}`,
+              type: 'am-grant',
+              label: role.label ?? `Role #${role.roleId}`,
+              currentHolder: contractAddress,
+              currentHolderUrl: getAccountUrl(contractAddress) ?? undefined,
+              pendingRecipient: member.address,
+              pendingRecipientUrl: getAccountUrl(member.address) ?? undefined,
+              expirationBlock: member.since,
+              isExpired: false,
+              expirationMetadata: {
+                mode: 'contract-managed' as const,
+                label: 'Effective',
+                unit: '',
+              },
+              isScheduleReached: false,
+              step: { current: 1, total: 2 },
+              canAccept: false, // Grant becomes active automatically
+              initiatedAt: undefined,
+            });
+          }
+        }
+      }
+
+      // Scheduled operations awaiting execution
+      for (const op of amSync.operations) {
+        if (!op.isExpired) {
+          result.push({
+            id: `am-op-${op.operationId}`,
+            type: 'am-operation',
+            label: 'Scheduled Operation',
+            currentHolder: op.caller,
+            currentHolderUrl: getAccountUrl(op.caller) ?? undefined,
+            pendingRecipient: op.target,
+            pendingRecipientUrl: getAccountUrl(op.target) ?? undefined,
+            expirationBlock: op.schedule,
+            isExpired: false,
+            expirationMetadata: {
+              mode: 'contract-managed' as const,
+              label: 'Execute after',
+              unit: '',
+            },
+            isScheduleReached: op.isReady,
+            step: { current: op.isReady ? 2 : 1, total: 2 },
+            canAccept: false, // Execute requires explicit tx, not "accept"
+            initiatedAt: undefined,
+          });
+        }
+      }
+    }
 
     return result;
   }, [
@@ -324,6 +392,9 @@ export function usePendingTransfers(
     runtime,
     ownershipExpirationMetadata,
     adminExpirationMetadata,
+    hasAccessManager,
+    amSync.roles,
+    amSync.operations,
   ]);
 
   // =============================================================================

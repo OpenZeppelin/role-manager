@@ -20,7 +20,8 @@ import { getUniqueAccountsCount } from '../utils/deduplication';
 import { generateSnapshotFilename } from '../utils/snapshot';
 import type { SnapshotAlias } from './useAccessControlMutations';
 import { useExportSnapshot } from './useAccessControlMutations';
-import { useContractCapabilities } from './useContractCapabilities';
+import { useAccessManagerRoles } from './useAccessManagerRoles';
+import { useContractCapabilities, type ExtendedCapabilities } from './useContractCapabilities';
 import { useContractOwnership } from './useContractData';
 import { useContractRolesEnriched } from './useContractRolesEnriched';
 
@@ -38,6 +39,8 @@ export interface UseDashboardDataOptions {
   aliases?: SnapshotAlias[];
   /** Whether the contract has been registered with the service (required for Stellar) */
   isContractRegistered?: boolean;
+  /** Stored capabilities from contract record — seeds cache for AccessManager detection */
+  storedCapabilities?: import('@openzeppelin/ui-types').AccessControlCapabilities | null;
 }
 
 /**
@@ -87,7 +90,14 @@ export function useDashboardData(
   contractAddress: string,
   options: UseDashboardDataOptions
 ): UseDashboardDataReturn {
-  const { networkId, networkName, label, aliases, isContractRegistered = true } = options;
+  const {
+    networkId,
+    networkName,
+    label,
+    aliases,
+    isContractRegistered = true,
+    storedCapabilities,
+  } = options;
   // Track refreshing state separately from initial load
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -95,13 +105,14 @@ export function useDashboardData(
   const { capabilities, isPending: capabilitiesPending } = useContractCapabilities(
     runtime,
     contractAddress,
-    isContractRegistered
+    isContractRegistered,
+    storedCapabilities
   );
   const hasOwnableCapability = capabilities?.hasOwnable ?? false;
+  const hasAccessManager = (capabilities as ExtendedCapabilities)?.hasAccessManager ?? false;
 
-  // Fetch enriched roles data for cross-page cache sharing.
-  // After fetching, useContractRolesEnriched populates the basic roles cache via setQueryData,
-  // so when navigating to Roles page it doesn't need to make another RPC call.
+  // Fetch enriched roles data for cross-page cache sharing (AC/Ownable contracts only).
+  // Disabled for AccessManager contracts — they use a different role model.
   const {
     roles: enrichedRoles,
     isPending: rolesPending,
@@ -110,7 +121,17 @@ export function useDashboardData(
     errorMessage: rolesErrorMessage,
     canRetry: rolesCanRetry,
     refetch: rolesRefetch,
-  } = useContractRolesEnriched(runtime, contractAddress, isContractRegistered);
+  } = useContractRolesEnriched(runtime, contractAddress, isContractRegistered && !hasAccessManager);
+
+  // Fetch AccessManager roles when hasAccessManager is true
+  const {
+    roles: amRoles,
+    isPending: amRolesPending,
+    isSyncing: amIsSyncing,
+    syncProgress: amSyncProgress,
+    error: amRolesError,
+    refetch: amRolesRefetch,
+  } = useAccessManagerRoles(runtime, contractAddress, hasAccessManager, networkId);
 
   // Convert enriched roles to basic format for counting
   // (enriched roles have { role, members: { address, grantedAt }[] })
@@ -142,16 +163,48 @@ export function useDashboardData(
   // may still be initializing. Return null (loading skeleton) instead of showing 0.
   const rolesCount = useMemo(() => {
     if (!runtime || !contractAddress) return null;
+    if (hasAccessManager) {
+      if (amRolesPending) return null;
+      return amRoles.length;
+    }
     if (rolesPending || rolesSettling) return null;
     return roles.length;
-  }, [runtime, contractAddress, rolesPending, rolesSettling, roles.length]);
+  }, [
+    runtime,
+    contractAddress,
+    hasAccessManager,
+    amRolesPending,
+    amRoles.length,
+    rolesPending,
+    rolesSettling,
+    roles.length,
+  ]);
 
   // Compute unique accounts count using Set-based deduplication
   const uniqueAccountsCount = useMemo(() => {
     if (!runtime || !contractAddress) return null;
+    if (hasAccessManager) {
+      if (amRolesPending) return null;
+      const allMembers = new Set<string>();
+      for (const role of amRoles) {
+        for (const member of role.members) {
+          allMembers.add(member.address.toLowerCase());
+        }
+      }
+      return allMembers.size;
+    }
     if (rolesPending || rolesSettling) return null;
     return getUniqueAccountsCount(roles);
-  }, [runtime, contractAddress, rolesPending, rolesSettling, roles]);
+  }, [
+    runtime,
+    contractAddress,
+    hasAccessManager,
+    amRolesPending,
+    amRoles,
+    rolesPending,
+    rolesSettling,
+    roles,
+  ]);
 
   // Determine capability flags from detected capabilities (more reliable than inference)
   const hasAccessControl = useMemo(() => {
@@ -170,42 +223,46 @@ export function useDashboardData(
   // rolesSettling covers the gap where the query resolved with empty data but
   // the indexer is still initializing — keeps the loading skeleton visible.
   // Ownership is only expected to have data when the contract supports Ownable.
-  const isLoading =
-    capabilitiesPending ||
-    rolesPending ||
-    rolesSettling ||
-    (hasOwnableCapability && ownershipPending);
+  const isLoading = hasAccessManager
+    ? capabilitiesPending || amRolesPending
+    : capabilitiesPending ||
+      rolesPending ||
+      rolesSettling ||
+      (hasOwnableCapability && ownershipPending);
 
   // Combined error state
-  const hasError = rolesHasError || ownershipHasError;
+  const hasError = hasAccessManager ? !!amRolesError : rolesHasError || ownershipHasError;
 
   // Combined error message (prioritize roles error, then ownership)
   const errorMessage = useMemo(() => {
+    if (hasAccessManager) return amRolesError?.message ?? null;
     if (rolesErrorMessage) return rolesErrorMessage;
     if (ownershipErrorMessage) return ownershipErrorMessage;
     return null;
-  }, [rolesErrorMessage, ownershipErrorMessage]);
+  }, [hasAccessManager, amRolesError, rolesErrorMessage, ownershipErrorMessage]);
 
   // Can retry if either can be retried
-  const canRetry = rolesCanRetry || ownershipCanRetry;
+  const canRetry = hasAccessManager ? !!amRolesError : rolesCanRetry || ownershipCanRetry;
 
   // Combined refetch function - refetches applicable queries in parallel
   // Throws on error to allow caller to handle (e.g., show toast notification)
   const refetch = useCallback(async (): Promise<void> => {
     setIsRefreshing(true);
     try {
+      if (hasAccessManager) {
+        await amRolesRefetch();
+        return;
+      }
       const refetchPromises = [rolesRefetch()];
       // Only refetch ownership if the contract has Ownable capability
       if (hasOwnableCapability) {
         refetchPromises.push(ownershipRefetch());
       }
       const results = await Promise.allSettled(refetchPromises);
-      // Check if any refetch failed and throw an aggregated error
       const failures = results.filter(
         (result): result is PromiseRejectedResult => result.status === 'rejected'
       );
       if (failures.length > 0) {
-        // Throw the first error message to signal refresh failed
         const errorMessage =
           failures[0].reason instanceof Error
             ? failures[0].reason.message
@@ -215,7 +272,7 @@ export function useDashboardData(
     } finally {
       setIsRefreshing(false);
     }
-  }, [rolesRefetch, ownershipRefetch, hasOwnableCapability]);
+  }, [hasAccessManager, amRolesRefetch, rolesRefetch, ownershipRefetch, hasOwnableCapability]);
 
   // Generate custom filename for snapshot export using truncated address and timestamp
   const snapshotFilename = useMemo(() => {
@@ -250,6 +307,11 @@ export function useDashboardData(
     uniqueAccountsCount,
     hasAccessControl,
     hasOwnable,
+    hasAccessManager,
+
+    // Sync state (AccessManager)
+    isSyncing: amIsSyncing,
+    syncProgress: amSyncProgress,
 
     // State flags
     isLoading,

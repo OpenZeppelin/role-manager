@@ -266,7 +266,8 @@ describe('useRolesPageData', () => {
       expect(mockUseContractCapabilities).toHaveBeenCalledWith(
         { id: 'test-adapter' },
         '0xcontract123',
-        true // isContractRegistered
+        true, // isContractRegistered
+        undefined // storedCapabilities (mock contract has no stored capabilities)
       );
     });
 

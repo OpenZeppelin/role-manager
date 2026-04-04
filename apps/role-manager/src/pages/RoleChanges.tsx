@@ -13,7 +13,7 @@
  */
 
 import { FileSearch, RefreshCw } from 'lucide-react';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { Button, Card } from '@openzeppelin/ui-components';
@@ -29,7 +29,9 @@ import {
 } from '../components/RoleChanges';
 import { PageEmptyState } from '../components/Shared/PageEmptyState';
 import { PageHeader } from '../components/Shared/PageHeader';
+import { hasAccessManagerCapability } from '../hooks/useContractCapabilities';
 import { useContractDisplayName } from '../hooks/useContractDisplayName';
+import { useFunctionSignatures } from '../hooks/useFunctionSignatures';
 import { useRoleChangesPageData } from '../hooks/useRoleChangesPageData';
 import { useSelectedContract } from '../hooks/useSelectedContract';
 
@@ -69,6 +71,15 @@ export function RoleChanges() {
   // Get contract info for display
   const { selectedContract } = useSelectedContract();
   const contractLabel = useContractDisplayName(selectedContract);
+  const isAccessManager = hasAccessManagerCapability(selectedContract?.capabilities);
+
+  // Resolve function selectors in target-role events to human-readable names
+  const targetRoleSelectors = useMemo(() => {
+    return events
+      .filter((e) => e.amEventType === 'target-role' && e.selector)
+      .map((e) => e.selector!);
+  }, [events]);
+  const signatureMap = useFunctionSignatures(targetRoleSelectors);
 
   // Handler for navigating to Roles page with specific role pre-selected
   const handleRoleClick = useCallback(
@@ -191,6 +202,8 @@ export function RoleChanges() {
               events={events}
               onRoleClick={handleRoleClick}
               emptyState={<ChangesEmptyState noEventsFound contractName={contractLabel} />}
+              signatureMap={signatureMap}
+              isAccessManager={isAccessManager}
             />
             {/* Cursor-based pagination (T022 - US3) */}
             <CursorPagination pagination={pagination} />

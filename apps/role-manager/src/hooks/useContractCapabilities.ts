@@ -3,12 +3,12 @@
  * Feature: 006-access-control-service
  *
  * Provides feature detection for access control contracts.
- * Determines what interfaces a contract supports (AccessControl, Ownable, etc.)
+ * Determines what interfaces a contract supports (AccessControl, Ownable, AccessManager, etc.)
  * Uses react-query for caching and automatic refetching.
  */
 
-import { useQuery } from '@tanstack/react-query';
-import { useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useMemo } from 'react';
 
 import type { AccessControlCapabilities } from '@openzeppelin/ui-types';
 
@@ -17,12 +17,26 @@ import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 import { queryKeys } from './queryKeys';
 import { useAccessControlService } from './useAccessControlService';
 
+// ============================================================================
+// Extended Capabilities (includes AccessManager)
+// ============================================================================
+
+/**
+ * Extended capabilities that includes AccessManager detection.
+ * Augments the upstream AccessControlCapabilities with local extensions.
+ */
+export type ExtendedCapabilities = AccessControlCapabilities & {
+  hasAccessManager?: boolean;
+  hasScheduledOperations?: boolean;
+  hasTargetManagement?: boolean;
+};
+
 /**
  * Return type for useContractCapabilities hook
  */
 export interface UseContractCapabilitiesReturn {
   /** Detected capabilities, or null if not yet loaded or unsupported */
-  capabilities: AccessControlCapabilities | null;
+  capabilities: ExtendedCapabilities | null;
   /** Whether the query is currently loading */
   isLoading: boolean;
   /** Whether no cached data exists yet (true even when query is disabled or just enabled) */
@@ -31,17 +45,58 @@ export interface UseContractCapabilitiesReturn {
   error: Error | null;
   /** Function to manually refetch capabilities */
   refetch: () => Promise<void>;
-  /** Whether the contract is supported (has AccessControl OR Ownable) */
+  /** Whether the contract is supported (has AccessControl OR Ownable OR AccessManager) */
   isSupported: boolean;
 }
 
 // Use centralized query keys
 
 /**
+ * Detect if a contract is an AccessManager by probing for ADMIN_ROLE() returning uint64(0).
+ * Uses dynamic import of viem to avoid bundling it when not needed.
+ */
+async function probeAccessManager(
+  runtime: RoleManagerRuntime,
+  contractAddress: string
+): Promise<boolean> {
+  // Only probe on EVM chains
+  if (runtime.networkConfig.ecosystem !== 'evm') return false;
+
+  try {
+    const networkConfig = runtime.networkConfig as {
+      rpcUrl: string;
+      chainId: number;
+    };
+
+    const rpcUrl = networkConfig.rpcUrl;
+
+    const { createPublicClient, http } = await import('viem');
+    const { ACCESS_MANAGER_ABI } = await import('../core/ecosystems/evm/accessManagerAbi');
+
+    const client = createPublicClient({
+      transport: http(rpcUrl),
+    });
+
+    const adminRole = await client.readContract({
+      address: contractAddress as `0x${string}`,
+      abi: ACCESS_MANAGER_ABI,
+      functionName: 'ADMIN_ROLE',
+    });
+
+    // ADMIN_ROLE() should return uint64(0) for AccessManager
+    return adminRole === 0n;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Hook that detects access control capabilities for a given contract.
  *
  * Uses the AccessControlService from the runtime to determine what
  * interfaces the contract implements (AccessControl, Ownable, etc.).
+ * Additionally probes for AccessManager on EVM chains when standard
+ * detection doesn't find AC/Ownable.
  *
  * @param runtime - The ecosystem runtime instance, or null if not loaded
  * @param contractAddress - The contract address to check
@@ -67,10 +122,35 @@ export interface UseContractCapabilitiesReturn {
 export function useContractCapabilities(
   runtime: RoleManagerRuntime | null,
   contractAddress: string,
-  isContractRegistered: boolean = true
+  isContractRegistered: boolean = true,
+  /** Stored capabilities from the contract record — seeds the cache on first load */
+  storedCapabilities?: AccessControlCapabilities | null
 ): UseContractCapabilitiesReturn {
   // Get the access control service from the runtime
   const { service, isReady } = useAccessControlService(runtime);
+  const queryClient = useQueryClient();
+
+  // Seed/merge cache from stored capabilities if they include hasAccessManager
+  // This ensures the hook picks up AccessManager detection across page navigations
+  useEffect(() => {
+    if (!contractAddress || !storedCapabilities) return;
+    const stored = storedCapabilities as ExtendedCapabilities;
+    if (!stored.hasAccessManager) return;
+
+    const cached = queryClient.getQueryData<ExtendedCapabilities>(
+      queryKeys.contractCapabilities(contractAddress)
+    );
+
+    // Seed if no cache, or merge if cache lacks hasAccessManager
+    if (!cached || !cached.hasAccessManager) {
+      queryClient.setQueryData(queryKeys.contractCapabilities(contractAddress), {
+        ...(cached ?? stored),
+        hasAccessManager: true,
+        hasScheduledOperations: true,
+        hasTargetManagement: true,
+      });
+    }
+  }, [contractAddress, storedCapabilities, queryClient]);
 
   // Query for capabilities using react-query
   const {
@@ -81,11 +161,46 @@ export function useContractCapabilities(
     refetch: queryRefetch,
   } = useQuery({
     queryKey: queryKeys.contractCapabilities(contractAddress),
-    queryFn: async (): Promise<AccessControlCapabilities> => {
+    queryFn: async (): Promise<ExtendedCapabilities> => {
       if (!service) {
         throw new Error('Access control service not available');
       }
-      return service.getCapabilities(contractAddress);
+
+      // Check stored capabilities first — avoids re-probing AccessManager
+      const stored = storedCapabilities as ExtendedCapabilities | null | undefined;
+      if (stored?.hasAccessManager) {
+        const baseCaps = await service.getCapabilities(contractAddress);
+        return {
+          ...baseCaps,
+          hasAccessManager: true,
+          hasScheduledOperations: true,
+          hasTargetManagement: true,
+        };
+      }
+
+      // Standard capability detection
+      const baseCaps = await service.getCapabilities(contractAddress);
+
+      // If standard detection found AC or Ownable, return as-is
+      if (baseCaps.hasAccessControl || baseCaps.hasOwnable) {
+        return baseCaps as ExtendedCapabilities;
+      }
+
+      // Fallback: probe via RPC
+      if (runtime) {
+        const isAccessManager = await probeAccessManager(runtime, contractAddress);
+        if (isAccessManager) {
+          return {
+            ...baseCaps,
+            hasAccessManager: true,
+            hasScheduledOperations: true,
+            hasTargetManagement: true,
+          } as ExtendedCapabilities;
+        }
+      }
+
+      // Nothing detected
+      return baseCaps as ExtendedCapabilities;
     },
     // Only run query when we have a service, valid address, and contract is registered
     enabled: isReady && !!contractAddress && isContractRegistered,
@@ -100,7 +215,9 @@ export function useContractCapabilities(
   // Compute isSupported based on capabilities
   const isSupported = useMemo(() => {
     if (!capabilities) return false;
-    return capabilities.hasAccessControl || capabilities.hasOwnable;
+    return (
+      capabilities.hasAccessControl || capabilities.hasOwnable || !!capabilities.hasAccessManager
+    );
   }, [capabilities]);
 
   // Wrap refetch to return void
@@ -123,9 +240,25 @@ export function useContractCapabilities(
  * Can be used outside of React components for validation logic.
  *
  * @param capabilities - The capabilities to check
- * @returns true if contract has AccessControl OR Ownable
+ * @returns true if contract has AccessControl OR Ownable OR AccessManager
  */
-export function isContractSupported(capabilities: AccessControlCapabilities | null): boolean {
+export function isContractSupported(capabilities: ExtendedCapabilities | null): boolean {
   if (!capabilities) return false;
-  return capabilities.hasAccessControl || capabilities.hasOwnable;
+  return (
+    capabilities.hasAccessControl || capabilities.hasOwnable || !!capabilities.hasAccessManager
+  );
+}
+
+/**
+ * Check if capabilities indicate an AccessManager contract.
+ * Works with both raw capabilities and stored contract capabilities.
+ */
+export function hasAccessManagerCapability(
+  capabilities:
+    | ExtendedCapabilities
+    | import('@openzeppelin/ui-types').AccessControlCapabilities
+    | null
+    | undefined
+): boolean {
+  return !!(capabilities as ExtendedCapabilities)?.hasAccessManager;
 }

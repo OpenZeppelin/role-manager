@@ -29,8 +29,9 @@ import type {
   PendingAdminTransfer,
   PendingOwnershipTransfer,
 } from '@openzeppelin/ui-types';
-import { cn } from '@openzeppelin/ui-utils';
+import { cn, formatSecondsToReadable } from '@openzeppelin/ui-utils';
 
+import { AM_PUBLIC_ROLE_ID } from '../../constants';
 import type { MutationPreviewData } from '../../hooks/useContractData';
 import type { AdminDelayInfo } from '../../types/admin';
 import type { RoleWithDescription } from '../../types/roles';
@@ -52,6 +53,8 @@ export interface AccountData {
   isCurrentUser: boolean;
   /** Explorer URL for the address */
   explorerUrl?: string;
+  /** Execution delay in seconds (AccessManager only) */
+  executionDelay?: number;
 }
 
 /**
@@ -296,13 +299,45 @@ export function RoleDetails({
         </div>
       </CardHeader>
       <CardContent className="pb-6">
+        {/* AccessManager Role Metadata */}
+        {role.adminRoleId !== undefined && (
+          <div className="mb-4 p-3 bg-muted/50 rounded-lg border text-sm space-y-1.5">
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground w-28 shrink-0">Admin Role:</span>
+              <span className="font-medium">
+                {role.adminRoleId === '0' ? 'Admin' : `Role #${role.adminRoleId}`}
+              </span>
+            </div>
+            {role.guardianRoleId !== undefined && (
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground w-28 shrink-0">Guardian Role:</span>
+                <span className="font-medium">
+                  {role.guardianRoleId === '0'
+                    ? 'Admin'
+                    : role.guardianRoleId === AM_PUBLIC_ROLE_ID
+                      ? 'None'
+                      : `Role #${role.guardianRoleId}`}
+                </span>
+              </div>
+            )}
+            {role.grantDelay !== undefined && (
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground w-28 shrink-0">Grant Delay:</span>
+                <span className="font-medium">
+                  {role.grantDelay > 0 ? formatSecondsToReadable(role.grantDelay) : 'None'}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Assigned Accounts */}
         <div>
           <div className="flex items-center justify-between mb-3 shrink-0">
             <h3 className="text-sm font-medium">Assigned Accounts ({accounts.length})</h3>
-            {/* Only show Assign button for enumerable roles (not Owner or Contract Admin) */}
-            {/* Owner and Contract Admin are single-account roles transferred via two-step process */}
-            {!role.isOwnerRole && !role.isAdminRole && (
+            {/* Show Assign for all roles except Owner and AC-style Admin (which use two-step transfer).
+                AM admin roles (isAdminRole + no onTransferAdmin) can have multiple members via grant. */}
+            {!role.isOwnerRole && !(role.isAdminRole && onTransferAdmin) && (
               <Button size="sm" onClick={onAssign} disabled={!onAssign}>
                 <Plus className="h-4 w-4 mr-1" />
                 Assign
@@ -329,6 +364,7 @@ export function RoleDetails({
                       isOwnerRole={role.isOwnerRole}
                       isAdminRole={role.isAdminRole}
                       explorerUrl={account.explorerUrl}
+                      executionDelay={account.executionDelay}
                       onRevoke={onRevoke ? () => onRevoke(account.address) : undefined}
                       onTransferOwnership={onTransferOwnership}
                       onTransferAdmin={onTransferAdmin}

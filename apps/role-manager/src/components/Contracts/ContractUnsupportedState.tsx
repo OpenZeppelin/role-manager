@@ -45,8 +45,8 @@ export function ContractUnsupportedState({
         <div className="flex-1">
           <p className="font-medium text-amber-700 dark:text-amber-300">Contract not supported</p>
           <p className="mt-1 text-sm text-amber-600/80 dark:text-amber-400/80">
-            This contract does not implement standard OpenZeppelin Access Control or Ownable
-            interfaces.
+            This contract does not implement standard OpenZeppelin Access Control, Ownable, or
+            AccessManager interfaces.
           </p>
         </div>
       </div>

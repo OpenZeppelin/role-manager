@@ -34,14 +34,21 @@ import {
   ADMIN_ROLE_DESCRIPTION,
   ADMIN_ROLE_ID,
   ADMIN_ROLE_NAME,
+  AM_ADMIN_ROLE_DESCRIPTION,
+  AM_ADMIN_ROLE_ID,
+  AM_ADMIN_ROLE_NAME,
+  AM_PUBLIC_ROLE_DESCRIPTION,
+  AM_PUBLIC_ROLE_ID,
+  AM_PUBLIC_ROLE_NAME,
   OWNER_ROLE_DESCRIPTION,
   OWNER_ROLE_ID,
   OWNER_ROLE_NAME,
 } from '../constants';
 import type { RoleIdentifier, RoleWithDescription } from '../types/roles';
 import { getRoleName, isRoleDisplayHash } from '../utils/role-name';
+import { useAccessManagerRoles } from './useAccessManagerRoles';
 import { useBlockPollInterval } from './useBlockPollInterval';
-import { useContractCapabilities } from './useContractCapabilities';
+import { useContractCapabilities, type ExtendedCapabilities } from './useContractCapabilities';
 import { useContractAdminInfo, useContractOwnership, useContractRoles } from './useContractData';
 import { useCurrentBlock } from './useCurrentBlock';
 import { useCustomRoleAliases } from './useCustomRoleAliases';
@@ -214,10 +221,18 @@ export function useRolesPageData(): UseRolesPageDataReturn {
     isLoading: isCapabilitiesLoading,
     error: capabilitiesError,
     isSupported,
-  } = useContractCapabilities(runtime, contractAddress, isContractRegistered);
+  } = useContractCapabilities(
+    runtime,
+    contractAddress,
+    isContractRegistered,
+    selectedContract?.capabilities
+  );
+
+  const hasAccessManager = (capabilities as ExtendedCapabilities)?.hasAccessManager ?? false;
 
   // Roles fetching (T019)
   // Wait for contract to be registered before fetching roles
+  // Disabled for AccessManager contracts — they use uint64 roles, not bytes32
   const {
     roles: adapterRoles,
     isLoading: isRolesLoading,
@@ -226,7 +241,20 @@ export function useRolesPageData(): UseRolesPageDataReturn {
     hasError: hasRolesError,
     canRetry: canRetryRoles,
     errorMessage: rolesErrorMessage,
-  } = useContractRoles(runtime, contractAddress, isContractRegistered);
+  } = useContractRoles(runtime, contractAddress, isContractRegistered && !hasAccessManager);
+
+  // AccessManager roles (Feature 018)
+  const {
+    roles: amRoles,
+    isLoading: isAmRolesLoading,
+    error: amRolesError,
+    refetch: refetchAmRoles,
+  } = useAccessManagerRoles(
+    runtime,
+    contractAddress,
+    hasAccessManager,
+    selectedContract?.networkId ?? ''
+  );
 
   // Ownership fetching (T020)
   // Only fetch when contract has Ownable capability (prevents errors on AccessControl-only contracts)
@@ -369,9 +397,78 @@ export function useRolesPageData(): UseRolesPageDataReturn {
     });
   }, [adapterRoles, customDescriptions, customAliases]);
 
+  // AccessManager role transformation (Feature 018)
+  const amTransformedRoles = useMemo((): RoleWithDescription[] => {
+    if (!hasAccessManager) return [];
+    return amRoles.map((role) => {
+      let roleName: string;
+      if (role.label) {
+        roleName = role.label;
+      } else if (role.roleId === AM_ADMIN_ROLE_ID) {
+        roleName = AM_ADMIN_ROLE_NAME;
+      } else if (role.roleId === AM_PUBLIC_ROLE_ID) {
+        roleName = AM_PUBLIC_ROLE_NAME;
+      } else {
+        roleName = `Role #${role.roleId}`;
+      }
+
+      let description: string | null = customDescriptions[role.roleId] ?? null;
+      if (!description) {
+        if (role.roleId === AM_ADMIN_ROLE_ID) description = AM_ADMIN_ROLE_DESCRIPTION;
+        else if (role.roleId === AM_PUBLIC_ROLE_ID) description = AM_PUBLIC_ROLE_DESCRIPTION;
+      }
+
+      // Build per-member execution delays map
+      const memberDelays: Record<string, number> = {};
+      for (const m of role.members) {
+        if (m.executionDelay > 0) {
+          memberDelays[m.address] = m.executionDelay;
+        }
+      }
+
+      return {
+        roleId: role.roleId,
+        roleName,
+        description,
+        isCustomDescription: !!customDescriptions[role.roleId],
+        members: role.members.map((m) => m.address),
+        isOwnerRole: false,
+        isAdminRole: role.roleId === AM_ADMIN_ROLE_ID,
+        isHashDisplay: false,
+        // AM metadata
+        adminRoleId: role.adminRoleId,
+        guardianRoleId: role.guardianRoleId,
+        grantDelay: role.grantDelay,
+        memberExecutionDelays: Object.keys(memberDelays).length > 0 ? memberDelays : undefined,
+      };
+    });
+  }, [hasAccessManager, amRoles, customDescriptions]);
+
   // T015: Combine owner role, admin role, and adapter roles
   // Order: [ownerRole?, adminRole?, ...enumeratedRoles]
+  // For AccessManager: use amTransformedRoles + ensure PUBLIC_ROLE is present
   const roles = useMemo((): RoleWithDescription[] => {
+    if (hasAccessManager) {
+      const result = [...amTransformedRoles];
+      // Ensure PUBLIC_ROLE is always shown (every address is implicitly a member)
+      if (!result.find((r) => r.roleId === AM_PUBLIC_ROLE_ID)) {
+        result.push({
+          roleId: AM_PUBLIC_ROLE_ID,
+          roleName: AM_PUBLIC_ROLE_NAME,
+          description: customDescriptions[AM_PUBLIC_ROLE_ID] ?? AM_PUBLIC_ROLE_DESCRIPTION,
+          isCustomDescription: !!customDescriptions[AM_PUBLIC_ROLE_ID],
+          members: [], // All addresses are members — not enumerable
+          isOwnerRole: false,
+          isAdminRole: false,
+          isHashDisplay: false,
+          adminRoleId: AM_ADMIN_ROLE_ID,
+          guardianRoleId: AM_ADMIN_ROLE_ID,
+          grantDelay: 0,
+        });
+      }
+      return result;
+    }
+
     const result: RoleWithDescription[] = [];
 
     // Owner role first (if exists)
@@ -388,7 +485,7 @@ export function useRolesPageData(): UseRolesPageDataReturn {
     result.push(...transformedRoles);
 
     return result;
-  }, [ownerRole, adminRole, transformedRoles]);
+  }, [hasAccessManager, amTransformedRoles, ownerRole, adminRole, transformedRoles]);
 
   // Selected role (T023)
   const selectedRole = useMemo((): RoleWithDescription | null => {
@@ -444,17 +541,26 @@ export function useRolesPageData(): UseRolesPageDataReturn {
   const isWaitingForRegistration = !!selectedContract && !isContractRegistered;
 
   // Feature 016: Include admin loading state
-  const isLoading =
-    isWaitingForRegistration ||
-    isCapabilitiesLoading ||
-    isRolesLoading ||
-    isOwnershipLoading ||
-    isAdminLoading;
-  // T051: isRefreshing is true when we have data but are fetching in the background
-  const isRefreshing = !isLoading && (isRolesFetching || isOwnershipFetching || isAdminFetching);
-  const hasError = !!capabilitiesError || hasRolesError;
-  const errorMessage = rolesErrorMessage ?? capabilitiesError?.message ?? null;
-  const canRetry = canRetryRoles || !!capabilitiesError;
+  // Feature 018: Include AccessManager roles loading
+  const isLoading = hasAccessManager
+    ? isWaitingForRegistration || isCapabilitiesLoading || isAmRolesLoading
+    : isWaitingForRegistration ||
+      isCapabilitiesLoading ||
+      isRolesLoading ||
+      isOwnershipLoading ||
+      isAdminLoading;
+  const isRefreshing = hasAccessManager
+    ? false
+    : !isLoading && (isRolesFetching || isOwnershipFetching || isAdminFetching);
+  const hasError = hasAccessManager
+    ? !!capabilitiesError || !!amRolesError
+    : !!capabilitiesError || hasRolesError;
+  const errorMessage = hasAccessManager
+    ? (amRolesError?.message ?? capabilitiesError?.message ?? null)
+    : (rolesErrorMessage ?? capabilitiesError?.message ?? null);
+  const canRetry = hasAccessManager
+    ? !!amRolesError || !!capabilitiesError
+    : canRetryRoles || !!capabilitiesError;
 
   // =============================================================================
   // Actions
@@ -464,8 +570,12 @@ export function useRolesPageData(): UseRolesPageDataReturn {
   // Always include admin info refetch — React Query handles disabled queries gracefully,
   // and contracts with hasAdminDelayManagement also need admin data refreshed.
   const refetch = useCallback(async (): Promise<void> => {
+    if (hasAccessManager) {
+      await refetchAmRoles();
+      return;
+    }
     await Promise.all([refetchRoles(), refetchOwnership(), refetchAdminInfo()]);
-  }, [refetchRoles, refetchOwnership, refetchAdminInfo]);
+  }, [hasAccessManager, refetchAmRoles, refetchRoles, refetchOwnership, refetchAdminInfo]);
 
   // Wrapped refetchAdminInfo for external use
   const refetchAdminInfoCallback = useCallback(async (): Promise<void> => {

@@ -7,26 +7,21 @@
  * Only saves contracts that support AccessControl or Ownable interfaces.
  */
 
+import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@openzeppelin/ui-components';
-import type {
-  AccessControlCapabilities,
-  AccessControlService,
-  ContractSchema,
-  NetworkConfig,
-} from '@openzeppelin/ui-types';
-import { logger } from '@openzeppelin/ui-utils';
+import type { AccessControlService, ContractSchema, NetworkConfig } from '@openzeppelin/ui-types';
+import { appConfigService, logger, userNetworkServiceConfigService } from '@openzeppelin/ui-utils';
 
+import { ACCESS_MANAGER_ABI } from '@/core/ecosystems/evm/accessManagerAbi';
+import { resilientTransport } from '@/core/ecosystems/evm/resilientTransport';
 import { useAliasStorage } from '@/core/storage/aliasStorage';
 import { recentContractsStorage } from '@/core/storage/RecentContractsStorage';
-import {
-  isContractSupported,
-  useAccessControlService,
-  useContractSchemaLoader,
-  useNetworkAdapter,
-} from '@/hooks';
+import { useAccessControlService, useContractSchemaLoader, useNetworkAdapter } from '@/hooks';
+import { queryKeys } from '@/hooks/queryKeys';
+import { isContractSupported, type ExtendedCapabilities } from '@/hooks/useContractCapabilities';
 import type { AddContractDialogProps, AddContractFormData } from '@/types/contracts';
 import type { SchemaLoadResult } from '@/types/schema';
 
@@ -88,14 +83,16 @@ export function AddContractDialog({
   const [savedContractId, setSavedContractId] = useState<string | null>(null);
   const [pendingFormData, setPendingFormData] = useState<ExtendedAddContractFormData | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [detectedCapabilities, setDetectedCapabilities] =
-    useState<AccessControlCapabilities | null>(null);
+  const [detectedCapabilities, setDetectedCapabilities] = useState<ExtendedCapabilities | null>(
+    null
+  );
 
   // Track if we've started loading to prevent double-loading
   const loadStartedRef = useRef(false);
 
   // Alias storage for auto-creating alias when a contract is added
   const { save: saveAlias } = useAliasStorage();
+  const queryClient = useQueryClient();
 
   // Runtime for schema loading (set after form submission)
   const [selectedNetwork, setSelectedNetwork] = useState<NetworkConfig | null>(null);
@@ -169,7 +166,7 @@ export function AddContractDialog({
    * then auto-create an address alias so AddressDisplay resolves the name.
    */
   const saveContractWithSchema = useCallback(
-    async (result: SchemaLoadResult, capabilities: AccessControlCapabilities): Promise<string> => {
+    async (result: SchemaLoadResult, capabilities: ExtendedCapabilities): Promise<string> => {
       if (!pendingFormData?.network) {
         throw new Error('Missing form data');
       }
@@ -215,7 +212,19 @@ export function AddContractDialog({
 
     try {
       // Step 1: Load schema
-      const result = await loadSchema();
+      let result = await loadSchema();
+
+      // Fallback: if schema loading fails on EVM, try with the known AccessManager ABI
+      if (!result && runtime?.networkConfig.ecosystem === 'evm' && pendingFormData) {
+        try {
+          result = await schemaLoader.load(pendingFormData.address, {
+            contractAddress: pendingFormData.address,
+            contractDefinition: JSON.stringify(ACCESS_MANAGER_ABI),
+          });
+        } catch {
+          // AccessManager ABI fallback failed too
+        }
+      }
 
       if (!result) {
         setLoadError('Failed to load contract schema');
@@ -237,7 +246,7 @@ export function AddContractDialog({
         return;
       }
 
-      let capabilities: AccessControlCapabilities;
+      let capabilities: ExtendedCapabilities;
       try {
         // Some adapters (e.g., Stellar) require contract registration before capability detection
         const serviceWithRegister = accessControlService as AccessControlService & {
@@ -247,8 +256,76 @@ export function AddContractDialog({
           serviceWithRegister.registerContract(pendingFormData.address, result.schema);
         }
 
-        capabilities = await accessControlService.getCapabilities(pendingFormData.address);
+        const baseCaps = await accessControlService.getCapabilities(pendingFormData.address);
+        capabilities = baseCaps as ExtendedCapabilities;
+
+        // If standard detection didn't find AC/Ownable, probe for AccessManager via RPC.
+        // Always verify on-chain — schema-based detection alone is unreliable because
+        // the manual ABI fallback loads our AccessManager ABI for all unverified contracts.
+        if (
+          !baseCaps.hasAccessControl &&
+          !baseCaps.hasOwnable &&
+          runtime?.networkConfig.ecosystem === 'evm'
+        ) {
+          let detected = false;
+          const networkConfig = runtime.networkConfig as {
+            rpcUrl: string;
+            chainId: number;
+            id: string;
+          };
+
+          // Resolve RPC URL using the same strategy as the adapter
+          let rpcUrl = networkConfig.rpcUrl;
+          const userRpc = userNetworkServiceConfigService.get(networkConfig.id, 'rpc') as
+            | { rpcUrl?: string }
+            | undefined;
+          if (userRpc?.rpcUrl) rpcUrl = userRpc.rpcUrl;
+          else {
+            const override = appConfigService.getRpcEndpointOverride(networkConfig.id);
+            if (typeof override === 'string' && override) rpcUrl = override;
+          }
+
+          try {
+            // Use resilient transport with auto-fallback to Chainlist RPCs
+            const { createPublicClient } = await import('viem');
+            const client = createPublicClient({
+              transport: resilientTransport({
+                chainId: networkConfig.chainId,
+                rpcs: [rpcUrl],
+                chainlistEnabled: true,
+              }),
+            });
+
+            const adminRole = await client.readContract({
+              address: pendingFormData.address as `0x${string}`,
+              abi: ACCESS_MANAGER_ABI,
+              functionName: 'ADMIN_ROLE',
+            });
+            detected = adminRole === 0n;
+          } catch {
+            // Probe failed after all retries — not an AccessManager
+          }
+
+          if (detected) {
+            capabilities = {
+              ...baseCaps,
+              hasAccessManager: true,
+              hasScheduledOperations: true,
+              hasTargetManagement: true,
+            };
+          }
+        }
+
         setDetectedCapabilities(capabilities);
+
+        // Seed the React Query cache so useContractCapabilities picks up hasAccessManager
+        // without needing to re-probe via RPC
+        if (pendingFormData) {
+          queryClient.setQueryData(
+            queryKeys.contractCapabilities(pendingFormData.address),
+            capabilities
+          );
+        }
       } catch (capabilityError) {
         logger.error('AddContractDialog', 'Capability detection failed:', capabilityError);
         setLoadError(
@@ -280,7 +357,15 @@ export function AddContractDialog({
     } finally {
       setIsSubmitting(false);
     }
-  }, [loadSchema, saveContractWithSchema, accessControlService, pendingFormData]);
+  }, [
+    loadSchema,
+    saveContractWithSchema,
+    accessControlService,
+    pendingFormData,
+    runtime?.networkConfig,
+    queryClient,
+    schemaLoader,
+  ]);
 
   // Trigger schema loading when adapter and access control service are ready
   useEffect(() => {

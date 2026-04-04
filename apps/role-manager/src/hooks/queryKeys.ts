@@ -49,4 +49,15 @@ export const queryKeys = {
     transferType: 'ownership' | 'admin',
     networkId: string | undefined
   ) => ['expirationMetadata', contractAddress, transferType, networkId] as const,
+
+  // ── AccessManager keys (Feature: 018-access-manager) ──
+
+  /** AccessManager roles with metadata (admin, guardian, grant delay, members) */
+  accessManagerRoles: (address: string) => ['accessManagerRoles', address] as const,
+
+  /** AccessManager target configurations (function-role mappings) */
+  accessManagerTargets: (address: string) => ['accessManagerTargets', address] as const,
+
+  /** AccessManager scheduled operations */
+  accessManagerOperations: (address: string) => ['accessManagerOperations', address] as const,
 } as const;
