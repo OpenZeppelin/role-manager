@@ -911,13 +911,24 @@ export class EvmAccessManagerService implements AccessManagerService {
     config: ExecutionConfig,
     onStatus: AccessManagerStatusCallback
   ): Promise<OperationResult> {
-    const transactionData = {
+    const transactionData: Record<string, unknown> = {
       address: managerAddress as Address,
       abi: ACCESS_MANAGER_ABI,
       functionName: functionName as 'grantRole',
       args: args as never,
       value: 0n,
     };
+
+    // Include chain so wagmi/viem writeContract doesn't fail with "No chain provided"
+    if (this.chainId) {
+      const { defineChain } = await import('viem');
+      transactionData.chain = defineChain({
+        id: this.chainId,
+        name: `Chain ${this.chainId}`,
+        nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+        rpcUrls: { default: { http: [] } },
+      });
+    }
 
     if (this.transactionExecutor) {
       return this.transactionExecutor(transactionData, config, onStatus);
