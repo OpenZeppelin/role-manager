@@ -7,8 +7,6 @@
  */
 
 import { createPublicClient } from 'viem';
-import { useConfig as useWagmiConfig } from 'wagmi';
-import { getConnectorClient } from 'wagmi/actions';
 import { useEffect, useRef, useState } from 'react';
 
 import type { TransactionStatusUpdate } from '@openzeppelin/ui-types';
@@ -51,7 +49,6 @@ export function useAccessManagerService(
 ): UseAccessManagerServiceReturn {
   const [service, setService] = useState<AccessManagerService | null>(null);
   const runtimeRef = useRef<RoleManagerRuntime | null>(null);
-  const wagmiConfig = useWagmiConfig();
 
   useEffect(() => {
     if (!runtime || runtime.networkConfig?.ecosystem !== 'evm') {
@@ -98,23 +95,11 @@ export function useAccessManagerService(
         });
       }
 
-      // Inject wagmi wallet client provider so transactions go through the
-      // active connector (Safe, MetaMask, WalletConnect, etc.) instead of
-      // falling back to raw window.ethereum.
-      svc.setWalletClientProvider(async () => {
-        try {
-          const connectorClient = await getConnectorClient(wagmiConfig);
-          return connectorClient as unknown as import('viem').WalletClient;
-        } catch {
-          return null; // falls back to window.ethereum in getWalletClientLazy
-        }
-      });
-
       setService(svc);
     } catch {
       setService(null);
     }
-  }, [runtime, wagmiConfig]);
+  }, [runtime]);
 
   return {
     service,
