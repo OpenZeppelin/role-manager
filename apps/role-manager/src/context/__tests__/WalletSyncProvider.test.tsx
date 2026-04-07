@@ -325,7 +325,16 @@ describe('WalletSyncProvider', () => {
 
       await waitFor(() => expect(mockNetworkSwitchManager).toHaveBeenCalled());
 
-      const latestCall = mockNetworkSwitchManager.mock.calls.at(-1)?.[0];
+      const calls = mockNetworkSwitchManager.mock.calls;
+      expect(calls.length).toBeGreaterThan(0);
+      const latestCall = (
+        calls[calls.length - 1] as unknown as [
+          {
+            targetNetworkId: string;
+            wallet: { networkConfig: { id: string } };
+          },
+        ]
+      )[0];
       expect(latestCall.targetNetworkId).toBe(mockEvmNetwork.id);
       expect(latestCall.wallet.networkConfig.id).toBe(mockEvmNetwork.id);
     });
