@@ -11,11 +11,32 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo } from 'react';
 
 import type { AccessControlCapabilities } from '@openzeppelin/ui-types';
+import { appConfigService, isValidUrl, userNetworkServiceConfigService } from '@openzeppelin/ui-utils';
 
 import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
 
 import { queryKeys } from './queryKeys';
 import { useAccessControlService } from './useAccessControlService';
+
+/**
+ * Resolve the RPC URL respecting user config > app override > default.
+ * Mirrors the adapter's resolveRpcUrl priority.
+ */
+function resolveProbeRpcUrl(networkId: string, defaultRpcUrl: string): string {
+  const userCfg = userNetworkServiceConfigService.get(networkId, 'rpc') as
+    | { rpcUrl?: string }
+    | undefined;
+  if (userCfg?.rpcUrl && isValidUrl(String(userCfg.rpcUrl))) return String(userCfg.rpcUrl);
+
+  const override = appConfigService.getRpcEndpointOverride(networkId);
+  if (typeof override === 'string' && override && isValidUrl(override)) return override;
+  if (override && typeof override === 'object' && 'http' in override) {
+    const url = (override as { http: string }).http;
+    if (isValidUrl(url)) return url;
+  }
+
+  return defaultRpcUrl;
+}
 
 // ============================================================================
 // Extended Capabilities (includes AccessManager)
@@ -59,16 +80,16 @@ async function probeAccessManager(
   runtime: RoleManagerRuntime,
   contractAddress: string
 ): Promise<boolean> {
-  // Only probe on EVM chains
   if (runtime.networkConfig.ecosystem !== 'evm') return false;
 
   try {
     const networkConfig = runtime.networkConfig as {
+      id: string;
       rpcUrl: string;
       chainId: number;
     };
 
-    const rpcUrl = networkConfig.rpcUrl;
+    const rpcUrl = resolveProbeRpcUrl(networkConfig.id, networkConfig.rpcUrl);
 
     const { createPublicClient, http } = await import('viem');
     const { ACCESS_MANAGER_ABI } = await import('../core/ecosystems/evm/accessManagerAbi');
@@ -102,10 +123,11 @@ async function probeOwnable(
   if (runtime.networkConfig.ecosystem !== 'evm') return false;
 
   try {
-    const networkConfig = runtime.networkConfig as { rpcUrl: string };
+    const networkConfig = runtime.networkConfig as { id: string; rpcUrl: string };
+    const rpcUrl = resolveProbeRpcUrl(networkConfig.id, networkConfig.rpcUrl);
     const { createPublicClient, http } = await import('viem');
 
-    const client = createPublicClient({ transport: http(networkConfig.rpcUrl) });
+    const client = createPublicClient({ transport: http(rpcUrl) });
 
     const owner = await client.readContract({
       address: contractAddress as `0x${string}`,
