@@ -28,7 +28,7 @@
     "@openzeppelin/ui-styles": "^1.1.0",
     "@openzeppelin/ui-types": "^2.0.0",
     "@openzeppelin/ui-utils": "^2.0.0",
-    "lucide-react": "^0.555.0",
+    "lucide-react": "^0.577.0",
     "pluralize": "^8.0.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
