@@ -85,7 +85,14 @@
     "vitest": "^3.2.4"
   },
   "engines": {
-    "node": ">=20.19.0"
+    "node": ">=22.13.0",
+    "pnpm": ">=11"
   },
-  "packageManager": "pnpm@10.22.0"
+  "packageManager": "pnpm@11.1.0",
+  "pnpm": {
+    "minimumReleaseAge": 10080,
+    "minimumReleaseAgeExclude": [
+      "@openzeppelin/*"
+    ]
+  }
 }

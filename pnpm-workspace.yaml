@@ -5,3 +5,27 @@ packages:
   - 'apps/*'
   # Exclude any node_modules directories
   - '!**/node_modules/**'
+allowBuilds:
+  '@openzeppelin/adapter-stellar': true
+  blake-hash: true
+  bufferutil: true
+  esbuild: true
+  keccak: true
+  protobufjs: true
+  secp256k1: true
+  tiny-secp256k1: true
+  unrs-resolver: true
+  usb: true
+  utf-8-validate: true
+onlyBuiltDependencies:
+  - '@openzeppelin/adapter-stellar'
+  - blake-hash
+  - bufferutil
+  - esbuild
+  - keccak
+  - protobufjs
+  - secp256k1
+  - tiny-secp256k1
+  - unrs-resolver
+  - usb
+  - utf-8-validate
