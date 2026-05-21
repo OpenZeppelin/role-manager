@@ -4,7 +4,7 @@ const { getPluginConfigs } = require('./.eslint/utils.cjs');
 // Import plugins
 const reactPlugin = require('eslint-plugin-react');
 const reactHooksPlugin = require('eslint-plugin-react-hooks');
-const reactRefreshPlugin = require('eslint-plugin-react-refresh');
+const { reactRefresh: reactRefreshPlugin } = require('eslint-plugin-react-refresh');
 const typescriptPlugin = require('@typescript-eslint/eslint-plugin');
 const typescriptParser = require('@typescript-eslint/parser');
 const importPlugin = require('eslint-plugin-import');
@@ -160,7 +160,7 @@ const baseConfig = [
     plugins: {
       react: reactPlugin,
       'react-hooks': reactHooksPlugin,
-      'react-refresh': reactRefreshPlugin,
+      'react-refresh': reactRefreshPlugin.plugin,
     },
     rules: {
       // Use filtered recommended rules (jsx-uses-react removed)
