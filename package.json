@@ -44,7 +44,7 @@
     }
   },
   "devDependencies": {
-    "@changesets/changelog-github": "^0.5.2",
+    "@changesets/changelog-github": "^0.6.0",
     "@changesets/cli": "^2.30.0",
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
@@ -74,7 +74,7 @@
     "happy-dom": "^20.8.9",
     "husky": "^9.1.7",
     "lint-staged": "^15.5.2",
-    "postcss": "^8.5.8",
+    "postcss": "^8.5.10",
     "prettier": "3.8.1",
     "prettier-linter-helpers": "^1.0.1",
     "prettier-plugin-tailwindcss": "0.7.2",
@@ -85,7 +85,14 @@
     "vitest": "^3.2.4"
   },
   "engines": {
-    "node": ">=20.19.0"
+    "node": ">=22.13.0",
+    "pnpm": ">=11"
   },
-  "packageManager": "pnpm@10.22.0"
+  "packageManager": "pnpm@11.1.0",
+  "pnpm": {
+    "minimumReleaseAge": 10080,
+    "minimumReleaseAgeExclude": [
+      "@openzeppelin/*"
+    ]
+  }
 }
