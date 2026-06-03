@@ -51,7 +51,7 @@
     "@commitlint/cz-commitlint": "^19.8.1",
     "@ianvs/prettier-plugin-sort-imports": "4.5.1",
     "@openzeppelin/ui-dev-cli": "^0.5.1",
-    "@tailwindcss/postcss": "^4.2.2",
+    "@tailwindcss/postcss": "^4.3.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^24.12.2",
