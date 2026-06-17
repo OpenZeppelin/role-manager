@@ -9,6 +9,7 @@
  */
 
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { Control } from 'react-hook-form';
@@ -25,11 +26,15 @@ import {
 import type { EcosystemDropdownOption } from '@openzeppelin/ui-components';
 import { DynamicFormField } from '@openzeppelin/ui-renderer';
 import type { Ecosystem, FormFieldType, FormValues, NetworkConfig } from '@openzeppelin/ui-types';
+import { getDisabledNetworkRejectionToast, isNetworkSelectable } from '@openzeppelin/ui-utils';
 
+import { HostedNetworkNotice } from '@/components/Layout/HostedNetworkNotice';
+import { HOSTED_APP_NAME } from '@/constants/hosting';
 import { getEcosystemMetadata } from '@/core/ecosystems/ecosystemManager';
 import { ECOSYSTEM_ORDER, getEcosystemDefaultFeatureConfig } from '@/core/ecosystems/registry';
 import { recentContractsStorage } from '@/core/storage/RecentContractsStorage';
 import { useNetworkAdapter, useNetworksByEcosystem } from '@/hooks';
+import { useNetworkAvailabilityHandlers } from '@/hooks/useNetworkAvailabilityHandlers';
 import type { AddContractFormProps } from '@/types/contracts';
 
 /**
@@ -106,6 +111,7 @@ export function AddContractForm({
     isLoading: isLoadingNetworks,
     error: networksError,
   } = useNetworksByEcosystem(selectedEcosystem);
+  const { isNetworkDisabled, getNetworkDisabledLabel } = useNetworkAvailabilityHandlers();
 
   // Form state management with react-hook-form
   const { control, handleSubmit, watch, setValue, formState, reset, setError, clearErrors } =
@@ -128,7 +134,9 @@ export function AddContractForm({
     }
 
     // Check if the default network exists in the loaded networks
-    const networkExists = networks.some((n) => n.id === defaultNetwork.id);
+    const networkExists = networks.some(
+      (n) => n.id === defaultNetwork.id && isNetworkSelectable(n)
+    );
     if (networkExists) {
       setValue('networkId', defaultNetwork.id, { shouldValidate: true });
       defaultNetworkAppliedRef.current = true;
@@ -223,6 +231,11 @@ export function AddContractForm({
 
   // Handle network selection
   const handleNetworkSelect = (network: NetworkConfig | null) => {
+    if (network && !isNetworkSelectable(network)) {
+      const toastCopy = getDisabledNetworkRejectionToast(HOSTED_APP_NAME);
+      toast.error(toastCopy.title, { description: toastCopy.description });
+      return;
+    }
     setValue('networkId', network?.id ?? '', { shouldValidate: true });
   };
 
@@ -270,6 +283,8 @@ export function AddContractForm({
 
   return (
     <form onSubmit={onFormSubmit} className="flex flex-col gap-4">
+      <HostedNetworkNotice variant="inline" />
+
       {/* Section 1: Ecosystem Selector */}
       <div className="flex flex-col gap-2">
         <Label id="blockchain-label">Blockchain</Label>
@@ -345,6 +360,8 @@ export function AddContractForm({
                 const q = query.toLowerCase();
                 return n.name.toLowerCase().includes(q) || n.type.toLowerCase().includes(q);
               }}
+              isNetworkDisabled={isNetworkDisabled}
+              getNetworkDisabledLabel={getNetworkDisabledLabel}
               placeholder="Select a network..."
             />
           )}

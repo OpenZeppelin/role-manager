@@ -6,11 +6,19 @@
  * changes back to storage.
  */
 
+import { toast } from 'sonner';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { NetworkConfig } from '@openzeppelin/ui-types';
-import { logger } from '@openzeppelin/ui-utils';
+import {
+  getDefaultSelectableNetwork,
+  getDisabledNetworkRejectionToast,
+  isNetworkSelectable,
+  logger,
+  resolveSelectableNetwork,
+} from '@openzeppelin/ui-utils';
 
+import { HOSTED_APP_NAME } from '@/constants/hosting';
 import { userPreferencesStorage } from '@/core/storage/UserPreferencesStorage';
 
 // =============================================================================
@@ -86,7 +94,7 @@ export function useNetworkSelection({
         const savedContractId = await userPreferencesStorage.getString('lastSelectedContractId');
 
         if (savedNetworkId) {
-          const network = networks.find((n) => n.id === savedNetworkId);
+          const network = resolveSelectableNetwork(savedNetworkId, networks);
           if (network) {
             setSelectedNetworkState(network);
             // Set pending contract to select after contracts load
@@ -98,13 +106,13 @@ export function useNetworkSelection({
           }
         }
 
-        // Fallback to first network if no saved preference or invalid
-        setSelectedNetworkState(networks[0]);
+        // Fallback to first selectable network if no saved preference or invalid/disabled
+        setSelectedNetworkState(getDefaultSelectableNetwork(networks));
         preferencesLoadedRef.current = true;
       } catch (error) {
         logger.error('useNetworkSelection', 'Failed to load preferences', error);
-        // Fallback to first network
-        setSelectedNetworkState(networks[0]);
+        // Fallback to first selectable network
+        setSelectedNetworkState(getDefaultSelectableNetwork(networks));
         preferencesLoadedRef.current = true;
       }
     };
@@ -112,8 +120,7 @@ export function useNetworkSelection({
     loadPreferences();
   }, [networks, isLoadingNetworks]);
 
-  // Auto-select first network when network is null but networks are available
-  // This handles the case when user explicitly sets network to null
+  // Auto-select first selectable network when network is null but networks are available
   useEffect(() => {
     if (
       !selectedNetwork &&
@@ -121,12 +128,26 @@ export function useNetworkSelection({
       !isLoadingNetworks &&
       preferencesLoadedRef.current
     ) {
-      setSelectedNetworkState(networks[0]);
+      setSelectedNetworkState(getDefaultSelectableNetwork(networks));
     }
   }, [selectedNetwork, networks, isLoadingNetworks]);
 
+  // Clear selection when the active network becomes disabled by policy
+  useEffect(() => {
+    if (selectedNetwork && !isNetworkSelectable(selectedNetwork)) {
+      setSelectedNetworkState(getDefaultSelectableNetwork(networks));
+    }
+  }, [selectedNetwork, networks]);
+
   // Stable setter for network (also saves to preferences)
   const setSelectedNetwork = useCallback((network: NetworkConfig | null) => {
+    if (network && !isNetworkSelectable(network)) {
+      logger.warn('useNetworkSelection', `Rejected selection of disabled network: ${network.id}`);
+      const toastCopy = getDisabledNetworkRejectionToast(HOSTED_APP_NAME);
+      toast.error(toastCopy.title, { description: toastCopy.description });
+      return;
+    }
+
     setSelectedNetworkState(network);
 
     // Save to preferences

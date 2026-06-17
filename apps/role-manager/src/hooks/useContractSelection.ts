@@ -6,11 +6,17 @@
  * fallback to first contract.
  */
 
+import { toast } from 'sonner';
 import { useCallback, useEffect, useState } from 'react';
 
 import type { NetworkConfig } from '@openzeppelin/ui-types';
-import { logger } from '@openzeppelin/ui-utils';
+import {
+  getDisabledNetworkRejectionToast,
+  isNetworkSelectable,
+  logger,
+} from '@openzeppelin/ui-utils';
 
+import { HOSTED_APP_NAME } from '@/constants/hosting';
 import { recentContractsStorage } from '@/core/storage/RecentContractsStorage';
 import { userPreferencesStorage } from '@/core/storage/UserPreferencesStorage';
 import type { ContractRecord } from '@/types/contracts';
@@ -155,10 +161,17 @@ export function useContractSelection({
         // Check if we need to switch networks
         if (selectedNetwork?.id !== contract.networkId) {
           const targetNetwork = networks.find((n) => n.id === contract.networkId);
-          if (targetNetwork) {
+          if (targetNetwork && isNetworkSelectable(targetNetwork)) {
             setSelectedNetwork(targetNetwork);
             // Set pending contract to select after network switch and contracts reload
             setPendingContractId(contractId);
+          } else if (targetNetwork) {
+            logger.warn(
+              'useContractSelection',
+              `Cannot select contract on disabled network: ${contract.networkId}`
+            );
+            const toastCopy = getDisabledNetworkRejectionToast(HOSTED_APP_NAME);
+            toast.error(toastCopy.title, { description: toastCopy.description });
           } else {
             logger.warn('useContractSelection', `Network not found: ${contract.networkId}`);
           }

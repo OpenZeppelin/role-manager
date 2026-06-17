@@ -86,7 +86,6 @@ jobs:
       #     image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
       #     fail-build: false
 
-
       # - name: Upload Anchore scan SARIF report
       #   uses: github/codeql-action/upload-sarif@ea9e4e37992a54ee68a9622e985e60c8e8f12d9f # v3.27.4
       #   with:
@@ -106,6 +105,7 @@ jobs:
           build-args: |
             VITE_EXPORT_ENV=production
             VITE_APP_CFG_FEATURE_FLAG_ANALYTICS_ENABLED=true
+            VITE_APP_CFG_FEATURE_FLAG_MAINNET_NETWORKS_DISABLED=true
             VITE_GA_TAG_ID=${{ secrets.VITE_GA_TAG_ID_PROD }}
           secrets: |
             etherscan_api_key=${{ secrets.VITE_APP_CFG_SERVICE_ETHERSCANV2_API_KEY }}

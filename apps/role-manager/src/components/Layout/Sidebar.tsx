@@ -10,15 +10,18 @@ import {
   SidebarLayout,
   SidebarSection,
 } from '@openzeppelin/ui-components';
-import { logger } from '@openzeppelin/ui-utils';
+import { appConfigService, logger } from '@openzeppelin/ui-utils';
 
 import { getEcosystemMetadata } from '../../core/ecosystems/ecosystemManager';
 import { useAllNetworks } from '../../hooks/useAllNetworks';
+import { useNetworkAvailabilityHandlers } from '../../hooks/useNetworkAvailabilityHandlers';
 import { useRecentContracts } from '../../hooks/useRecentContracts';
 import { useSelectedContract } from '../../hooks/useSelectedContract';
 import type { ContractRecord } from '../../types/contracts';
+import { DevToolsDropdown } from '../Common/DevToolsDropdown';
 import { AddContractDialog } from '../Contracts';
 import { ContractSelector } from './ContractSelector';
+import { DevMainnetSeedContract } from './DevMainnetSeedContract';
 
 export interface SidebarProps {
   /** Controls visibility in mobile slide-over */
@@ -38,9 +41,11 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps): React
 
   // Add Contract Dialog state (Feature: 004-add-contract-record)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const showDevTools = appConfigService.isFeatureEnabled('show_dev_tools');
 
   // Networks from all enabled ecosystems (loaded lazily, cached after first load)
   const { networks, isLoading: isLoadingNetworks } = useAllNetworks();
+  const { isNetworkDisabled, getNetworkDisabledLabel } = useNetworkAvailabilityHandlers();
 
   // Contract selection from shared context (Feature: 007-dashboard-real-data)
   const {
@@ -108,8 +113,11 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps): React
         getNetworkType={(n) => n.type}
         groupByEcosystem
         getEcosystem={(n) => getEcosystemMetadata(n.ecosystem)?.name ?? n.ecosystem}
+        isNetworkDisabled={isNetworkDisabled}
+        getNetworkDisabledLabel={getNetworkDisabledLabel}
         placeholder={isLoadingNetworks ? 'Loading networks...' : 'Select Network'}
       />
+      {showDevTools && <DevMainnetSeedContract />}
     </div>
   );
 
@@ -166,6 +174,11 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps): React
             Address Book
           </SidebarButton>
         </SidebarSection>
+        {showDevTools && (
+          <SidebarSection title="Dev">
+            <DevToolsDropdown />
+          </SidebarSection>
+        )}
       </SidebarLayout>
 
       {/* Add Contract Dialog (Feature: 004-add-contract-record) */}

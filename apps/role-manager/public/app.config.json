@@ -2,8 +2,10 @@
   "$comment": "Base configuration. For secrets (API keys), use .env.local with VITE_APP_CFG_* variables",
   "featureFlags": {
     "analytics_enabled": true,
-    "access_control_indexer": true
+    "access_control_indexer": true,
+    "mainnet_networks_disabled": true
   },
+  "disabledNetworkIds": [],
   "rpcEndpoints": {},
   "indexerEndpoints": {},
   "globalServiceConfigs": {

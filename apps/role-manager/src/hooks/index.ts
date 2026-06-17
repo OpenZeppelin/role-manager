@@ -3,6 +3,7 @@
  */
 
 // Network hooks
+export { useNetworkAvailabilityHandlers } from './useNetworkAvailabilityHandlers';
 export { useAllNetworks } from './useAllNetworks';
 export { useNetworkAdapter } from './useNetworkAdapter';
 export { useNetworksByEcosystem } from './useNetworksByEcosystem';

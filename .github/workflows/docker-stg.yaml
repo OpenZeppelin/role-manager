@@ -183,9 +183,9 @@ jobs:
       #     cache-from: type=gha
       #     cache-to: type=gha,mode=max
       #     load: true
-          # build-args: |
-          #   VITE_APP_CFG_FEATURE_FLAG_ANALYTICS_ENABLED=false
-          #   VITE_GA_TAG_ID=${{ secrets.VITE_GA_TAG_ID_STAGING }}
+      # build-args: |
+      #   VITE_APP_CFG_FEATURE_FLAG_ANALYTICS_ENABLED=false
+      #   VITE_GA_TAG_ID=${{ secrets.VITE_GA_TAG_ID_STAGING }}
 
       # Uncomment after making repo public and adding codeql
       # - name: Scan Docker image with Anchore
@@ -213,6 +213,7 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             VITE_APP_CFG_FEATURE_FLAG_ANALYTICS_ENABLED=true
+            VITE_APP_CFG_FEATURE_FLAG_MAINNET_NETWORKS_DISABLED=true
             VITE_GA_TAG_ID=${{ secrets.VITE_GA_TAG_ID_STAGING }}
             ADAPTER_DIST_TAG=rc
           secrets: |
