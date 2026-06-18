@@ -11,6 +11,10 @@ minimumReleaseAgeExclude:
   - 'vitest'
   - '@vitest/*'
 overrides:
+  '@openzeppelin/ui-types': 3.1.1
+  '@openzeppelin/ui-utils': 3.0.1
+  '@openzeppelin/ui-components': 3.0.1
+  react-hook-form: 7.79.0
   # Security overrides — see PR adding these for full advisory list
   'axios@<1.16.0': ^1.16.0
   'hono@<4.12.21': ^4.12.21

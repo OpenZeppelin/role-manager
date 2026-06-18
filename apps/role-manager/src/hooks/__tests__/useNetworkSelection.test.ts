@@ -10,6 +10,29 @@ import type { NetworkConfig } from '@openzeppelin/ui-types';
 
 import { useNetworkSelection } from '../useNetworkSelection';
 
+vi.mock('@openzeppelin/ui-utils', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@openzeppelin/ui-utils')>();
+  return {
+    ...actual,
+    isNetworkSelectable: vi.fn((network: NetworkConfig) => network.type !== 'mainnet'),
+    resolveSelectableNetwork: vi.fn(
+      (networkId: string | null | undefined, networks: NetworkConfig[]) => {
+        const match = networks.find((network) => network.id === networkId);
+        return match && match.type !== 'mainnet' ? match : null;
+      }
+    ),
+    getDefaultSelectableNetwork: vi.fn(
+      (networks: NetworkConfig[]) => networks.find((network) => network.type !== 'mainnet') ?? null
+    ),
+    logger: {
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+      debug: vi.fn(),
+    },
+  };
+});
+
 // =============================================================================
 // Test Fixtures
 // =============================================================================
@@ -19,6 +42,15 @@ const mockNetworkStellar: NetworkConfig = {
   name: 'Stellar Testnet',
   ecosystem: 'stellar',
   network: 'stellar',
+  type: 'testnet',
+  isTestnet: true,
+} as NetworkConfig;
+
+const mockNetworkEvmTestnet: NetworkConfig = {
+  id: 'ethereum-sepolia',
+  name: 'Sepolia',
+  ecosystem: 'evm',
+  network: 'ethereum',
   type: 'testnet',
   isTestnet: true,
 } as NetworkConfig;
@@ -101,7 +133,7 @@ describe('useNetworkSelection', () => {
       });
     });
 
-    it('should restore saved network from preferences', async () => {
+    it('should skip saved mainnet preference when mainnet networks are disabled', async () => {
       mockPreferences.getString.mockImplementation((key: string) => {
         if (key === 'lastSelectedNetworkId') return Promise.resolve('ethereum-mainnet');
         return Promise.resolve(undefined);
@@ -115,7 +147,25 @@ describe('useNetworkSelection', () => {
       );
 
       await waitFor(() => {
-        expect(result.current.selectedNetwork).toEqual(mockNetworkEvm);
+        expect(result.current.selectedNetwork).toEqual(mockNetworkStellar);
+      });
+    });
+
+    it('should restore saved network from preferences', async () => {
+      mockPreferences.getString.mockImplementation((key: string) => {
+        if (key === 'lastSelectedNetworkId') return Promise.resolve('stellar-testnet');
+        return Promise.resolve(undefined);
+      });
+
+      const { result } = renderHook(() =>
+        useNetworkSelection({
+          networks: [mockNetworkStellar, mockNetworkEvm],
+          isLoadingNetworks: false,
+        })
+      );
+
+      await waitFor(() => {
+        expect(result.current.selectedNetwork).toEqual(mockNetworkStellar);
       });
     });
 
@@ -161,7 +211,7 @@ describe('useNetworkSelection', () => {
     it('should update selected network state', async () => {
       const { result } = renderHook(() =>
         useNetworkSelection({
-          networks: [mockNetworkStellar, mockNetworkEvm],
+          networks: [mockNetworkStellar, mockNetworkEvm, mockNetworkEvmTestnet],
           isLoadingNetworks: false,
         })
       );
@@ -171,13 +221,13 @@ describe('useNetworkSelection', () => {
       });
 
       act(() => {
-        result.current.setSelectedNetwork(mockNetworkEvm);
+        result.current.setSelectedNetwork(mockNetworkEvmTestnet);
       });
 
-      expect(result.current.selectedNetwork).toEqual(mockNetworkEvm);
+      expect(result.current.selectedNetwork).toEqual(mockNetworkEvmTestnet);
     });
 
-    it('should persist network selection to preferences', async () => {
+    it('should reject selecting a disabled mainnet network', async () => {
       const { result } = renderHook(() =>
         useNetworkSelection({
           networks: [mockNetworkStellar, mockNetworkEvm],
@@ -189,14 +239,35 @@ describe('useNetworkSelection', () => {
         expect(result.current.selectedNetwork).toBeDefined();
       });
 
+      const previous = result.current.selectedNetwork;
+
       act(() => {
         result.current.setSelectedNetwork(mockNetworkEvm);
+      });
+
+      expect(result.current.selectedNetwork).toEqual(previous);
+    });
+
+    it('should persist network selection to preferences', async () => {
+      const { result } = renderHook(() =>
+        useNetworkSelection({
+          networks: [mockNetworkStellar, mockNetworkEvm, mockNetworkEvmTestnet],
+          isLoadingNetworks: false,
+        })
+      );
+
+      await waitFor(() => {
+        expect(result.current.selectedNetwork).toBeDefined();
+      });
+
+      act(() => {
+        result.current.setSelectedNetwork(mockNetworkEvmTestnet);
       });
 
       await waitFor(() => {
         expect(mockPreferences.set).toHaveBeenCalledWith(
           'lastSelectedNetworkId',
-          'ethereum-mainnet'
+          'ethereum-sepolia'
         );
       });
     });
@@ -293,7 +364,7 @@ describe('useNetworkSelection', () => {
 
       const { result } = renderHook(() =>
         useNetworkSelection({
-          networks: [mockNetworkStellar, mockNetworkEvm],
+          networks: [mockNetworkStellar, mockNetworkEvm, mockNetworkEvmTestnet],
           isLoadingNetworks: false,
         })
       );
@@ -304,10 +375,10 @@ describe('useNetworkSelection', () => {
 
       // Should not throw when setting network
       act(() => {
-        result.current.setSelectedNetwork(mockNetworkEvm);
+        result.current.setSelectedNetwork(mockNetworkEvmTestnet);
       });
 
-      expect(result.current.selectedNetwork).toEqual(mockNetworkEvm);
+      expect(result.current.selectedNetwork).toEqual(mockNetworkEvmTestnet);
     });
   });
 

@@ -328,7 +328,7 @@ export function AddContractDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{DIALOG_TITLES[step]}</DialogTitle>
         </DialogHeader>

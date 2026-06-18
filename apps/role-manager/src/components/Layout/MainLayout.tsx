@@ -3,6 +3,7 @@ import React, { ReactNode, useState } from 'react';
 import { Footer } from '@openzeppelin/ui-components';
 
 import { AppHeader } from './AppHeader';
+import { HostedNetworkNotice } from './HostedNetworkNotice';
 import { Sidebar } from './Sidebar';
 
 export interface MainLayoutProps {
@@ -29,6 +30,8 @@ export function MainLayout({ children }: MainLayoutProps): React.ReactElement {
       <div className="flex h-screen min-w-0 flex-1 flex-col overflow-hidden">
         {/* Header with mobile menu toggle */}
         <AppHeader onOpenSidebar={() => setMobileOpen(true)} />
+
+        <HostedNetworkNotice />
 
         {/* Page content */}
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">

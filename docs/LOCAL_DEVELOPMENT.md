@@ -176,6 +176,24 @@ Using local packages for /path/to/role-manager
   adapters: 5 tarballs -> /path/to/role-manager/.packed-packages/local-dev/adapters.json
 ```
 
+### Testing mainnet disable and dev seed helpers
+
+The committed `public/app.config.json` enables `mainnet_networks_disabled` for hosted Role Manager deployments. Staging and production Docker workflows pass `VITE_APP_CFG_FEATURE_FLAG_MAINNET_NETWORKS_DISABLED=true` as a build arg; local Docker builds default to `false` (see `Dockerfile`).
+
+Dev-only sidebar tools (mainnet contract seed helpers) are gated behind `show_dev_tools`. Enable locally via `apps/role-manager/.env.local`:
+
+```bash
+VITE_APP_CFG_FEATURE_FLAG_SHOW_DEV_TOOLS=true
+```
+
+Do not enable `show_dev_tools` in staging or production deployments.
+
+To test self-hosted behavior with mainnets enabled locally:
+
+```bash
+VITE_APP_CFG_FEATURE_FLAG_MAINNET_NETWORKS_DISABLED=false
+```
+
 ## Best Practices
 
 1. **Keep All Repos Updated**: Pull latest changes from all repos regularly
