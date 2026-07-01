@@ -17,8 +17,8 @@ overrides:
   react-hook-form: 7.79.0
   # Security overrides — see PR adding these for full advisory list
   'axios@<1.16.0': ^1.16.0
-  'hono@<4.12.21': ^4.12.21
-  'protobufjs@<7.5.8': ^7.5.8
+  'hono@<4.12.25': ^4.12.25
+  'protobufjs@<7.6.3': ^7.6.3
   '@protobufjs/utf8@<1.1.1': ^1.1.1
   'tmp@<0.2.6': ^0.2.6
   'lodash@<4.18.0': ^4.18.0
@@ -27,6 +27,13 @@ overrides:
   '@metamask/sdk-communication-layer@<0.33.1': ^0.33.1
   'ip-address@<=10.1.0': ^10.1.1
   'ws@>=8.0.0 <8.20.1': ^8.20.1
+  'ws@>=7.0.0 <7.5.11': ^7.5.11
+  'form-data@>=4.0.0 <4.0.6': ^4.0.6
+  'vite@>=7.0.0 <7.3.5': ^7.3.5
+  '@babel/core@<7.29.6': ^7.29.6
+  'ua-parser-js@>=2.0.1 <2.0.10': ^2.0.10
+  'esbuild@>=0.27.3 <0.28.1': ^0.28.1
+  'uuid@<11.1.1': ^11.1.1
 allowBuilds:
   '@openzeppelin/adapter-stellar': true
   blake-hash: true
