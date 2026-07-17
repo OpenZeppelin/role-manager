@@ -18,11 +18,11 @@
 
 import { AlertTriangle, CheckCircle2, Clock, Info, User } from 'lucide-react';
 
-import { AddressDisplay } from '@openzeppelin/ui-components';
 import type { ExpirationMetadata } from '@openzeppelin/ui-types';
 import { cn } from '@openzeppelin/ui-utils';
 
 import { useBlockTime } from '../../context/useBlockTime';
+import { useSelectedContract } from '../../hooks/useSelectedContract';
 import { calculateBlockExpiration, formatTimeEstimateDisplay } from '../../utils/block-time';
 import {
   formatExpirationTimestamp,
@@ -33,6 +33,7 @@ import {
   isTimestampBasedExpiration,
 } from '../../utils/expiration';
 import { AcceptTransferButton } from '../Shared/AcceptTransferButton';
+import { ResolvedAddressDisplay } from '../Shared/ResolvedAddressDisplay';
 
 /**
  * Props for PendingTransferInfo component
@@ -111,6 +112,7 @@ export function PendingTransferInfo({
 }: PendingTransferInfoProps) {
   // Get block time estimation for human-readable time display
   const { formatBlocksToTime } = useBlockTime();
+  const { selectedNetwork } = useSelectedContract();
 
   // Whether this is a timestamp-based expiration (e.g., EVM AccessControlDefaultAdminRules)
   const isTimestamp = isTimestampBasedExpiration(expirationMetadata);
@@ -174,8 +176,9 @@ export function PendingTransferInfo({
       <div className="flex items-center gap-2 mb-2">
         <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
         <span className="text-xs text-muted-foreground shrink-0">Pending {recipientLabel}:</span>
-        <AddressDisplay
+        <ResolvedAddressDisplay
           address={pendingRecipient}
+          networkId={selectedNetwork?.id}
           truncate={true}
           startChars={10}
           endChars={8}

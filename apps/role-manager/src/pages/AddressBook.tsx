@@ -90,6 +90,7 @@ export function AddressBook() {
         onFilterNetworkIdsChange={setFilterNetworkIds}
         title="Saved Addresses"
         className="shadow-none"
+        enableNameResolution={true}
       />
     </div>
   );

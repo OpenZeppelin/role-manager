@@ -5,13 +5,14 @@
  * mutation has been submitted. Previews the pending transfer info box
  * before the RPC confirms it.
  *
- * Uses AddressDisplay from @openzeppelin/ui-components for consistent
- * address rendering across ghost and real components.
+ * Uses ResolvedAddressDisplay for consistent address rendering across
+ * ghost and real components.
  */
 import { User } from 'lucide-react';
 
-import { AddressDisplay } from '@openzeppelin/ui-components';
+import { useSelectedContract } from '@/hooks/useSelectedContract';
 
+import { ResolvedAddressDisplay } from '../ResolvedAddressDisplay';
 import { FadingOverlay } from './FadingOverlay';
 
 export interface GhostPendingTransferProps {
@@ -25,6 +26,8 @@ export function GhostPendingTransfer({
   recipient,
   transferLabel = 'Ownership',
 }: GhostPendingTransferProps) {
+  const { selectedNetwork } = useSelectedContract();
+
   return (
     <div
       className="relative mt-4 rounded-lg border border-blue-200/60 bg-blue-50/40 p-4 space-y-2 [clip-path:inset(0_round_0.5rem)]"
@@ -38,8 +41,9 @@ export function GhostPendingTransfer({
       </div>
       <div className="flex items-center gap-2 text-sm opacity-60">
         <span className="text-blue-600/50">To:</span>
-        <AddressDisplay
+        <ResolvedAddressDisplay
           address={recipient}
+          networkId={selectedNetwork?.id}
           truncate={true}
           startChars={10}
           endChars={8}

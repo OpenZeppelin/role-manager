@@ -38,6 +38,8 @@ export { AcceptTransferButton } from './AcceptTransferButton';
 
 // Role Display Components (Feature: 017-evm-access-control)
 export { RoleNameDisplay } from './RoleNameDisplay';
+export { ResolvedAddressDisplay } from './ResolvedAddressDisplay';
+export type { ResolvedAddressDisplayProps } from './ResolvedAddressDisplay';
 
 // Type-to-Confirm Dialog (Feature: 017-evm-access-control)
 export { TypeToConfirmDialog } from './TypeToConfirmDialog';

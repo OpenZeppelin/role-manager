@@ -19,15 +19,17 @@
 
 import { Edit } from 'lucide-react';
 
-import { AddressDisplay, Button, Checkbox } from '@openzeppelin/ui-components';
+import { Button, Checkbox } from '@openzeppelin/ui-components';
 import { cn } from '@openzeppelin/ui-utils';
 
+import { useSelectedContract } from '../../hooks/useSelectedContract';
 import {
   ACCOUNT_STATUS_CONFIG,
   type AccountAction,
   type AuthorizedAccountView,
 } from '../../types/authorized-accounts';
 import { formatDateTime } from '../../utils/date';
+import { ResolvedAddressDisplay } from '../Shared/ResolvedAddressDisplay';
 import { RoleTypeBadge } from '../Shared/RoleTypeBadge';
 import { StatusBadge } from '../Shared/StatusBadge';
 import { YouBadge } from '../Shared/YouBadge';
@@ -68,6 +70,8 @@ export function AccountRow({
   onAction,
   onRoleClick,
 }: AccountRowProps) {
+  const { selectedNetwork } = useSelectedContract();
+
   return (
     <tr
       className={cn(
@@ -89,8 +93,9 @@ export function AccountRow({
       {/* Address - truncated display */}
       <td className="p-4">
         <div className="flex items-center gap-2">
-          <AddressDisplay
+          <ResolvedAddressDisplay
             address={account.address}
+            networkId={selectedNetwork?.id}
             truncate={true}
             startChars={6}
             endChars={4}

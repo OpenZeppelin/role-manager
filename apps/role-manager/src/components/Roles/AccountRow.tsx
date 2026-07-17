@@ -12,10 +12,12 @@
 
 import { Ban, Trash2 } from 'lucide-react';
 
-import { AddressDisplay, Button } from '@openzeppelin/ui-components';
+import { Button } from '@openzeppelin/ui-components';
 import { cn } from '@openzeppelin/ui-utils';
 
+import { useSelectedContract } from '../../hooks/useSelectedContract';
 import { formatDateTime } from '../../utils/date';
+import { ResolvedAddressDisplay } from '../Shared/ResolvedAddressDisplay';
 import { TransferRoleButton } from '../Shared/TransferRoleButton';
 import { YouBadge } from '../Shared/YouBadge';
 
@@ -76,11 +78,14 @@ export function AccountRow({
   onRenounceRole,
   className,
 }: AccountRowProps) {
+  const { selectedNetwork } = useSelectedContract();
+
   return (
     <div className={cn('p-3 flex items-center justify-between hover:bg-muted/50', className)}>
       <div className="flex items-center gap-2">
-        <AddressDisplay
+        <ResolvedAddressDisplay
           address={address}
+          networkId={selectedNetwork?.id}
           truncate={true}
           startChars={10}
           endChars={8}

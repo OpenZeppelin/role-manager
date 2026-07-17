@@ -25,7 +25,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
-  AddressDisplay,
   Button,
   Dialog,
   DialogContent,
@@ -37,6 +36,7 @@ import {
 } from '@openzeppelin/ui-components';
 
 import { useRevokeRoleDialog } from '../../hooks/useRevokeRoleDialog';
+import { useSelectedContract } from '../../hooks/useSelectedContract';
 import {
   ConfirmCloseDialog,
   DialogCancelledState,
@@ -46,6 +46,7 @@ import {
   SelfRevokeWarning,
   WalletDisconnectedAlert,
 } from '../Shared';
+import { ResolvedAddressDisplay } from '../Shared/ResolvedAddressDisplay';
 
 // =============================================================================
 // Types
@@ -278,6 +279,7 @@ function RevokeRoleConfirmContent({
   onCancel,
   onSubmit,
 }: RevokeRoleConfirmContentProps) {
+  const { selectedNetwork } = useSelectedContract();
   // Disable submit if wallet not connected
   const canSubmit = isWalletConnected;
 
@@ -290,7 +292,11 @@ function RevokeRoleConfirmContent({
       <div className="space-y-1.5">
         <Label className="text-sm font-medium">Account</Label>
         <div className="rounded-md border bg-muted/50 px-3 py-2">
-          <AddressDisplay address={accountAddress} showCopyButton={true} />
+          <ResolvedAddressDisplay
+            address={accountAddress}
+            networkId={selectedNetwork?.id}
+            showCopyButton={true}
+          />
         </div>
       </div>
 

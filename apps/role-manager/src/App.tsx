@@ -8,15 +8,20 @@ import {
   TooltipProvider,
 } from '@openzeppelin/ui-components';
 import { AnalyticsProvider, RuntimeProvider, WalletStateProvider } from '@openzeppelin/ui-react';
-import type { NativeConfigLoader } from '@openzeppelin/ui-types';
+import type { NativeConfigLoader, NetworkConfig } from '@openzeppelin/ui-types';
 
 import { TrackedRoute } from './components/Analytics';
 import { MainLayout } from './components/Layout/MainLayout';
 import { AliasLabelBridge } from './context/AliasLabelBridge';
 import { BlockTimeProvider } from './context/BlockTimeContext';
 import { ContractProvider } from './context/ContractContext';
+import { NameResolverBridge } from './context/NameResolverBridge';
 import { WalletSyncProvider } from './context/WalletSyncProvider';
-import { getNetworkById, getRuntime } from './core/ecosystems/ecosystemManager';
+import {
+  getNetworkById,
+  getRuntime,
+  RUNTIME_CREATION_OPTIONS,
+} from './core/ecosystems/ecosystemManager';
 import { AddressBook } from './pages/AddressBook';
 import { AuthorizedAccounts } from './pages/AuthorizedAccounts';
 import { Dashboard } from './pages/Dashboard';
@@ -66,6 +71,7 @@ function createQueryClient(): QueryClient {
  * - ContractProvider: Shared contract selection state (OUTSIDE WalletStateProvider)
  * - AliasLabelBridge: Bridges alias storage → AddressLabelProvider (auto-labels all AddressDisplay)
  * - WalletStateProvider: Manages wallet connection state
+ * - NameResolverBridge: Bridges runtime ENS name resolution → NameResolverProvider (AddressField)
  * - WalletSyncProvider: Syncs ContractContext network → WalletStateProvider + handles EVM chain switches
  *
  * IMPORTANT: ContractProvider must be OUTSIDE WalletStateProvider because
@@ -86,6 +92,11 @@ function App() {
   // Create QueryClient inside component with useState for proper encapsulation
   // This avoids shared state issues in SSR or testing scenarios
   const [queryClient] = useState(createQueryClient);
+
+  const resolveRuntime = useCallback(
+    (networkConfig: NetworkConfig) => getRuntime(networkConfig, RUNTIME_CREATION_OPTIONS),
+    []
+  );
 
   /**
    * Loads UI kit configuration modules dynamically.
@@ -122,7 +133,7 @@ function App() {
         <NetworkErrorNotificationProvider>
           <TooltipProvider delayDuration={300}>
             <AnalyticsProvider tagId={analyticsTagId} autoInit>
-              <RuntimeProvider resolveRuntime={getRuntime}>
+              <RuntimeProvider resolveRuntime={resolveRuntime}>
                 <ContractProvider>
                   <AliasLabelBridge>
                     <BlockTimeProvider>
@@ -131,52 +142,54 @@ function App() {
                         getNetworkConfigById={getNetworkById}
                         loadConfigModule={loadAppConfigModule}
                       >
-                        <WalletSyncProvider>
-                          <MainLayout>
-                            <Routes>
-                              <Route
-                                path="/"
-                                element={
-                                  <TrackedRoute name="Dashboard">
-                                    <Dashboard />
-                                  </TrackedRoute>
-                                }
-                              />
-                              <Route
-                                path="/authorized-accounts"
-                                element={
-                                  <TrackedRoute name="Authorized Accounts">
-                                    <AuthorizedAccounts />
-                                  </TrackedRoute>
-                                }
-                              />
-                              <Route
-                                path="/roles"
-                                element={
-                                  <TrackedRoute name="Roles">
-                                    <Roles />
-                                  </TrackedRoute>
-                                }
-                              />
-                              <Route
-                                path="/role-changes"
-                                element={
-                                  <TrackedRoute name="Role Changes">
-                                    <RoleChanges />
-                                  </TrackedRoute>
-                                }
-                              />
-                              <Route
-                                path="/address-book"
-                                element={
-                                  <TrackedRoute name="Address Book">
-                                    <AddressBook />
-                                  </TrackedRoute>
-                                }
-                              />
-                            </Routes>
-                          </MainLayout>
-                        </WalletSyncProvider>
+                        <NameResolverBridge>
+                          <WalletSyncProvider>
+                            <MainLayout>
+                              <Routes>
+                                <Route
+                                  path="/"
+                                  element={
+                                    <TrackedRoute name="Dashboard">
+                                      <Dashboard />
+                                    </TrackedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/authorized-accounts"
+                                  element={
+                                    <TrackedRoute name="Authorized Accounts">
+                                      <AuthorizedAccounts />
+                                    </TrackedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/roles"
+                                  element={
+                                    <TrackedRoute name="Roles">
+                                      <Roles />
+                                    </TrackedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/role-changes"
+                                  element={
+                                    <TrackedRoute name="Role Changes">
+                                      <RoleChanges />
+                                    </TrackedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/address-book"
+                                  element={
+                                    <TrackedRoute name="Address Book">
+                                      <AddressBook />
+                                    </TrackedRoute>
+                                  }
+                                />
+                              </Routes>
+                            </MainLayout>
+                          </WalletSyncProvider>
+                        </NameResolverBridge>
                       </WalletStateProvider>
                     </BlockTimeProvider>
                   </AliasLabelBridge>

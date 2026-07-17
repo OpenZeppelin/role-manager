@@ -15,8 +15,10 @@
 import { AddressDisplay } from '@openzeppelin/ui-components';
 import { cn } from '@openzeppelin/ui-utils';
 
+import { useSelectedContract } from '../../hooks/useSelectedContract';
 import { ACTION_TYPE_CONFIG, type RoleChangeEventView } from '../../types/role-changes';
 import { formatDateTime } from '../../utils/date';
+import { ResolvedAddressDisplay } from '../Shared/ResolvedAddressDisplay';
 import { RoleTypeBadge } from '../Shared/RoleTypeBadge';
 import { StatusBadge } from '../Shared/StatusBadge';
 
@@ -41,6 +43,7 @@ export interface ChangeRowProps {
  * - Transaction link to block explorer
  */
 export function ChangeRow({ event, onRoleClick }: ChangeRowProps) {
+  const { selectedNetwork } = useSelectedContract();
   const actionConfig = ACTION_TYPE_CONFIG[event.action];
 
   // Map action to role type for special icon display
@@ -86,8 +89,9 @@ export function ChangeRow({ event, onRoleClick }: ChangeRowProps) {
         {isEmptyAccount ? (
           <span className="text-sm text-muted-foreground">-</span>
         ) : (
-          <AddressDisplay
+          <ResolvedAddressDisplay
             address={event.account}
+            networkId={selectedNetwork?.id}
             truncate={true}
             startChars={6}
             endChars={4}
@@ -98,7 +102,7 @@ export function ChangeRow({ event, onRoleClick }: ChangeRowProps) {
         )}
       </td>
 
-      {/* Transaction hash */}
+      {/* Transaction hash — keep raw AddressDisplay (not an account; disableLabel) */}
       <td className="p-4">
         {event.transactionHash ? (
           <AddressDisplay
