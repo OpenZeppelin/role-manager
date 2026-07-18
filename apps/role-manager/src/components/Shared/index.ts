@@ -40,6 +40,10 @@ export { AcceptTransferButton } from './AcceptTransferButton';
 export { RoleNameDisplay } from './RoleNameDisplay';
 export { ResolvedAddressDisplay } from './ResolvedAddressDisplay';
 export type { ResolvedAddressDisplayProps } from './ResolvedAddressDisplay';
+export { ResolvedAddressFieldPreview } from './ResolvedAddressFieldPreview';
+export type { ResolvedAddressFieldPreviewProps } from './ResolvedAddressFieldPreview';
+export { AddressFieldWithResolvedPreview } from './AddressFieldWithResolvedPreview';
+export type { AddressFieldWithResolvedPreviewProps } from './AddressFieldWithResolvedPreview';
 
 // Type-to-Confirm Dialog (Feature: 017-evm-access-control)
 export { TypeToConfirmDialog } from './TypeToConfirmDialog';

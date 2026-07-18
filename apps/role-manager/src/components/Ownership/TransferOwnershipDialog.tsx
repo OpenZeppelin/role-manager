@@ -26,7 +26,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import {
-  AddressField,
   Button,
   Dialog,
   DialogContent,
@@ -55,6 +54,7 @@ import {
   isContractManagedExpiration,
 } from '../../utils/expiration';
 import {
+  AddressFieldWithResolvedPreview,
   ConfirmCloseDialog,
   DialogCancelledState,
   DialogErrorState,
@@ -360,6 +360,9 @@ function TransferOwnershipFormContent({
   } = form;
 
   const expirationValue = watch('expirationBlock');
+  const resolvedAddress = watch('newOwnerAddress');
+
+  const { selectedNetwork } = useSelectedContract();
 
   // Debounce the expiration value for time estimation (300ms)
   const debouncedExpiration = useDebounce(expirationValue, 300);
@@ -416,22 +419,22 @@ function TransferOwnershipFormContent({
       )}
 
       {/* New Owner Address Field */}
-      <div className="space-y-1.5">
-        <AddressField
-          id="transfer-ownership-address"
-          name="newOwnerAddress"
-          label="New Owner Address"
-          placeholder={
-            runtime
-              ? (getEcosystemMetadata(runtime.networkConfig.ecosystem)?.addressExample ?? '0x...')
-              : '0x...'
-          }
-          helperText="The address that will become the new owner of this contract."
-          control={control}
-          addressing={runtime?.addressing ?? undefined}
-          validation={{ required: true }}
-        />
-      </div>
+      <AddressFieldWithResolvedPreview
+        id="transfer-ownership-address"
+        name="newOwnerAddress"
+        label="New Owner Address"
+        placeholder={
+          runtime
+            ? (getEcosystemMetadata(runtime.networkConfig.ecosystem)?.addressExample ?? '0x...')
+            : '0x...'
+        }
+        helperText="The address that will become the new owner of this contract."
+        control={control}
+        addressing={runtime?.addressing ?? undefined}
+        validation={{ required: true }}
+        previewAddress={resolvedAddress}
+        previewNetworkId={selectedNetwork?.id}
+      />
 
       {/* Expiration Field — shown only when adapter requires user input (mode: 'required') */}
       {requiresExpiration && (

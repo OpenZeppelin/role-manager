@@ -30,7 +30,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import {
-  AddressField,
   Button,
   Dialog,
   DialogContent,
@@ -48,6 +47,7 @@ import type { AssignRoleFormData } from '../../hooks/useAssignRoleDialog';
 import { useRolesPageData } from '../../hooks/useRolesPageData';
 import { useSelectedContract } from '../../hooks/useSelectedContract';
 import {
+  AddressFieldWithResolvedPreview,
   ConfirmCloseDialog,
   DialogCancelledState,
   DialogErrorState,
@@ -327,8 +327,12 @@ function AssignRoleFormContent({
   const {
     control,
     handleSubmit,
+    watch,
     formState: { isValid, isSubmitting },
   } = form;
+
+  const { selectedNetwork } = useSelectedContract();
+  const resolvedAddress = watch('address');
 
   // Disable submit if adapter is not loaded, wallet not connected, form invalid, or no roles
   const canSubmit =
@@ -365,22 +369,22 @@ function AssignRoleFormContent({
       {!isWalletConnected && <WalletDisconnectedAlert />}
 
       {/* Address Field */}
-      <div className="space-y-1.5">
-        <AddressField
-          id="assign-role-address"
-          name="address"
-          label="Account Address"
-          placeholder={
-            runtime
-              ? (getEcosystemMetadata(runtime.networkConfig.ecosystem)?.addressExample ?? '0x...')
-              : '0x...'
-          }
-          helperText="The account address that will receive this role."
-          control={control}
-          addressing={runtime?.addressing ?? undefined}
-          validation={{ required: true }}
-        />
-      </div>
+      <AddressFieldWithResolvedPreview
+        id="assign-role-address"
+        name="address"
+        label="Account Address"
+        placeholder={
+          runtime
+            ? (getEcosystemMetadata(runtime.networkConfig.ecosystem)?.addressExample ?? '0x...')
+            : '0x...'
+        }
+        helperText="The account address that will receive this role."
+        control={control}
+        addressing={runtime?.addressing ?? undefined}
+        validation={{ required: true }}
+        previewAddress={resolvedAddress}
+        previewNetworkId={selectedNetwork?.id}
+      />
 
       {/* Role Selection */}
       <div className="space-y-1.5">
