@@ -40,8 +40,6 @@ export { AcceptTransferButton } from './AcceptTransferButton';
 export { RoleNameDisplay } from './RoleNameDisplay';
 export { ResolvedAddressDisplay } from './ResolvedAddressDisplay';
 export type { ResolvedAddressDisplayProps } from './ResolvedAddressDisplay';
-export { ResolvedAddressFieldPreview } from './ResolvedAddressFieldPreview';
-export type { ResolvedAddressFieldPreviewProps } from './ResolvedAddressFieldPreview';
 export { AddressFieldWithResolvedPreview } from './AddressFieldWithResolvedPreview';
 export type { AddressFieldWithResolvedPreviewProps } from './AddressFieldWithResolvedPreview';
 export { DynamicFormFieldWithResolvedPreview } from './DynamicFormFieldWithResolvedPreview';

@@ -433,7 +433,7 @@ function TransferAdminFormContent({
         addressing={runtime?.addressing ?? undefined}
         validation={{ required: true }}
         previewAddress={resolvedAddress}
-        previewNetworkId={selectedNetwork?.id}
+        previewNetwork={selectedNetwork ?? undefined}
       />
 
       {/* Expiration Field — shown only when adapter requires user input (mode: 'required') */}

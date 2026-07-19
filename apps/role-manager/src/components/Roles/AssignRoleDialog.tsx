@@ -383,7 +383,7 @@ function AssignRoleFormContent({
         addressing={runtime?.addressing ?? undefined}
         validation={{ required: true }}
         previewAddress={resolvedAddress}
-        previewNetworkId={selectedNetwork?.id}
+        previewNetwork={selectedNetwork ?? undefined}
       />
 
       {/* Role Selection */}

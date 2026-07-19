@@ -426,7 +426,7 @@ export function AddContractForm({
                   control={control as unknown as Control<FormValues>}
                   addressing={runtime?.addressing}
                   typeMapping={runtime?.typeMapping}
-                  previewNetworkId={selectedNetwork?.id}
+                  previewNetwork={selectedNetwork ?? undefined}
                 />
               ))}
             </div>

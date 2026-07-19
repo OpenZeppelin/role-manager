@@ -6,6 +6,7 @@ import type {
   FieldCondition,
   FormFieldType,
   FormValues,
+  NetworkConfig,
 } from '@openzeppelin/ui-types';
 
 import { AddressFieldWithResolvedPreview } from './AddressFieldWithResolvedPreview';
@@ -13,8 +14,8 @@ import { AddressFieldWithResolvedPreview } from './AddressFieldWithResolvedPrevi
 export interface DynamicFormFieldWithResolvedPreviewProps extends DynamicFormContextProps {
   field: FormFieldType;
   control: Control<FormValues>;
-  /** Network id for reverse ENS preview on blockchain-address fields. */
-  previewNetworkId?: string;
+  /** Network for reverse ENS preview on blockchain-address fields (EVM only). */
+  previewNetwork?: NetworkConfig;
 }
 
 function useShouldRenderField(field: FormFieldType, control: Control<FormValues>): boolean {
@@ -68,7 +69,7 @@ export function DynamicFormFieldWithResolvedPreview({
   addressing,
   typeMapping,
   contractSchema,
-  previewNetworkId,
+  previewNetwork,
 }: DynamicFormFieldWithResolvedPreviewProps): React.ReactElement | null {
   const shouldRender = useShouldRenderField(field, control);
   const previewAddress = useWatch({
@@ -81,7 +82,7 @@ export function DynamicFormFieldWithResolvedPreview({
     return null;
   }
 
-  if (field.type === 'blockchain-address') {
+  if (field.type === 'blockchain-address' && previewNetwork?.ecosystem === 'evm') {
     return (
       <AddressFieldWithResolvedPreview
         id={field.id}
@@ -95,7 +96,7 @@ export function DynamicFormFieldWithResolvedPreview({
         addressing={addressing}
         readOnly={field.readOnly}
         previewAddress={previewAddress}
-        previewNetworkId={previewNetworkId}
+        previewNetwork={previewNetwork}
       />
     );
   }
