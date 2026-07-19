@@ -44,6 +44,8 @@ export { ResolvedAddressFieldPreview } from './ResolvedAddressFieldPreview';
 export type { ResolvedAddressFieldPreviewProps } from './ResolvedAddressFieldPreview';
 export { AddressFieldWithResolvedPreview } from './AddressFieldWithResolvedPreview';
 export type { AddressFieldWithResolvedPreviewProps } from './AddressFieldWithResolvedPreview';
+export { DynamicFormFieldWithResolvedPreview } from './DynamicFormFieldWithResolvedPreview';
+export type { DynamicFormFieldWithResolvedPreviewProps } from './DynamicFormFieldWithResolvedPreview';
 
 // Type-to-Confirm Dialog (Feature: 017-evm-access-control)
 export { TypeToConfirmDialog } from './TypeToConfirmDialog';

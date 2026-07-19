@@ -22,7 +22,7 @@
     "@openzeppelin/adapter-evm": "^2.3.0",
     "@openzeppelin/adapter-polkadot": "^2.2.0",
     "@openzeppelin/adapter-stellar": "^2.2.0",
-    "@openzeppelin/ui-components": "^3.6.0",
+    "@openzeppelin/ui-components": "^3.7.0",
     "@openzeppelin/ui-react": "^3.2.0",
     "@openzeppelin/ui-renderer": "^3.3.0",
     "@openzeppelin/ui-storage": "^1.2.2",

@@ -15,7 +15,7 @@ minimumReleaseAgeExclude:
 overrides:
   '@openzeppelin/ui-types': 3.3.0
   '@openzeppelin/ui-utils': 3.3.0
-  '@openzeppelin/ui-components': 3.6.0
+  '@openzeppelin/ui-components': 3.7.0
   react-hook-form: 7.79.0
   # Security overrides — see PR adding these for full advisory list
   'axios@<1.16.0': ^1.16.0

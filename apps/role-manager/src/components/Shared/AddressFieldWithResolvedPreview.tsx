@@ -1,55 +1,40 @@
 import type { FieldValues } from 'react-hook-form';
 
-import { AddressField, type AddressFieldProps } from '@openzeppelin/ui-components';
-import type { AddressingCapability } from '@openzeppelin/ui-types';
-import { cn } from '@openzeppelin/ui-utils';
+import {
+  AddressFieldWithResolvedPreview as BaseAddressFieldWithResolvedPreview,
+  type AddressFieldWithResolvedPreviewProps as BaseAddressFieldWithResolvedPreviewProps,
+} from '@openzeppelin/ui-components';
 
 import { ResolvedAddressFieldPreview } from './ResolvedAddressFieldPreview';
 
-export type AddressFieldWithResolvedPreviewProps<TFieldValues extends FieldValues> =
-  AddressFieldProps<TFieldValues> & {
-    /** Current form value watched from the same field `name`. */
-    previewAddress: string | undefined;
-    previewNetworkId?: string;
-    addressing?: AddressingCapability;
-    className?: string;
-  };
+export type AddressFieldWithResolvedPreviewProps<TFieldValues extends FieldValues> = Omit<
+  BaseAddressFieldWithResolvedPreviewProps<TFieldValues>,
+  'preview'
+>;
 
 /**
- * AddressField plus a rich ENS preview card. Suppresses the redundant forward
- * "Resolved to 0x…" announcer once the preview is visible via
- * `showForwardResolutionSuccessAnnouncer` when the preview is visible.
+ * Role-manager address field: ui-components shell + contract-scoped reverse ENS
+ * preview via `ResolvedAddressFieldPreview`.
  */
 export function AddressFieldWithResolvedPreview<TFieldValues extends FieldValues>({
   previewAddress,
   previewNetworkId,
   addressing,
-  className,
-  showCrossNetworkFallbackDisclaimer,
-  showForwardResolutionSuccessAnnouncer,
-  ...addressFieldProps
+  ...rest
 }: AddressFieldWithResolvedPreviewProps<TFieldValues>): React.ReactElement {
-  const trimmed = previewAddress?.trim() ?? '';
-  const showPreview = trimmed !== '' && addressing?.isValidAddress(trimmed) === true;
-  const suppressForwardSuccess = showPreview;
-
   return (
-    <div className={cn('space-y-1.5', className)}>
-      <AddressField
-        {...addressFieldProps}
-        addressing={addressing}
-        showCrossNetworkFallbackDisclaimer={
-          showCrossNetworkFallbackDisclaimer ?? !suppressForwardSuccess
-        }
-        showForwardResolutionSuccessAnnouncer={
-          showForwardResolutionSuccessAnnouncer ?? !suppressForwardSuccess
-        }
-      />
-      <ResolvedAddressFieldPreview
-        address={previewAddress}
-        networkId={previewNetworkId}
-        addressing={addressing}
-      />
-    </div>
+    <BaseAddressFieldWithResolvedPreview
+      {...rest}
+      addressing={addressing}
+      previewAddress={previewAddress}
+      previewNetworkId={previewNetworkId}
+      preview={
+        <ResolvedAddressFieldPreview
+          address={previewAddress}
+          networkId={previewNetworkId}
+          addressing={addressing}
+        />
+      }
+    />
   );
 }
