@@ -49,8 +49,12 @@ function useShouldRenderField(field: FormFieldType, control: Control<FormValues>
         return Number(dependentValue) < Number(condition.value || 0);
       case 'matches':
         if (typeof condition.value === 'string') {
-          const regex = new RegExp(condition.value);
-          return regex.test(String(dependentValue || ''));
+          try {
+            const regex = new RegExp(condition.value);
+            return regex.test(String(dependentValue || ''));
+          } catch {
+            return false;
+          }
         }
         return false;
       default:

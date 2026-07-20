@@ -1,27 +1,19 @@
 import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
-import { useNameResolutionContext } from '@openzeppelin/ui-react';
+import { useNameResolutionContext, useResolveAddress } from '@openzeppelin/ui-react';
 import type { ResolvedName } from '@openzeppelin/ui-types';
 
+import { useAllNetworks } from './useAllNetworks';
 import { useEffectiveNameResolutionRuntime } from './useEffectiveNameResolutionRuntime';
 
-/**
- * Reverse-resolve an address to ENS (name + avatar metadata) using the effective
- * runtime — wallet active runtime when available, otherwise the contract runtime.
- */
-export function useReverseAddressResolution(
+function useEffectiveRuntimeReverseResolution(
   address: string | null | undefined,
-  networkIdOverride?: string,
-  enabled = true
+  enabled: boolean
 ): ResolvedName | undefined {
-  const {
-    runtime,
-    networkId: defaultNetworkId,
-    isRuntimeLoading,
-  } = useEffectiveNameResolutionRuntime();
+  const { runtime, networkId, isRuntimeLoading } = useEffectiveNameResolutionRuntime();
   const { queryClient, config } = useNameResolutionContext();
 
-  const networkId = networkIdOverride ?? defaultNetworkId;
   const trimmed = (address ?? '').trim();
   const normalizedKey = trimmed.toLowerCase();
   const resolveAddress = runtime?.nameResolution?.resolveAddress;
@@ -50,4 +42,43 @@ export function useReverseAddressResolution(
   );
 
   return data;
+}
+
+/**
+ * Reverse-resolve an address to ENS (name + avatar metadata).
+ *
+ * When `networkId` is provided, resolves via {@link RuntimeProvider} for that
+ * network (ui-react `useResolveAddress` + `network` option). Otherwise uses the
+ * effective runtime (wallet when available, otherwise contract-scoped).
+ */
+export function useReverseAddressResolution(
+  address: string | null | undefined,
+  networkId?: string,
+  enabled = true
+): ResolvedName | undefined {
+  const { networks, isLoading: networksLoading } = useAllNetworks();
+  const scopedNetwork = useMemo(
+    () => (networkId ? networks.find((n) => n.id === networkId) : undefined),
+    [networks, networkId]
+  );
+
+  const hasNetworkScope = networkId != null;
+  const useNetworkScoped =
+    hasNetworkScope && !networksLoading && scopedNetwork?.ecosystem === 'evm' && enabled;
+
+  const scopedResult = useResolveAddress(address, {
+    enabled: useNetworkScoped,
+    network: scopedNetwork,
+  });
+
+  const effectiveResult = useEffectiveRuntimeReverseResolution(
+    address,
+    enabled && !hasNetworkScope
+  );
+
+  if (useNetworkScoped) {
+    return scopedResult.status === 'resolved' ? scopedResult.data : undefined;
+  }
+
+  return effectiveResult;
 }
