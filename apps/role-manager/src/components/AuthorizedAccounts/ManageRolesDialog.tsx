@@ -30,7 +30,6 @@
 import { useCallback, useState } from 'react';
 
 import {
-  AddressDisplay,
   Button,
   Dialog,
   DialogContent,
@@ -44,6 +43,7 @@ import { useDerivedAccountStatus } from '@openzeppelin/ui-react';
 
 import { useManageRolesDialog } from '../../hooks/useManageRolesDialog';
 import { useRolesPageData } from '../../hooks/useRolesPageData';
+import { useSelectedContract } from '../../hooks/useSelectedContract';
 import {
   ConfirmCloseDialog,
   DialogCancelledState,
@@ -56,6 +56,7 @@ import {
   SelfRevokeWarning,
   WalletDisconnectedAlert,
 } from '../Shared';
+import { ResolvedAddressDisplay } from '../Shared/ResolvedAddressDisplay';
 
 // =============================================================================
 // Types
@@ -297,6 +298,8 @@ function ManageRolesFormContent({
   isWalletConnected,
   hasNoRoles,
 }: ManageRolesFormContentProps) {
+  const { selectedNetwork } = useSelectedContract();
+
   return (
     <div className="space-y-4 py-4">
       {/* Wallet Disconnection Alert (T059 - FR-039) */}
@@ -306,7 +309,12 @@ function ManageRolesFormContent({
       <div className="space-y-1.5">
         <Label className="text-sm text-muted-foreground">Account</Label>
         <div className="rounded-md border border-border bg-muted/30 p-3">
-          <AddressDisplay address={accountAddress} truncate={true} showCopyButton={true} />
+          <ResolvedAddressDisplay
+            address={accountAddress}
+            networkId={selectedNetwork?.id}
+            truncate={true}
+            showCopyButton={true}
+          />
         </div>
       </div>
 

@@ -14,10 +14,10 @@
 
 import { ArrowRight, Clock } from 'lucide-react';
 
-import { AddressDisplay } from '@openzeppelin/ui-components';
 import { cn } from '@openzeppelin/ui-utils';
 
 import { useBlockTime } from '../../context/useBlockTime';
+import { useSelectedContract } from '../../hooks/useSelectedContract';
 import type { PendingTransfer } from '../../types/pending-transfers';
 import { calculateBlockExpiration, formatTimeEstimateDisplay } from '../../utils/block-time';
 import {
@@ -27,6 +27,7 @@ import {
   isTimestampBasedExpiration,
 } from '../../utils/expiration';
 import { AcceptTransferButton, RoleTypeBadge, StatusBadge } from '../Shared';
+import { ResolvedAddressDisplay } from '../Shared/ResolvedAddressDisplay';
 
 // =============================================================================
 // Types
@@ -54,6 +55,7 @@ export interface PendingTransferRowProps {
  * Follows the same styling pattern as ChangeRow component.
  */
 export function PendingTransferRow({ transfer, currentBlock, onAccept }: PendingTransferRowProps) {
+  const { selectedNetwork } = useSelectedContract();
   const handleAccept = () => {
     onAccept?.(transfer);
   };
@@ -82,8 +84,9 @@ export function PendingTransferRow({ transfer, currentBlock, onAccept }: Pending
 
       {/* From address */}
       <td className="p-4">
-        <AddressDisplay
+        <ResolvedAddressDisplay
           address={transfer.currentHolder}
+          networkId={selectedNetwork?.id}
           truncate={true}
           startChars={6}
           endChars={4}
@@ -97,8 +100,9 @@ export function PendingTransferRow({ transfer, currentBlock, onAccept }: Pending
       <td className="p-4">
         <div className="flex items-center gap-2">
           <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
-          <AddressDisplay
+          <ResolvedAddressDisplay
             address={transfer.pendingRecipient}
+            networkId={selectedNetwork?.id}
             truncate={true}
             startChars={6}
             endChars={4}

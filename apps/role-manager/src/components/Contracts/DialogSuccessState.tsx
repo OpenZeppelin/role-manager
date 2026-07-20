@@ -7,9 +7,12 @@
 
 import { CheckCircle2 } from 'lucide-react';
 
-import { AddressDisplay, Button } from '@openzeppelin/ui-components';
+import { Button } from '@openzeppelin/ui-components';
 import type { AccessControlCapabilities } from '@openzeppelin/ui-types';
 
+import { useSelectedContract } from '@/hooks/useSelectedContract';
+
+import { ResolvedAddressDisplay } from '../Shared/ResolvedAddressDisplay';
 import { AccessControlCapabilitiesSummary } from './AccessControlCapabilitiesSummary';
 
 interface DialogSuccessStateProps {
@@ -49,6 +52,8 @@ export function DialogSuccessState({
   capabilities,
   onComplete,
 }: DialogSuccessStateProps): React.ReactElement {
+  const { selectedNetwork } = useSelectedContract();
+
   return (
     <div className="flex flex-col gap-4 py-4">
       {/* Success header */}
@@ -65,8 +70,9 @@ export function DialogSuccessState({
       {/* Contract address with explorer link */}
       <div className="rounded-lg border bg-muted/50 p-3">
         <div className="mb-2 text-xs text-muted-foreground">Contract Address</div>
-        <AddressDisplay
+        <ResolvedAddressDisplay
           address={contractAddress}
+          networkId={selectedNetwork?.id}
           truncate={true}
           startChars={10}
           endChars={8}

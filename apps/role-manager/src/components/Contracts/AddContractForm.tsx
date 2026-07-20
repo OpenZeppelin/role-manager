@@ -24,11 +24,11 @@ import {
   TextField,
 } from '@openzeppelin/ui-components';
 import type { EcosystemDropdownOption } from '@openzeppelin/ui-components';
-import { DynamicFormField } from '@openzeppelin/ui-renderer';
 import type { Ecosystem, FormFieldType, FormValues, NetworkConfig } from '@openzeppelin/ui-types';
 import { getDisabledNetworkRejectionToast, isNetworkSelectable } from '@openzeppelin/ui-utils';
 
 import { HostedNetworkNotice } from '@/components/Layout/HostedNetworkNotice';
+import { DynamicFormFieldWithResolvedPreview } from '@/components/Shared';
 import { HOSTED_APP_NAME } from '@/constants/hosting';
 import { getEcosystemMetadata } from '@/core/ecosystems/ecosystemManager';
 import { ECOSYSTEM_ORDER, getEcosystemDefaultFeatureConfig } from '@/core/ecosystems/registry';
@@ -420,12 +420,13 @@ export function AddContractForm({
           {runtime && !isRuntimeLoading && !runtimeError && (
             <div className="space-y-4">
               {contractDefinitionInputs.map((field) => (
-                <DynamicFormField
+                <DynamicFormFieldWithResolvedPreview
                   key={field.id}
                   field={field}
                   control={control as unknown as Control<FormValues>}
                   addressing={runtime?.addressing}
                   typeMapping={runtime?.typeMapping}
+                  previewNetwork={selectedNetwork ?? undefined}
                 />
               ))}
             </div>

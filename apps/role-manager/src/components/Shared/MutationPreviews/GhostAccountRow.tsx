@@ -5,13 +5,15 @@
  * Shown in the member list when a grantRole mutation has been submitted
  * and the app is waiting for the RPC to propagate the new member.
  *
- * Uses the same AddressDisplay component and layout as AccountRow so
+ * Uses the same ResolvedAddressDisplay component and layout as AccountRow so
  * the ghost row visually matches the real row it will become.
  * A heavy blur overlay with a static label + spinner indicates pending state.
  */
-import { AddressDisplay } from '@openzeppelin/ui-components';
 import { cn } from '@openzeppelin/ui-utils';
 
+import { useSelectedContract } from '@/hooks/useSelectedContract';
+
+import { ResolvedAddressDisplay } from '../ResolvedAddressDisplay';
 import { FadingOverlay } from './FadingOverlay';
 
 export interface GhostAccountRowProps {
@@ -21,6 +23,8 @@ export interface GhostAccountRowProps {
 }
 
 export function GhostAccountRow({ address, className }: GhostAccountRowProps) {
+  const { selectedNetwork } = useSelectedContract();
+
   return (
     <div
       className={cn('relative overflow-hidden p-3', className)}
@@ -29,8 +33,9 @@ export function GhostAccountRow({ address, className }: GhostAccountRowProps) {
     >
       {/* Underlying row content — barely visible behind the blur */}
       <div className="flex items-center gap-2">
-        <AddressDisplay
+        <ResolvedAddressDisplay
           address={address}
+          networkId={selectedNetwork?.id}
           truncate={true}
           startChars={10}
           endChars={8}

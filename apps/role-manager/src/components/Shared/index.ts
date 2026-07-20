@@ -38,6 +38,12 @@ export { AcceptTransferButton } from './AcceptTransferButton';
 
 // Role Display Components (Feature: 017-evm-access-control)
 export { RoleNameDisplay } from './RoleNameDisplay';
+export { ResolvedAddressDisplay } from './ResolvedAddressDisplay';
+export type { ResolvedAddressDisplayProps } from './ResolvedAddressDisplay';
+export { AddressFieldWithResolvedPreview } from './AddressFieldWithResolvedPreview';
+export type { AddressFieldWithResolvedPreviewProps } from './AddressFieldWithResolvedPreview';
+export { DynamicFormFieldWithResolvedPreview } from './DynamicFormFieldWithResolvedPreview';
+export type { DynamicFormFieldWithResolvedPreviewProps } from './DynamicFormFieldWithResolvedPreview';
 
 // Type-to-Confirm Dialog (Feature: 017-evm-access-control)
 export { TypeToConfirmDialog } from './TypeToConfirmDialog';

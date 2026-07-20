@@ -13,6 +13,7 @@ import { ecosystemMetadata as evmMetadata } from '@openzeppelin/adapter-evm/meta
 import { ecosystemMetadata as polkadotMetadata } from '@openzeppelin/adapter-polkadot/metadata';
 import { ecosystemMetadata as stellarMetadata } from '@openzeppelin/adapter-stellar/metadata';
 import type {
+  CreateRuntimeOptions,
   Ecosystem,
   EcosystemExport,
   EcosystemMetadata,
@@ -232,7 +233,15 @@ export async function getNetworkById(id: string): Promise<NetworkConfig | undefi
 // Adapter Instantiation
 // =============================================================================
 
-export async function getRuntime(networkConfig: NetworkConfig): Promise<RoleManagerRuntime> {
+/** Static 003 opt-in: resolve mainnet ENS when active network is a testnet/L2. */
+export const RUNTIME_CREATION_OPTIONS: CreateRuntimeOptions = {
+  nameResolution: { enableMainnetL1MissFallback: true },
+};
+
+export async function getRuntime(
+  networkConfig: NetworkConfig,
+  options: CreateRuntimeOptions = RUNTIME_CREATION_OPTIONS
+): Promise<RoleManagerRuntime> {
   const def = await loadAdapterModule(networkConfig.ecosystem);
 
   if (typeof def.createRuntime !== 'function') {
@@ -241,7 +250,7 @@ export async function getRuntime(networkConfig: NetworkConfig): Promise<RoleMana
     );
   }
 
-  const runtime = def.createRuntime('operator', networkConfig) as OperatorEcosystemRuntime;
+  const runtime = def.createRuntime('operator', networkConfig, options) as OperatorEcosystemRuntime;
   return attachRelayerCapability(runtime, def.capabilities?.relayer);
 }
 

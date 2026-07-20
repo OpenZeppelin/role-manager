@@ -1,5 +1,4 @@
 import {
-  AddressDisplay,
   Card,
   CardContent,
   CardHeader,
@@ -11,6 +10,7 @@ import { cn } from '@openzeppelin/ui-utils';
 
 import { CONTRACT_FEATURES, CONTRACT_TYPES, resolveCapabilities } from '../../constants';
 import { FeatureBadge } from '../Shared/FeatureBadge';
+import { ResolvedAddressDisplay } from '../Shared/ResolvedAddressDisplay';
 
 /**
  * Props for ContractInfoCard component.
@@ -47,8 +47,9 @@ export function ContractInfoCard({
       <CardContent className="space-y-6">
         <div className="flex justify-between items-center">
           <span className="text-sm font-semibold text-slate-900">Contract</span>
-          <AddressDisplay
+          <ResolvedAddressDisplay
             address={address}
+            networkId={network?.id}
             truncate={true}
             startChars={6}
             endChars={4}

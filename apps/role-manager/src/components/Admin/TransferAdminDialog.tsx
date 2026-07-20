@@ -29,7 +29,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import {
-  AddressField,
   Button,
   Dialog,
   DialogContent,
@@ -58,6 +57,7 @@ import {
   isContractManagedExpiration,
 } from '../../utils/expiration';
 import {
+  AddressFieldWithResolvedPreview,
   ConfirmCloseDialog,
   DialogCancelledState,
   DialogErrorState,
@@ -360,6 +360,9 @@ function TransferAdminFormContent({
   } = form;
 
   const expirationValue = watch('expirationBlock');
+  const resolvedAddress = watch('newAdminAddress');
+
+  const { selectedNetwork } = useSelectedContract();
 
   // Debounce the expiration value for time estimation (300ms)
   const debouncedExpiration = useDebounce(expirationValue, 300);
@@ -416,22 +419,22 @@ function TransferAdminFormContent({
       )}
 
       {/* New Admin Address Field */}
-      <div className="space-y-1.5">
-        <AddressField
-          id="transfer-admin-address"
-          name="newAdminAddress"
-          label="New Admin Address"
-          placeholder={
-            runtime
-              ? (getEcosystemMetadata(runtime.networkConfig.ecosystem)?.addressExample ?? '0x...')
-              : '0x...'
-          }
-          helperText="The address that will become the new admin of this contract."
-          control={control}
-          addressing={runtime?.addressing ?? undefined}
-          validation={{ required: true }}
-        />
-      </div>
+      <AddressFieldWithResolvedPreview
+        id="transfer-admin-address"
+        name="newAdminAddress"
+        label="New Admin Address"
+        placeholder={
+          runtime
+            ? (getEcosystemMetadata(runtime.networkConfig.ecosystem)?.addressExample ?? '0x...')
+            : '0x...'
+        }
+        helperText="The address that will become the new admin of this contract."
+        control={control}
+        addressing={runtime?.addressing ?? undefined}
+        validation={{ required: true }}
+        previewAddress={resolvedAddress}
+        previewNetwork={selectedNetwork ?? undefined}
+      />
 
       {/* Expiration Field — shown only when adapter requires user input (mode: 'required') */}
       {requiresExpiration && (

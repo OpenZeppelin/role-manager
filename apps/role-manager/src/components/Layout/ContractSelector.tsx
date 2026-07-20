@@ -1,7 +1,6 @@
 import { ChevronDown, Plus, Trash } from 'lucide-react';
 
 import {
-  AddressDisplay,
   Button,
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +11,7 @@ import {
 
 import { useContractDisplayName } from '../../hooks/useContractDisplayName';
 import type { ContractRecord, ContractSelectorProps } from '../../types/contracts';
+import { ResolvedAddressDisplay } from '../Shared/ResolvedAddressDisplay';
 
 const AVATAR_COLORS = [
   '#ef4444',
@@ -51,8 +51,9 @@ function SelectedContractTrigger({ contract }: { contract: ContractRecord }) {
       </div>
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <span className="truncate text-sm font-medium text-foreground">{displayName}</span>
-        <AddressDisplay
+        <ResolvedAddressDisplay
           address={contract.address}
+          networkId={contract.networkId}
           className="text-xs font-normal text-muted-foreground"
           disableLabel
           truncate
@@ -90,8 +91,9 @@ function ContractItem({ contract, onSelect, onRemove }: ContractItemProps) {
         <div className="flex flex-col overflow-hidden">
           <span className="truncate text-sm font-medium text-foreground">{displayName}</span>
           <span className="text-xs text-muted-foreground">
-            <AddressDisplay
+            <ResolvedAddressDisplay
               address={contract.address}
+              networkId={contract.networkId}
               showCopyButton
               showCopyButtonOnHover
               className="font-normal text-muted-foreground"
