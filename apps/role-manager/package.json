@@ -19,9 +19,9 @@
   },
   "dependencies": {
     "@creit.tech/stellar-wallets-kit": "1.9.5",
-    "@openzeppelin/adapter-evm": "^2.3.0",
-    "@openzeppelin/adapter-polkadot": "^2.2.0",
-    "@openzeppelin/adapter-stellar": "^2.2.0",
+    "@openzeppelin/adapter-evm": "^4.0.0",
+    "@openzeppelin/adapter-polkadot": "^3.0.0",
+    "@openzeppelin/adapter-stellar": "^4.0.0",
     "@openzeppelin/ui-components": "^3.8.0",
     "@openzeppelin/ui-react": "^3.3.0",
     "@openzeppelin/ui-renderer": "^3.4.0",
@@ -44,7 +44,7 @@
     "wagmi": "2.19.5"
   },
   "devDependencies": {
-    "@openzeppelin/adapters-vite": "^4.0.0",
+    "@openzeppelin/adapters-vite": "^11.0.0",
     "@tailwindcss/vite": "^4.3.0",
     "@types/pluralize": "^0.0.33",
     "@types/react": "^19.2.14",
