@@ -34,7 +34,8 @@
     "dev:local": "LOCAL_UI_PATH=${LOCAL_UI_PATH:-../openzeppelin-ui} && LOCAL_ADAPTERS_PATH=${LOCAL_ADAPTERS_PATH:-../openzeppelin-adapters} && LOCAL_UI_PATH=\"$LOCAL_UI_PATH\" LOCAL_ADAPTERS_PATH=\"$LOCAL_ADAPTERS_PATH\" oz-ui-dev use local --project \"$PWD\" --family ui --family adapters",
     "dev:npm": "oz-ui-dev use remote --project \"$PWD\"",
     "docker:dev": "docker-compose up --build",
-    "check-licenses": "node scripts/check-dependency-licenses.cjs"
+    "check-licenses": "node scripts/check-dependency-licenses.cjs",
+    "check-adapter-peers": "node scripts/check-adapter-peers.cjs"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,cjs,mjs}": "pnpm fix-all"

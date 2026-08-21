@@ -13,9 +13,9 @@ minimumReleaseAgeExclude:
   - '@vitest/*'
   - 'viem'
 overrides:
-  '@openzeppelin/ui-types': 3.3.0
-  '@openzeppelin/ui-utils': 3.3.0
-  '@openzeppelin/ui-components': 3.8.0
+  '@openzeppelin/ui-types': 3.5.1
+  '@openzeppelin/ui-utils': 4.0.0
+  '@openzeppelin/ui-components': 3.8.2
   react-hook-form: 7.79.0
   # Security overrides — see PR adding these for full advisory list
   'axios@<1.16.0': ^1.16.0
