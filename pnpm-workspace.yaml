@@ -20,9 +20,9 @@ overrides:
   # dist/*.js -- and 2.2.0 still exports that type, so crossing the major here is
   # type-only. Reached via @coinbase/wallet-sdk from @wagmi/connectors.
   '@metamask/eth-json-rpc-provider': ^2.2.0
-  '@openzeppelin/ui-types': 3.5.1
-  '@openzeppelin/ui-utils': 4.0.0
-  '@openzeppelin/ui-components': 3.8.2
+  '@openzeppelin/ui-types': 3.5.2
+  '@openzeppelin/ui-utils': 4.0.1
+  '@openzeppelin/ui-components': 3.8.3
   react-hook-form: 7.79.0
   # Security overrides — see PR adding these for full advisory list
   'axios@<1.16.0': ^1.16.0
