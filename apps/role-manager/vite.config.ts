@@ -44,6 +44,11 @@ export default defineOpenZeppelinAdapterViteConfig({
           __dirname,
           './src/shims/walletconnect-removed.ts'
         ),
+        // The MetaMask SDK is stripped from the install tree for licence reasons
+        // (proprietary, Non-Commercial Use only). @wagmi/connectors still ships an
+        // unreachable metaMask module that dynamically imports it, so point it at a
+        // stub for the same reason as WalletConnect above.
+        '@metamask/sdk': path.resolve(__dirname, './src/shims/metamask-removed.ts'),
         eventemitter3: eventemitter3CjsEntry,
       },
     },
