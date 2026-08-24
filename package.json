@@ -35,7 +35,7 @@
     "dev:npm": "oz-ui-dev use remote --project \"$PWD\"",
     "docker:dev": "docker-compose up --build",
     "check-licenses": "node scripts/check-dependency-licenses.cjs",
-    "check-adapter-peers": "node scripts/check-adapter-peers.cjs"
+    "check-adapter-peers": "oz-ui-dev check-peers --project \"$PWD\""
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,cjs,mjs}": "pnpm fix-all"
