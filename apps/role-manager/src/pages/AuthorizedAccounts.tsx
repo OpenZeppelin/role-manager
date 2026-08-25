@@ -33,6 +33,7 @@ import {
 import { PageEmptyState } from '../components/Shared/PageEmptyState';
 import { PageHeader } from '../components/Shared/PageHeader';
 import { useAuthorizedAccountsPageData, useContractDisplayName } from '../hooks';
+import { useFilterAnalytics } from '../hooks/useFilterAnalytics';
 import { useSelectedContract } from '../hooks/useSelectedContract';
 
 /**
@@ -66,6 +67,8 @@ export function AuthorizedAccounts() {
     refetch,
     connectedAddress,
   } = useAuthorizedAccountsPageData();
+
+  const trackFilterChanges = useFilterAnalytics('Authorized Accounts');
 
   // T060: Determine if pagination controls should be visible
   const showPagination = pagination.totalItems > pagination.pageSize;
@@ -113,6 +116,7 @@ export function AuthorizedAccounts() {
 
   // Filter change handler
   const handleFiltersChange = (newFilters: typeof filters) => {
+    trackFilterChanges(filters, newFilters);
     setFilters(newFilters);
     logger.info('AuthorizedAccounts', 'Filters changed', { filters: newFilters });
   };

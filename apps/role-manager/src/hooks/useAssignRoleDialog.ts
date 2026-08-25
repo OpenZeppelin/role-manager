@@ -22,6 +22,7 @@ import type {
 
 import type { DialogTransactionStep } from '../types/role-dialogs';
 import { useGrantRole, type GrantRoleArgs } from './useAccessControlMutations';
+import { getAnalyticsNetworkContext, useRoleManagerAnalytics } from './useRoleManagerAnalytics';
 import { useRolesPageData } from './useRolesPageData';
 import { useSelectedContract } from './useSelectedContract';
 import { useTransactionExecution } from './useTransactionExecution';
@@ -123,9 +124,14 @@ export function useAssignRoleDialog(
 
   const { roles } = useRolesPageData();
   const { address: connectedAddress } = useDerivedAccountStatus();
+  const { trackRoleGranted } = useRoleManagerAnalytics();
 
   // Mutation hook for grant
   const grantRole = useGrantRole(runtime, contractAddress);
+
+  // Role name of the in-flight grant, resolved at submit time so the analytics
+  // success callback can report it without re-deriving from form state.
+  const submittedRoleNameRef = useRef<string | null>(null);
 
   // =============================================================================
   // Transaction Execution (using shared hook)
@@ -135,7 +141,13 @@ export function useAssignRoleDialog(
     grantRole,
     {
       onClose,
-      onSuccess,
+      onSuccess: (result) => {
+        trackRoleGranted(
+          submittedRoleNameRef.current ?? 'unknown',
+          getAnalyticsNetworkContext(runtime)
+        );
+        onSuccess?.(result);
+      },
     }
   );
 
@@ -175,13 +187,15 @@ export function useAssignRoleDialog(
 
   const submit = useCallback(
     async (data: AssignRoleFormData) => {
+      submittedRoleNameRef.current =
+        roles.find((role) => role.roleId === data.roleId)?.roleName ?? data.roleId;
       await execute({
         roleId: data.roleId,
         account: data.address,
         executionConfig: { method: 'eoa', allowAny: true } as ExecutionConfig,
       });
     },
-    [execute]
+    [execute, roles]
   );
 
   // =============================================================================

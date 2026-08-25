@@ -46,6 +46,24 @@ vi.mock('../useContractRolesEnriched', () => ({
   useContractRolesEnriched: vi.fn(),
 }));
 
+// Mock analytics; keep getAnalyticsNetworkContext real so assertions cover the emitted network dims.
+const mockAnalytics = vi.hoisted(() => ({
+  trackSnapshotExported: vi.fn(),
+}));
+
+vi.mock('../useRoleManagerAnalytics', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../useRoleManagerAnalytics')>()),
+  useRoleManagerAnalytics: () => mockAnalytics,
+}));
+
+// Capture the options passed to useExportSnapshot so the success callback can be driven directly.
+const mockUseExportSnapshot = vi.hoisted(() => vi.fn());
+
+vi.mock('../useAccessControlMutations', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../useAccessControlMutations')>()),
+  useExportSnapshot: (...args: unknown[]) => mockUseExportSnapshot(...args),
+}));
+
 describe('useDashboardData', () => {
   let queryClient: QueryClient;
   let mockRuntime: RoleManagerRuntime;
@@ -78,6 +96,13 @@ describe('useDashboardData', () => {
 
     vi.clearAllMocks();
 
+    mockUseExportSnapshot.mockReturnValue({
+      exportSnapshot: vi.fn().mockResolvedValue(undefined),
+      isExporting: false,
+      error: null,
+      reset: vi.fn(),
+    });
+
     // Default capabilities mock — hasOwnable: true enables ownership query
     vi.mocked(useContractCapabilitiesModule.useContractCapabilities).mockReturnValue({
       capabilities: {
@@ -94,6 +119,69 @@ describe('useDashboardData', () => {
       error: null,
       refetch: vi.fn(),
       isSupported: true,
+    });
+  });
+
+  describe('snapshot export analytics', () => {
+    const renderWithRuntime = (runtime: RoleManagerRuntime) => {
+      vi.mocked(useContractRolesEnrichedModule.useContractRolesEnriched).mockReturnValue({
+        roles: [],
+        isPending: false,
+        isSettling: false,
+        hasError: false,
+        errorMessage: null,
+        canRetry: false,
+        refetch: vi.fn(),
+      } as never);
+      vi.mocked(useContractDataModule.useContractOwnership).mockReturnValue({
+        ownership: null,
+        isPending: false,
+        isSettling: false,
+        hasError: false,
+        errorMessage: null,
+        canRetry: false,
+        refetch: vi.fn(),
+      } as never);
+
+      return renderHook(() => useDashboardData(runtime, testAddress, defaultOptions), {
+        wrapper,
+      });
+    };
+
+    const lastExportOptions = () =>
+      mockUseExportSnapshot.mock.calls[mockUseExportSnapshot.mock.calls.length - 1][2] as {
+        onSuccess?: () => void;
+      };
+
+    it('tracks snapshot_exported with the runtime network when the export succeeds', () => {
+      const runtime = {
+        ...mockRuntime,
+        networkConfig: { id: 'stellar-testnet', ecosystem: 'stellar' },
+      } as unknown as RoleManagerRuntime;
+
+      renderWithRuntime(runtime);
+      lastExportOptions().onSuccess?.();
+
+      expect(mockAnalytics.trackSnapshotExported).toHaveBeenCalledWith('json', {
+        networkId: 'stellar-testnet',
+        ecosystem: 'stellar',
+      });
+    });
+
+    it('falls back to unknown network dimensions when no runtime config is available', () => {
+      renderWithRuntime(mockRuntime);
+      lastExportOptions().onSuccess?.();
+
+      expect(mockAnalytics.trackSnapshotExported).toHaveBeenCalledWith('json', {
+        networkId: 'unknown',
+        ecosystem: 'unknown',
+      });
+    });
+
+    it('does not track when the export has not completed', () => {
+      renderWithRuntime(mockRuntime);
+
+      expect(mockAnalytics.trackSnapshotExported).not.toHaveBeenCalled();
     });
   });
 

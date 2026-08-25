@@ -30,6 +30,7 @@ import {
 import { PageEmptyState } from '../components/Shared/PageEmptyState';
 import { PageHeader } from '../components/Shared/PageHeader';
 import { useContractDisplayName } from '../hooks/useContractDisplayName';
+import { useFilterAnalytics } from '../hooks/useFilterAnalytics';
 import { useRoleChangesPageData } from '../hooks/useRoleChangesPageData';
 import { useSelectedContract } from '../hooks/useSelectedContract';
 
@@ -65,6 +66,12 @@ export function RoleChanges() {
     canRetry,
     refetch,
   } = useRoleChangesPageData();
+
+  const trackFilterChanges = useFilterAnalytics('Role Changes');
+  const handleFiltersChange = (newFilters: typeof filters) => {
+    trackFilterChanges(filters, newFilters);
+    setFilters(newFilters);
+  };
 
   // Get contract info for display
   const { selectedContract } = useSelectedContract();
@@ -171,7 +178,7 @@ export function RoleChanges() {
           filters={filters}
           availableRoles={availableRoles}
           availableRolesLoading={availableRolesLoading}
-          onFiltersChange={setFilters}
+          onFiltersChange={handleFiltersChange}
         />
 
         {/* Error state */}

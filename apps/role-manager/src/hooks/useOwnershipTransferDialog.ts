@@ -27,6 +27,7 @@ import { requiresExpirationInput } from '../utils/expiration';
 import { useTransferOwnership, type TransferOwnershipArgs } from './useAccessControlMutations';
 import { useCurrentBlock } from './useCurrentBlock';
 import { useExpirationMetadata } from './useExpirationMetadata';
+import { getAnalyticsNetworkContext, useRoleManagerAnalytics } from './useRoleManagerAnalytics';
 import { useSelectedContract } from './useSelectedContract';
 import { isUserRejectionError } from './useTransactionExecution';
 
@@ -143,6 +144,8 @@ export function useOwnershipTransferDialog(
 
   const { address: connectedAddress } = useDerivedAccountStatus();
 
+  const { trackOwnershipTransferInitiated } = useRoleManagerAnalytics();
+
   // Mutation hook for transfer
   const transferOwnership = useTransferOwnership(runtime, contractAddress);
 
@@ -183,6 +186,7 @@ export function useOwnershipTransferDialog(
   const handleSuccess = useCallback(
     async (_result: OperationResult) => {
       setStep('success');
+      trackOwnershipTransferInitiated(getAnalyticsNetworkContext(runtime));
       // Await onSuccess to ensure data is refetched before auto-close
       // Silently catch errors - transaction already succeeded, don't block dialog close
       try {
@@ -196,7 +200,7 @@ export function useOwnershipTransferDialog(
         onClose();
       }, 1500);
     },
-    [onSuccess, onClose]
+    [onSuccess, onClose, trackOwnershipTransferInitiated, runtime]
   );
 
   // =============================================================================

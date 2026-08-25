@@ -85,6 +85,16 @@ vi.mock('@/core/storage/RecentContractsStorage', () => ({
   },
 }));
 
+// Mock analytics; keep getAnalyticsNetworkContext real so assertions cover the emitted network dims.
+const mockAnalytics = vi.hoisted(() => ({
+  trackContractSelection: vi.fn(),
+}));
+
+vi.mock('../useRoleManagerAnalytics', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../useRoleManagerAnalytics')>()),
+  useRoleManagerAnalytics: () => mockAnalytics,
+}));
+
 // =============================================================================
 // Tests
 // =============================================================================
@@ -143,6 +153,65 @@ describe('useContractSelection', () => {
       );
 
       expect(result.current.selectedContract).toBeNull();
+    });
+  });
+
+  describe('analytics', () => {
+    it('does not track the automatic first-contract selection', async () => {
+      const { result } = renderHook(() => useContractSelection(defaultProps));
+
+      await waitFor(() => {
+        expect(result.current.selectedContract).toEqual(mockContract1);
+      });
+
+      expect(mockAnalytics.trackContractSelection).not.toHaveBeenCalled();
+    });
+
+    it('tracks contract_selected with the contract network when the user picks a contract', async () => {
+      const { result } = renderHook(() => useContractSelection(defaultProps));
+
+      await waitFor(() => {
+        expect(result.current.selectedContract).toBeDefined();
+      });
+
+      act(() => {
+        result.current.setSelectedContract(mockContract2);
+      });
+
+      expect(mockAnalytics.trackContractSelection).toHaveBeenCalledTimes(1);
+      expect(mockAnalytics.trackContractSelection).toHaveBeenCalledWith(mockContract2.address, {
+        networkId: 'stellar-testnet',
+        ecosystem: 'stellar',
+      });
+    });
+
+    it('does not track clearing the selection', async () => {
+      const { result } = renderHook(() => useContractSelection(defaultProps));
+
+      await waitFor(() => {
+        expect(result.current.selectedContract).toBeDefined();
+      });
+
+      act(() => {
+        result.current.setSelectedContract(null);
+      });
+
+      expect(mockAnalytics.trackContractSelection).not.toHaveBeenCalled();
+    });
+
+    it('tracks contract_selected when selecting by id across networks', async () => {
+      mockStorage.get.mockResolvedValue(mockContractEvm);
+
+      const { result } = renderHook(() => useContractSelection(defaultProps));
+
+      await act(async () => {
+        await result.current.selectContractById('contract-evm');
+      });
+
+      expect(mockAnalytics.trackContractSelection).toHaveBeenCalledWith(mockContractEvm.address, {
+        networkId: 'ethereum-mainnet',
+        ecosystem: 'evm',
+      });
     });
   });
 

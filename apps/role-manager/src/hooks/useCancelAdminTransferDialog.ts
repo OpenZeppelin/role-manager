@@ -17,7 +17,7 @@ import type {
 
 import type { DialogTransactionStep } from '../types/role-dialogs';
 import { useCancelAdminTransfer, type CancelAdminTransferArgs } from './useAccessControlMutations';
-import { useRoleManagerAnalytics } from './useRoleManagerAnalytics';
+import { getAnalyticsNetworkContext, useRoleManagerAnalytics } from './useRoleManagerAnalytics';
 import { useSelectedContract } from './useSelectedContract';
 import { useTransactionExecution } from './useTransactionExecution';
 
@@ -78,7 +78,7 @@ export function useCancelAdminTransferDialog(
   const execution = useTransactionExecution<CancelAdminTransferArgs>(cancelMutation, {
     onClose,
     onSuccess: (result) => {
-      trackAdminTransferCancelled(runtime?.networkConfig?.ecosystem ?? 'unknown');
+      trackAdminTransferCancelled(getAnalyticsNetworkContext(runtime));
       onSuccess?.(result);
     },
   });

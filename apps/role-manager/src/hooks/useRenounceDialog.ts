@@ -30,6 +30,7 @@ import {
   type RenounceOwnershipArgs,
   type RenounceRoleArgs,
 } from './useAccessControlMutations';
+import { getAnalyticsNetworkContext, useRoleManagerAnalytics } from './useRoleManagerAnalytics';
 import { useSelectedContract } from './useSelectedContract';
 import { useTransactionExecution } from './useTransactionExecution';
 
@@ -126,6 +127,7 @@ export function useRenounceDialog(options: UseRenounceDialogOptions): UseRenounc
   const contractAddress = selectedContract?.address ?? '';
 
   const { address: connectedAddress } = useDerivedAccountStatus();
+  const { trackOwnershipRenounced, trackRoleRenounced } = useRoleManagerAnalytics();
 
   // Mutation hooks
   const renounceOwnership = useRenounceOwnership(runtime, contractAddress);
@@ -140,12 +142,18 @@ export function useRenounceDialog(options: UseRenounceDialogOptions): UseRenounc
 
   const ownershipExecution = useTransactionExecution<RenounceOwnershipArgs>(renounceOwnership, {
     onClose,
-    onSuccess,
+    onSuccess: (result) => {
+      trackOwnershipRenounced(getAnalyticsNetworkContext(runtime));
+      onSuccess?.(result);
+    },
   });
 
   const roleExecution = useTransactionExecution<RenounceRoleArgs>(renounceRole, {
     onClose,
-    onSuccess,
+    onSuccess: (result) => {
+      trackRoleRenounced(roleName ?? roleId ?? 'unknown', getAnalyticsNetworkContext(runtime));
+      onSuccess?.(result);
+    },
   });
 
   // Select execution context based on type

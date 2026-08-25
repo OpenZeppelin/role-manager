@@ -19,7 +19,7 @@ import type {
 
 import type { DialogTransactionStep } from '../types/role-dialogs';
 import { useRollbackAdminDelay, type RollbackAdminDelayArgs } from './useAccessControlMutations';
-import { useRoleManagerAnalytics } from './useRoleManagerAnalytics';
+import { getAnalyticsNetworkContext, useRoleManagerAnalytics } from './useRoleManagerAnalytics';
 import { useSelectedContract } from './useSelectedContract';
 import { useTransactionExecution } from './useTransactionExecution';
 
@@ -71,14 +71,13 @@ export function useRollbackAdminDelayDialog(
   const { selectedContract, runtime } = useSelectedContract();
   const contractAddress = selectedContract?.address ?? '';
   const { trackAdminDelayChangeRolledBack } = useRoleManagerAnalytics();
-  const ecosystem = runtime?.networkConfig?.ecosystem ?? 'unknown';
 
   const rollbackMutation = useRollbackAdminDelay(runtime, contractAddress);
 
   const execution = useTransactionExecution<RollbackAdminDelayArgs>(rollbackMutation, {
     onClose,
     onSuccess: (result) => {
-      trackAdminDelayChangeRolledBack(ecosystem);
+      trackAdminDelayChangeRolledBack(getAnalyticsNetworkContext(runtime));
       onSuccess?.(result);
     },
   });

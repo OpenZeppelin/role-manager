@@ -27,6 +27,7 @@ import { requiresExpirationInput } from '../utils/expiration';
 import { useTransferAdminRole, type TransferAdminRoleArgs } from './useAccessControlMutations';
 import { useCurrentBlock } from './useCurrentBlock';
 import { useExpirationMetadata } from './useExpirationMetadata';
+import { getAnalyticsNetworkContext, useRoleManagerAnalytics } from './useRoleManagerAnalytics';
 import { useSelectedContract } from './useSelectedContract';
 import { isUserRejectionError } from './useTransactionExecution';
 
@@ -141,6 +142,8 @@ export function useAdminTransferDialog(
 
   const { address: connectedAddress } = useDerivedAccountStatus();
 
+  const { trackAdminTransferInitiated } = useRoleManagerAnalytics();
+
   // Mutation hook for admin transfer
   const transferAdminRole = useTransferAdminRole(runtime, contractAddress);
 
@@ -176,6 +179,7 @@ export function useAdminTransferDialog(
   const handleSuccess = useCallback(
     async (_result: OperationResult) => {
       setStep('success');
+      trackAdminTransferInitiated(getAnalyticsNetworkContext(runtime));
       // Await onSuccess to ensure data is refetched before auto-close
       // Silently catch errors - transaction already succeeded, don't block dialog close
       try {
@@ -189,7 +193,7 @@ export function useAdminTransferDialog(
         onClose();
       }, 1500);
     },
-    [onSuccess, onClose]
+    [onSuccess, onClose, trackAdminTransferInitiated, runtime]
   );
 
   // =============================================================================

@@ -103,6 +103,16 @@ vi.mock('../../hooks/useNetworkAdapter', () => ({
   }),
 }));
 
+// Mock analytics; keep getAnalyticsNetworkContext real so assertions cover the emitted network dims.
+const mockAnalytics = vi.hoisted(() => ({
+  trackContractSelection: vi.fn(),
+}));
+
+vi.mock('../../hooks/useRoleManagerAnalytics', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../hooks/useRoleManagerAnalytics')>()),
+  useRoleManagerAnalytics: () => mockAnalytics,
+}));
+
 // =============================================================================
 // Test Wrapper
 // =============================================================================

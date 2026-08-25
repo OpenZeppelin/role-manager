@@ -95,6 +95,16 @@ vi.mock('../useSelectedContract', () => ({
   useSelectedContract: () => mockUseSelectedContract(),
 }));
 
+// Mock analytics; keep getAnalyticsNetworkContext real so assertions cover the emitted network dims.
+const mockAnalytics = vi.hoisted(() => ({
+  trackOwnershipAccepted: vi.fn(),
+}));
+
+vi.mock('../useRoleManagerAnalytics', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../useRoleManagerAnalytics')>()),
+  useRoleManagerAnalytics: () => mockAnalytics,
+}));
+
 // Mock useDerivedAccountStatus from react-core
 const mockUseDerivedAccountStatus = vi.fn();
 
@@ -293,6 +303,10 @@ describe('useAcceptOwnershipDialog', () => {
 
       expect(result.current.step).toBe('success');
       expect(onSuccess).toHaveBeenCalled();
+      expect(mockAnalytics.trackOwnershipAccepted).toHaveBeenCalledWith({
+        networkId: 'stellar-testnet',
+        ecosystem: 'stellar',
+      });
     });
 
     it('should call onClose after success delay', async () => {

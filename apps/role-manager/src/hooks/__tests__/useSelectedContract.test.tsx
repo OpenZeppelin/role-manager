@@ -54,6 +54,12 @@ const mocks = {
   isRuntimeLoading: false,
 };
 
+// Analytics needs an AnalyticsProvider; stub it since this suite exercises the real ContractProvider.
+vi.mock('../useRoleManagerAnalytics', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../useRoleManagerAnalytics')>()),
+  useRoleManagerAnalytics: () => ({ trackContractSelection: vi.fn() }),
+}));
+
 vi.mock('../useAllNetworks', () => ({
   useAllNetworks: () => ({
     networks: mocks.networks,
