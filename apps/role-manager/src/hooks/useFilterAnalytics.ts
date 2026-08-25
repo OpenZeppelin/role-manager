@@ -2,13 +2,17 @@
  * useFilterAnalytics hook
  *
  * Emits a `filter_applied` analytics event for each filter field that changed
- * between two filter states. Pages wrap their `setFilters` with the returned
- * callback so tracking stays out of the filter bar components.
+ * since the last reported state. Pages wrap their `setFilters` with the
+ * returned callback so tracking stays out of the filter bar components.
+ *
+ * The last reported state lives in a ref (not the render closure) so several
+ * updates in one tick are each diffed against the true previous state rather
+ * than a stale render value.
  *
  * Privacy: free-form fields (search text, date bounds) are reported only as
  * "set"/"cleared" — a search query may contain a wallet address.
  */
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 import { getAnalyticsNetworkContext, useRoleManagerAnalytics } from './useRoleManagerAnalytics';
 import { useSelectedContract } from './useSelectedContract';
@@ -80,23 +84,34 @@ export function diffFilterStates<T extends object>(previous: T, next: T): Array<
  * Returns a callback that reports filter changes for the given page.
  *
  * @param page - Page name as used in the `filter_applied.page` dimension
+ * @param currentFilters - The page's current filter state; keeps the baseline
+ *   in sync when filters change outside the returned callback (e.g. reset)
  *
  * @example
  * ```tsx
- * const trackFilterChanges = useFilterAnalytics('Role Changes');
+ * const trackFilterChanges = useFilterAnalytics('Role Changes', filters);
  * const handleFiltersChange = (next: HistoryFilterState) => {
- *   trackFilterChanges(filters, next);
+ *   trackFilterChanges(next);
  *   setFilters(next);
  * };
  * ```
  */
-export function useFilterAnalytics(page: string) {
+export function useFilterAnalytics<T extends object>(page: string, currentFilters: T) {
   const { runtime } = useSelectedContract();
   const { trackFilterApplied } = useRoleManagerAnalytics();
 
+  // Last state we diffed against. Updated synchronously in the callback so
+  // rapid successive calls (before React re-renders) see the real previous
+  // state; re-synced from props so external resets don't produce phantom diffs.
+  const lastReportedRef = useRef<T>(currentFilters);
+  useEffect(() => {
+    lastReportedRef.current = currentFilters;
+  }, [currentFilters]);
+
   return useCallback(
-    <T extends object>(previous: T, next: T) => {
-      const changes = diffFilterStates(previous, next);
+    (next: T) => {
+      const changes = diffFilterStates(lastReportedRef.current, next);
+      lastReportedRef.current = next;
       if (changes.length === 0) return;
 
       const network = getAnalyticsNetworkContext(runtime);

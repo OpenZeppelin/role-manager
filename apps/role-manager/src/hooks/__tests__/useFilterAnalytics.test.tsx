@@ -99,12 +99,10 @@ describe('useFilterAnalytics', () => {
   });
 
   it('emits one filter_applied per changed field with page and network', () => {
-    const { result } = renderHook(() => useFilterAnalytics('Role Changes'));
+    const initial = { searchQuery: '', actionFilter: 'all', roleFilter: 'all' };
+    const { result } = renderHook(() => useFilterAnalytics('Role Changes', initial));
 
-    result.current(
-      { searchQuery: '', actionFilter: 'all', roleFilter: 'all' },
-      { searchQuery: 'abc', actionFilter: 'revoke', roleFilter: 'all' }
-    );
+    result.current({ searchQuery: 'abc', actionFilter: 'revoke', roleFilter: 'all' });
 
     expect(mockAnalytics.trackFilterApplied).toHaveBeenCalledTimes(2);
     expect(mockAnalytics.trackFilterApplied).toHaveBeenCalledWith(
@@ -122,19 +120,21 @@ describe('useFilterAnalytics', () => {
   });
 
   it('emits nothing when the filter state is unchanged', () => {
-    const { result } = renderHook(() => useFilterAnalytics('Authorized Accounts'));
     const filters = { searchQuery: '', statusFilter: 'all', roleFilter: 'all' };
+    const { result } = renderHook(() => useFilterAnalytics('Authorized Accounts', filters));
 
-    result.current(filters, { ...filters });
+    result.current({ ...filters });
 
     expect(mockAnalytics.trackFilterApplied).not.toHaveBeenCalled();
   });
 
   it('falls back to unknown network dimensions without a runtime', () => {
     mockUseSelectedContract.mockReturnValue({ runtime: null });
-    const { result } = renderHook(() => useFilterAnalytics('Authorized Accounts'));
+    const { result } = renderHook(() =>
+      useFilterAnalytics('Authorized Accounts', { statusFilter: 'all' })
+    );
 
-    result.current({ statusFilter: 'all' }, { statusFilter: 'active' });
+    result.current({ statusFilter: 'active' });
 
     expect(mockAnalytics.trackFilterApplied).toHaveBeenCalledWith(
       'Authorized Accounts',
@@ -142,5 +142,43 @@ describe('useFilterAnalytics', () => {
       'active',
       { networkId: 'unknown', ecosystem: 'unknown' }
     );
+  });
+
+  it('diffs rapid successive updates against the last reported state, not the render value', () => {
+    const initial = { statusFilter: 'all', roleFilter: 'all' };
+    const { result } = renderHook(() => useFilterAnalytics('Authorized Accounts', initial));
+
+    // Two updates before any re-render: the second must diff against the first.
+    result.current({ statusFilter: 'active', roleFilter: 'all' });
+    result.current({ statusFilter: 'active', roleFilter: 'admin' });
+
+    expect(mockAnalytics.trackFilterApplied).toHaveBeenCalledTimes(2);
+    expect(mockAnalytics.trackFilterApplied).toHaveBeenNthCalledWith(
+      1,
+      'Authorized Accounts',
+      'statusFilter',
+      'active',
+      NETWORK
+    );
+    expect(mockAnalytics.trackFilterApplied).toHaveBeenNthCalledWith(
+      2,
+      'Authorized Accounts',
+      'roleFilter',
+      'admin',
+      NETWORK
+    );
+  });
+
+  it('re-syncs the baseline when filters change outside the callback', () => {
+    const { result, rerender } = renderHook(
+      ({ filters }) => useFilterAnalytics('Authorized Accounts', filters),
+      { initialProps: { filters: { statusFilter: 'all' } } }
+    );
+
+    // External reset (e.g. contract switch) — not routed through the callback.
+    rerender({ filters: { statusFilter: 'active' } });
+    result.current({ statusFilter: 'active' });
+
+    expect(mockAnalytics.trackFilterApplied).not.toHaveBeenCalled();
   });
 });

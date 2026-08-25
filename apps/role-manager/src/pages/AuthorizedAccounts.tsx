@@ -68,7 +68,7 @@ export function AuthorizedAccounts() {
     connectedAddress,
   } = useAuthorizedAccountsPageData();
 
-  const trackFilterChanges = useFilterAnalytics('Authorized Accounts');
+  const trackFilterChanges = useFilterAnalytics('Authorized Accounts', filters);
 
   // T060: Determine if pagination controls should be visible
   const showPagination = pagination.totalItems > pagination.pageSize;
@@ -116,7 +116,7 @@ export function AuthorizedAccounts() {
 
   // Filter change handler
   const handleFiltersChange = (newFilters: typeof filters) => {
-    trackFilterChanges(filters, newFilters);
+    trackFilterChanges(newFilters);
     setFilters(newFilters);
     logger.info('AuthorizedAccounts', 'Filters changed', { filters: newFilters });
   };

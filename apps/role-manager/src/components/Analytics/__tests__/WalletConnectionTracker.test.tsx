@@ -73,6 +73,15 @@ describe('WalletConnectionTracker', () => {
     expect(mockAnalytics.trackWalletDisconnection).not.toHaveBeenCalled();
   });
 
+  it('does not emit wallet_connected when mounted already connected', () => {
+    setAccountStatus(true);
+    const { rerender } = render(<WalletConnectionTracker />);
+    rerender(<WalletConnectionTracker />);
+
+    expect(mockAnalytics.trackWalletConnection).not.toHaveBeenCalled();
+    expect(mockAnalytics.trackWalletDisconnection).not.toHaveBeenCalled();
+  });
+
   it('tracks wallet_connected with the connector name on connect', () => {
     const { rerender } = render(<WalletConnectionTracker />);
 
@@ -96,8 +105,9 @@ describe('WalletConnectionTracker', () => {
   });
 
   it('does not re-track while the connection state is unchanged', () => {
-    setAccountStatus(true);
     const { rerender } = render(<WalletConnectionTracker />);
+    setAccountStatus(true);
+    rerender(<WalletConnectionTracker />);
 
     rerender(<WalletConnectionTracker />);
     rerender(<WalletConnectionTracker />);
@@ -107,19 +117,29 @@ describe('WalletConnectionTracker', () => {
 
   it('falls back to the connector id, then unknown, when no name is available', () => {
     setConnector({ id: 'freighter' });
+    const first = render(<WalletConnectionTracker />);
     setAccountStatus(true);
-    render(<WalletConnectionTracker />);
+    first.rerender(<WalletConnectionTracker />);
     expect(mockAnalytics.trackWalletConnection).toHaveBeenCalledWith('freighter', NETWORK);
 
     vi.clearAllMocks();
+    setAccountStatus(false);
     mockUseWalletState.mockReturnValue({ activeRuntime: null });
-    render(<WalletConnectionTracker />);
+    const second = render(<WalletConnectionTracker />);
+    setAccountStatus(true);
+    second.rerender(<WalletConnectionTracker />);
     expect(mockAnalytics.trackWalletConnection).toHaveBeenCalledWith('unknown', NETWORK);
   });
 
   it('never forwards the account address', () => {
+    const { rerender } = render(<WalletConnectionTracker />);
     setAccountStatus(true);
-    render(<WalletConnectionTracker />);
+    rerender(<WalletConnectionTracker />);
+    setAccountStatus(false);
+    rerender(<WalletConnectionTracker />);
+
+    expect(mockAnalytics.trackWalletConnection).toHaveBeenCalledTimes(1);
+    expect(mockAnalytics.trackWalletDisconnection).toHaveBeenCalledTimes(1);
 
     const forwarded = JSON.stringify([
       ...mockAnalytics.trackWalletConnection.mock.calls,

@@ -24,7 +24,9 @@ export function WalletConnectionTracker(): null {
   const { runtime } = useSelectedContract();
   const { trackWalletConnection, trackWalletDisconnection } = useRoleManagerAnalytics();
 
-  const wasConnectedRef = useRef(false);
+  // Seed from the current status so an already-connected mount (persisted
+  // wallet session) does not count as a connect transition.
+  const wasConnectedRef = useRef(isConnected);
 
   useEffect(() => {
     if (isConnected === wasConnectedRef.current) return;

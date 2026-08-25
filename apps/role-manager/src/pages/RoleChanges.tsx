@@ -67,9 +67,9 @@ export function RoleChanges() {
     refetch,
   } = useRoleChangesPageData();
 
-  const trackFilterChanges = useFilterAnalytics('Role Changes');
+  const trackFilterChanges = useFilterAnalytics('Role Changes', filters);
   const handleFiltersChange = (newFilters: typeof filters) => {
-    trackFilterChanges(filters, newFilters);
+    trackFilterChanges(newFilters);
     setFilters(newFilters);
   };
 
