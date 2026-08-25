@@ -23,6 +23,10 @@ import { useExportSnapshot } from './useAccessControlMutations';
 import { useContractCapabilities } from './useContractCapabilities';
 import { useContractOwnership } from './useContractData';
 import { useContractRolesEnriched } from './useContractRolesEnriched';
+import { getAnalyticsNetworkContext, useRoleManagerAnalytics } from './useRoleManagerAnalytics';
+
+/** Snapshots are always downloaded as JSON (see useExportSnapshot). */
+const SNAPSHOT_EXPORT_FORMAT = 'json';
 
 /**
  * Options for useDashboardData hook
@@ -90,6 +94,11 @@ export function useDashboardData(
   const { networkId, networkName, label, aliases, isContractRegistered = true } = options;
   // Track refreshing state separately from initial load
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const { trackSnapshotExported } = useRoleManagerAnalytics();
+  const handleSnapshotExported = useCallback(() => {
+    trackSnapshotExported(SNAPSHOT_EXPORT_FORMAT, getAnalyticsNetworkContext(runtime));
+  }, [trackSnapshotExported, runtime]);
 
   // Detect capabilities to gate ownership query (prevents errors on AccessControl-only contracts)
   const { capabilities, isPending: capabilitiesPending } = useContractCapabilities(
@@ -234,6 +243,7 @@ export function useDashboardData(
     label,
     aliases,
     filename: snapshotFilename,
+    onSuccess: handleSnapshotExported,
   });
 
   // Wrap exportSnapshot to handle void return type expected by UseDashboardDataReturn

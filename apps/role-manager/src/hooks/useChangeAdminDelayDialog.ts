@@ -20,7 +20,7 @@ import type {
 
 import type { DialogTransactionStep } from '../types/role-dialogs';
 import { useChangeAdminDelay, type ChangeAdminDelayArgs } from './useAccessControlMutations';
-import { useRoleManagerAnalytics } from './useRoleManagerAnalytics';
+import { getAnalyticsNetworkContext, useRoleManagerAnalytics } from './useRoleManagerAnalytics';
 import { useSelectedContract } from './useSelectedContract';
 import { useTransactionExecution } from './useTransactionExecution';
 
@@ -73,14 +73,13 @@ export function useChangeAdminDelayDialog(
   const { selectedContract, runtime } = useSelectedContract();
   const contractAddress = selectedContract?.address ?? '';
   const { trackAdminDelayChangeScheduled } = useRoleManagerAnalytics();
-  const ecosystem = runtime?.networkConfig?.ecosystem ?? 'unknown';
 
   const changeMutation = useChangeAdminDelay(runtime, contractAddress);
 
   const execution = useTransactionExecution<ChangeAdminDelayArgs>(changeMutation, {
     onClose,
     onSuccess: (result) => {
-      trackAdminDelayChangeScheduled(ecosystem);
+      trackAdminDelayChangeScheduled(getAnalyticsNetworkContext(runtime));
       onSuccess?.(result);
     },
   });

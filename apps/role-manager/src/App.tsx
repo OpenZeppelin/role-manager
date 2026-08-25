@@ -10,7 +10,7 @@ import {
 import { AnalyticsProvider, RuntimeProvider, WalletStateProvider } from '@openzeppelin/ui-react';
 import type { NativeConfigLoader, NetworkConfig } from '@openzeppelin/ui-types';
 
-import { TrackedRoute } from './components/Analytics';
+import { TrackedRoute, WalletConnectionTracker } from './components/Analytics';
 import { MainLayout } from './components/Layout/MainLayout';
 import { AliasLabelBridge } from './context/AliasLabelBridge';
 import { BlockTimeProvider } from './context/BlockTimeContext';
@@ -144,6 +144,7 @@ function App() {
                       >
                         <NameResolverBridge>
                           <WalletSyncProvider>
+                            <WalletConnectionTracker />
                             <MainLayout>
                               <Routes>
                                 <Route

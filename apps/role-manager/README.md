@@ -63,6 +63,44 @@ apps/role-manager/src/
 └── types/               # TypeScript type definitions
 ```
 
+## Analytics
+
+Google Analytics 4 events are sent through `useRoleManagerAnalytics` (`src/hooks/useRoleManagerAnalytics.ts`),
+which wraps the shared `useAnalytics` hook from `@openzeppelin/ui-react`. Tracking is enabled by the
+`analytics_enabled` feature flag and the `VITE_GA_TAG_ID` env var.
+
+Every action event carries the `network_id` and `ecosystem` dimensions, built with
+`getAnalyticsNetworkContext(runtime)` (`runtime.networkConfig.id` / `.ecosystem`, `"unknown"` when no
+runtime is loaded). Param names are registered as GA custom dimensions — do not rename them.
+
+**Privacy:** wallet/account addresses are never sent. Contract addresses are allowed. Free-form filter
+input (search text, date bounds) is reported only as `set` / `cleared`.
+
+| Event                            | Params                                                                 | Fired from                                                              |
+| -------------------------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `page_view`                      | `page_title`, `page_path` (shared hook)                                | `components/Analytics/TrackedRoute.tsx` on every route render           |
+| `contract_selected`              | `contract_address`, `network_id`, `ecosystem`                          | `hooks/useContractSelection.ts` — user picks a contract or selects by id |
+| `wallet_connected`               | `wallet_type`, `network_id`, `ecosystem`                               | `components/Analytics/WalletConnectionTracker.tsx` on connect           |
+| `wallet_disconnected`            | `network_id`, `ecosystem`                                              | `components/Analytics/WalletConnectionTracker.tsx` on disconnect        |
+| `role_granted`                   | `role_name`, `network_id`, `ecosystem`                                 | `useAssignRoleDialog`, `useManageRolesDialog` on tx success             |
+| `role_revoked`                   | `role_name`, `network_id`, `ecosystem`                                 | `useRevokeRoleDialog`, `useManageRolesDialog` on tx success             |
+| `role_renounced`                 | `role_name`, `network_id`, `ecosystem`                                 | `useRenounceDialog` (type `role`) on tx success                         |
+| `ownership_transfer_initiated`   | `network_id`, `ecosystem`                                              | `useOwnershipTransferDialog` on tx success                              |
+| `ownership_accepted`             | `network_id`, `ecosystem`                                              | `useAcceptOwnershipDialog` on tx success                                |
+| `ownership_renounced`            | `network_id`, `ecosystem`                                              | `useRenounceDialog` (type `ownership`) on tx success                    |
+| `admin_transfer_initiated`       | `network_id`, `ecosystem`                                              | `useAdminTransferDialog` on tx success                                  |
+| `admin_transfer_accepted`        | `network_id`, `ecosystem`                                              | `useAcceptAdminTransferDialog` on tx success                            |
+| `admin_transfer_cancelled`       | `network_id`, `ecosystem`                                              | `useCancelAdminTransferDialog` on tx success                            |
+| `admin_delay_change_scheduled`   | `network_id`, `ecosystem`                                              | `useChangeAdminDelayDialog` on tx success                               |
+| `admin_delay_change_rolled_back` | `network_id`, `ecosystem`                                              | `useRollbackAdminDelayDialog` on tx success                             |
+| `snapshot_exported`              | `format` (`json`), `network_id`, `ecosystem`                           | `useDashboardData` when the snapshot download succeeds                  |
+| `filter_applied`                 | `page`, `filter_type`, `filter_value`, `network_id`, `ecosystem`       | `useFilterAnalytics` on the Role Changes and Authorized Accounts pages  |
+
+`filter_applied` details: `page` is `Role Changes` or `Authorized Accounts`; `filter_type` is the filter
+state key (`actionFilter`, `statusFilter`, `roleFilter`, `searchQuery`, `timestampFrom`, `timestampTo`);
+`filter_value` is the selected option for enumerated filters and `set` / `cleared` for free-form ones.
+One event is emitted per changed field.
+
 ## Scripts
 
 | Script               | Description               |

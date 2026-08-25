@@ -226,4 +226,9 @@ export type {
 export { useDebounce } from './useDebounce';
 
 // Analytics hooks (Feature: analytics)
-export { useRoleManagerAnalytics } from './useRoleManagerAnalytics';
+export {
+  getAnalyticsNetworkContext,
+  useRoleManagerAnalytics,
+  type AnalyticsNetworkContext,
+} from './useRoleManagerAnalytics';
+export { useFilterAnalytics } from './useFilterAnalytics';

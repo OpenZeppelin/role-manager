@@ -18,6 +18,7 @@ import type { ExecutionConfig, OperationResult, TxStatus } from '@openzeppelin/u
 
 import type { DialogTransactionStep } from '../types/role-dialogs';
 import { useAcceptAdminTransfer, type AcceptAdminTransferArgs } from './useAccessControlMutations';
+import { getAnalyticsNetworkContext, useRoleManagerAnalytics } from './useRoleManagerAnalytics';
 import { useSelectedContract } from './useSelectedContract';
 import { isUserRejectionError } from './useTransactionExecution';
 
@@ -99,6 +100,8 @@ export function useAcceptAdminTransferDialog(
 
   const { address: connectedAddress } = useDerivedAccountStatus();
 
+  const { trackAdminTransferAccepted } = useRoleManagerAnalytics();
+
   // Mutation hook for accept admin transfer
   const acceptAdminTransfer = useAcceptAdminTransfer(runtime, contractAddress);
 
@@ -116,6 +119,7 @@ export function useAcceptAdminTransferDialog(
   const handleSuccess = useCallback(
     async (_result: OperationResult) => {
       setStep('success');
+      trackAdminTransferAccepted(getAnalyticsNetworkContext(runtime));
       // Await onSuccess to ensure data is refetched before auto-close
       // Silently catch errors - transaction already succeeded, don't block dialog close
       try {
@@ -129,7 +133,7 @@ export function useAcceptAdminTransferDialog(
         onClose();
       }, 1500);
     },
-    [onSuccess, onClose]
+    [onSuccess, onClose, trackAdminTransferAccepted, runtime]
   );
 
   // =============================================================================

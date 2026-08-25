@@ -22,6 +22,7 @@ import type {
 
 import type { DialogTransactionStep } from '../types/role-dialogs';
 import { useRevokeRole, type RevokeRoleArgs } from './useAccessControlMutations';
+import { getAnalyticsNetworkContext, useRoleManagerAnalytics } from './useRoleManagerAnalytics';
 import { useSelectedContract } from './useSelectedContract';
 import { useTransactionExecution } from './useTransactionExecution';
 
@@ -112,7 +113,7 @@ export interface UseRevokeRoleDialogReturn {
 export function useRevokeRoleDialog(
   options: UseRevokeRoleDialogOptions
 ): UseRevokeRoleDialogReturn {
-  const { accountAddress, roleId, onClose, onSuccess } = options;
+  const { accountAddress, roleId, roleName, onClose, onSuccess } = options;
 
   // =============================================================================
   // Context & External Data
@@ -122,6 +123,7 @@ export function useRevokeRoleDialog(
   const contractAddress = selectedContract?.address ?? '';
 
   const { address: connectedAddress } = useDerivedAccountStatus();
+  const { trackRoleRevoked } = useRoleManagerAnalytics();
 
   // Mutation hook for revoke
   const revokeRole = useRevokeRole(runtime, contractAddress);
@@ -134,7 +136,10 @@ export function useRevokeRoleDialog(
     revokeRole,
     {
       onClose,
-      onSuccess,
+      onSuccess: (result) => {
+        trackRoleRevoked(roleName, getAnalyticsNetworkContext(runtime));
+        onSuccess?.(result);
+      },
     }
   );
 

@@ -95,6 +95,16 @@ vi.mock('../useSelectedContract', () => ({
   useSelectedContract: () => mockUseSelectedContract(),
 }));
 
+// Mock analytics; keep getAnalyticsNetworkContext real so assertions cover the emitted network dims.
+const mockAnalytics = vi.hoisted(() => ({
+  trackRoleRevoked: vi.fn(),
+}));
+
+vi.mock('../useRoleManagerAnalytics', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../useRoleManagerAnalytics')>()),
+  useRoleManagerAnalytics: () => mockAnalytics,
+}));
+
 // Mock useDerivedAccountStatus from react-core
 const mockUseDerivedAccountStatus = vi.fn();
 
@@ -570,6 +580,11 @@ describe('useRevokeRoleDialog', () => {
       });
 
       expect(onSuccess).toHaveBeenCalledWith(mockOperationResult);
+
+      expect(mockAnalytics.trackRoleRevoked).toHaveBeenCalledWith(MOCK_ROLE_NAME, {
+        networkId: 'stellar-testnet',
+        ecosystem: 'stellar',
+      });
     });
   });
 

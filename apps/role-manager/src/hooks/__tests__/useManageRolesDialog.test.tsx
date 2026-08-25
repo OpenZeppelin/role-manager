@@ -128,6 +128,17 @@ vi.mock('../useSelectedContract', () => ({
   useSelectedContract: () => mockUseSelectedContract(),
 }));
 
+// Mock analytics; keep getAnalyticsNetworkContext real so assertions cover the emitted network dims.
+const mockAnalytics = vi.hoisted(() => ({
+  trackRoleGranted: vi.fn(),
+  trackRoleRevoked: vi.fn(),
+}));
+
+vi.mock('../useRoleManagerAnalytics', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../useRoleManagerAnalytics')>()),
+  useRoleManagerAnalytics: () => mockAnalytics,
+}));
+
 // Mock useRolesPageData
 const mockUseRolesPageData = vi.fn();
 
@@ -858,6 +869,12 @@ describe('useManageRolesDialog', () => {
       });
 
       expect(onSuccess).toHaveBeenCalledWith(mockOperationResult);
+
+      expect(mockAnalytics.trackRoleGranted).toHaveBeenCalledWith('Minter', {
+        networkId: 'stellar-testnet',
+        ecosystem: 'stellar',
+      });
+      expect(mockAnalytics.trackRoleRevoked).not.toHaveBeenCalled();
     });
   });
 

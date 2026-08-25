@@ -21,6 +21,8 @@ import { recentContractsStorage } from '@/core/storage/RecentContractsStorage';
 import { userPreferencesStorage } from '@/core/storage/UserPreferencesStorage';
 import type { ContractRecord } from '@/types/contracts';
 
+import { UNKNOWN_ANALYTICS_VALUE, useRoleManagerAnalytics } from './useRoleManagerAnalytics';
+
 // =============================================================================
 // Constants
 // =============================================================================
@@ -89,6 +91,20 @@ export function useContractSelection({
   // Selected contract state
   const [selectedContract, setSelectedContractState] = useState<ContractRecord | null>(null);
 
+  const { trackContractSelection } = useRoleManagerAnalytics();
+
+  // Only user-driven selections are tracked; auto-selecting the first contract on load is not.
+  const trackSelection = useCallback(
+    (contract: ContractRecord) => {
+      const network = networks.find((n) => n.id === contract.networkId);
+      trackContractSelection(contract.address, {
+        networkId: contract.networkId,
+        ecosystem: network?.ecosystem ?? UNKNOWN_ANALYTICS_VALUE,
+      });
+    },
+    [networks, trackContractSelection]
+  );
+
   // Handle pending contract selection (from preferences or selectContractById)
   useEffect(() => {
     // Don't process pending while contracts are still loading
@@ -132,16 +148,20 @@ export function useContractSelection({
   }, [contracts, selectedContract, pendingContractId]);
 
   // Stable setter for contract (also saves to preferences)
-  const setSelectedContract = useCallback((contract: ContractRecord | null) => {
-    setSelectedContractState(contract);
+  const setSelectedContract = useCallback(
+    (contract: ContractRecord | null) => {
+      setSelectedContractState(contract);
 
-    // Save to preferences
-    if (contract) {
-      userPreferencesStorage.set(PREF_LAST_SELECTED_CONTRACT_ID, contract.id).catch((error) => {
-        logger.error('useContractSelection', 'Failed to save contract preference', error);
-      });
-    }
-  }, []);
+      // Save to preferences
+      if (contract) {
+        trackSelection(contract);
+        userPreferencesStorage.set(PREF_LAST_SELECTED_CONTRACT_ID, contract.id).catch((error) => {
+          logger.error('useContractSelection', 'Failed to save contract preference', error);
+        });
+      }
+    },
+    [trackSelection]
+  );
 
   /**
    * Select a contract by ID.
@@ -157,6 +177,8 @@ export function useContractSelection({
           logger.warn('useContractSelection', `Contract not found: ${contractId}`);
           return;
         }
+
+        trackSelection(contract);
 
         // Check if we need to switch networks
         if (selectedNetwork?.id !== contract.networkId) {
@@ -184,7 +206,7 @@ export function useContractSelection({
         logger.error('useContractSelection', 'Failed to select contract by ID', error);
       }
     },
-    [selectedNetwork, networks, setSelectedNetwork, setPendingContractId]
+    [selectedNetwork, networks, setSelectedNetwork, setPendingContractId, trackSelection]
   );
 
   return {

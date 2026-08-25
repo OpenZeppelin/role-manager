@@ -3,13 +3,20 @@
  *
  * Verifies that:
  * - Base analytics methods are passed through correctly
- * - App-specific tracking methods call trackEvent with correct parameters
+ * - Every action event carries the network dimensions (network_id, ecosystem)
+ * - App-specific tracking methods call trackEvent with the registered GA param names
  * - Hook returns memoized object for stable references
  */
 import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { useRoleManagerAnalytics } from '../useRoleManagerAnalytics';
+import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
+
+import {
+  getAnalyticsNetworkContext,
+  UNKNOWN_ANALYTICS_VALUE,
+  useRoleManagerAnalytics,
+} from '../useRoleManagerAnalytics';
 
 // Mock the useAnalytics hook from react-core
 const mockTrackPageView = vi.fn();
@@ -30,6 +37,32 @@ const mockAnalytics = {
 vi.mock('@openzeppelin/ui-react', () => ({
   useAnalytics: () => mockAnalytics,
 }));
+
+const NETWORK = { networkId: 'ethereum-mainnet', ecosystem: 'evm' };
+const NETWORK_PARAMS = { network_id: 'ethereum-mainnet', ecosystem: 'evm' };
+
+describe('getAnalyticsNetworkContext', () => {
+  it('reads network id and ecosystem from the runtime network config', () => {
+    const runtime = {
+      networkConfig: { id: 'stellar-testnet', ecosystem: 'stellar' },
+    } as unknown as RoleManagerRuntime;
+
+    expect(getAnalyticsNetworkContext(runtime)).toEqual({
+      networkId: 'stellar-testnet',
+      ecosystem: 'stellar',
+    });
+  });
+
+  it.each([null, undefined, {} as RoleManagerRuntime])(
+    'falls back to "unknown" when the runtime is %p',
+    (runtime) => {
+      expect(getAnalyticsNetworkContext(runtime)).toEqual({
+        networkId: UNKNOWN_ANALYTICS_VALUE,
+        ecosystem: UNKNOWN_ANALYTICS_VALUE,
+      });
+    }
+  );
+});
 
 describe('useRoleManagerAnalytics', () => {
   beforeEach(() => {
@@ -72,121 +105,101 @@ describe('useRoleManagerAnalytics', () => {
   });
 
   describe('app-specific tracking methods', () => {
-    it('should track contract selection with correct parameters', () => {
+    it('should track contract selection with contract address and network', () => {
       const { result } = renderHook(() => useRoleManagerAnalytics());
 
-      result.current.trackContractSelection('0x123', 'ethereum-mainnet', 'evm');
+      result.current.trackContractSelection('0x123', NETWORK);
 
       expect(mockTrackEvent).toHaveBeenCalledWith('contract_selected', {
         contract_address: '0x123',
-        network_id: 'ethereum-mainnet',
-        ecosystem: 'evm',
+        ...NETWORK_PARAMS,
       });
     });
 
-    it('should track wallet connection with correct parameters', () => {
+    it('should track wallet connection with wallet type and network', () => {
       const { result } = renderHook(() => useRoleManagerAnalytics());
 
-      result.current.trackWalletConnection('evm', 'metamask');
+      result.current.trackWalletConnection('MetaMask', NETWORK);
 
       expect(mockTrackEvent).toHaveBeenCalledWith('wallet_connected', {
-        ecosystem: 'evm',
-        wallet_type: 'metamask',
+        wallet_type: 'MetaMask',
+        ...NETWORK_PARAMS,
       });
     });
 
-    it('should track wallet disconnection with correct parameters', () => {
+    it('should track wallet disconnection with network', () => {
       const { result } = renderHook(() => useRoleManagerAnalytics());
 
-      result.current.trackWalletDisconnection('stellar');
+      result.current.trackWalletDisconnection(NETWORK);
 
-      expect(mockTrackEvent).toHaveBeenCalledWith('wallet_disconnected', {
-        ecosystem: 'stellar',
+      expect(mockTrackEvent).toHaveBeenCalledWith('wallet_disconnected', NETWORK_PARAMS);
+    });
+
+    it.each([
+      ['trackRoleGranted', 'role_granted'],
+      ['trackRoleRevoked', 'role_revoked'],
+      ['trackRoleRenounced', 'role_renounced'],
+    ] as const)('%s should send %s with role_name and network', (method, eventName) => {
+      const { result } = renderHook(() => useRoleManagerAnalytics());
+
+      result.current[method]('Minter', NETWORK);
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(eventName, {
+        role_name: 'Minter',
+        ...NETWORK_PARAMS,
       });
     });
 
-    it('should track role granted with correct parameters', () => {
+    it.each([
+      ['trackOwnershipTransferInitiated', 'ownership_transfer_initiated'],
+      ['trackOwnershipAccepted', 'ownership_accepted'],
+      ['trackOwnershipRenounced', 'ownership_renounced'],
+      ['trackAdminTransferInitiated', 'admin_transfer_initiated'],
+      ['trackAdminTransferAccepted', 'admin_transfer_accepted'],
+      ['trackAdminTransferCancelled', 'admin_transfer_cancelled'],
+      ['trackAdminDelayChangeScheduled', 'admin_delay_change_scheduled'],
+      ['trackAdminDelayChangeRolledBack', 'admin_delay_change_rolled_back'],
+    ] as const)('%s should send %s with network only', (method, eventName) => {
       const { result } = renderHook(() => useRoleManagerAnalytics());
 
-      result.current.trackRoleGranted('MINTER_ROLE', 'evm');
+      result.current[method](NETWORK);
 
-      expect(mockTrackEvent).toHaveBeenCalledWith('role_granted', {
-        role_name: 'MINTER_ROLE',
-        ecosystem: 'evm',
-      });
+      expect(mockTrackEvent).toHaveBeenCalledWith(eventName, NETWORK_PARAMS);
     });
 
-    it('should track role revoked with correct parameters', () => {
+    it('should track snapshot exported with format and network', () => {
       const { result } = renderHook(() => useRoleManagerAnalytics());
 
-      result.current.trackRoleRevoked('PAUSER_ROLE', 'stellar');
-
-      expect(mockTrackEvent).toHaveBeenCalledWith('role_revoked', {
-        role_name: 'PAUSER_ROLE',
-        ecosystem: 'stellar',
-      });
-    });
-
-    it('should track ownership transfer initiated with correct parameters', () => {
-      const { result } = renderHook(() => useRoleManagerAnalytics());
-
-      result.current.trackOwnershipTransferInitiated('evm');
-
-      expect(mockTrackEvent).toHaveBeenCalledWith('ownership_transfer_initiated', {
-        ecosystem: 'evm',
-      });
-    });
-
-    it('should track ownership accepted with correct parameters', () => {
-      const { result } = renderHook(() => useRoleManagerAnalytics());
-
-      result.current.trackOwnershipAccepted('stellar');
-
-      expect(mockTrackEvent).toHaveBeenCalledWith('ownership_accepted', {
-        ecosystem: 'stellar',
-      });
-    });
-
-    it('should track admin transfer initiated with correct parameters', () => {
-      const { result } = renderHook(() => useRoleManagerAnalytics());
-
-      result.current.trackAdminTransferInitiated('stellar');
-
-      expect(mockTrackEvent).toHaveBeenCalledWith('admin_transfer_initiated', {
-        ecosystem: 'stellar',
-      });
-    });
-
-    it('should track admin transfer accepted with correct parameters', () => {
-      const { result } = renderHook(() => useRoleManagerAnalytics());
-
-      result.current.trackAdminTransferAccepted('stellar');
-
-      expect(mockTrackEvent).toHaveBeenCalledWith('admin_transfer_accepted', {
-        ecosystem: 'stellar',
-      });
-    });
-
-    it('should track snapshot exported with correct parameters', () => {
-      const { result } = renderHook(() => useRoleManagerAnalytics());
-
-      result.current.trackSnapshotExported('csv', 'evm');
+      result.current.trackSnapshotExported('json', NETWORK);
 
       expect(mockTrackEvent).toHaveBeenCalledWith('snapshot_exported', {
-        format: 'csv',
-        ecosystem: 'evm',
+        format: 'json',
+        ...NETWORK_PARAMS,
       });
     });
 
-    it('should track filter applied with correct parameters', () => {
+    it('should track filter applied with page, filter dims and network', () => {
       const { result } = renderHook(() => useRoleManagerAnalytics());
 
-      result.current.trackFilterApplied('Roles', 'role', 'MINTER_ROLE');
+      result.current.trackFilterApplied('Role Changes', 'actionFilter', 'grant', NETWORK);
 
       expect(mockTrackEvent).toHaveBeenCalledWith('filter_applied', {
-        page: 'Roles',
-        filter_type: 'role',
-        filter_value: 'MINTER_ROLE',
+        page: 'Role Changes',
+        filter_type: 'actionFilter',
+        filter_value: 'grant',
+        ...NETWORK_PARAMS,
+      });
+    });
+
+    it('should forward the unknown fallback when no network is resolved', () => {
+      const { result } = renderHook(() => useRoleManagerAnalytics());
+
+      result.current.trackRoleGranted('Minter', getAnalyticsNetworkContext(null));
+
+      expect(mockTrackEvent).toHaveBeenCalledWith('role_granted', {
+        role_name: 'Minter',
+        network_id: 'unknown',
+        ecosystem: 'unknown',
       });
     });
   });
@@ -195,12 +208,10 @@ describe('useRoleManagerAnalytics', () => {
     it('should return stable reference across renders', () => {
       const { result, rerender } = renderHook(() => useRoleManagerAnalytics());
 
-      const firstResult = result.current;
+      const first = result.current;
       rerender();
-      const secondResult = result.current;
 
-      // The memoized object should be the same reference
-      expect(firstResult).toBe(secondResult);
+      expect(result.current).toBe(first);
     });
   });
 });

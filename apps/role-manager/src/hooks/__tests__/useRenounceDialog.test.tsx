@@ -29,6 +29,17 @@ vi.mock('../useSelectedContract', () => ({
   useSelectedContract: vi.fn(),
 }));
 
+// Mock analytics; keep getAnalyticsNetworkContext real so assertions cover the emitted network dims.
+const mockAnalytics = vi.hoisted(() => ({
+  trackOwnershipRenounced: vi.fn(),
+  trackRoleRenounced: vi.fn(),
+}));
+
+vi.mock('../useRoleManagerAnalytics', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../useRoleManagerAnalytics')>()),
+  useRoleManagerAnalytics: () => mockAnalytics,
+}));
+
 vi.mock('@openzeppelin/ui-react', () => ({
   useDerivedAccountStatus: vi.fn(),
 }));
@@ -130,6 +141,48 @@ describe('useRenounceDialog', () => {
 
   afterEach(() => {
     vi.clearAllMocks();
+  });
+
+  describe('analytics', () => {
+    const UNKNOWN_NETWORK = { networkId: 'unknown', ecosystem: 'unknown' };
+
+    const successCallbackFor = (executionIndex: number) =>
+      mockUseTransactionExecution.mock.calls[executionIndex][1]?.onSuccess;
+
+    it('tracks ownership_renounced when the ownership transaction succeeds', () => {
+      const onSuccess = vi.fn();
+      renderHook(() => useRenounceDialog({ type: 'ownership', onSuccess }), {
+        wrapper: createWrapper(),
+      });
+
+      const result = { id: 'tx-123' } as never;
+      act(() => successCallbackFor(0)?.(result));
+
+      expect(mockAnalytics.trackOwnershipRenounced).toHaveBeenCalledWith(UNKNOWN_NETWORK);
+      expect(mockAnalytics.trackRoleRenounced).not.toHaveBeenCalled();
+      expect(onSuccess).toHaveBeenCalledWith(result);
+    });
+
+    it('tracks role_renounced with the role name when the role transaction succeeds', () => {
+      renderHook(() => useRenounceDialog({ type: 'role', roleId: ROLE_ID, roleName: ROLE_NAME }), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => successCallbackFor(1)?.({ id: 'tx-123' } as never));
+
+      expect(mockAnalytics.trackRoleRenounced).toHaveBeenCalledWith(ROLE_NAME, UNKNOWN_NETWORK);
+      expect(mockAnalytics.trackOwnershipRenounced).not.toHaveBeenCalled();
+    });
+
+    it('falls back to the role id when no role name is provided', () => {
+      renderHook(() => useRenounceDialog({ type: 'role', roleId: ROLE_ID }), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => successCallbackFor(1)?.({ id: 'tx-123' } as never));
+
+      expect(mockAnalytics.trackRoleRenounced).toHaveBeenCalledWith(ROLE_ID, UNKNOWN_NETWORK);
+    });
   });
 
   describe('ownership configuration', () => {

@@ -12,7 +12,7 @@
  *
  * Refactored to use useMultiMutationExecution for common transaction logic.
  */
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useDerivedAccountStatus } from '@openzeppelin/ui-react';
 import type {
@@ -28,6 +28,7 @@ import type {
   RoleCheckboxItem,
 } from '../types/role-dialogs';
 import { useGrantRole, useRevokeRole } from './useAccessControlMutations';
+import { getAnalyticsNetworkContext, useRoleManagerAnalytics } from './useRoleManagerAnalytics';
 import { useRolesPageData } from './useRolesPageData';
 import { useSelectedContract } from './useSelectedContract';
 import { useMultiMutationExecution } from './useTransactionExecution';
@@ -136,6 +137,22 @@ export function useManageRolesDialog(
 
   const { roles } = useRolesPageData();
   const { address: connectedAddress } = useDerivedAccountStatus();
+  const { trackRoleGranted, trackRoleRevoked } = useRoleManagerAnalytics();
+
+  // The execution hook captures its success callback on an earlier render, so read the
+  // submitted change through a ref rather than the closure.
+  const pendingChangeRef = useRef<PendingRoleChange | null>(null);
+
+  const trackRoleChange = useCallback(() => {
+    const change = pendingChangeRef.current;
+    if (!change) return;
+    const network = getAnalyticsNetworkContext(runtime);
+    if (change.type === 'grant') {
+      trackRoleGranted(change.roleName, network);
+    } else {
+      trackRoleRevoked(change.roleName, network);
+    }
+  }, [runtime, trackRoleGranted, trackRoleRevoked]);
 
   // Mutation hooks for grant/revoke
   const grantRole = useGrantRole(runtime, contractAddress);
@@ -153,7 +170,10 @@ export function useManageRolesDialog(
     reset: resetTransaction,
   } = useMultiMutationExecution({
     onClose,
-    onSuccess,
+    onSuccess: (result) => {
+      trackRoleChange();
+      onSuccess?.(result);
+    },
     resetMutations: [grantRole.reset, revokeRole.reset],
     invalidateFns: [grantRole.invalidate, revokeRole.invalidate],
   });
@@ -163,6 +183,9 @@ export function useManageRolesDialog(
   // =============================================================================
 
   const [pendingChange, setPendingChange] = useState<PendingRoleChange | null>(null);
+
+  // Keep the ref in sync so the analytics success callback reports the submitted change.
+  pendingChangeRef.current = pendingChange;
 
   // Store original assignments snapshot (taken once when dialog opens)
   const [originalAssignments, setOriginalAssignments] = useState<Map<string, boolean>>(new Map());

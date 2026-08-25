@@ -17,6 +17,7 @@ import type { ExecutionConfig, OperationResult, TxStatus } from '@openzeppelin/u
 
 import type { DialogTransactionStep } from '../types/role-dialogs';
 import { useAcceptOwnership, type AcceptOwnershipArgs } from './useAccessControlMutations';
+import { getAnalyticsNetworkContext, useRoleManagerAnalytics } from './useRoleManagerAnalytics';
 import { useSelectedContract } from './useSelectedContract';
 import { isUserRejectionError } from './useTransactionExecution';
 
@@ -98,6 +99,8 @@ export function useAcceptOwnershipDialog(
 
   const { address: connectedAddress } = useDerivedAccountStatus();
 
+  const { trackOwnershipAccepted } = useRoleManagerAnalytics();
+
   // Mutation hook for accept ownership
   const acceptOwnership = useAcceptOwnership(runtime, contractAddress);
 
@@ -115,6 +118,7 @@ export function useAcceptOwnershipDialog(
   const handleSuccess = useCallback(
     async (_result: OperationResult) => {
       setStep('success');
+      trackOwnershipAccepted(getAnalyticsNetworkContext(runtime));
       // Await onSuccess to ensure data is refetched before auto-close
       // Silently catch errors - transaction already succeeded, don't block dialog close
       try {
@@ -128,7 +132,7 @@ export function useAcceptOwnershipDialog(
         onClose();
       }, 1500);
     },
-    [onSuccess, onClose]
+    [onSuccess, onClose, trackOwnershipAccepted, runtime]
   );
 
   // =============================================================================
