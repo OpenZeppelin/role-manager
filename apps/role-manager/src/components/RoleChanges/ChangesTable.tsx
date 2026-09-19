@@ -1,21 +1,20 @@
-/**
- * ChangesTable Component
- * Feature: 012-role-changes-data
- *
- * Main data table for displaying role change history.
- *
- * Structure:
- * - HTML table with semantic structure
- * - Column headers: Timestamp, Action, Role, Account, Transaction
- * - Body maps events to ChangeRow components
- *
- * Tasks: T007
- */
+/** Role change history table with optional cursor-based server pagination. */
 
-import { cn } from '@openzeppelin/ui-utils';
+import { useMemo } from 'react';
 
-import type { RoleChangeEventView } from '../../types/role-changes';
-import { ChangeRow } from './ChangeRow';
+import { AddressDisplay, DataTable, type DataTableColumn } from '@openzeppelin/ui-components';
+
+import { useSelectedContract } from '../../hooks/useSelectedContract';
+import {
+  ACTION_TYPE_CONFIG,
+  type RoleChangeEventView,
+  type RoleChangesPagination,
+} from '../../types/role-changes';
+import { formatDateTime } from '../../utils/date';
+import { scrollMainToTop } from '../../utils/scroll';
+import { ResolvedAddressDisplay } from '../Shared/ResolvedAddressDisplay';
+import { RoleTypeBadge } from '../Shared/RoleTypeBadge';
+import { StatusBadge } from '../Shared/StatusBadge';
 
 /**
  * Props for ChangesTable component
@@ -27,63 +26,122 @@ export interface ChangesTableProps {
   onRoleClick?: (roleId: string) => void;
   /** Optional content to render when events array is empty */
   emptyState?: React.ReactNode;
+  /** Cursor controls for server-side pagination */
+  pagination: RoleChangesPagination;
+  /** App-owned filters rendered inside the kit table frame */
+  toolbar: React.ReactNode;
 }
 
-/**
- * Column header definitions for the table
- */
-const COLUMNS = [
-  { id: 'timestamp', label: 'Date/Time', width: 'w-36' },
-  { id: 'action', label: 'Action', width: 'w-32' },
-  { id: 'role', label: 'Role', width: 'w-40' },
-  { id: 'account', label: 'Account', width: '' },
-  { id: 'transaction', label: 'Transaction', width: 'w-36' },
-] as const;
-
-/**
- * ChangesTable - Data table for role change history
- *
- * Implements:
- * - Column headers per FR-010
- * - Event rows via ChangeRow component
- * - Empty state slot for no-data scenarios
- */
-export function ChangesTable({ events, onRoleClick, emptyState }: ChangesTableProps) {
+export function ChangesTable({
+  events,
+  onRoleClick,
+  emptyState,
+  pagination,
+  toolbar,
+}: ChangesTableProps) {
+  const { selectedNetwork } = useSelectedContract();
+  const columns = useMemo(
+    () =>
+      [
+        {
+          id: 'timestamp',
+          header: 'Date/Time',
+          headerClassName: 'w-36',
+          cellClassName: 'text-sm text-muted-foreground whitespace-nowrap',
+          cell: (event) => formatDateTime(event.timestamp),
+        },
+        {
+          id: 'action',
+          header: 'Action',
+          headerClassName: 'w-32',
+          cell: (event) => {
+            const actionConfig = ACTION_TYPE_CONFIG[event.action];
+            return <StatusBadge variant={actionConfig.variant}>{actionConfig.label}</StatusBadge>;
+          },
+        },
+        {
+          id: 'role',
+          header: 'Role',
+          headerClassName: 'w-40',
+          cell: (event) => {
+            const roleType =
+              event.action === 'ownership-transfer' || event.action === 'ownership-renounced'
+                ? 'ownership'
+                : event.action === 'admin-transfer' ||
+                    event.action === 'admin-transfer-canceled' ||
+                    event.action === 'admin-renounced' ||
+                    event.action === 'admin-delay'
+                  ? 'admin'
+                  : undefined;
+            return (
+              <RoleTypeBadge
+                type={roleType}
+                roleName={event.roleName}
+                onClick={onRoleClick ? () => onRoleClick(event.roleId) : undefined}
+              />
+            );
+          },
+        },
+        {
+          id: 'account',
+          header: 'Account',
+          cell: (event) =>
+            !event.account || event.account.trim() === '' ? (
+              <span className="text-sm text-muted-foreground">-</span>
+            ) : (
+              <ResolvedAddressDisplay
+                address={event.account}
+                networkId={selectedNetwork?.id}
+                truncate
+                startChars={6}
+                endChars={4}
+                showCopyButton
+                explorerUrl={event.accountUrl ?? undefined}
+                className="font-mono text-sm"
+              />
+            ),
+        },
+        {
+          id: 'transaction',
+          header: 'Transaction',
+          headerClassName: 'w-36',
+          cell: (event) =>
+            event.transactionHash ? (
+              <AddressDisplay
+                address={event.transactionHash}
+                truncate
+                startChars={6}
+                endChars={4}
+                showCopyButton
+                explorerUrl={event.transactionUrl ?? undefined}
+                disableLabel
+                className="font-mono text-sm"
+              />
+            ) : (
+              <span className="text-sm text-muted-foreground">-</span>
+            ),
+        },
+      ] satisfies readonly DataTableColumn<RoleChangeEventView>[],
+    [onRoleClick, selectedNetwork?.id]
+  );
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full" aria-label="Role changes history">
-        {/* Table Header */}
-        <thead className="border-b bg-muted/50">
-          <tr>
-            {COLUMNS.map((column) => (
-              <th
-                key={column.id}
-                className={cn(
-                  'p-4 text-left text-sm font-medium text-muted-foreground',
-                  column.width
-                )}
-              >
-                {column.label}
-              </th>
-            ))}
-          </tr>
-        </thead>
-
-        {/* Table Body */}
-        <tbody>
-          {events.length === 0 && emptyState ? (
-            <tr>
-              <td colSpan={COLUMNS.length} className="p-0">
-                {emptyState}
-              </td>
-            </tr>
-          ) : (
-            events.map((event) => (
-              <ChangeRow key={event.id} event={event} onRoleClick={onRoleClick} />
-            ))
-          )}
-        </tbody>
-      </table>
-    </div>
+    <DataTable
+      aria-label="Role changes history"
+      columns={columns}
+      rows={events}
+      getRowKey={(event) => event.id}
+      toolbar={toolbar}
+      emptyState={emptyState}
+      pagination={{
+        ...pagination,
+        onPageChange: (pageIndex) => {
+          scrollMainToTop();
+          pagination.onPageChange(pageIndex);
+        },
+        placement: 'inside',
+        hideStatus: true,
+        paginationLabel: 'Role changes pagination',
+      }}
+    />
   );
 }

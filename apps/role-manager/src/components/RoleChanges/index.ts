@@ -14,8 +14,5 @@ export { ChangesLoadingSkeleton, type ChangesLoadingSkeletonProps } from './Chan
 export { ChangesEmptyState, type ChangesEmptyStateProps } from './ChangesEmptyState';
 export { ChangesErrorState, type ChangesErrorStateProps } from './ChangesErrorState';
 
-// Phase 6 (US3): Pagination
-export { CursorPagination, type CursorPaginationProps } from './CursorPagination';
-
 // Phase 7 (US4): Filtering
 export { ChangesFilterBar, type ChangesFilterBarProps } from './ChangesFilterBar';

@@ -29,7 +29,7 @@ pnpm dev
 
 ## How It Works
 
-The local development setup uses the published `oz-ui-dev` CLI plus a config-driven `.pnpmfile.cjs` hook in this repo. The CLI builds and packs the selected families from your local source checkouts, and the pnpm hook rewrites dependencies to those packed artifacts during install.
+The local development setup uses the published `oz-ui-dev` CLI plus a config-driven `.pnpmfile.cjs` hook in this repo. The CLI builds and packs the selected families from your local source checkouts, and the pnpm hook rewrites dependencies to those packed artifacts during install. Packed manifests keep local mode active during later incidental installs; `pnpm dev:npm` removes those manifests and explicitly restores registry packages.
 
 ### Directory Structure
 
@@ -64,6 +64,8 @@ pnpm dev:local
 ```
 
 This command delegates to the published `oz-ui-dev` CLI. It builds the selected package families from your local `openzeppelin-ui` and `openzeppelin-adapters` checkouts, packs them into tarballs under `.packed-packages/local-dev`, and reinstalls Role Manager against those packed artifacts.
+
+The workspace's seven-day `minimumReleaseAge` policy remains active during this reinstall. `@testing-library/dom` and `@tanstack/virtual-core` are additional exclusions because their npm registry metadata omits the `time` field pnpm needs to enforce that policy. Keep these exceptions package-scoped; do not run local development with `PNPM_CONFIG_MINIMUM_RELEASE_AGE=0`, which disables the protection for the entire dependency graph.
 
 ### Switch to Local UI Packages Only
 
@@ -175,6 +177,16 @@ Using local packages for /path/to/role-manager
   ui: 7 tarballs -> /path/to/role-manager/.packed-packages/local-dev/ui.json
   adapters: 5 tarballs -> /path/to/role-manager/.packed-packages/local-dev/adapters.json
 ```
+
+Confirm the app link and package contents directly:
+
+```bash
+readlink apps/role-manager/node_modules/@openzeppelin/ui-components
+node -p "require('./apps/role-manager/node_modules/@openzeppelin/ui-components/package.json').version"
+grep -c DataTable apps/role-manager/node_modules/@openzeppelin/ui-components/dist/index.mjs
+```
+
+The link should target `.packed-packages/local-dev`, and the version should match the local checkout.
 
 ### Testing mainnet disable and dev seed helpers
 

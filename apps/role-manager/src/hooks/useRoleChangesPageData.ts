@@ -13,11 +13,11 @@ import type { RoleBadgeInfo } from '../types/authorized-accounts';
 import {
   DEFAULT_CURSOR_PAGINATION_STATE,
   DEFAULT_HISTORY_FILTER_STATE,
-  type CursorPaginationControls,
   type CursorPaginationState,
   type HistoryChangeType,
   type HistoryFilterState,
   type HistoryQueryOptions,
+  type RoleChangesPagination,
   type UseRoleChangesPageDataReturn,
 } from '../types/role-changes';
 import { createGetAccountUrl, createGetTransactionUrl } from '../utils/explorer-urls';
@@ -299,37 +299,36 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
   // Pagination Controls
   // =============================================================================
 
-  const pagination: CursorPaginationControls = useMemo(
-    () => ({
+  const pagination: RoleChangesPagination = useMemo(() => {
+    const pageIndex = paginationState.cursorHistory.length;
+
+    return {
+      kind: 'server',
+      pageIndex,
+      pageSize: DEFAULT_PAGE_SIZE,
       hasNextPage: pageInfo?.hasNextPage ?? false,
-      hasPrevPage: paginationState.cursorHistory.length > 0,
-      nextPage: () => {
-        if (pageInfo.endCursor) {
+      busy: isHistoryLoading || isHistoryFetching,
+      onPageChange: (nextPageIndex) => {
+        if (nextPageIndex === pageIndex + 1 && pageInfo.endCursor) {
           setPaginationState((prev) => ({
             currentCursor: pageInfo.endCursor,
             // Always push current cursor to history (even undefined for page 1)
-            // This ensures hasPrevPage is true after navigating forward
+            // The history length becomes DataTable's next pageIndex.
             cursorHistory: [...prev.cursorHistory, prev.currentCursor],
           }));
+          return;
+        }
+
+        if (nextPageIndex === pageIndex - 1 && pageIndex > 0) {
+          setPaginationState((prev) => {
+            const cursorHistory = [...prev.cursorHistory];
+            const currentCursor = cursorHistory.pop();
+            return { currentCursor, cursorHistory };
+          });
         }
       },
-      prevPage: () => {
-        setPaginationState((prev) => {
-          const newHistory = [...prev.cursorHistory];
-          const prevCursor = newHistory.pop();
-          return {
-            currentCursor: prevCursor,
-            cursorHistory: newHistory,
-          };
-        });
-      },
-      resetToFirst: () => {
-        setPaginationState(DEFAULT_CURSOR_PAGINATION_STATE);
-      },
-      isLoading: isHistoryLoading || isHistoryFetching,
-    }),
-    [paginationState, pageInfo, isHistoryLoading, isHistoryFetching]
-  );
+    };
+  }, [paginationState, pageInfo, isHistoryLoading, isHistoryFetching]);
 
   // =============================================================================
   // Return
@@ -345,12 +344,12 @@ export function useRoleChangesPageData(): UseRoleChangesPageDataReturn {
       setFilters: () => {},
       resetFilters: () => {},
       pagination: {
+        kind: 'server',
+        pageIndex: 0,
+        pageSize: DEFAULT_PAGE_SIZE,
         hasNextPage: false,
-        hasPrevPage: false,
-        nextPage: () => {},
-        prevPage: () => {},
-        resetToFirst: () => {},
-        isLoading: false,
+        busy: false,
+        onPageChange: () => {},
       },
       hasContractSelected: false,
       supportsHistory: false,

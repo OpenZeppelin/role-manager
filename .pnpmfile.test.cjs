@@ -122,19 +122,41 @@ function withPackedManifest(familyKey, packages, fn) {
   }
 }
 
+function withoutPackedManifest(familyKey, fn) {
+  const manifestPath = getPackedManifestPath(familyKey);
+  const previous = fs.existsSync(manifestPath) ? fs.readFileSync(manifestPath, 'utf8') : null;
+
+  if (previous !== null) {
+    fs.unlinkSync(manifestPath);
+  }
+
+  try {
+    return fn();
+  } finally {
+    if (previous !== null) {
+      fs.mkdirSync(path.dirname(manifestPath), { recursive: true });
+      fs.writeFileSync(manifestPath, previous);
+    }
+  }
+}
+
 test('rewrites both UI and adapter dependencies during dev:local flows', () => {
   const uiRepo = createUiRepo('role-manager-ui');
   const adaptersRepo = createAdaptersRepo('role-manager-adapters');
   const { hooks } = loadHook();
 
-  const updated = withEnv(
-    {
-      LOCAL_UI: 'true',
-      LOCAL_ADAPTERS: 'true',
-      LOCAL_UI_PATH: uiRepo,
-      LOCAL_ADAPTERS_PATH: adaptersRepo,
-    },
-    () => hooks.readPackage(createPackage(), { dir: process.cwd(), log: () => {} })
+  const updated = withoutPackedManifest('ui', () =>
+    withoutPackedManifest('adapters', () =>
+      withEnv(
+        {
+          LOCAL_UI: 'true',
+          LOCAL_ADAPTERS: 'true',
+          LOCAL_UI_PATH: uiRepo,
+          LOCAL_ADAPTERS_PATH: adaptersRepo,
+        },
+        () => hooks.readPackage(createPackage(), { dir: process.cwd(), log: () => {} })
+      )
+    )
   );
 
   assert.equal(
@@ -155,13 +177,15 @@ test('supports adapter-only overrides with LOCAL_ADAPTERS_PATH', () => {
   const preferredRepo = createAdaptersRepo('role-manager-adapters-preferred');
   const { hooks } = loadHook();
 
-  const updated = withEnv(
-    {
-      LOCAL_UI: undefined,
-      LOCAL_ADAPTERS: 'true',
-      LOCAL_ADAPTERS_PATH: preferredRepo,
-    },
-    () => hooks.readPackage(createPackage(), { dir: process.cwd(), log: () => {} })
+  const updated = withoutPackedManifest('adapters', () =>
+    withEnv(
+      {
+        LOCAL_UI: undefined,
+        LOCAL_ADAPTERS: 'true',
+        LOCAL_ADAPTERS_PATH: preferredRepo,
+      },
+      () => hooks.readPackage(createPackage(), { dir: process.cwd(), log: () => {} })
+    )
   );
 
   assert.equal(
@@ -180,12 +204,14 @@ test('throws a clear error when the adapter checkout path is invalid', () => {
 
   assert.throws(
     () =>
-      withEnv(
-        {
-          LOCAL_ADAPTERS: 'true',
-          LOCAL_ADAPTERS_PATH: missingRepo,
-        },
-        () => hooks.readPackage(createPackage(), { dir: process.cwd(), log: () => {} })
+      withoutPackedManifest('adapters', () =>
+        withEnv(
+          {
+            LOCAL_ADAPTERS: 'true',
+            LOCAL_ADAPTERS_PATH: missingRepo,
+          },
+          () => hooks.readPackage(createPackage(), { dir: process.cwd(), log: () => {} })
+        )
       ),
     (error) => {
       assert.match(error.message, /openzeppelin-adapters checkout not found/);
@@ -220,6 +246,43 @@ test('prefers packed local tarballs when a manifest is present', () => {
   );
 });
 
+test('keeps packed local packages active for incidental installs', () => {
+  const tarballDir = createTemporaryDirectory('role-manager-packed-ui-');
+  const tarballPath = path.join(tarballDir, 'openzeppelin-ui-components-1.0.0.tgz');
+  fs.writeFileSync(tarballPath, 'stub tarball');
+  const { hooks } = loadHook();
+
+  const updated = withPackedManifest('ui', { '@openzeppelin/ui-components': tarballPath }, () =>
+    withEnv(
+      {
+        LOCAL_UI: undefined,
+        LOCAL_UI_PATH: undefined,
+      },
+      () => hooks.readPackage(createPackage(), { dir: process.cwd(), log: () => {} })
+    )
+  );
+
+  assert.equal(updated.dependencies['@openzeppelin/ui-components'], `file:${tarballPath}`);
+});
+
+test('explicit remote mode disables a packed local manifest', () => {
+  const tarballDir = createTemporaryDirectory('role-manager-packed-ui-remote-');
+  const tarballPath = path.join(tarballDir, 'openzeppelin-ui-components-1.0.0.tgz');
+  fs.writeFileSync(tarballPath, 'stub tarball');
+  const { hooks } = loadHook();
+
+  const updated = withPackedManifest('ui', { '@openzeppelin/ui-components': tarballPath }, () =>
+    withEnv(
+      {
+        LOCAL_UI: 'false',
+      },
+      () => hooks.readPackage(createPackage(), { dir: process.cwd(), log: () => {} })
+    )
+  );
+
+  assert.equal(updated.dependencies['@openzeppelin/ui-components'], '^1.0.0');
+});
+
 test('throws a clear error when a configured package directory is missing package.json', () => {
   const adaptersRepo = createTemporaryDirectory('role-manager-adapters-missing-package-json-');
   const vitePackageRoot = path.join(adaptersRepo, 'packages', 'adapters-vite');
@@ -233,12 +296,14 @@ test('throws a clear error when a configured package directory is missing packag
 
   assert.throws(
     () =>
-      withEnv(
-        {
-          LOCAL_ADAPTERS: 'true',
-          LOCAL_ADAPTERS_PATH: adaptersRepo,
-        },
-        () => hooks.readPackage(createPackage(), { dir: process.cwd(), log: () => {} })
+      withoutPackedManifest('adapters', () =>
+        withEnv(
+          {
+            LOCAL_ADAPTERS: 'true',
+            LOCAL_ADAPTERS_PATH: adaptersRepo,
+          },
+          () => hooks.readPackage(createPackage(), { dir: process.cwd(), log: () => {} })
+        )
       ),
     (error) => {
       assert.match(error.message, /package\.json/);
@@ -379,16 +444,18 @@ test('canonicalizes symlinked repository roots before rewriting file dependencie
   const logs = [];
   const { hooks } = loadHook();
 
-  const pkg = withEnv(
-    {
-      LOCAL_ADAPTERS: 'true',
-      LOCAL_ADAPTERS_PATH: symlinkRepo,
-    },
-    () =>
-      hooks.readPackage(createPackage(), {
-        dir: process.cwd(),
-        log: (message) => logs.push(message),
-      })
+  const pkg = withoutPackedManifest('adapters', () =>
+    withEnv(
+      {
+        LOCAL_ADAPTERS: 'true',
+        LOCAL_ADAPTERS_PATH: symlinkRepo,
+      },
+      () =>
+        hooks.readPackage(createPackage(), {
+          dir: process.cwd(),
+          log: (message) => logs.push(message),
+        })
+    )
   );
 
   const canonicalPackageRoot = fs.realpathSync(path.join(actualRepo, 'packages', 'adapter-evm'));

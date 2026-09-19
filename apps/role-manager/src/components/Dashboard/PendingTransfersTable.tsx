@@ -1,22 +1,22 @@
-/**
- * PendingTransfersTable Component
- * Feature: 015-ownership-transfer (Phase 6.5)
- *
- * Main data table for displaying pending transfers.
- *
- * Structure:
- * - HTML table with semantic structure
- * - Column headers: Type, From, To, Expires, Actions
- * - Body maps transfers to PendingTransferRow components
- * - Empty state slot for no-data scenarios
- *
- * Tasks: T048
- */
+/** Pending ownership and role-transfer table. */
 
-import { cn } from '@openzeppelin/ui-utils';
+import { ArrowRight, Clock } from 'lucide-react';
+import { useMemo } from 'react';
 
+import { DataTable, type DataTableColumn } from '@openzeppelin/ui-components';
+
+import { useBlockTime } from '../../context/useBlockTime';
+import { useSelectedContract } from '../../hooks/useSelectedContract';
 import type { PendingTransfer } from '../../types/pending-transfers';
-import { PendingTransferRow } from './PendingTransferRow';
+import { calculateBlockExpiration, formatTimeEstimateDisplay } from '../../utils/block-time';
+import {
+  formatExpirationTimestamp,
+  getTimestampTimeRemaining,
+  hasNoExpiration,
+  isTimestampBasedExpiration,
+} from '../../utils/expiration';
+import { AcceptTransferButton, RoleTypeBadge, StatusBadge } from '../Shared';
+import { ResolvedAddressDisplay } from '../Shared/ResolvedAddressDisplay';
 
 // =============================================================================
 // Types
@@ -36,76 +36,138 @@ export interface PendingTransfersTableProps {
   emptyState?: React.ReactNode;
 }
 
-// =============================================================================
-// Constants
-// =============================================================================
-
-/**
- * Column header definitions for the table
- */
-const COLUMNS = [
-  { id: 'type', label: 'Type', width: 'w-28' },
-  { id: 'from', label: 'From', width: '' },
-  { id: 'to', label: 'To', width: '' },
-  { id: 'expires', label: 'Expires', width: 'w-32' },
-  { id: 'actions', label: '', width: 'w-24' },
-] as const;
-
-// =============================================================================
-// Component
-// =============================================================================
-
-/**
- * PendingTransfersTable - Data table for pending transfers
- *
- * Follows the same styling pattern as ChangesTable and AccountsTable.
- */
 export function PendingTransfersTable({
   transfers,
   currentBlock,
   onAccept,
   emptyState,
 }: PendingTransfersTableProps) {
-  return (
-    <div className="overflow-x-auto">
-      <table className="w-full" aria-label="Pending role changes">
-        {/* Table Header */}
-        <thead className="border-b bg-muted/50">
-          <tr>
-            {COLUMNS.map((column) => (
-              <th
-                key={column.id}
-                className={cn(
-                  'p-4 text-left text-sm font-medium text-muted-foreground',
-                  column.width
-                )}
-              >
-                {column.label}
-              </th>
-            ))}
-          </tr>
-        </thead>
-
-        {/* Table Body */}
-        <tbody>
-          {transfers.length === 0 && emptyState ? (
-            <tr>
-              <td colSpan={COLUMNS.length} className="p-0">
-                {emptyState}
-              </td>
-            </tr>
-          ) : (
-            transfers.map((transfer) => (
-              <PendingTransferRow
-                key={transfer.id}
-                transfer={transfer}
-                currentBlock={currentBlock}
-                onAccept={onAccept}
+  const { selectedNetwork } = useSelectedContract();
+  const { formatBlocksToTime } = useBlockTime();
+  const columns = useMemo(
+    () =>
+      [
+        {
+          id: 'type',
+          header: 'Type',
+          headerClassName: 'w-28',
+          cell: (transfer) => <RoleTypeBadge type={transfer.type} label={transfer.label} />,
+        },
+        {
+          id: 'from',
+          header: 'From',
+          cell: (transfer) => (
+            <ResolvedAddressDisplay
+              address={transfer.currentHolder}
+              networkId={selectedNetwork?.id}
+              truncate
+              startChars={6}
+              endChars={4}
+              showCopyButton
+              showCopyButtonOnHover
+              explorerUrl={transfer.currentHolderUrl}
+            />
+          ),
+        },
+        {
+          id: 'to',
+          header: 'To',
+          cell: (transfer) => (
+            <div className="flex items-center gap-2">
+              <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+              <ResolvedAddressDisplay
+                address={transfer.pendingRecipient}
+                networkId={selectedNetwork?.id}
+                truncate
+                startChars={6}
+                endChars={4}
+                showCopyButton
+                showCopyButtonOnHover
+                explorerUrl={transfer.pendingRecipientUrl}
               />
-            ))
-          )}
-        </tbody>
-      </table>
-    </div>
+            </div>
+          ),
+        },
+        {
+          id: 'expires',
+          header: 'Expires',
+          headerClassName: 'w-32',
+          cellClassName: 'text-sm whitespace-nowrap',
+          cell: (transfer) => {
+            const noExpiration = hasNoExpiration(transfer.expirationMetadata);
+            const isTimestamp = isTimestampBasedExpiration(transfer.expirationMetadata);
+            const expirationEstimate =
+              !transfer.isExpired && !noExpiration && !isTimestamp
+                ? calculateBlockExpiration(
+                    transfer.expirationBlock,
+                    currentBlock,
+                    formatBlocksToTime
+                  )
+                : null;
+
+            if (noExpiration) return <span className="text-muted-foreground">—</span>;
+            if (isTimestamp) {
+              const remaining = getTimestampTimeRemaining(transfer.expirationBlock);
+              return (
+                <div className="flex flex-col">
+                  <span className="font-mono">
+                    {formatExpirationTimestamp(transfer.expirationBlock)}
+                  </span>
+                  {transfer.isScheduleReached ? (
+                    <span className="text-xs text-green-600">Ready to accept</span>
+                  ) : remaining ? (
+                    <span className="text-xs text-muted-foreground">~{remaining} remaining</span>
+                  ) : null}
+                </div>
+              );
+            }
+            if (transfer.isExpired) return <StatusBadge variant="error">Expired</StatusBadge>;
+            return (
+              <div className="flex flex-col">
+                <span className="font-mono text-muted-foreground">
+                  {transfer.expirationBlock.toLocaleString()}
+                </span>
+                {expirationEstimate?.timeEstimate && (
+                  <span className="text-xs text-blue-600">
+                    ≈ {formatTimeEstimateDisplay(expirationEstimate.timeEstimate)}
+                  </span>
+                )}
+              </div>
+            );
+          },
+        },
+        {
+          id: 'actions',
+          header: '',
+          headerLabel: 'Actions',
+          align: 'end',
+          headerClassName: 'w-24',
+          cell: (transfer) =>
+            transfer.canAccept && !transfer.isExpired ? (
+              <AcceptTransferButton
+                roleLabel={transfer.label || transfer.type}
+                shortLabel
+                onClick={() => onAccept?.(transfer)}
+              />
+            ) : !transfer.isExpired && transfer.isScheduleReached === false ? (
+              <span className="flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap">
+                <Clock className="h-3.5 w-3.5 shrink-0" />
+                Awaiting schedule
+              </span>
+            ) : null,
+        },
+      ] satisfies readonly DataTableColumn<PendingTransfer>[],
+    [currentBlock, formatBlocksToTime, onAccept, selectedNetwork?.id]
+  );
+
+  return (
+    <DataTable
+      aria-label="Pending role changes"
+      className="rounded-none border-0"
+      columns={columns}
+      rows={transfers}
+      getRowKey={(transfer) => transfer.id}
+      emptyState={emptyState}
+    />
   );
 }

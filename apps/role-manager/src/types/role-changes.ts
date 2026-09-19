@@ -9,6 +9,7 @@
  * Note: API types (HistoryEntry, PageInfo, etc.) are imported from @openzeppelin/ui-types
  */
 
+import type { DataTableServerPagination } from '@openzeppelin/ui-components';
 import type {
   HistoryChangeType,
   HistoryEntry,
@@ -182,20 +183,7 @@ export const DEFAULT_CURSOR_PAGINATION_STATE: CursorPaginationState = {
 /**
  * Pagination controls for cursor-based navigation.
  */
-export interface CursorPaginationControls {
-  /** Whether there is a next page */
-  hasNextPage: boolean;
-  /** Whether there is a previous page */
-  hasPrevPage: boolean;
-  /** Navigate to next page */
-  nextPage: () => void;
-  /** Navigate to previous page */
-  prevPage: () => void;
-  /** Reset to first page */
-  resetToFirst: () => void;
-  /** Whether pagination is in loading state */
-  isLoading: boolean;
-}
+export type RoleChangesPagination = DataTableServerPagination;
 
 // =============================================================================
 // Hook Return Types
@@ -245,7 +233,7 @@ export interface UseRoleChangesPageDataReturn {
 
   // === Pagination ===
   /** Cursor-based pagination controls */
-  pagination: CursorPaginationControls;
+  pagination: RoleChangesPagination;
 
   // === Contract State ===
   /** Whether a contract is currently selected */

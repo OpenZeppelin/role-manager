@@ -1,31 +1,23 @@
-/**
- * AccountsTable Component
- * Feature: 010-authorized-accounts-page
- * Updated by: 011-accounts-real-data
- *
- * Main data table for displaying authorized accounts.
- *
- * Structure:
- * - Card container wrapper
- * - HTML table with semantic structure
- * - Header row with master checkbox (supports indeterminate state)
- * - Column headers: Address, Status, Date Added, Roles, Actions
- * - Body maps accounts to AccountRow components
- *
- * Selection behavior (FR-005):
- * - Master checkbox: toggles all rows
- * - Indeterminate state when partial selection
- */
+/** Authorized accounts table with controlled, identity-keyed selection. */
 
-import { Checkbox } from '@openzeppelin/ui-components';
-import { cn } from '@openzeppelin/ui-utils';
+import { Edit } from 'lucide-react';
+import { useMemo } from 'react';
 
+import { Button, DataTable, type DataTableColumn } from '@openzeppelin/ui-components';
+
+import type { PaginationControls } from '../../hooks/useAuthorizedAccountsPageData';
+import { useSelectedContract } from '../../hooks/useSelectedContract';
 import {
-  getMasterCheckboxState,
+  ACCOUNT_STATUS_CONFIG,
   type AccountAction,
   type AuthorizedAccountView,
 } from '../../types/authorized-accounts';
-import { AccountRow } from './AccountRow';
+import { formatDateTime } from '../../utils/date';
+import { scrollMainToTop } from '../../utils/scroll';
+import { ResolvedAddressDisplay } from '../Shared/ResolvedAddressDisplay';
+import { RoleTypeBadge } from '../Shared/RoleTypeBadge';
+import { StatusBadge } from '../Shared/StatusBadge';
+import { YouBadge } from '../Shared/YouBadge';
 
 /**
  * Props for AccountsTable component
@@ -45,28 +37,12 @@ export interface AccountsTableProps {
   onRoleClick?: (roleId: string) => void;
   /** Optional content to render when accounts array is empty */
   emptyState?: React.ReactNode;
+  /** Controlled pagination state for the current account page */
+  pagination: PaginationControls;
+  /** App-owned filters rendered inside the kit table frame */
+  toolbar: React.ReactNode;
 }
 
-/**
- * Column header definitions for the table
- */
-const COLUMNS = [
-  { id: 'checkbox', label: '', width: 'w-12' },
-  { id: 'address', label: 'Address', width: '' },
-  { id: 'status', label: 'Status', width: 'w-24' },
-  { id: 'dateAdded', label: 'Date Added', width: 'w-44' },
-  { id: 'roles', label: 'Roles', width: 'w-48' },
-  { id: 'actions', label: '', width: 'w-32' },
-] as const;
-
-/**
- * AccountsTable - Data table for authorized accounts
- *
- * Implements:
- * - Master checkbox with indeterminate support
- * - Row selection via checkbox toggle
- * - Action callbacks for row actions
- */
 export function AccountsTable({
   accounts,
   selectedIds,
@@ -75,105 +51,114 @@ export function AccountsTable({
   onAction,
   onRoleClick,
   emptyState,
+  pagination,
+  toolbar,
 }: AccountsTableProps) {
-  // Derive master checkbox state
-  const masterState = getMasterCheckboxState(selectedIds.size, accounts.length);
-  const isAllSelected = masterState === 'checked';
-  const isIndeterminate = masterState === 'indeterminate';
-
-  /**
-   * Handles master checkbox toggle
-   * - If any selected: clear all
-   * - If none selected: select all
-   */
-  const handleMasterToggle = () => {
-    if (selectedIds.size > 0) {
-      // Clear selection
-      onSelectionChange(new Set());
-    } else {
-      // Select all
-      onSelectionChange(new Set(accounts.map((a) => a.id)));
-    }
-  };
-
-  /**
-   * Handles individual row selection toggle
-   */
-  const handleRowToggle = (accountId: string) => {
-    const newSelectedIds = new Set(selectedIds);
-    if (newSelectedIds.has(accountId)) {
-      newSelectedIds.delete(accountId);
-    } else {
-      newSelectedIds.add(accountId);
-    }
-    onSelectionChange(newSelectedIds);
-  };
-
-  /**
-   * Handles action from AccountRow
-   */
-  const handleAction = (accountId: string, action: AccountAction) => {
-    onAction(accountId, action);
-  };
+  const { selectedNetwork } = useSelectedContract();
+  const columns = useMemo(
+    () =>
+      [
+        {
+          id: 'address',
+          header: 'Address',
+          cell: (account) => (
+            <div className="flex items-center gap-2">
+              <ResolvedAddressDisplay
+                address={account.address}
+                networkId={selectedNetwork?.id}
+                truncate
+                startChars={6}
+                endChars={4}
+                showCopyButton
+                className="font-mono text-sm"
+              />
+              {connectedAddress &&
+                account.address.toLowerCase() === connectedAddress.toLowerCase() && <YouBadge />}
+            </div>
+          ),
+        },
+        {
+          id: 'status',
+          header: 'Status',
+          headerClassName: 'w-24',
+          cell: (account) => (
+            <StatusBadge variant={ACCOUNT_STATUS_CONFIG[account.status].variant}>
+              {ACCOUNT_STATUS_CONFIG[account.status].label}
+            </StatusBadge>
+          ),
+        },
+        {
+          id: 'dateAdded',
+          header: 'Date Added',
+          headerClassName: 'w-44 whitespace-nowrap',
+          cellClassName: 'text-sm text-muted-foreground whitespace-nowrap',
+          cell: (account) => (account.dateAdded ? formatDateTime(account.dateAdded) : '-'),
+        },
+        {
+          id: 'roles',
+          header: 'Roles',
+          headerClassName: 'w-48',
+          cell: (account) => (
+            <div className="flex flex-wrap gap-1">
+              {account.roles.map((role) => (
+                <RoleTypeBadge
+                  key={role.id}
+                  roleName={role.name}
+                  onClick={onRoleClick ? () => onRoleClick(role.id) : undefined}
+                />
+              ))}
+            </div>
+          ),
+        },
+        {
+          id: 'actions',
+          header: '',
+          headerLabel: 'Actions',
+          align: 'end',
+          headerClassName: 'w-32',
+          cell: (account) => (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onAction(account.id, 'edit-roles')}
+              className="h-8 gap-1.5 whitespace-nowrap"
+            >
+              <Edit className="h-3.5 w-3.5 shrink-0" />
+              Edit Roles
+            </Button>
+          ),
+        },
+      ] satisfies readonly DataTableColumn<AuthorizedAccountView>[],
+    [connectedAddress, onAction, onRoleClick, selectedNetwork?.id]
+  );
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full">
-        {/* Table Header */}
-        <thead className="border-b bg-muted/50">
-          <tr>
-            {/* Master Checkbox */}
-            <th className={cn('p-4 text-left', COLUMNS[0].width)}>
-              <Checkbox
-                checked={isIndeterminate ? 'indeterminate' : isAllSelected}
-                onCheckedChange={handleMasterToggle}
-                aria-label="Select all accounts"
-                className="focus-visible:ring-2 focus-visible:ring-ring"
-              />
-            </th>
-
-            {/* Other column headers */}
-            {COLUMNS.slice(1).map((column) => (
-              <th
-                key={column.id}
-                className={cn(
-                  'p-4 text-left text-sm font-medium text-muted-foreground whitespace-nowrap',
-                  column.width
-                )}
-              >
-                {column.label}
-              </th>
-            ))}
-          </tr>
-        </thead>
-
-        {/* Table Body */}
-        <tbody>
-          {accounts.length === 0 && emptyState ? (
-            <tr>
-              <td colSpan={COLUMNS.length} className="p-0">
-                {emptyState}
-              </td>
-            </tr>
-          ) : (
-            accounts.map((account) => (
-              <AccountRow
-                key={account.id}
-                account={account}
-                isSelected={selectedIds.has(account.id)}
-                isCurrentUser={
-                  connectedAddress
-                    ? account.address.toLowerCase() === connectedAddress.toLowerCase()
-                    : false
-                }
-                onToggleSelection={() => handleRowToggle(account.id)}
-                onAction={(action) => handleAction(account.id, action)}
-                onRoleClick={onRoleClick}
-              />
-            ))
-          )}
-        </tbody>
-      </table>
-    </div>
+    <DataTable
+      aria-label="Authorized accounts"
+      columns={columns}
+      rows={accounts}
+      getRowKey={(account) => account.id}
+      toolbar={toolbar}
+      selection={{
+        selectedKeys: selectedIds,
+        onSelectionChange: (next) => onSelectionChange(new Set(next)),
+        selectAllLabel: 'Select all accounts',
+        getCheckboxLabel: (account) => `Select account ${account.address}`,
+        columnClassName: 'w-12',
+      }}
+      emptyState={emptyState}
+      pagination={{
+        kind: 'server',
+        pageIndex: pagination.currentPage - 1,
+        pageSize: pagination.pageSize,
+        totalCount: pagination.totalItems,
+        onPageChange: (pageIndex) => {
+          scrollMainToTop();
+          pagination.goToPage(pageIndex + 1);
+        },
+        paginationLabel: 'Authorized accounts pagination',
+        placement: 'inside',
+      }}
+    />
   );
 }
