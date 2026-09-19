@@ -70,8 +70,19 @@ function resolveCacheDir(workspaceRoot, cacheDir) {
   return resolvedCacheDir;
 }
 
-function isAnyLocalFamilyEnabled() {
-  return Object.values(STANDARD_FAMILIES).some((family) => process.env[family.envFlag] === 'true');
+function packedManifestExists(cacheDir, familyKey) {
+  return fs.existsSync(path.join(cacheDir, `${familyKey}.json`));
+}
+
+function resolveFamilyActivation(family, familyKey, cacheDir) {
+  const flag = process.env[family.envFlag];
+  if (flag === 'true') {
+    return { active: true, packedOnly: false };
+  }
+  if (flag === 'false') {
+    return { active: false, packedOnly: false };
+  }
+  return { active: packedManifestExists(cacheDir, familyKey), packedOnly: true };
 }
 
 function readProjectConfig(workspaceRoot) {
@@ -188,7 +199,7 @@ function readPackedManifest(cacheDir, familyKey) {
   }
 }
 
-function rewriteDependencies(pkg, context, cacheDir, familyKey, family) {
+function rewriteDependencies(pkg, context, cacheDir, familyKey, family, packedOnly) {
   const packedPackages = readPackedManifest(cacheDir, familyKey);
   const workspaceRoot = __dirname;
 
@@ -202,6 +213,10 @@ function rewriteDependencies(pkg, context, cacheDir, familyKey, family) {
       if (packedTarballPath && fs.existsSync(packedTarballPath)) {
         pkg[depType][npmName] = `file:${packedTarballPath}`;
         context.log(`[local-dev] ${npmName} → ${packedTarballPath} (packed)`);
+        continue;
+      }
+
+      if (packedOnly) {
         continue;
       }
 
@@ -232,12 +247,10 @@ function allowAdapterPrereleases(pkg) {
         continue;
       const m = range.match(/^\^(\d+)\.(\d+)\.(\d+)$/);
       if (!m) continue;
-      const maj = Number(m[1]), min = Number(m[2]), pat = Number(m[3]);
-      const upper = maj > 0
-        ? `${maj + 1}.0.0`
-        : min > 0
-          ? `0.${min + 1}.0`
-          : `0.0.${pat + 1}`;
+      const maj = Number(m[1]),
+        min = Number(m[2]),
+        pat = Number(m[3]);
+      const upper = maj > 0 ? `${maj + 1}.0.0` : min > 0 ? `0.${min + 1}.0` : `0.0.${pat + 1}`;
       pkg[depType][name] = `>=${maj}.${min}.${pat}-0 <${upper}`;
     }
   }
@@ -366,16 +379,24 @@ function readPackage(pkg, context) {
 
   stripMetaMaskDependencies(pkg, context);
 
-  if (isAnyLocalFamilyEnabled()) {
-    const workspaceRoot = __dirname;
+  const workspaceRoot = __dirname;
+  if (fs.existsSync(path.join(workspaceRoot, CONFIG_FILE))) {
     const projectConfig = readProjectConfig(workspaceRoot);
 
     for (const [familyKey, family] of Object.entries(projectConfig.families)) {
-      if (process.env[family.envFlag] !== 'true') {
+      const activation = resolveFamilyActivation(family, familyKey, projectConfig.cacheDir);
+      if (!activation.active) {
         continue;
       }
 
-      rewriteDependencies(pkg, context, projectConfig.cacheDir, familyKey, family);
+      rewriteDependencies(
+        pkg,
+        context,
+        projectConfig.cacheDir,
+        familyKey,
+        family,
+        activation.packedOnly
+      );
     }
   }
 
