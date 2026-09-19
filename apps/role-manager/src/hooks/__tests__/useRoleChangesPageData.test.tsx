@@ -540,7 +540,7 @@ describe('useRoleChangesPageData', () => {
   // ===========================================================================
 
   describe('pagination', () => {
-    it('should expose pagination controls', async () => {
+    it('should expose DataTable server pagination', async () => {
       const { result } = renderHook(() => useRoleChangesPageData(), {
         wrapper: createWrapper(),
       });
@@ -549,15 +549,17 @@ describe('useRoleChangesPageData', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      expect(result.current.pagination).toHaveProperty('hasNextPage');
-      expect(result.current.pagination).toHaveProperty('hasPrevPage');
-      expect(result.current.pagination).toHaveProperty('nextPage');
-      expect(result.current.pagination).toHaveProperty('prevPage');
-      expect(result.current.pagination).toHaveProperty('resetToFirst');
-      expect(result.current.pagination).toHaveProperty('isLoading');
+      expect(result.current.pagination).toMatchObject({
+        kind: 'server',
+        pageIndex: 0,
+        pageSize: 20,
+        hasNextPage: true,
+        busy: false,
+      });
+      expect(result.current.pagination.onPageChange).toBeTypeOf('function');
     });
 
-    it('should have hasPrevPage=false on first page', async () => {
+    it('should start at page index zero', async () => {
       const { result } = renderHook(() => useRoleChangesPageData(), {
         wrapper: createWrapper(),
       });
@@ -566,10 +568,10 @@ describe('useRoleChangesPageData', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      expect(result.current.pagination.hasPrevPage).toBe(false);
+      expect(result.current.pagination.pageIndex).toBe(0);
     });
 
-    it('should provide nextPage function that can be called', async () => {
+    it('should advance when DataTable requests the next page', async () => {
       const { result } = renderHook(() => useRoleChangesPageData(), {
         wrapper: createWrapper(),
       });
@@ -578,52 +580,48 @@ describe('useRoleChangesPageData', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      // nextPage should be callable without errors
-      expect(() => {
-        act(() => {
-          result.current.pagination.nextPage();
-        });
-      }).not.toThrow();
-    });
-
-    it('should provide prevPage function that can be called', async () => {
-      const { result } = renderHook(() => useRoleChangesPageData(), {
-        wrapper: createWrapper(),
-      });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      // prevPage should be callable without errors
-      expect(() => {
-        act(() => {
-          result.current.pagination.prevPage();
-        });
-      }).not.toThrow();
-    });
-
-    it('should provide resetToFirst function that resets to initial state', async () => {
-      const { result } = renderHook(() => useRoleChangesPageData(), {
-        wrapper: createWrapper(),
-      });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      // Navigate (simulates going forward)
       act(() => {
-        result.current.pagination.nextPage();
+        result.current.pagination.onPageChange(1);
       });
 
-      // Reset to first
+      expect(result.current.pagination.pageIndex).toBe(1);
+    });
+
+    it('should ignore an invalid previous-page request from the first page', async () => {
+      const { result } = renderHook(() => useRoleChangesPageData(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
       act(() => {
-        result.current.pagination.resetToFirst();
+        result.current.pagination.onPageChange(-1);
       });
 
-      // After reset, should have no previous page
-      expect(result.current.pagination.hasPrevPage).toBe(false);
+      expect(result.current.pagination.pageIndex).toBe(0);
+    });
+
+    it('should return to the previous cursor page', async () => {
+      const { result } = renderHook(() => useRoleChangesPageData(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      act(() => {
+        result.current.pagination.onPageChange(1);
+      });
+      expect(result.current.pagination.pageIndex).toBe(1);
+
+      act(() => {
+        result.current.pagination.onPageChange(0);
+      });
+
+      expect(result.current.pagination.pageIndex).toBe(0);
     });
   });
 

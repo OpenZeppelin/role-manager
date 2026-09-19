@@ -7,7 +7,7 @@
  *
  * Tasks: T004
  */
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 import type { RoleManagerRuntime } from '@/core/runtimeAdapter';
@@ -140,6 +140,7 @@ export function useContractHistory(
       }
     },
     enabled: isReady && !!contractAddress && isContractRegistered,
+    placeholderData: keepPreviousData,
     staleTime: 30_000, // 30 seconds
     gcTime: 5 * 60 * 1000, // 5 minutes
     retry: false,

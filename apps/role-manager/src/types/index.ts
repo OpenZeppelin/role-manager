@@ -60,7 +60,7 @@ export {
   // Pagination types
   type CursorPaginationState,
   DEFAULT_CURSOR_PAGINATION_STATE,
-  type CursorPaginationControls,
+  type RoleChangesPagination,
   // Hook return types
   type UseContractHistoryReturn,
   type UseRoleChangesPageDataReturn,

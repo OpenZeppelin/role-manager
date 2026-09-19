@@ -25,7 +25,6 @@ import {
   AccountsErrorState,
   AccountsFilterBar,
   AccountsLoadingSkeleton,
-  AccountsPagination,
   AccountsTable,
   ManageRolesDialog,
   type AccountAction,
@@ -69,9 +68,6 @@ export function AuthorizedAccounts() {
   } = useAuthorizedAccountsPageData();
 
   const trackFilterChanges = useFilterAnalytics('Authorized Accounts', filters);
-
-  // T060: Determine if pagination controls should be visible
-  const showPagination = pagination.totalItems > pagination.pageSize;
 
   // Get contract info for display
   const { selectedContract } = useSelectedContract();
@@ -228,37 +224,31 @@ export function AuthorizedAccounts() {
         }
       />
 
-      {/* Main content card with filter bar + table */}
-      <Card className="p-0 shadow-none overflow-hidden">
-        {/* Filter Bar - wired to real availableRoles */}
-        <AccountsFilterBar
-          filters={filters}
-          availableRoles={availableRoles}
-          onFiltersChange={handleFiltersChange}
-        />
-
-        {/* Accounts Table with real data */}
-        <AccountsTable
-          accounts={paginatedAccounts}
-          selectedIds={selectedIds}
-          connectedAddress={connectedAddress}
-          onSelectionChange={handleSelectionChange}
-          onAction={handleAction}
-          onRoleClick={handleRoleClick}
-          emptyState={
-            <div className="py-16 px-4">
-              <PageEmptyState
-                title="No matching accounts found"
-                description="Try adjusting your search or filter criteria."
-                icon={Users}
-              />
-            </div>
-          }
-        />
-
-        {/* T059/T060: Pagination controls (only shown when totalItems > pageSize) */}
-        {showPagination && <AccountsPagination pagination={pagination} />}
-      </Card>
+      <AccountsTable
+        accounts={paginatedAccounts}
+        selectedIds={selectedIds}
+        connectedAddress={connectedAddress}
+        onSelectionChange={handleSelectionChange}
+        onAction={handleAction}
+        onRoleClick={handleRoleClick}
+        pagination={pagination}
+        toolbar={
+          <AccountsFilterBar
+            filters={filters}
+            availableRoles={availableRoles}
+            onFiltersChange={handleFiltersChange}
+          />
+        }
+        emptyState={
+          <div className="py-16 px-4">
+            <PageEmptyState
+              title="No matching accounts found"
+              description="Try adjusting your search or filter criteria."
+              icon={Users}
+            />
+          </div>
+        }
+      />
 
       {/* T027: ManageRolesDialog (Feature 014) */}
       {/* Note: onSuccess callback removed - query invalidation in mutations handles data refresh */}

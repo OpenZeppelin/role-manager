@@ -25,7 +25,6 @@ import {
   ChangesFilterBar,
   ChangesLoadingSkeleton,
   ChangesTable,
-  CursorPagination,
 } from '../components/RoleChanges';
 import { PageEmptyState } from '../components/Shared/PageEmptyState';
 import { PageHeader } from '../components/Shared/PageHeader';
@@ -144,6 +143,14 @@ export function RoleChanges() {
 
   // Determine if we're in a loading/fetching state (for showing spinner on refresh button)
   const isBusy = isLoading || isRefreshing;
+  const filterBar = (
+    <ChangesFilterBar
+      filters={filters}
+      availableRoles={availableRoles}
+      availableRolesLoading={availableRolesLoading}
+      onFiltersChange={handleFiltersChange}
+    />
+  );
 
   // Main content with real data (filter bar always visible when contract supports history)
   return (
@@ -171,39 +178,29 @@ export function RoleChanges() {
         }
       />
 
-      {/* Main content card with filters and table */}
-      <Card className="p-0 shadow-none overflow-hidden">
-        {/* Filter bar - always visible to maintain search input focus */}
-        <ChangesFilterBar
-          filters={filters}
-          availableRoles={availableRoles}
-          availableRolesLoading={availableRolesLoading}
-          onFiltersChange={handleFiltersChange}
-        />
-
-        {/* Error state */}
-        {hasError ? (
+      {hasError ? (
+        <Card className="p-0 shadow-none overflow-hidden">
+          {filterBar}
           <ChangesErrorState
             message={errorMessage || 'An unexpected error occurred while loading history.'}
             canRetry={canRetry}
             onRetry={refetch}
           />
-        ) : isLoading ? (
-          /* Loading skeleton - only for table area, filter bar stays visible */
+        </Card>
+      ) : isLoading ? (
+        <Card className="p-0 shadow-none overflow-hidden">
+          {filterBar}
           <ChangesLoadingSkeleton withCard={false} />
-        ) : (
-          /* Table with data */
-          <>
-            <ChangesTable
-              events={events}
-              onRoleClick={handleRoleClick}
-              emptyState={<ChangesEmptyState noEventsFound contractName={contractLabel} />}
-            />
-            {/* Cursor-based pagination (T022 - US3) */}
-            <CursorPagination pagination={pagination} />
-          </>
-        )}
-      </Card>
+        </Card>
+      ) : (
+        <ChangesTable
+          events={events}
+          onRoleClick={handleRoleClick}
+          emptyState={<ChangesEmptyState noEventsFound contractName={contractLabel} />}
+          pagination={pagination}
+          toolbar={filterBar}
+        />
+      )}
     </div>
   );
 }
