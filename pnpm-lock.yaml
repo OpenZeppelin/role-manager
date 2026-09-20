@@ -27,8 +27,6 @@ overrides:
   uuid@<11.1.1: ^11.1.1
   js-yaml@>=4.0.0 <4.2.0: ^4.2.0
 
-packageExtensionsChecksum: sha256-wOahq0aA/8qCc/QsU4oLp9evC14zwKnfahPCcfP/+4A=
-
 pnpmfileChecksum: sha256-jQ+JTH5409TVggekFXYK8m9T6QbGyJOY4Lb/z2x0UsY=
 
 importers:
@@ -162,8 +160,8 @@ importers:
         specifier: '>=5.0.0-0 <6.0.0'
         version: 5.0.0(d22739b92996c0402db66ec4d04aea0b)
       '@openzeppelin/adapter-polkadot':
-        specifier: '>=5.0.0-0 <6.0.0'
-        version: 5.0.0(602c1e5ca1a5ce40beb1fbe3d43374ed)
+        specifier: '>=7.0.0-0 <8.0.0'
+        version: 7.0.0(00ac30fa50dc15e2db07ffc6bdeed08c)
       '@openzeppelin/adapter-stellar':
         specifier: '>=4.0.1-0 <5.0.0'
         version: 4.0.1(@openzeppelin/ui-components@3.12.0(@babel/runtime@7.29.7)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(tailwindcss@4.2.2)(typescript@5.9.3))(@openzeppelin/ui-types@3.5.2)(@openzeppelin/ui-utils@4.0.1)(@stellar/stellar-base@14.1.0)(bufferutil@4.1.0)(near-api-js@5.1.1)(react-dom@19.2.4(react@19.2.4))(react-hook-form@7.79.0(react@19.2.4))(react@19.2.4)(typescript@5.9.3)(utf-8-validate@6.0.6)
@@ -230,7 +228,7 @@ importers:
     devDependencies:
       '@openzeppelin/adapters-vite':
         specifier: '>=12.0.0-0 <13.0.0'
-        version: 12.0.0(@openzeppelin/adapter-evm@5.0.0(d22739b92996c0402db66ec4d04aea0b))(@openzeppelin/adapter-polkadot@5.0.0(602c1e5ca1a5ce40beb1fbe3d43374ed))(@openzeppelin/adapter-stellar@4.0.1(@openzeppelin/ui-components@3.12.0(@babel/runtime@7.29.7)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(tailwindcss@4.2.2)(typescript@5.9.3))(@openzeppelin/ui-types@3.5.2)(@openzeppelin/ui-utils@4.0.1)(@stellar/stellar-base@14.1.0)(bufferutil@4.1.0)(near-api-js@5.1.1)(react-dom@19.2.4(react@19.2.4))(react-hook-form@7.79.0(react@19.2.4))(react@19.2.4)(typescript@5.9.3)(utf-8-validate@6.0.6))(vite@7.3.5(@types/node@24.12.2)(jiti@2.7.0)(lightningcss@1.32.0)(yaml@2.8.3))
+        version: 12.0.0(@openzeppelin/adapter-evm@5.0.0(d22739b92996c0402db66ec4d04aea0b))(@openzeppelin/adapter-polkadot@7.0.0(00ac30fa50dc15e2db07ffc6bdeed08c))(@openzeppelin/adapter-stellar@4.0.1(@openzeppelin/ui-components@3.12.0(@babel/runtime@7.29.7)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(tailwindcss@4.2.2)(typescript@5.9.3))(@openzeppelin/ui-types@3.5.2)(@openzeppelin/ui-utils@4.0.1)(@stellar/stellar-base@14.1.0)(bufferutil@4.1.0)(near-api-js@5.1.1)(react-dom@19.2.4(react@19.2.4))(react-hook-form@7.79.0(react@19.2.4))(react@19.2.4)(typescript@5.9.3)(utf-8-validate@6.0.6))(vite@7.3.5(@types/node@24.12.2)(jiti@2.7.0)(lightningcss@1.32.0)(yaml@2.8.3))
       '@tailwindcss/vite':
         specifier: ^4.3.0
         version: 4.3.0(vite@7.3.5(@types/node@24.12.2)(jiti@2.7.0)(lightningcss@1.32.0)(yaml@2.8.3))
@@ -1140,9 +1138,11 @@ packages:
       viem: ^2.35.0
       wagmi: ^2.15.0
 
-  '@openzeppelin/adapter-polkadot@5.0.0':
-    resolution: {integrity: sha512-1IzyPOpx6eI2NyLinZeE0/vv42DvqmsP/IuMCGgmSfrtWVUbZisuP5Rb+oIW08FdkAZOsl3FrREcjKbX7l1X/g==}
+  '@openzeppelin/adapter-polkadot@7.0.0':
+    resolution: {integrity: sha512-J7Jnb9v/9l56sWCFz6lU5Ancv7D8TxIuW17ks8D/HCmf5uRrtgRarrCQvZxLcrR0e9bFwjzEl+1oU1ujm0oeOg==}
     peerDependencies:
+      '@openzeppelin/ui-components': ^3.9.0
+      '@openzeppelin/ui-react': ^3.3.2
       '@openzeppelin/ui-types': 3.5.2
       '@openzeppelin/ui-utils': 4.0.1
       '@rainbow-me/rainbowkit': ^2.2.8
@@ -5781,14 +5781,6 @@ packages:
   preact@10.24.2:
     resolution: {integrity: sha512-1cSoF0aCC8uaARATfrlz4VCBqE8LwZwRfLgkxJOQwAlQt6ayTmi0D9OF7nXid1POI5SZidFuG9CnlXbDfLqY/Q==}
 
-  preact@10.29.7:
-    resolution: {integrity: sha512-DCHYrK/B10yUD3ZjLfhZ3WIE/9Vf9VFUODcRE2dRomTYDpJk6z6L9wecSfhfE6M9ZTHUdyQkoC46arIDhEV84Q==}
-    peerDependencies:
-      preact-render-to-string: '>=5'
-    peerDependenciesMeta:
-      preact-render-to-string:
-        optional: true
-
   preact@10.29.8:
     resolution: {integrity: sha512-ej2aVZ+vZ8WO7tvlQWRM9N63A0KzF9q4mWJfDUHgYaIofWY9hu74QdnQrjoPMmZi2/nZ5gN0bJCQF49xQqx09Q==}
     peerDependencies:
@@ -7396,7 +7388,7 @@ snapshots:
       '@noble/hashes': 1.8.0
       clsx: 1.2.1
       eventemitter3: 5.0.4
-      preact: 10.29.7
+      preact: 10.29.8
     transitivePeerDependencies:
       - preact-render-to-string
 
@@ -8227,10 +8219,11 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@openzeppelin/adapter-polkadot@5.0.0(602c1e5ca1a5ce40beb1fbe3d43374ed)':
+  '@openzeppelin/adapter-polkadot@7.0.0(00ac30fa50dc15e2db07ffc6bdeed08c)':
     dependencies:
       '@openzeppelin/relayer-sdk': 1.9.0
       '@openzeppelin/ui-components': 3.12.0(@babel/runtime@7.29.7)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(tailwindcss@4.2.2)(typescript@5.9.3)
+      '@openzeppelin/ui-react': 3.3.2(@babel/runtime@7.29.7)(@tanstack/react-query@5.90.21(react@19.2.4))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(tailwindcss@4.2.2)(typescript@5.9.3)
       '@openzeppelin/ui-types': 3.5.2
       '@openzeppelin/ui-utils': 4.0.1
       '@rainbow-me/rainbowkit': 2.2.10(@tanstack/react-query@5.90.21(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3)(viem@2.47.10(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@4.3.6))(wagmi@2.19.5(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.21(react@19.2.4))(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.4)(typescript@5.9.3)(utf-8-validate@6.0.6)(viem@2.47.10(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@4.3.6))(zod@4.3.6))
@@ -8245,17 +8238,13 @@ snapshots:
       viem: 2.47.10(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@4.3.6)
       wagmi: 2.19.5(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.21(react@19.2.4))(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.4)(typescript@5.9.3)(utf-8-validate@6.0.6)(viem@2.47.10(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@4.3.6))(zod@4.3.6)
     transitivePeerDependencies:
-      - '@babel/runtime'
-      - '@pierre/trees'
       - '@tanstack/query-core'
       - '@types/react'
-      - '@types/react-dom'
       - bufferutil
       - debug
       - immer
       - preact-render-to-string
       - supports-color
-      - tailwindcss
       - typescript
       - use-sync-external-store
       - utf-8-validate
@@ -8287,12 +8276,12 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  '@openzeppelin/adapters-vite@12.0.0(@openzeppelin/adapter-evm@5.0.0(d22739b92996c0402db66ec4d04aea0b))(@openzeppelin/adapter-polkadot@5.0.0(602c1e5ca1a5ce40beb1fbe3d43374ed))(@openzeppelin/adapter-stellar@4.0.1(@openzeppelin/ui-components@3.12.0(@babel/runtime@7.29.7)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(tailwindcss@4.2.2)(typescript@5.9.3))(@openzeppelin/ui-types@3.5.2)(@openzeppelin/ui-utils@4.0.1)(@stellar/stellar-base@14.1.0)(bufferutil@4.1.0)(near-api-js@5.1.1)(react-dom@19.2.4(react@19.2.4))(react-hook-form@7.79.0(react@19.2.4))(react@19.2.4)(typescript@5.9.3)(utf-8-validate@6.0.6))(vite@7.3.5(@types/node@24.12.2)(jiti@2.7.0)(lightningcss@1.32.0)(yaml@2.8.3))':
+  '@openzeppelin/adapters-vite@12.0.0(@openzeppelin/adapter-evm@5.0.0(d22739b92996c0402db66ec4d04aea0b))(@openzeppelin/adapter-polkadot@7.0.0(00ac30fa50dc15e2db07ffc6bdeed08c))(@openzeppelin/adapter-stellar@4.0.1(@openzeppelin/ui-components@3.12.0(@babel/runtime@7.29.7)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(tailwindcss@4.2.2)(typescript@5.9.3))(@openzeppelin/ui-types@3.5.2)(@openzeppelin/ui-utils@4.0.1)(@stellar/stellar-base@14.1.0)(bufferutil@4.1.0)(near-api-js@5.1.1)(react-dom@19.2.4(react@19.2.4))(react-hook-form@7.79.0(react@19.2.4))(react@19.2.4)(typescript@5.9.3)(utf-8-validate@6.0.6))(vite@7.3.5(@types/node@24.12.2)(jiti@2.7.0)(lightningcss@1.32.0)(yaml@2.8.3))':
     dependencies:
       vite: 7.3.5(@types/node@24.12.2)(jiti@2.7.0)(lightningcss@1.32.0)(yaml@2.8.3)
     optionalDependencies:
       '@openzeppelin/adapter-evm': 5.0.0(d22739b92996c0402db66ec4d04aea0b)
-      '@openzeppelin/adapter-polkadot': 5.0.0(602c1e5ca1a5ce40beb1fbe3d43374ed)
+      '@openzeppelin/adapter-polkadot': 7.0.0(00ac30fa50dc15e2db07ffc6bdeed08c)
       '@openzeppelin/adapter-stellar': 4.0.1(@openzeppelin/ui-components@3.12.0(@babel/runtime@7.29.7)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(tailwindcss@4.2.2)(typescript@5.9.3))(@openzeppelin/ui-types@3.5.2)(@openzeppelin/ui-utils@4.0.1)(@stellar/stellar-base@14.1.0)(bufferutil@4.1.0)(near-api-js@5.1.1)(react-dom@19.2.4(react@19.2.4))(react-hook-form@7.79.0(react@19.2.4))(react@19.2.4)(typescript@5.9.3)(utf-8-validate@6.0.6)
 
   '@openzeppelin/relayer-sdk@1.9.0':
@@ -13148,8 +13137,6 @@ snapshots:
       source-map-js: 1.2.1
 
   preact@10.24.2: {}
-
-  preact@10.29.7: {}
 
   preact@10.29.8: {}
 
