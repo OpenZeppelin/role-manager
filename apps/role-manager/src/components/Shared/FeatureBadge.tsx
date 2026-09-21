@@ -5,7 +5,7 @@
  * with consistent styling across the application.
  * Optionally wraps with a tooltip when `tooltip` is provided.
  */
-import { Tooltip, TooltipContent, TooltipTrigger } from '@openzeppelin/ui-components';
+import { Badge, Tooltip, TooltipContent, TooltipTrigger } from '@openzeppelin/ui-components';
 import { cn } from '@openzeppelin/ui-utils';
 
 import type { FeatureBadgeVariant } from '../../constants/capabilities';
@@ -13,7 +13,7 @@ import type { FeatureBadgeVariant } from '../../constants/capabilities';
 export type { FeatureBadgeVariant };
 
 interface FeatureBadgeProps {
-  children: React.ReactNode;
+  children: string;
   variant: FeatureBadgeVariant;
   tooltip?: string;
   className?: string;
@@ -36,17 +36,12 @@ export function FeatureBadge({
   className,
 }: FeatureBadgeProps): React.ReactElement {
   const badge = (
-    <span
-      className={cn(
-        'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
-        variantClasses[variant],
-        tooltip && 'cursor-default',
-        className
-      )}
-      {...(tooltip ? { tabIndex: 0, role: 'note' } : {})}
-    >
-      {children}
-    </span>
+    <Badge
+      label={children}
+      variant="filled"
+      tone="neutral"
+      className={cn('px-2.5', variantClasses[variant], tooltip && 'cursor-default', className)}
+    />
   );
 
   if (!tooltip) return badge;

@@ -35,10 +35,6 @@ export { AccountsTable } from './AccountsTable';
 
 export { ManageRolesDialog } from './ManageRolesDialog';
 
-// Re-export shared components for convenience
-export { OutlineBadge } from '../Shared/OutlineBadge';
-export { StatusBadge } from '../Shared/StatusBadge';
-
 // =============================================================================
 // Mock Data (for development/demo)
 // =============================================================================
@@ -69,10 +65,6 @@ export type {
   RoleBadgeInfo,
   SelectionState,
 } from '../../types/authorized-accounts';
-
-// Re-export shared types
-export type { OutlineBadgeProps } from '../Shared/OutlineBadge';
-export type { StatusBadgeProps, StatusBadgeVariant } from '../Shared/StatusBadge';
 
 export {
   ACCOUNT_ACTIONS,
