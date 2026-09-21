@@ -20,11 +20,9 @@
 
 import { Crown, Shield } from 'lucide-react';
 
-import { Tooltip, TooltipContent, TooltipTrigger } from '@openzeppelin/ui-components';
-import { cn } from '@openzeppelin/ui-utils';
+import { Badge, Tooltip, TooltipContent, TooltipTrigger } from '@openzeppelin/ui-components';
 
 import type { PendingTransferType } from '../../types/pending-transfers';
-import { OutlineBadge } from './OutlineBadge';
 
 // =============================================================================
 // Types
@@ -105,37 +103,22 @@ export function RoleTypeBadge({ type, roleName, label, className, onClick }: Rol
   // official Contract Admin two-step transfer events only (T042)
   const isContractAdmin = type === 'admin';
 
-  // Determine if icon should be shown
-  const hasIcon = isOwner || isContractAdmin;
-
-  // Clickable styles when onClick is provided
-  const clickableStyles = onClick
-    ? 'cursor-pointer hover:bg-accent/50 transition-colors'
-    : undefined;
-
   const badge = (
-    <OutlineBadge
-      className={cn(hasIcon && 'gap-1', clickableStyles, className)}
-      onClick={onClick}
-      role={onClick ? 'button' : undefined}
-      tabIndex={onClick ? 0 : undefined}
-      onKeyDown={
-        onClick
-          ? (e: React.KeyboardEvent) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                onClick();
-              }
-            }
-          : undefined
+    <Badge
+      label={displayLabel}
+      variant="outline"
+      tone="neutral"
+      icon={
+        isOwner ? (
+          <Crown className="text-blue-600" />
+        ) : isContractAdmin ? (
+          <Shield className="text-purple-600" />
+        ) : undefined
       }
-    >
-      {isOwner && <Crown className="h-3 w-3 text-blue-600" aria-label="Owner role" />}
-      {isContractAdmin && (
-        <Shield className="h-3 w-3 text-purple-600" aria-label="Contract Admin role" />
-      )}
-      {displayLabel}
-    </OutlineBadge>
+      iconLabel={isOwner ? 'Owner role' : isContractAdmin ? 'Contract Admin role' : undefined}
+      onActivate={onClick ? () => onClick() : undefined}
+      className={className}
+    />
   );
 
   // Wrap with tooltip when clickable

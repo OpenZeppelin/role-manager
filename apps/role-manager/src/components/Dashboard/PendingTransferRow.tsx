@@ -14,6 +14,7 @@
 
 import { ArrowRight, Clock } from 'lucide-react';
 
+import { Badge } from '@openzeppelin/ui-components';
 import { cn } from '@openzeppelin/ui-utils';
 
 import { useBlockTime } from '../../context/useBlockTime';
@@ -26,7 +27,7 @@ import {
   hasNoExpiration,
   isTimestampBasedExpiration,
 } from '../../utils/expiration';
-import { AcceptTransferButton, RoleTypeBadge, StatusBadge } from '../Shared';
+import { AcceptTransferButton, RoleTypeBadge } from '../Shared';
 import { ResolvedAddressDisplay } from '../Shared/ResolvedAddressDisplay';
 
 // =============================================================================
@@ -132,7 +133,7 @@ export function PendingTransferRow({ transfer, currentBlock, onAccept }: Pending
             )}
           </div>
         ) : transfer.isExpired ? (
-          <StatusBadge variant="error">Expired</StatusBadge>
+          <Badge label="Expired" variant="solid" tone="danger" />
         ) : (
           <div className="flex flex-col">
             <span className="font-mono text-muted-foreground">

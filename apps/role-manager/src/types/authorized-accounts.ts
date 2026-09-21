@@ -34,12 +34,12 @@ export const ACCOUNT_STATUS_CONFIG: Record<
   AccountStatus,
   {
     label: string;
-    variant: 'success' | 'warning' | 'info';
+    tone: 'success' | 'warning' | 'info';
   }
 > = {
-  active: { label: 'Active', variant: 'success' },
-  pending: { label: 'Pending', variant: 'warning' },
-  'awaiting-signature': { label: 'Awaiting Signature', variant: 'info' },
+  active: { label: 'Active', tone: 'success' },
+  pending: { label: 'Pending', tone: 'warning' },
+  'awaiting-signature': { label: 'Awaiting Signature', tone: 'info' },
 };
 
 // =============================================================================

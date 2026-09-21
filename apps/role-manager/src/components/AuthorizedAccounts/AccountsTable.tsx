@@ -3,7 +3,7 @@
 import { Edit } from 'lucide-react';
 import { useMemo } from 'react';
 
-import { Button, DataTable, type DataTableColumn } from '@openzeppelin/ui-components';
+import { Badge, Button, DataTable, type DataTableColumn } from '@openzeppelin/ui-components';
 
 import type { PaginationControls } from '../../hooks/useAuthorizedAccountsPageData';
 import { useSelectedContract } from '../../hooks/useSelectedContract';
@@ -16,8 +16,6 @@ import { formatDateTime } from '../../utils/date';
 import { scrollMainToTop } from '../../utils/scroll';
 import { ResolvedAddressDisplay } from '../Shared/ResolvedAddressDisplay';
 import { RoleTypeBadge } from '../Shared/RoleTypeBadge';
-import { StatusBadge } from '../Shared/StatusBadge';
-import { YouBadge } from '../Shared/YouBadge';
 
 /**
  * Props for AccountsTable component
@@ -73,7 +71,14 @@ export function AccountsTable({
                 className="font-mono text-sm"
               />
               {connectedAddress &&
-                account.address.toLowerCase() === connectedAddress.toLowerCase() && <YouBadge />}
+                account.address.toLowerCase() === connectedAddress.toLowerCase() && (
+                  <Badge
+                    label="You"
+                    variant="outline"
+                    tone="info"
+                    aria-label="This is your account"
+                  />
+                )}
             </div>
           ),
         },
@@ -81,11 +86,10 @@ export function AccountsTable({
           id: 'status',
           header: 'Status',
           headerClassName: 'w-24',
-          cell: (account) => (
-            <StatusBadge variant={ACCOUNT_STATUS_CONFIG[account.status].variant}>
-              {ACCOUNT_STATUS_CONFIG[account.status].label}
-            </StatusBadge>
-          ),
+          cell: (account) => {
+            const status = ACCOUNT_STATUS_CONFIG[account.status];
+            return <Badge label={status.label} variant="solid" tone={status.tone} />;
+          },
         },
         {
           id: 'dateAdded',

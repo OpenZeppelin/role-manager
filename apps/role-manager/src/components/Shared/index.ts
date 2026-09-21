@@ -6,14 +6,11 @@
 
 export { EmptyState } from './EmptyState';
 export { FeatureBadge } from './FeatureBadge';
-export { OutlineBadge } from './OutlineBadge';
 export { PageEmptyState } from './PageEmptyState';
 export { RoleTypeBadge } from './RoleTypeBadge';
 export { PageHeader } from './PageHeader';
 export { SelectLoadingPlaceholder } from './SelectLoadingPlaceholder';
 export { Skeleton } from './Skeleton';
-export { StatusBadge } from './StatusBadge';
-export { YouBadge } from './YouBadge';
 
 // Role Dialog Components (Feature: 014-role-grant-revoke)
 export { SelfRevokeWarning } from './SelfRevokeWarning';
@@ -65,12 +62,9 @@ export type {
 export { RoleFilterItem } from './RoleFilterItem';
 
 // Types
-export type { OutlineBadgeProps } from './OutlineBadge';
 export type { RoleTypeBadgeProps } from './RoleTypeBadge';
 export type { SelectLoadingPlaceholderProps } from './SelectLoadingPlaceholder';
 export type { SkeletonProps } from './Skeleton';
-export type { StatusBadgeProps, StatusBadgeVariant } from './StatusBadge';
-export type { YouBadgeProps } from './YouBadge';
 
 // Role Dialog Component Types (Feature: 014-role-grant-revoke)
 export type { SelfRevokeWarningProps } from './SelfRevokeWarning';

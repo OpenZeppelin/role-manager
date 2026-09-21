@@ -9,7 +9,7 @@
  * Note: API types (HistoryEntry, PageInfo, etc.) are imported from @openzeppelin/ui-types
  */
 
-import type { DataTableServerPagination } from '@openzeppelin/ui-components';
+import type { BadgeTone, DataTableServerPagination } from '@openzeppelin/ui-components';
 import type {
   HistoryChangeType,
   HistoryEntry,
@@ -139,23 +139,23 @@ export const DEFAULT_HISTORY_FILTER_STATE: HistoryFilterState = {
 
 /**
  * Display configuration for action types.
- * Note: Variants align with StatusBadge component variants
+ * Badge tone for each action type.
  */
 export interface ActionTypeConfig {
   label: string;
-  variant: 'success' | 'error' | 'warning' | 'info';
+  tone: BadgeTone;
 }
 
 export const ACTION_TYPE_CONFIG: Record<RoleChangeAction, ActionTypeConfig> = {
-  grant: { label: 'Grant', variant: 'success' },
-  revoke: { label: 'Revoke', variant: 'error' },
-  'ownership-transfer': { label: 'Ownership Transfer', variant: 'info' },
-  'ownership-renounced': { label: 'Ownership Renounced', variant: 'error' },
-  'admin-transfer': { label: 'Admin Transfer', variant: 'info' },
-  'admin-transfer-canceled': { label: 'Transfer Canceled', variant: 'warning' },
-  'admin-renounced': { label: 'Admin Renounced', variant: 'error' },
-  'admin-delay': { label: 'Admin Delay', variant: 'warning' },
-  unknown: { label: 'Unknown', variant: 'warning' },
+  grant: { label: 'Grant', tone: 'success' },
+  revoke: { label: 'Revoke', tone: 'danger' },
+  'ownership-transfer': { label: 'Ownership Transfer', tone: 'info' },
+  'ownership-renounced': { label: 'Ownership Renounced', tone: 'danger' },
+  'admin-transfer': { label: 'Admin Transfer', tone: 'info' },
+  'admin-transfer-canceled': { label: 'Transfer Canceled', tone: 'warning' },
+  'admin-renounced': { label: 'Admin Renounced', tone: 'danger' },
+  'admin-delay': { label: 'Admin Delay', tone: 'warning' },
+  unknown: { label: 'Unknown', tone: 'warning' },
 };
 
 // =============================================================================

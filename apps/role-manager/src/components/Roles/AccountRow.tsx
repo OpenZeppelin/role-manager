@@ -12,14 +12,13 @@
 
 import { Ban, Trash2 } from 'lucide-react';
 
-import { Button } from '@openzeppelin/ui-components';
+import { Badge, Button } from '@openzeppelin/ui-components';
 import { cn } from '@openzeppelin/ui-utils';
 
 import { useSelectedContract } from '../../hooks/useSelectedContract';
 import { formatDateTime } from '../../utils/date';
 import { ResolvedAddressDisplay } from '../Shared/ResolvedAddressDisplay';
 import { TransferRoleButton } from '../Shared/TransferRoleButton';
-import { YouBadge } from '../Shared/YouBadge';
 
 /**
  * Props for AccountRow component - updated for real member data (T031)
@@ -93,7 +92,9 @@ export function AccountRow({
           explorerUrl={explorerUrl}
         />
         {/* T032: "You" badge - shown when isCurrentUser is true */}
-        {isCurrentUser && <YouBadge />}
+        {isCurrentUser && (
+          <Badge label="You" variant="outline" tone="info" aria-label="This is your account" />
+        )}
       </div>
       <div className="flex items-center gap-2">
         {isOwnerRole ? (

@@ -19,7 +19,7 @@
 
 import { Edit } from 'lucide-react';
 
-import { Button, Checkbox } from '@openzeppelin/ui-components';
+import { Badge, Button, Checkbox } from '@openzeppelin/ui-components';
 import { cn } from '@openzeppelin/ui-utils';
 
 import { useSelectedContract } from '../../hooks/useSelectedContract';
@@ -31,8 +31,6 @@ import {
 import { formatDateTime } from '../../utils/date';
 import { ResolvedAddressDisplay } from '../Shared/ResolvedAddressDisplay';
 import { RoleTypeBadge } from '../Shared/RoleTypeBadge';
-import { StatusBadge } from '../Shared/StatusBadge';
-import { YouBadge } from '../Shared/YouBadge';
 
 /**
  * Props for AccountRow component
@@ -103,15 +101,19 @@ export function AccountRow({
             className="font-mono text-sm"
           />
           {/* "You" badge - shown when account matches connected wallet */}
-          {isCurrentUser && <YouBadge />}
+          {isCurrentUser && (
+            <Badge label="You" variant="outline" tone="info" aria-label="This is your account" />
+          )}
         </div>
       </td>
 
       {/* Status badge */}
       <td className="p-4">
-        <StatusBadge variant={ACCOUNT_STATUS_CONFIG[account.status].variant}>
-          {ACCOUNT_STATUS_CONFIG[account.status].label}
-        </StatusBadge>
+        <Badge
+          label={ACCOUNT_STATUS_CONFIG[account.status].label}
+          variant="solid"
+          tone={ACCOUNT_STATUS_CONFIG[account.status].tone}
+        />
       </td>
 
       {/* Date Added - display "-" if unavailable */}

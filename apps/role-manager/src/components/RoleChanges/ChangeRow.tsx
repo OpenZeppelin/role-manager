@@ -12,7 +12,7 @@
  * Tasks: T006
  */
 
-import { AddressDisplay } from '@openzeppelin/ui-components';
+import { AddressDisplay, Badge } from '@openzeppelin/ui-components';
 import { cn } from '@openzeppelin/ui-utils';
 
 import { useSelectedContract } from '../../hooks/useSelectedContract';
@@ -20,7 +20,6 @@ import { ACTION_TYPE_CONFIG, type RoleChangeEventView } from '../../types/role-c
 import { formatDateTime } from '../../utils/date';
 import { ResolvedAddressDisplay } from '../Shared/ResolvedAddressDisplay';
 import { RoleTypeBadge } from '../Shared/RoleTypeBadge';
-import { StatusBadge } from '../Shared/StatusBadge';
 
 /**
  * Props for ChangeRow component
@@ -71,7 +70,7 @@ export function ChangeRow({ event, onRoleClick }: ChangeRowProps) {
 
       {/* Action badge */}
       <td className="p-4">
-        <StatusBadge variant={actionConfig.variant}>{actionConfig.label}</StatusBadge>
+        <Badge label={actionConfig.label} variant="solid" tone={actionConfig.tone} />
       </td>
 
       {/* Role badge - pass type for special icons (Owner crown, Contract Admin shield) */}

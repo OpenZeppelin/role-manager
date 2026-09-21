@@ -3,7 +3,7 @@
 import { ArrowRight, Clock } from 'lucide-react';
 import { useMemo } from 'react';
 
-import { DataTable, type DataTableColumn } from '@openzeppelin/ui-components';
+import { Badge, DataTable, type DataTableColumn } from '@openzeppelin/ui-components';
 
 import { useBlockTime } from '../../context/useBlockTime';
 import { useSelectedContract } from '../../hooks/useSelectedContract';
@@ -15,7 +15,7 @@ import {
   hasNoExpiration,
   isTimestampBasedExpiration,
 } from '../../utils/expiration';
-import { AcceptTransferButton, RoleTypeBadge, StatusBadge } from '../Shared';
+import { AcceptTransferButton, RoleTypeBadge } from '../Shared';
 import { ResolvedAddressDisplay } from '../Shared/ResolvedAddressDisplay';
 
 // =============================================================================
@@ -121,7 +121,9 @@ export function PendingTransfersTable({
                 </div>
               );
             }
-            if (transfer.isExpired) return <StatusBadge variant="error">Expired</StatusBadge>;
+            if (transfer.isExpired) {
+              return <Badge label="Expired" variant="solid" tone="danger" />;
+            }
             return (
               <div className="flex flex-col">
                 <span className="font-mono text-muted-foreground">

@@ -2,7 +2,12 @@
 
 import { useMemo } from 'react';
 
-import { AddressDisplay, DataTable, type DataTableColumn } from '@openzeppelin/ui-components';
+import {
+  AddressDisplay,
+  Badge,
+  DataTable,
+  type DataTableColumn,
+} from '@openzeppelin/ui-components';
 
 import { useSelectedContract } from '../../hooks/useSelectedContract';
 import {
@@ -14,7 +19,6 @@ import { formatDateTime } from '../../utils/date';
 import { scrollMainToTop } from '../../utils/scroll';
 import { ResolvedAddressDisplay } from '../Shared/ResolvedAddressDisplay';
 import { RoleTypeBadge } from '../Shared/RoleTypeBadge';
-import { StatusBadge } from '../Shared/StatusBadge';
 
 /**
  * Props for ChangesTable component
@@ -56,7 +60,7 @@ export function ChangesTable({
           headerClassName: 'w-32',
           cell: (event) => {
             const actionConfig = ACTION_TYPE_CONFIG[event.action];
-            return <StatusBadge variant={actionConfig.variant}>{actionConfig.label}</StatusBadge>;
+            return <Badge label={actionConfig.label} variant="solid" tone={actionConfig.tone} />;
           },
         },
         {
